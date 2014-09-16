@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.views import generic
 
 from news.models import Announcement
-from team.models import TeamMember
 
 site = {
     "title": "Chameleon Cloud",
@@ -20,9 +19,3 @@ def home(request):
     context = dict(site.items() + my_data.items())
 
     return render(request, 'index.html', context)
-
-def about(request):
-    context = {"team_members": TeamMember.objects.all()}
-    context = dict(site.items() + context.items())
-    return render(request, 'about.html', context)
-
