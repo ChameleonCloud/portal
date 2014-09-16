@@ -1,0 +1,61 @@
+{% extends "layout/front.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+
+<p>
+
+<p>Chameleon is currently in an initial transition phase. We provide virtual environments using OpenStack on
+our legacy FutureGrid clusters (Alamo and Hotel). We'll provide additional functionality and new hardware in
+the future!  Please see our <a href="/news/announcement/2/">schedule</a> for more information.</p>
+
+<h2>Getting Started</h2>
+
+<div class="row">
+<div class="col-6">
+
+<p>If you are performing research and development on large-scale cloud software and platforms, Chameleon is
+for you! To get started:
+<ol>
+<li><a href="">Register for an account</a></li>
+<li><a href="">Request an allocation.</a></li>
+<li>Follow our <a href="documentation/user-guides/openstack-icehouse-user-guide.html">OpenStack User Guide</a></li>
+</ol>
+</p>
+
+<p>In the near future, we'll also be supporting research on cloud infrastructure.</p>
+
+</div>
+
+<div class="col-6">
+
+<article class="block">
+
+<h2>FutureGrid Users</h2>
+
+<p>All active FutureGrid users and projects have been imported into Chameleon. To begin using Chameleon, all you need to do is:
+<ol>
+<li> <a href="">Claim your account</a>
+<li> <a href="">Activate your allocation</a>
+</ol>
+</p>
+
+<p>
+
+</article>
+
+</div>
+</div>
+
+<h2>Recent News</h2>
+
+  {% for announcement in announcements %}
+  <div class="col-6">
+    {% include "news/includes/announcement_block.html" %}
+  </div>
+  {% endfor %}
+
+      </div>
+    </div>
+{% endblock %}

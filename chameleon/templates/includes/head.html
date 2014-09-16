@@ -1,0 +1,17 @@
+{% load staticfiles %}
+{% load compressed %}
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <!-- <meta name="viewport" content="width=device-width">  -->
+    <meta name="description" content="{{ site.description }}">
+    <link rel="icon" href="{% static "images/favicon.ico" %}">
+    <link rel="canonical" href="{{request.get_full_path}}">
+
+    <!-- Custom CSS -->
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+    {% compressed_css "main" %}
+
+</head>

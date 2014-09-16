@@ -1,0 +1,29 @@
+{% load staticfiles %}
+{% load menu %} {% generate_menu %}
+
+<header class="site-header">
+  <div class="container">
+    <nav class="navbar">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="{{ site.baseurl }}/">
+          <img height="60" width="206" src="{% static "images/logo.png" %}" alt="Chameleon">
+          <span class="sr-only">{{ site.title }}</span>
+        </a>
+      </div>
+      <ul class="nav navbar-nav">
+	{% for item in menus.main %}
+          <li {% if item.url == request.path %}class="active"{% endif %}>
+            <a href="{{ item.url }}">{{ item.title }}</a>
+            {% if item.children %}
+              <ul>
+                {% for child_item in item.children %}
+                  <li><a href="{{ child_item.url }}">{{ child_item.title }}</a></li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
+	{% endfor %}
+      </ul>
+    </nav>
+  </div>
+</header>

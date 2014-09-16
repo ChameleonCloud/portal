@@ -1,0 +1,20 @@
+.team-member {
+  font-size: 0.8em;
+  border-bottom: 2px solid $success;
+  margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  @include clearfix();
+
+  img {
+    float: right;
+    width: 80px;
+  }
+
+  h4 {
+    font-size: 1.25em;
+  }
+
+  section {
+    padding-bottom: 0.5em;
+  }
+}

@@ -1,0 +1,16 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+<h1><a href="announcement/">Announcements</a></h1>
+
+{% include "news/includes/announcements.html" %}
+
+<h1><a href="event/">Events</a></h1>
+
+{% include "news/includes/events.html" %}
+
+<h1><a href="outage/">Outages</a></h1>
+
+{% include "news/includes/outages.html" %}
+
+{% endblock %}

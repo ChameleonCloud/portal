@@ -1,0 +1,16 @@
+
+{% if outages %}
+<table>
+<tr><th>Date</th><th>Title</th><th>Description</th><tr>
+{% for outage in outages %}
+<tr>
+  <td>{{outage.publish_date.date}}</td>
+  <td><a href="outage/{{outage.id}}">{{outage.title}}</a></td>
+  <td>{{outage.short_description}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% else %}
+  <p>No outages have been posted.</p>
+{% endif %}

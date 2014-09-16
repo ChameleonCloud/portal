@@ -1,0 +1,17 @@
+{% load markdown_deux_tags %}
+
+<article>
+
+  <header class="post-header">
+    <h1>{{announcement.title}}</h1>
+    <p class="meta">Posted {{announcement.publish_date.date}} • {{announcement.author}}</p>
+  </header>
+
+  <section class="post-content">
+  {% if announcement.image %}<img src="/static/{{announcement.image}}">{% endif %}
+  <p>{{announcement.short_description}}</p>
+  <p>{{announcement.long_description|markdown}}</p>
+  </section>
+
+</article>
+

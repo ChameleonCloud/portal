@@ -1,0 +1,27 @@
+{% load staticfiles %}
+
+<article class="block">
+  {% if announcement.image %}
+    <div class="row">
+      <div class="col-4">
+        <div class="block-image">
+          <img src="/static/{{announcement.image}}">
+        </div>
+      </div>
+      <div class="col-8">
+        <h2>
+          <a href="/news/announcement/{{ announcement.id }}">{{ announcement.title }}</a>
+          <small class="post-date"> - {{ announcement.publish_date.date }}</small>
+        </h2>
+        <div class="excerpt">{{ announcement.short_description }}</div>
+      </div>
+    </div>
+  {% else %}
+    <h2>
+      <a href="/news/announcement/{{ announcement.id }}">{{ announcement.title }}</a>
+      <small class="post-date"> - {{ announcement.publish_date.date }}</small>
+    </h2>
+    <div class="excerpt">{{ announcement.short_description }}</div>
+  {% endif %}
+  <a class="read-more" href="/news/announcement/{{ announcement.id }}">Read more</a>
+</article>

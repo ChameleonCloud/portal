@@ -1,0 +1,22 @@
+/* colors */
+$primary: #9ad61a;
+$info: #239ff0;
+$success: #74a93c;
+$danger: red;
+$grey: #7e7e7e;
+$darkGrey: #494949;
+$lightGrey: #f2f2f2;
+// wsmith made the grey a little lighter
+$origLightGrey: #e5e5e5;
+
+$linkColor: #4564E2;
+$linkColorActive: darken(#4564E2, 10%);
+$linkColorHover: $linkColorActive;
+
+/* grid */
+$columnWidth: 60px;
+$gutterWidth: 20px;
+$fullWidth: 12 * ($columnWidth + $gutterWidth);
+
+/* fontawesome */
+$fa-font-path: "../fonts/fontawesome";

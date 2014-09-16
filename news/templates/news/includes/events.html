@@ -1,0 +1,16 @@
+
+{% if events %}
+<table>
+<tr><th>Date</th><th>Title</th><th>Description</th><tr>
+{% for event in events %}
+<tr>
+  <td>{{event.publish_date.date}}</td>
+  <td><a href="event/{{event.id}}">{{event.title}}</a></td>
+  <td>{{event.short_description}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% else %}
+  <p>No events have been posted.</p>
+{% endif %}

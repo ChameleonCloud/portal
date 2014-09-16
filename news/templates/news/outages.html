@@ -1,0 +1,24 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+<h1>Outages</h1>
+
+{% if recent_outages or older_outages %}
+  {% for outage in recent_outages %}
+  <div class="col-6">
+    {% include "news/includes/outage_block.html" %}
+  </div>
+  {% endfor %}
+  <div class="col-12">
+  {% if older_outages %}
+<h2>Older Outages</h2>
+    {% with older_outages as outages %}
+      {% include "news/includes/outages.html" %}
+    {% endwith %}
+  {% endif %}
+  </div>
+{% else %}
+  <p>No outages have been posted.</p>
+{% endif %}
+
+{% endblock %}

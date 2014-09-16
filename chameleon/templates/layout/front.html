@@ -1,0 +1,39 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+  {% include "includes/head.html" %}
+    <body>
+    {% include "includes/header.html" %}
+    <div class="jumbotron">
+      <div class="container">
+        <div class="row">
+          <div class="col-7">
+            <h1>
+              A configurable experimental environment for large-scale cloud research
+            </h1>
+          </div>
+          <div class="col-5">
+            <div class="text-center">
+              <img src="{% static "images/cloud.png" %}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="container">
+        <div class="social social-front">
+          <a href="https://www.facebook.com/ChameleonCloud"><i class="fa fa-facebook"></i></a>
+          <a href="https://www.linkedin.com/groups?gid=8155241"><i class="fa fa-linkedin"></i></a>
+          <a href="https://twitter.com/ChameleonCloud"><i class="fa fa-twitter"></i></a>
+          <a href="https://plus.google.com/u/0/117460618304656869750/about"><i class="fa fa-google-plus"></i></a>
+          <a href="https://www.youtube.com/user/ChameleonCloud"><i class="fa fa-youtube"></i></a>
+        </div>
+        {% block content %}
+        {% endblock %}
+      </div>
+    </div>
+    {% include "includes/footer.html" %}
+    </body>
+</html>

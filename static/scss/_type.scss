@@ -1,0 +1,33 @@
+body {
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-primary {
+  color: $primary;
+}
+
+.text-info {
+  color: $info;
+}
+
+.text-danger {
+  color: $danger;
+}
+
+.text-muted {
+  color: $grey;
+}

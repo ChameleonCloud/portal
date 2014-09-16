@@ -1,0 +1,85 @@
+.jumbotron {
+  background-image: url(../images/bg.jpg);
+  //background-color: #fff;
+  //background-image: url(../images/nav-bg.jpg);
+  //border-bottom: 3px solid $primary;
+  border-bottom: 3px solid $info;
+  //border-bottom: 1px solid #000;
+  font-size: 1.3em;
+  color: #fff;
+
+  h1 {
+    font-weight: 350;
+    color: $darkGrey;
+    border: 0;
+    line-height: 1.35em;
+  }
+
+  //padding: 20px;
+
+  .fa-jumbo {
+    font-size: 12em;
+    text-shadow:
+      6px 10px 0 $primary,
+      -10px -6px 0 $info;
+  }
+}
+
+.jumbotron-wsmith-green {
+  background-color: #fff;
+  background-image: url(../images/nav-bg.jpg);
+  border-bottom: 2px solid $info;
+  //border-bottom: 1px solid #000;
+  font-size: 1.3em;
+  color: #fff;
+
+  h1 {
+    font-weight: 300;
+    color: #fff;
+    //color: $info;
+    border: 0;
+    line-height: 1.35em;
+  }
+
+  padding: 20px;
+
+  a.read-more {
+    color: $primary;
+    border-color: $primary;
+  }
+
+  .fa-jumbo {
+    font-size: 12em;
+    text-shadow:
+      6px 10px 0 $primary,
+      -10px -6px 0 $info;
+  }
+}
+
+// this is the original one
+.jumbotron-wsmith-orig {
+  background-color: $darkGrey;
+  font-size: 1.3em;
+  color: #fff;
+
+  h1 {
+    font-weight: 300;
+    color: #fff;
+    border: 0;
+    line-height: 1.35em;
+  }
+
+  padding: 20px;
+
+  a.read-more {
+    color: $primary;
+    border-color: $primary;
+  }
+
+  .fa-jumbo {
+    font-size: 12em;
+    text-shadow:
+      6px 10px 0 $primary,
+      -10px -6px 0 $info;
+  }
+}

@@ -1,0 +1,75 @@
+.nav {
+  margin-bottom: 0;
+  padding-left: 0; // Override default ul/ol
+  list-style: none;
+  @include clearfix();
+
+  > li {
+    position: relative;
+    display: block;
+
+    > a {
+      position: relative;
+      display: block;
+    }
+  }
+
+  // Prevent IE8 from misplacing imgs
+  //
+  // See https://github.com/h5bp/html5-boilerplate/issues/984#issuecomment-3985989
+  > li > a > img {
+    max-width: none;
+  }
+}
+
+.navbar {
+  position: relative;
+  min-height: 60px; // Ensure a navbar always shows (e.g., without a .navbar-brand in collapsed mode)
+
+  // Prevent floats from breaking the navbar
+  @include clearfix();
+}
+
+// Navbar heading
+//
+// Groups `.navbar-brand` and `.navbar-toggle` into a single component for easy
+// styling of responsive aspects.
+
+.navbar-header {
+  @include clearfix();
+  float: left;
+}
+
+.navbar-brand {
+  float: left;
+  color: $darkGrey;
+  font-size: 36px;
+  line-height: 60px;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    color: darken($darkGrey, 5%);
+  }
+
+  img {
+    float: left;
+  }
+}
+
+.navbar-nav {
+
+  float: left;
+  height: 60px;
+
+  > li {
+    float: left;
+    > a {
+      line-height: 36px;
+      padding: 12px;
+      color: #fff;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+  }
+}

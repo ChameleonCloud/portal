@@ -1,0 +1,16 @@
+
+{% if announcements %}
+<table>
+<tr><th>Date</th><th>Title</th><th>Description</th><tr>
+{% for announcement in announcements %}
+<tr>
+  <td>{{announcement.publish_date.date}}</td>
+  <td><a href="announcement/{{announcement.id}}">{{announcement.title}}</a></td>
+  <td>{{announcement.short_description}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% else %}
+  <p>No announcements have been posted.</p>
+{% endif %}
