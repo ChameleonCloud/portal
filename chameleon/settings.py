@@ -151,8 +151,8 @@ AUTH_LDAP_GLOBAL_OPTIONS = {
 }
 # Baseline configuration.
 AUTH_LDAP_SERVER_URI = "ldap://129.114.33.180"
-AUTH_LDAP_BIND_DN = "uid=wsmith,ou=people,dc=chameleoncloud,dc=org"
-AUTH_LDAP_BIND_PASSWORD = "myP@ssw0rd"
+AUTH_LDAP_BIND_DN = "cn=portal,dc=chameleoncloud,dc=org"
+AUTH_LDAP_BIND_PASSWORD = "t3mp0rArY"
 AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=people,dc=chameleoncloud,dc=org", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 # or perhaps:
 # AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=users,dc=example,dc=com"
