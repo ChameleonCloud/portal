@@ -31,9 +31,13 @@ Menu.add_item("main", MenuItem("News",
 
 # Project == Allocation? Allocations can have extensions and supplements?
 
+Menu.add_item("main", MenuItem("Help",
+                               "/helpdesk/",
+                               weight=5))
+
 Menu.add_item("main", MenuItem("Admin",
                                "/admin/",
-                               weight=5,
+                               weight=6,
                                check=lambda request: request.user.is_superuser))
 
 Menu.add_item("main", MenuItem("Login",

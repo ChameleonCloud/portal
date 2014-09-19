@@ -37,6 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    # humanize used by helpdisk
+    'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -47,17 +49,21 @@ INSTALLED_APPS = (
     # django-simple-menu
     'menu',
 
-    #'helpdesk',
-
     'markdown_deux',
+    'bootstrapform',
+    'helpdesk',
+
+    'password_reset',
+
+    'django_countries',
 
     # local
     'about',
     'news',
     'status',
     'documentation',
-    # delete team when about is ready
-    #'team',
+    'person',
+    'allocation',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -115,6 +121,9 @@ STATICFILES_DIRS = (
     '/var/www/static/',
 )
 
+MEDIA_ROOT = os.path.join(BASE_DIR,"media")
+MEDIA_URL = '/media/'
+
 #STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
 STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 
@@ -141,6 +150,9 @@ PIPELINE_CSS = {
     },
 }
 
+
+HELPDESK_VIEW_A_TICKET_PUBLIC = False
+HELPDESK_SUBMIT_A_TICKET_PUBLIC = False
 
 import ldap
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, PosixGroupType
