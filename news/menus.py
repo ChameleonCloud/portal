@@ -18,22 +18,18 @@ news_children = (
 )
 
 # the css isn't right for the news_children
-#Menu.add_item("main", MenuItem("News",
-#                               weight=3))
-#                               reverse("news.views.index"),
-#                               children=news_children))
-
 Menu.add_item("main", MenuItem("News",
                                reverse("news.views.index"),
-                               weight=3))
+                               weight=3,
+                               children=news_children))
+
+#Menu.add_item("main", MenuItem("News",
+#                               reverse("news.views.index"),
+#                               weight=3))
 
 # Project menu
 
 # Project == Allocation? Allocations can have extensions and supplements?
-
-Menu.add_item("main", MenuItem("Help",
-                               "/helpdesk/",
-                               weight=5))
 
 Menu.add_item("main", MenuItem("Admin",
                                "/admin/",
