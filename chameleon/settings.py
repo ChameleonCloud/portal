@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'news',
     'status',
     'documentation',
+    'help',
     'person',
     'allocation',
 )
