@@ -25,7 +25,7 @@ class Institution(models.Model):
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=100)
-    country = CountryField()
+    country = CountryField(default="US")
 
     def __unicode__(self):
         return name
@@ -69,12 +69,12 @@ class Person(models.Model):
     )
     institution_role = models.CharField(max_length=2,choices=ROLE)
 
-    citizenship = CountryField()
+    citizenship = CountryField(default="US")
 
     request_PI = models.BooleanField(default=False,
-                                    help_text="request to be able to request allocations")
+                                    help_text="request Chameleon Principal Investigator status (can request allocations)")
     accepted_AUP = models.BooleanField(default=False,
-                                      help_text="agreed to the Chameleon aceptable usage policy")
+                                       help_text="agree to the Chameleon aceptable usage policy")
     roles = models.ManyToManyField(ChameleonRole)
 
 
