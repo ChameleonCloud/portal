@@ -57,8 +57,9 @@
   }
 }
 
-.navbar-nav {
 
+/* wsmith */
+.navbar-nav-orig {
   float: left;
   height: 60px;
 
@@ -73,3 +74,100 @@
     }
   }
 }
+
+/* wsmith - alternate way to express above */
+.navbar-nav {
+  float: left;
+  height: 60px;
+}
+
+.navbar-nav > li {
+  float: left;
+}
+
+.navbar-nav > li > a {
+  line-height: 36px;
+  padding: 12px;
+  color: #fff;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+/* dropdown menus */
+
+ul.navbar-nav ul {
+    position: absolute;
+    left: -9999px;
+    background-image: url(../images/nav-bg.jpg);
+    text-align: left;
+    list-style: none; margin: 0;  
+    padding: 0 1px 10px 0;
+    box-sizing:content-box;
+}
+
+.navbar-nav li li {
+    float: none;
+    white-space:nowrap;
+    height: 26px;
+}
+
+.navbar-nav li li:hover,
+.navbar-nav li li.onhover
+{
+    text-decoration: none;
+    color: darken($darkGrey, 5%);
+}
+
+.navbar-nav ul a
+{
+    padding: 0 20px;
+    line-height: 26px;
+    font-size: 0.9em;
+    font-weight: normal;
+    color: #fff;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+/*
+.navbar-nav ul a:hover
+{
+    color: red;
+}
+*/
+
+.navbar-nav li:hover ul,
+.navbar-nav li.onhover ul
+{
+    left: -1px;
+    top: auto;
+}
+
+.navbar-nav li:hover .dropToLeft,
+.navbar-nav li.onhover .dropToLeft
+{
+    left: auto;
+    right: -1px;
+    top: auto;
+}
+
+.navbar-nav ul ul
+{
+    border-top: 1px solid #DDD;
+}
+
+/*
+.navbar-nav li:hover ul ul, .navbar-nav li:hover ul ul ul, .navbar-nav li:hover ul ul ul ul,
+.navbar-nav li.onhover ul ul, .navbar-nav li.onhover ul ul ul, .navbar-nav li.onhover ul ul ul ul
+{
+    left: -9999px;
+    top:0;
+}
+
+.navbar-nav li li:hover ul, .navbar-nav li li li:hover ul, .navbar-nav li li li li:hover ul,
+.navbar-nav li li.onhover ul, .navbar-nav li li li.onhover ul, .navbar-nav li li li li.onhover ul
+{
+    left: 200px;
+}
+*/
+
