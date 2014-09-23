@@ -2,7 +2,7 @@
 from django.contrib.auth.models import Group
 from django.db import models
 
-from person.models import Person
+from user.models import ChameleonUser
 
 def _descriptionFileLocation(allocation_request, filename):
     (name, extension) = os.path.splitext(filename)
@@ -19,22 +19,23 @@ class Resource(models.Model):
     def __unicode__(self):
         return self.name
 
-class ScienceField(models.CharField):
-    FIELDS = (
-        ("",""),
-    )
-
-    def __init__(self, *args, **kwargs):
-        kwargs["max_length"] = 100
-        kwargs["choices"] = ScienceField.FIELDS
-        models.CharField.__init__(self,*args,**kwargs)
+#class ScienceField(models.CharField):
+#    FIELDS = (
+#        ("",""),
+#    )
+#
+#    def __init__(self, *args, **kwargs):
+#        kwargs["max_length"] = 100
+#        kwargs["choices"] = ScienceField.FIELDS
+#        models.CharField.__init__(self,*args,**kwargs)
 
 # this is an alternative to ScienceField
-#class FieldOfScience(models.Model):
-#    name = models.CharField(max_length=100)
-#
-#    def __unicode__(self):
-#        return self.name
+class FieldOfScience(models.Model):
+    name = models.CharField(max_length=100)
+    #parent = models.OneToOneField(FieldOfScience,blank=True)
+
+    def __unicode__(self):
+        return self.name
 
 # FutureGrid project process:
 #   * create an AllocationRequest for each one
@@ -52,16 +53,17 @@ class AllocationRequest(models.Model):
     name = models.CharField(max_length=100,blank=True,
                             help_text="a short project name - only valid for New allocations")
 
-    abstract = models.CharField(max_length=2000)
+    abstract = models.TextField(max_length=2000)
     key_words = models.CharField(max_length=200)
 
     # The PI for a New allocation, the PI or allocation manager for the others
-    requester = models.OneToOneField(Person,related_name="alloc_req_requester")
+    requester = models.OneToOneField(ChameleonUser,related_name="alloc_req_requester")
 
-    initial_users = models.ManyToManyField(Person,related_name="alloc_req_initial_users")
+    initial_users = models.ManyToManyField(ChameleonUser,related_name="alloc_req_initial_users")
 
-    primary_field_of_science = ScienceField()
-    secondary_field_of_science = ScienceField(blank=True)
+    field_of_science = models.ManyToManyField(FieldOfScience)
+    #primary_field_of_science = ScienceField()
+    #secondary_field_of_science = ScienceField(blank=True)
 
     # should grants be a separate Model?
     nsf_grant = models.CharField(max_length=50,
@@ -89,7 +91,7 @@ class AllocationRequest(models.Model):
     # documents from XSEDE: main document, PI CV, Code performance and scaling
     description = models.FileField(upload_to=_descriptionFileLocation,
                                    blank=True,
-                                   help_text="Project description")
+                                   help_text="project description - required for allocations over ??? units")
     
     resource = models.ManyToManyField(Resource,help_text="the resources you expect to use")
 
@@ -113,8 +115,8 @@ class AllocationRequest(models.Model):
                                            help_text="the number of months granted")
 
 class Allocation(models.Model):
-    principal_investigator = models.OneToOneField(Person,related_name="allocation_pi")
-    allocation_manager = models.OneToOneField(Person,blank=True,related_name="allocation_manager")
+    principal_investigator = models.OneToOneField(ChameleonUser,related_name="allocation_pi")
+    allocation_manager = models.OneToOneField(ChameleonUser,blank=True,related_name="allocation_manager")
 
     # group.name should be a valid Linux group name
     group = models.OneToOneField(Group)
