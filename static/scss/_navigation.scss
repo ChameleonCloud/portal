@@ -43,8 +43,10 @@
 .navbar-brand {
   float: left;
   color: $darkGrey;
-  font-size: 36px;
-  line-height: 60px;
+  /*font-size: 36px;*/
+  /*line-height: 90px;*/
+
+  vertical-align: middle;
 
   &:hover,
   &:focus {
@@ -57,6 +59,20 @@
   }
 }
 
+/* wsmith */
+.navbar-user {
+  float: right;
+
+  > li {
+    float: left;
+    > a {
+      padding-left: 24px;
+      color: #fff;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+  }
+}
 
 /* wsmith */
 .navbar-nav-orig {
