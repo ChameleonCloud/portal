@@ -4,6 +4,11 @@
 <header class="site-header">
   <div class="container">
     <nav class="navbar">
+      <ul class="nav navbar-user">
+	{% for item in menus.user %}
+          <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+	{% endfor %}
+      </ul>
       <div class="navbar-header">
         <a class="navbar-brand" href="{{ site.baseurl }}/">
           <img height="60" width="206" src="{% static "images/logo.png" %}" alt="Chameleon">

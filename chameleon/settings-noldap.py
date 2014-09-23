@@ -61,9 +61,9 @@ INSTALLED_APPS = (
     #'allauth',
     #'allauth.account',
 
-    #'openstack_auth',
+    #'password_reset',
 
-    'password_reset',
+    'openstack_auth',
 
     'django_countries',
 
@@ -82,7 +82,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -162,7 +162,7 @@ PIPELINE_CSS = {
 }
 
 # django-password-reset
-DEFAULT_FROM_EMAIL = "help@chameleoncloud.org"
+DEFAULT_FROM_EMAIL = ""
 # django.core.mail
 EMAIL_HOST = ""
 #EMAIL_PORT = 
@@ -175,75 +175,24 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 HELPDESK_VIEW_A_TICKET_PUBLIC = False
 HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
 
-AUTH_USER_MODEL = "user.ChameleonUser"
+#AUTH_USER_MODEL = "user.ChameleonUser"
+#AUTH_USER_MODEL = "openstack_auth.user.User"
 
-import ldap
-from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, PosixGroupType
+import logging
+#logger = logging.getLogger('django_auth_ldap')
+logger = logging.getLogger('openstack_auth')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
 
-#AUTH_LDAP_START_TLS = True
-AUTH_LDAP_GLOBAL_OPTIONS = {
- ldap.OPT_X_TLS_REQUIRE_CERT: False,
- ldap.OPT_REFERRALS: False,
-}
-
-# Baseline configuration.
-AUTH_LDAP_SERVER_URI = "ldap://129.114.33.180"
-AUTH_LDAP_BIND_DN = "cn=portal,dc=chameleoncloud,dc=org"
-AUTH_LDAP_BIND_PASSWORD = "t3mp0rArY"
-
-#AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=people,dc=chameleoncloud,dc=org", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
-# or perhaps:
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=people,dc=chameleoncloud,dc=org"
-
-AUTH_LDAP_ALWAYS_UPDATE_USER = True
-
-# Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch("ou=group,dc=django,dc=chameleoncloud,dc=org",
-                                    ldap.SCOPE_SUBTREE, "(objectClass=groupOfNames)"
-#                                    ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)"
-)
-# set group type
-#AUTH_LDAP_GROUP_TYPE = PosixGroupType()
-AUTH_LDAP_GROUP_TYPE = GroupOfNamesType() # 'member' is the member attribute, 'cn' is the default name attribute
-# Simple group restrictions
-#~ AUTH_LDAP_REQUIRE_GROUP = "cn=enabled,ou=django,ou=group,dc=example,dc=com"
-#~ AUTH_LDAP_DENY_GROUP = "cn=disabled,ou=django,ou=group,dc=example,dc=com"
-# Populate the Django user from the LDAP directory.
-AUTH_LDAP_USER_ATTR_MAP = {
- "first_name": "givenName",
- "last_name": "sn",
- "email": "mail"
-}
-#~ AUTH_LDAP_PROFILE_ATTR_MAP = {
- #~ "employee_number": "employeeNumber"
-#~ }
-# these need to be posixGroup if AUTH_LDAP_GROUP_TYPE is PosixGroupType()
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-"is_active": "cn=active,ou=group,dc=django,dc=chameleoncloud,dc=org",
-"is_staff": "cn=staff,ou=group,dc=django,dc=chameleoncloud,dc=org",
-"is_superuser": "cn=superuser,ou=group,dc=django,dc=chameleoncloud,dc=org",
-}
-#~ AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {
- #~ "is_awesome": "cn=awesome,ou=django,ou=group,dc=example,dc=com",
-#~ }
-# important! to use the group's permission
-AUTH_LDAP_MIRROR_GROUPS = True
-# Use LDAP group membership to calculate group permissions.
-AUTH_LDAP_FIND_GROUP_PERMS = True
-# Cache group memberships for an hour to minimize LDAP traffic
-AUTH_LDAP_CACHE_GROUPS = True
-AUTH_LDAP_GROUP_CACHE_TIMEOUT = 2
-
-if DEBUG:
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-
-AUTHENTICATION_BACKENDS = (
-#    'user.backend.LDAPBackend',
-    'django_auth_ldap.backend.LDAPBackend',
+#AUTHENTICATION_BACKENDS = (
+#    'django_auth_ldap.backend.LDAPBackend',
 #    'django.contrib.auth.backends.ModelBackend',
 #    "allauth.account.auth_backends.AuthenticationBackend",
-)
+#)
+
+AUTHENTICATION_BACKENDS = ('openstack_auth.backend.KeystoneBackend',)
+OPENSTACK_KEYSTONE_URL = "http://129.114.33.181:5000/v2.0"
+#AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
 
 # for django-allauth
 SITE_ID = 1
@@ -255,3 +204,10 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # to get custom information about the user:
 #ACCOUNT_SIGNUP_FORM_CLASS = "user.forms.SignupForm"
+
+# during django reloads and an active user is logged in, the monkey 
+# patch below will not otherwise be applied in time - resulting in developers 
+# appearing to be logged out.In typical production deployments this section 
+# below may be omitted, though it should not be harmful
+from openstack_auth import utils as auth_utils
+auth_utils.patch_middleware_get_user()

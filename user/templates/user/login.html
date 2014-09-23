@@ -1,0 +1,35 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+<p>
+{% if form.errors %}
+  <p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+  <div class="row">
+    <div class="col-6" class="block">
+      <article class="block">
+        <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+        {% csrf_token %}
+        <h2>Login to Chameleon</h2>
+        <table>
+        <tr>
+            <td>{{ form.username.label_tag }}</td>
+            <td>{{ form.username }}</td>
+        </tr>
+        <tr>
+            <td>{{ form.password.label_tag }}</td>
+            <td>{{ form.password }}</td>
+        </tr>
+        </table>
+        <input class="read-more" type="submit" value="login" />
+        <!-- <input type="hidden" name="next" value="{{ next }}" /> -->
+        <input type="hidden" name="next" value="/" />
+        </form>
+      </article>
+    </div>
+    <div class="col-6">
+      <p><a href="/user/password_reset/recover/">Forgot username or password?</a></p>
+      <p><a href="">Need to create an account?</a></p>
+    </div>
+  </div>
+{% endblock %}

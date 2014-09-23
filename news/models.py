@@ -1,13 +1,14 @@
 
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 
 from status.models import System
+
 
 class News(models.Model):
     title = models.CharField(max_length=100)
     publish_date = models.DateTimeField('date published')
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
     image = models.CharField(max_length=200,blank=True)
     short_description = models.TextField(max_length=100,default="")
     long_description = models.TextField(max_length=2000,default="")

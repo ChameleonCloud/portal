@@ -1,0 +1,12 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+{% load markdown_deux_tags %}
+{% markdown %}
+
+# {{request.user.first_name}} {{request.user.last_name}}
+
+[Change your password](/user/password_change)
+
+{% endmarkdown %}
+{% endblock %}

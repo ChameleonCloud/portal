@@ -16,6 +16,10 @@ def home(request):
     announcements = Announcement.objects.order_by("-publish_date")
     my_data = {"announcements": announcements[:2]}
 
+    print("**** authenticated: %s" % request.user.is_authenticated())
+    print("%s" % request.user)
+
+
     context = dict(site.items() + my_data.items())
 
     return render(request, 'index.html', context)
