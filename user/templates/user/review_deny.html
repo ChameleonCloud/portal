@@ -1,0 +1,14 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+{% load markdown_deux_tags %}
+{% markdown %}
+
+## Account Request Denied
+
+* set status in the user profile to denied
+* set deny_reason in the user profile (if provided in previous form)
+* sent email to the user
+
+{% endmarkdown %}
+{% endblock %}

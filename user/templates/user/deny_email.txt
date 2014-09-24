@@ -1,0 +1,8 @@
+
+Dear {{user.first_name}},
+
+We are sorry to inform you that your Chameleon account request has been denied. The reason for this is:
+
+{{profile.deny_reason}}
+
+If you have any questions or wish to contact us, please visit our helpdesk at http://www.chameleoncloud.org/helpdesk/

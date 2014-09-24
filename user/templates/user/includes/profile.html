@@ -1,0 +1,34 @@
+
+{% load markdown_deux_tags %}
+{% markdown %}
+
+|| First name || {{user.first_name}} ||
+|| User name || {{user.last_name}} ||
+|| Email address || {{user.email}} ||
+|| Username || {{user.username}} ||
+|| Password || {% if not hide_password %}[Change your password](/user/password_change){% endif %} ||
+|| Accepted user policy || {{user.accepted_AUP}} ||
+|| Can request allocations || {{user.is_PI}} ||
+|| Status || {{profile.get_status_display}} ||
+
+|| Requested PI status || {{profile.request_PI}} ||
+|| Department || {{profile.department}} ||
+|| Institution || {{profile.institution}} ||
+|| Address || {{profile.address1}} ||
+||  || {{profile.address2}} ||
+||  || {{profile.address3}} ||
+|| City || {{profile.city}} ||
+|| State || {{profile.state}} ||
+|| Postal Code || {{profile.postal_code}} ||
+|| Country || {{profile.country}} ||
+|| Role || {{profile.institution_role}} ||
+|| Citizenship || {{profile.citizenship}} ||
+|| Home Page || {{profile.home_page}} ||
+|| Biography || {{profile.biography}} ||
+|| Curriculum Vitae || {{profile.curriculum_vitae}} ||
+|| Image || {{profile.image}} ||
+{% for role in profile.roles.all %}
+|| Role || {{role}} ||
+{% endfor %}
+
+{% endmarkdown %}

@@ -8,14 +8,12 @@ def user_name(request):
     else:
         return "welcome, %s" % request.user.username
 
-#                               reverse("user.views.register"),
-#                               "/user/register/",
-Menu.add_item("user", MenuItem("Create Account",
-                               "/accounts/signup",
+#                               reverse("user.views.request_account"),
+Menu.add_item("user", MenuItem("Request Account",
+                               "/documentation/accounts.html",
                                weight=1,
                                check=lambda request: not request.user.is_authenticated()))
 
-#                               "/accounts/login/",
 Menu.add_item("user", MenuItem("Login",
                                "/user/login/",
                                weight=2,
@@ -26,7 +24,6 @@ Menu.add_item("user", MenuItem(user_name,
                                weight=1,
                                check=lambda request: request.user.is_authenticated()))
 
-#                               "/accounts/logout/",
 Menu.add_item("user", MenuItem("Logout",
                                "/user/logout/",
                                weight=2,

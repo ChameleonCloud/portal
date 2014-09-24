@@ -13,7 +13,6 @@ urlpatterns = patterns('',
     #url(r'^logged_out.html$', user.views.logged_out),
 
     url(r'^password_change/$', password_change,
-        #name="password_change",
         {"template_name": "user/password_change_form.html",
          "password_change_form": ChameleonPasswordChangeForm,
          "post_change_redirect": "/user/password_change_done"}),
@@ -23,8 +22,14 @@ urlpatterns = patterns('',
 
     url(r'^password_reset/', include('password_reset.urls')),
 
-    url(r'^profile/$', user.views.profile, name='user_profile'),
-    url(r'^profile/(?P<pk>\S+)/$', user.views.UserView.as_view(), name='user'),
+    url(r'^request/$', user.views.request_account),
+    url(r'^review/$', user.views.account_requests),
+    url(r'^review/approved/$', user.views.approve_request),
+    url(r'^review/denied/$', user.views.deny_request),
+    url(r'^review/user/(?P<username>\S+)/$', user.views.approve_account, name="profile"),
+
+    #url(r'^profile/$', user.views.profile),
+    #url(r'^profile/(?P<pk>\S+)/$', user.views.UserView.as_view(), name='user'),
 
 )
 

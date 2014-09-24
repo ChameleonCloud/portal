@@ -4,7 +4,6 @@ import os
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, AbstractUser, UserManager
 from django.db import models
-from django.forms import ModelForm
 from django_countries.fields import CountryField
 
 from django.contrib import auth
@@ -45,7 +44,9 @@ class LdapCheckUserMixIn(object):
 
         # don't have the current password for the user here, so need to connect as the portal
         conn.simple_bind_s(settings.AUTH_LDAP_BIND_DN,settings.AUTH_LDAP_BIND_PASSWORD)
+
         conn.passwd_s(user_dn,None,password)
+
         conn.unbind_s()
 
 class ChameleonUserManager(UserManager):
@@ -55,21 +56,28 @@ class ChameleonUser(LdapCheckUserMixIn, AbstractUser):
     objects = ChameleonUserManager()
     _default_manager = ChameleonUserManager()
 
-class Institution(models.Model):
-    name = models.CharField(max_length=100,
-                            help_text="name of university, company, or other institution")
-    address1 = models.CharField(max_length=100)
-    address2 = models.CharField(max_length=100)
-    address3 = models.CharField(max_length=100)
+    accepted_AUP = models.BooleanField(default=False,
+                                      help_text="whether this user has accepted the Chameleon acceptable usage policy")
+
+    is_PI = models.BooleanField(default=False,
+                                help_text="whether this user can request allocations")
+
+
+#class Institution(models.Model):
+#    name = models.CharField(max_length=100,
+#                            help_text="name of university, company, or other institution")
+#    address1 = models.CharField(max_length=100)
+#    address2 = models.CharField(max_length=100)
+#    address3 = models.CharField(max_length=100)
     # would be nice to have a drop down of countries, then the states in that country
     #   maybe django-localflavor could help
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=100)
-    country = CountryField(default="US")
+#    city = models.CharField(max_length=100)
+#    state = models.CharField(max_length=100)
+#    postal_code = models.CharField(max_length=100)
+#    country = CountryField(default="US")
 
-    def __unicode__(self):
-        return name
+#    def __unicode__(self):
+#        return name
 
 # used for the Team page
 # We have Groups - don't need this?
@@ -100,30 +108,24 @@ class UserProfile(models.Model):
     # User.is_active for whether a user account has been approved
     user = models.OneToOneField(ChameleonUser)
 
-    accepted_AUP = models.BooleanField(default=False,
-                                      help_text="whether this user has accepted the Chameleon acceptable usage policy")
+    request_PI = models.BooleanField(default=False,
+                                     help_text="whether you want to be able to request allocations")
 
-    is_PI = models.BooleanField(default=False,
-                                help_text="whether this user can request allocations")
-
-    image = models.ImageField(upload_to=_profileImageLocation,
-                              blank=True,
-                              help_text="Profile Picture")
-    institution = models.OneToOneField(Institution)
+    # a separate model is annoying for now
+    #institution = models.OneToOneField(Institution)
     #institutions = models.ManyToManyField(Institution,through='InstitutionMembership')
+
     department = models.CharField(max_length=100,
-                                  help_text="department or division")
-
-    home_page = models.URLField(blank=True,
-                                help_text="a personal home page")
-
-    bio = models.TextField(max_length=2000,
-                           blank=True,
-                           help_text="a short biography")
-
-    cv = models.FileField(upload_to=_profileCVLocation,
-                          blank=True,
-                          help_text="upload a curriculum vitae (required for large allocation requests)")
+                                  help_text="department or division (optional)")
+    institution = models.CharField(max_length=100,
+                                   help_text="name of university, company, or other institution")
+    address1 = models.CharField(max_length=100,blank=True)
+    address2 = models.CharField(max_length=100,blank=True)
+    address3 = models.CharField(max_length=100,blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=100)
+    country = CountryField(default="US")
 
     # futuregrid has separate Phd and Master's students
     # need a post doc role?
@@ -138,19 +140,33 @@ class UserProfile(models.Model):
 
     citizenship = CountryField(default="US")
 
-    request_PI = models.BooleanField(default=False,
-                                    help_text="request Chameleon Principal Investigator status (can request allocations)")
+    home_page = models.URLField(blank=True,
+                                help_text="a personal home page (optional)")
+
+    biography = models.TextField(max_length=2000,
+                                 blank=True,
+                                 help_text="a short biography (optional)")
+
+    curriculum_vitae = models.FileField(upload_to=_profileCVLocation,
+                                         blank=True,
+                                         help_text="a CV (required for large allocation requests)")
+
+    image = models.ImageField(upload_to=_profileImageLocation,
+                              blank=True,
+                              help_text="Profile Picture (optional)")
+    STATUS = (
+        ("I","Incomplete"),
+        ("S","Submitted"),
+        ("A","Approved"),
+        ("D","Denied"),
+    )
+    status = models.CharField(max_length=1,choices=STATUS,default="I")
+
+    deny_reason = models.TextField(max_length=2000,
+                                   blank=True,
+                                   help_text="the reason why an account request was denied (optional)")
+
     roles = models.ManyToManyField(ChameleonRole)
 
     def __unicode__(self):
         return "%s %s" % (self.user.first_name,self.user.last_name)
-
-class ChameleonUserForm(ModelForm):
-    class Meta:
-        model = ChameleonUser
-        exclude = []
-
-class UserProfileForm(ModelForm):
-    class Meta:
-        model = UserProfile
-        exclude = []
