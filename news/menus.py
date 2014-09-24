@@ -9,12 +9,9 @@ Menu.add_item("main", MenuItem("Home",
                                weight=1))
 
 news_children = (
-    MenuItem("Announcements",
-             reverse("news.views.announcements")),
-    MenuItem("Events",
-             reverse("news.views.events")),
-    MenuItem("Outages",
-             reverse("news.views.outages")),
+    MenuItem("Announcements", reverse("news.views.announcements")),
+    MenuItem("Events", reverse("news.views.events")),
+    MenuItem("Outages", reverse("news.views.outages")),
 )
 
 # the css isn't right for the news_children
@@ -31,7 +28,11 @@ Menu.add_item("main", MenuItem("News",
 
 # Project == Allocation? Allocations can have extensions and supplements?
 
+admin_children = (
+    MenuItem("User Account Requests", reverse("user.views.account_requests")),
+)
 Menu.add_item("main", MenuItem("Administration",
                                "/admin/",
                                weight=7,
-                               check=lambda request: request.user.is_superuser))
+                               children=admin_children,
+                               check=lambda request: request.user.is_staff))

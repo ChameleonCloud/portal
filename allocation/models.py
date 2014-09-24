@@ -116,13 +116,16 @@ class AllocationRequest(models.Model):
 
 class Allocation(models.Model):
     principal_investigator = models.OneToOneField(ChameleonUser,related_name="allocation_pi")
-    allocation_manager = models.OneToOneField(ChameleonUser,blank=True,related_name="allocation_manager")
+    allocation_manager = models.OneToOneField(ChameleonUser,blank=True,related_name="allocation_manager",
+                                              help_text="an alternate user that can manage this allocation")
 
     # group.name should be a valid Linux group name
     group = models.OneToOneField(Group)
 
+    join_request = models.ManyToManyField(ChameleonUser, help_text="users that have asked to join this allocation")
+
     # could be several requests associated with an allocation
-    request = models.ManyToManyField(AllocationRequest)
+    allocation_request = models.ManyToManyField(AllocationRequest)
 
     start_date = models.DateField()
     end_date = models.DateField()
