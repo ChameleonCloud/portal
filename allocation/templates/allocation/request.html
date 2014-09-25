@@ -2,15 +2,8 @@
 
 {% block content %}
 
-<h2>Request a Chameleon Allocation</h2>
-<form method="post" action="">
-{% csrf_token %}
-<table>
-{{ form }}
-</table>
-<input type="submit" value="Request Allocation"/>
-</form>
+<h2>Chameleon Allocation Request</h2>
 
-{% include "allocation/includes/agreement.html" %}
+{% include "allocation/includes/allocation_request.html" %}
 
 {% endblock %}

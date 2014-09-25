@@ -1,0 +1,13 @@
+
+<table>
+<tr><th>Name</th><th>Start Date</th><th>End Date</th><th>Granted Units</th><th>Remaining Units</th></tr>
+{% for alloc in allocs %}
+<tr>
+<td><a href="granted/{{alloc.id}}/">{{alloc.name}}</a></td>
+<td>{{alloc.start_date}}
+<td>{{alloc.end_date}}
+<td>{{alloc.granted_units}}
+<td>{{alloc.remaining_units}}
+</tr>
+{% endfor %}
+</table>

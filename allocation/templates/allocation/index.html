@@ -1,0 +1,63 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+
+<h1>Allocations</h1>
+
+{% if pi_allocs %}
+<h2>Allocations you lead</h2>
+{% with allocs=pi_allocs %}
+{% include "allocation/includes/allocation_short_table.html" %}
+{% endwith %}
+{% endif %}
+
+{% if manage_allocs %}
+<h2>Allocations you manage</h2>
+{% with allocs=manage_allocs %}
+{% include "allocation/includes/allocation_short_table.html" %}
+{% endwith %}
+{% endif %}
+
+{% if use_allocs %}
+<h2>Allocations you can use</h2>
+{% with allocs=use_allocs %}
+{% include "allocation/includes/allocation_short_table.html" %}
+{% endwith %}
+{% endif %}
+
+<h1>Allocation Requests</h1>
+
+<h2>Requests you made</h2>
+{% if req_alloc_reqs %}
+<table>
+<tr><th>Name</th><th>Title</th><th>Status</th></tr>
+{% for alloc_req in req_alloc_reqs %}
+<tr>
+<td><a href="request/view/{{alloc_req.id}}/">{{alloc_req.name}}</a></td>
+<td>{{alloc_req.title}}</td>
+<td>{{alloc_req.get_status_display}}</td>
+{% if alloc_req.status == "I" %}
+<td><a href="request/{{alloc_req.id}}">Edit</a></td>
+{% endif %}
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+<h2>Requests listing you as a user</h2>
+{% if user_alloc_reqs %}
+<table>
+<tr><th>Name</th><th>Title</th><th>Status</th></tr>
+{% for alloc_req in user_alloc_reqs %}
+<tr>
+<td><a href="request/view/{{alloc_req.id}}/">{{alloc_req.name}}</a></td>
+<td>{{alloc_req.title}}</td>
+<td>{{alloc_req.get_status_display}}</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+
+
+{% endblock %}

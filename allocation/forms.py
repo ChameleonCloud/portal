@@ -25,7 +25,6 @@ class AllocationRequestForm(ModelForm):
             raise ValidationError(u'you must accept the allocation agreement.')
         return accept_allocation_agreement
 
-
 class ApproveAllocationForm(Form):
     granted_units = IntegerField(required=False,help_text="the number of units granted")
     granted_duration = IntegerField(required=False,help_text="the number of months granted")

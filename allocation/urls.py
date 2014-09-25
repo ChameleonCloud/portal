@@ -5,8 +5,13 @@ from django.conf.urls import patterns, include, url
 import allocation.views
 
 urlpatterns = patterns('',
-    url(r'^request/$', allocation.views.request_allocation),
-    url(r'^request/thanks/$', allocation.views.request_thanks),
+    url(r'^$', allocation.views.index),
+    url(r'^granted/(?P<id>\S+)/$', allocation.views.allocation_view),
+
+    url(r'^request/$', allocation.views.allocation_request_edit),
+    url(r'^request/thanks/$', allocation.views.allocation_request_thanks),
+    url(r'^request/view/(?P<id>\S+)/$', allocation.views.allocation_request_view),
+    url(r'^request/(?P<id>\S+)/$', allocation.views.allocation_request_continue),
 
     url(r'^review/$', allocation.views.allocation_requests),
     url(r'^review/approved/$', allocation.views.approve_request),

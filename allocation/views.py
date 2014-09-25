@@ -8,14 +8,74 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.mail import send_mail
-from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 
 from allocation.forms import *
 from allocation.models import *
 
 @login_required
-def request_allocation(request):
+def index(request):
+    pi_allocations = Allocation.objects.filter(principal_investigator=request.user)
+    manage_allocations = Allocation.objects.filter(allocation_manager=request.user)
+    # improve this - don't have time to right now
+    user_allocations = []
+    for allocation in Allocation.objects.all():
+        if allocation.users.filter(id=request.user.id) > 0:
+            if allocation not in pi_allocations and allocation not in manage_allocations:
+                allocations.append(allocation)
+
+    req_requests = AllocationRequest.objects.filter(requester=request.user)
+    # improve this - don't have time to right now
+    user_requests = []
+    for allocation_request in AllocationRequest.objects.all():
+        if allocation_request.initial_users.filter(id=request.user.id) > 0:
+            if allocation_request not in req_requests:
+                user_requests.append(allocation_request)
+
+    context = {"pi_allocs": pi_allocations,
+               "manage_allocs": manage_allocations,
+               "use_allocs": user_allocations,
+               "req_alloc_reqs": req_requests,
+               "user_alloc_reqs": user_requests}
+
+    return render(request, 'allocation/index.html', context)
+
+@login_required
+def allocation_view(request, id):
+    allocation = get_object_or_404(Allocation,id=id)
+    # test if the request.user is part of this allocation
+
+    context = {"allocation": allocation}
+    return render(request, 'allocation/allocation.html', context)
+
+@login_required
+def allocation_request_edit(request):
+    if request.method == "POST":
+        form = AllocationRequestForm(request.POST)
+        if form.is_valid():
+            allocation_request = form.save(commit=False)
+            allocation_request.requester = request.user
+            if "_submit" in request.POST:
+                allocation_request.status = "S"
+                allocation_request = form.save()
+                return redirect("allocation.views.request_thanks")
+            else:  # assume "_save"
+                allocation_request.status = "I"
+                allocation_request = form.save()
+    else:
+        form = AllocationRequestForm()
+    return render(request, 'allocation/request_form.html', {'form': form})
+
+@login_required
+def allocation_request_continue(request, id):
+    allocation_request = get_object_or_404(AllocationRequest, id=id)
+    if allocation_request.requester != request.user:
+        return HttpResponse("Unauthorized",status=401)
+    if allocation_request.status != "I":
+        # can only edit incomplete allocation requests
+        return redirect("allocation.views.allocation_request_view",id=id)
     if request.method == "POST":
         form = AllocationRequestForm(request.POST)
         if form.is_valid():
@@ -26,10 +86,21 @@ def request_allocation(request):
             allocation_request = form.save()
             return redirect("allocation.views.request_thanks")
     else:
-        form = AllocationRequestForm()
-    return render(request, 'allocation/request.html', {'form': form})
+        form = AllocationRequestForm(instance=allocation_request)
+    return render(request, 'allocation/request_form.html', {'form': form})
 
-def request_thanks(request):
+
+@login_required
+def allocation_request_view(request, id):
+    allocation_request = get_object_or_404(AllocationRequest,id=id)
+    # test if the request.user is the requester or part of this allocation associated with this request
+
+    context = {"allocation_request": allocation_request}
+    return render(request, 'allocation/request.html', context)
+
+
+
+def allocation_request_thanks(request):
     return render(request, 'allocation/request_thanks.html')
 
 
