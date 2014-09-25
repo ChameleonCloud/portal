@@ -30,6 +30,7 @@ Menu.add_item("main", MenuItem("News",
 
 admin_children = (
     MenuItem("User Account Requests", reverse("user.views.account_requests")),
+    MenuItem("Allocation Requests", reverse("allocation.views.allocation_requests")),
 )
 Menu.add_item("main", MenuItem("Administration",
                                "/admin/",
