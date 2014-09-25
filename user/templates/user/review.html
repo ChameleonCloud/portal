@@ -12,12 +12,9 @@
 <form method="post" action="">
 {% csrf_token %}
 <table>
-{{ form.deny_reason }}
+<tr><td>Deny Reason</td><td>{{ form.deny_reason }}</td>
 </table>
-<!--
-Deny reason: <input type="text" value="" name="deny_reason" id="deny_reason"
-                    maxlength="2000" cols="80" rows="20" style="width:80%; height:200px"/>
--->
+
 <input type="submit" value="Approve Account" name="_approve"/>
 <input type="submit" value="Deny Account" name="_deny"/>
 </form>

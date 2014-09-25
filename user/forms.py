@@ -66,18 +66,6 @@ class UserProfileForm(ModelForm):
         exclude = ["user","status","roles"]
         #fields = []
 
-from django.core import validators
-from django.db import models
-from django_countries.fields import CountryField
-
-def _profileImageLocation(profile, filename):
-    (name, extension) = os.path.splitext(filename)
-    return os.path.join(settings.MEDIA_ROOT,"people",profile.user.get_username(),"picture."+extension)
-
-def _profileCVLocation(profile, filename):
-    (name, extension) = os.path.splitext(filename)
-    return os.path.join(settings.MEDIA_ROOT,"people",profile.user.get_username(),"cv."+extension)
-
 class ApproveUserForm(Form):
     deny_reason = CharField(max_length=2000,
                             required=False,
