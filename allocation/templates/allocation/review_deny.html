@@ -1,0 +1,14 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+{% load markdown_deux_tags %}
+{% markdown %}
+
+## Allocation Request Denied
+
+* set status in the allocation request to denied
+* set deny_reason in the allocation request (if provided in previous form)
+* sent email to the user
+
+{% endmarkdown %}
+{% endblock %}

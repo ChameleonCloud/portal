@@ -1,0 +1,26 @@
+{% extends "layout/default.html" %}
+
+{% block content %}
+{% load markdown_deux_tags %}
+{% markdown %}
+
+# Open Allocation Requests
+
+## Submitted applications
+
+{% for allocation_request in allocation_requests %}
+{% if allocation_request.status == "S" %}
+* [{{allocation_request.name}}: {{allocation_request.title}}](allocation/{{allocation_request.id}})
+{% endif %}
+{% endfor %}
+
+## Incomplete applications
+
+{% for allocation_request in allocation_requests %}
+{% if allocation_request.status == "I" %}
+* [{{allocation_request.name}}: {{allocation_request.title}}](allocation/{{allocation_request.id}})
+{% endif %}
+{% endfor %}
+
+{% endmarkdown %}
+{% endblock %}

@@ -248,6 +248,7 @@ AUTHENTICATION_BACKENDS = (
 # for django-allauth
 SITE_ID = 1
 
+LOGIN_URL = "/user/login/"
 LOGIN_REDIRECT_URL = "/"
 
 ACCOUNT_AUTHENTICATION_METHOD = "username"

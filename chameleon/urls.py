@@ -21,11 +21,8 @@ urlpatterns = patterns('',
     url(r'helpdesk/', include('helpdesk.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^user/', include('user.urls')),
+    url(r'^allocation/', include('allocation.urls')),
 
     url(r'^status/', include('status.urls')),
-
-    #url(r'^accounts/', include('allauth.urls')),
-
-    #url(r'^keystone/', include('openstack_auth.urls')),
 
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
