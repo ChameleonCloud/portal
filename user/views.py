@@ -160,21 +160,22 @@ def _activate_user_ldap(user, profile):
                             ldap.SCOPE_BASE,
                             "(objectclass=*)")
 
-    print("## found %d entries" % len(entries))
+    #print("## found %d entries" % len(entries))
     entry = entries[0]
-    print(entry)
+    #print(entry)
     old = entry[1]
-    print("old: %s" % old)
+    #print("old: %s" % old)
     new = copy.deepcopy(old)
     if user_dn in old["member"]:
-        print("#### %s is already a member" % user_dn)
+        #print("#### %s is already a member" % user_dn)
+        pass
     else:
-        print("#### %s is not a member" % user_dn)
+        #print("#### %s is not a member" % user_dn)
         new["member"].append(user_dn)
-    print("new: %s" % new)
+    #print("new: %s" % new)
 
     ldif = ldap.modlist.modifyModlist(old,new)
-    print("ldif is: %s" % ldif)
+    #print("ldif is: %s" % ldif)
 
     conn.modify_s(active_dn,ldif)
 

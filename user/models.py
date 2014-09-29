@@ -87,6 +87,7 @@ class ChameleonRole(models.Model):
     def __unicode__(self):
         return self.name
 
+# these will come from and go to LDAP
 class SshPublicKey(models.Model):
     user = models.OneToOneField(ChameleonUser)
     name = models.CharField(max_length=100)

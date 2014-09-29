@@ -9,7 +9,7 @@ from allocation.models import AllocationRequest
 class AllocationRequestForm(ModelForm):
     class Meta:
         model = AllocationRequest
-        exclude = ["requester","review_date","status","deny_reason","granted_units","granted_duration"]
+        exclude = ["requester","review_date","status","allocation","deny_reason","granted_units","granted_duration"]
         #fields = []
 
     def clean_name(self):

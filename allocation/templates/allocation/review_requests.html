@@ -10,7 +10,7 @@
 
 {% for allocation_request in allocation_requests %}
 {% if allocation_request.status == "S" %}
-* [{{allocation_request.name}}: {{allocation_request.title}}](allocation/{{allocation_request.id}})
+* [{{allocation_request.name}}: {{allocation_request.title}}](request/{{allocation_request.id}})
 {% endif %}
 {% endfor %}
 
@@ -18,7 +18,7 @@
 
 {% for allocation_request in allocation_requests %}
 {% if allocation_request.status == "I" %}
-* [{{allocation_request.name}}: {{allocation_request.title}}](allocation/{{allocation_request.id}})
+* [{{allocation_request.name}}: {{allocation_request.title}}](request/{{allocation_request.id}})
 {% endif %}
 {% endfor %}
 

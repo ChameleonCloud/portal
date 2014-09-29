@@ -40,9 +40,37 @@ class FieldOfScience(models.Model):
     def __unicode__(self):
         return self.name
 
+
 # FutureGrid project process:
 #   * create an AllocationRequest for each one
-#   * when the PI or allocation manager claims it, create the Group and Allocation
+#   * when the PI or allocation manager claims it, create the Allocation
+
+class Allocation(models.Model):
+    # name is validated in AllocationRequest
+    name = models.CharField(max_length=16,unique=True,help_text="a short project name")
+
+    # these need to be ManyToMany
+    principal_investigator = models.ForeignKey(ChameleonUser,related_name='pi',on_delete=models.PROTECT)
+    allocation_manager = models.ForeignKey(ChameleonUser,null=True,blank=True,related_name="manager",
+                                           on_delete=models.SET_NULL,
+                                           help_text="an alternate user that can manage this allocation")
+    users = models.ManyToManyField(ChameleonUser,blank=True,related_name="users")
+
+    join_requests = models.ManyToManyField(ChameleonUser, help_text="users that have asked to join this allocation")
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    granted_units = models.IntegerField(default=0,help_text="the amount of units granted")
+    remaining_units = models.IntegerField(default=0,help_text="the amount of units remaining")
+
+    summary_of_results = models.TextField(max_length=2000,blank=True)
+
+    #publications
+
+    def __unicode__(self):
+        return self.name
+
 
 class AllocationRequest(models.Model):
     title = models.CharField(max_length=100,
@@ -60,11 +88,11 @@ class AllocationRequest(models.Model):
                                                        'Enter a valid allocation name.',
                                                        'invalid')])
 
-    abstract = models.TextField(max_length=2000)
+    abstract = models.TextField(max_length=10000)
     key_words = models.CharField(max_length=200)
 
     # The PI for a New allocation, the PI or allocation manager for the others
-    requester = models.OneToOneField(ChameleonUser,related_name="alloc_req_requester")
+    requester = models.ForeignKey(ChameleonUser,on_delete=models.PROTECT)
 
     initial_users = models.ManyToManyField(ChameleonUser,blank=True,related_name="alloc_req_initial_users")
 
@@ -123,37 +151,12 @@ class AllocationRequest(models.Model):
     )
     status = models.CharField(max_length=1,choices=STATUS,default="I")
 
-    deny_reason = models.TextField(max_length=2000,
+    # could be several requests associated with an allocation
+    allocation = models.ForeignKey(Allocation,null=True,blank=True,on_delete=models.SET_NULL)
+
+    deny_reason = models.TextField(max_length=10000,
                                    blank=True,
                                    help_text="the reason why an account request was denied (optional)")
 
     def __unicode__(self):
         return self.title
-
-class Allocation(models.Model):
-    # name is validated in AllocationRequest
-    name = models.CharField(max_length=16,unique=True,help_text="a short project name")
-
-    # these need to be ManyToMany
-    principal_investigator = models.OneToOneField(ChameleonUser,related_name="pi")
-    allocation_manager = models.OneToOneField(ChameleonUser,null=True,blank=True,related_name="manager",
-                                              help_text="an alternate user that can manage this allocation")
-    users = models.ManyToManyField(ChameleonUser,blank=True,related_name="users")
-
-    join_requests = models.ManyToManyField(ChameleonUser, help_text="users that have asked to join this allocation")
-
-    # could be several requests associated with an allocation
-    allocation_requests = models.ManyToManyField(AllocationRequest)
-
-    start_date = models.DateField()
-    end_date = models.DateField()
-
-    granted_units = models.IntegerField(help_text="the amount of units granted")
-    remaining_units = models.IntegerField(help_text="the amount of units remaining")
-
-    summary_of_results = models.TextField(max_length=2000,blank=True)
-
-    #publications
-
-    def __unicode__(self):
-        return self.name

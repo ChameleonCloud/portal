@@ -27,8 +27,8 @@
 
 <h1>Allocation Requests</h1>
 
-<h2>Requests you made</h2>
 {% if req_alloc_reqs %}
+<h2>Requests you made</h2>
 <table>
 <tr><th>Name</th><th>Title</th><th>Status</th></tr>
 {% for alloc_req in req_alloc_reqs %}
@@ -44,8 +44,8 @@
 </table>
 {% endif %}
 
-<h2>Requests listing you as a user</h2>
 {% if user_alloc_reqs %}
+<h2>Requests listing you as a user</h2>
 <table>
 <tr><th>Name</th><th>Title</th><th>Status</th></tr>
 {% for alloc_req in user_alloc_reqs %}

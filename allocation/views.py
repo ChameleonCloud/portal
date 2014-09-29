@@ -1,4 +1,5 @@
 
+import copy
 import datetime
 
 import ldap
@@ -23,8 +24,7 @@ def index(request):
     user_allocations = []
     for allocation in Allocation.objects.all():
         if allocation.users.filter(id=request.user.id) > 0:
-            if allocation not in pi_allocations and allocation not in manage_allocations:
-                allocations.append(allocation)
+            user_allocations.append(allocation)
 
     req_requests = AllocationRequest.objects.filter(requester=request.user)
     # improve this - don't have time to right now
@@ -58,12 +58,16 @@ def allocation_request_edit(request):
             allocation_request = form.save(commit=False)
             allocation_request.requester = request.user
             if "_submit" in request.POST:
+                print("#### submit ####")
                 allocation_request.status = "S"
-                allocation_request = form.save()
-                return redirect("allocation.views.request_thanks")
+                allocation_request = form.save(allocation_request)
+                # automatically approve allocations that have a futuregrid_project flag?
+                return redirect("allocation.views.allocation_request_thanks")
             else:  # assume "_save"
+                print("#### save ####")
                 allocation_request.status = "I"
-                allocation_request = form.save()
+                allocation_request = form.save(allocation_request)
+                return redirect("allocation.views.allocation_request_continue",allocation_request.id)
     else:
         form = AllocationRequestForm()
     return render(request, 'allocation/request_form.html', {'form': form})
@@ -77,14 +81,20 @@ def allocation_request_continue(request, id):
         # can only edit incomplete allocation requests
         return redirect("allocation.views.allocation_request_view",id=id)
     if request.method == "POST":
-        form = AllocationRequestForm(request.POST)
+        form = AllocationRequestForm(request.POST,instance=allocation_request)
         if form.is_valid():
-            # save the AllocationRequest
-            allocation_request = form.save(commit=False)
-            allocation_request.requester = request.user
-            allocation_request.status = "S"
             allocation_request = form.save()
-            return redirect("allocation.views.request_thanks")
+            if "_submit" in request.POST:
+                print("#### submit ####")
+                allocation_request.status = "S"
+                allocation_request = form.save(allocation_request)
+                # automatically approve allocations that have a futuregrid_project flag?
+                return redirect("allocation.views.allocation_request_thanks")
+            else:  # assume "_save"
+                print("#### save ####")
+                allocation_request.status = "I"
+                allocation_request = form.save(allocation_request)
+                return redirect("allocation.views.allocation_request_continue",allocation_request.id)
     else:
         form = AllocationRequestForm(instance=allocation_request)
     return render(request, 'allocation/request_form.html', {'form': form})
@@ -136,10 +146,10 @@ def approve_allocation(request, id):
                     granted_duration = allocation_request.duration
                 try:
                     allocation = Allocation.objects.get(name=allocation_request.name)
-                    _add_to_allocation(allocation,allocation_request,granted_units,granted_duration)
+                    _addToAllocation(allocation,allocation_request,granted_units,granted_duration)
                 except:
-                    _new_allocation(allocation_request,granted_units,granted_duration)
-                _send_approve_email(allocation_request)
+                    _newAllocation(allocation_request,granted_units,granted_duration)
+                _sendApproveEmail(allocation_request)
                 return redirect("allocation.views.approve_request")
             elif "_deny" in request.POST:
                 allocation_request.status = "D"
@@ -147,7 +157,7 @@ def approve_allocation(request, id):
                 if form.cleaned_data["deny_reason"]:
                     allocation_request.deny_reason = form.cleaned_data["deny_reason"]
                 allocation_request.save()
-                _send_deny_email(allocation_request)
+                _sendDenyEmail(allocation_request)
                 # clean up denied allocation requests now and then
                 return redirect("allocation.views.deny_request")
             else:
@@ -159,7 +169,7 @@ def approve_allocation(request, id):
                "allocation_request": allocation_request}
     return render(request,"allocation/review.html",context)
 
-def _new_allocation(allocation_request, granted_units, granted_duration):
+def _newAllocation(allocation_request, granted_units, granted_duration):
     allocation = Allocation()
     allocation.name = allocation_request.name
     allocation.principal_investigator = allocation_request.requester
@@ -178,19 +188,44 @@ def _new_allocation(allocation_request, granted_units, granted_duration):
 
     for user in allocation_request.initial_users.all():
         allocation.users.add(user)
-    allocation.allocation_requests.add(allocation_request)
     allocation.save()
 
-    _create_group_ldap(allocation)
+    allocation_request.allocation = allocation
+    allocation_request.save()
 
-def _create_group_ldap(allocation):
+    _updateLdapFromAllocation(allocation)
+
+def _updateLdapFromAllocation(allocation):
+    _updateLdapGroup(allocation)
+    _updateLdapRoles(allocation)
+
+def _updateLdapGroup(allocation):
+    print("## updateLdapGroup")
+    conn = _bindLdap()
+
+    # are we adding or updating?
+    try:
+        entries = conn.search_s("cn=%s,ou=group,dc=chameleoncloud,dc=org" % str(allocation.name),
+                                ldap.SCOPE_BASE,
+                                "(objectclass=*)")
+    except ldap.NO_SUCH_OBJECT:
+        _addLdapGroup(allocation,conn)
+    else:
+        _modifyLdapGroup(allocation,conn,entries[0])
+
+# use the default dn and password (the portal) y default
+def _bindLdap(dn=settings.AUTH_LDAP_BIND_DN, passwd = settings.AUTH_LDAP_BIND_PASSWORD):
     uri = settings.AUTH_LDAP_SERVER_URI
     if callable(uri):
         uri = uri()
     conn = ldap.initialize(uri)
-
-    # connect as the portal to create the group
     conn.simple_bind_s(settings.AUTH_LDAP_BIND_DN,settings.AUTH_LDAP_BIND_PASSWORD)
+    return conn
+
+def _addLdapGroup(allocation, conn=None):
+    print("## addLdapGroup")
+    if conn is None:
+        conn = _bindLdap()
 
     # figure out what gidNumber to use (probably better to use a gidNext entry, but this is good enough for now)
     entries = conn.search_s("ou=group,dc=chameleoncloud,dc=org",
@@ -200,32 +235,134 @@ def _create_group_ldap(allocation):
     # each entry is (dn, attr dict)
     largest_gid_number = max(map(lambda entry: int(entry[1]["gidNumber"][0]),entries))
     gid_number = largest_gid_number + 1
-    print("#### gid number is %d" % gid_number)
+
+    attrs = _getLdapGroupAttrs(allocation,gid_number)
+    ldif = ldap.modlist.addModlist(attrs)
 
     dn = str("cn=%s,ou=group,dc=chameleoncloud,dc=org" % allocation.name)
+    conn.add_s(dn,ldif)
 
+    conn.unbind_s()
+
+
+def _modifyLdapGroup(allocation, conn=None, entry=None):
+    print("## modifyLdapGroup")
+    if conn is None:
+        conn = _bindLdap()
+    if entry is None:
+        entries = conn.search_s("cn=%s,ou=group,dc=chameleoncloud,dc=org" % str(allocation.name),
+                                ldap.SCOPE_BASE,
+                                "(objectclass=*)")
+        if entries is None:
+            print("cannot find existing LDAP group for %s" % allocation.name)
+            return
+        entry = entries[0]
+
+    (dn,old) = entry
+    # the only thing that can be updated are the memberUids
+    new = copy.deepcopy(old)
+    new["memberUid"] = _getMemberUids(allocation)
+    
+    ldif = ldap.modlist.modifyModlist(old,new)
+    print("  ## updating %s with: %s" % (dn,ldif))
+    conn.modify_s(dn,ldif)
+
+    conn.unbind_s()
+
+
+def _getLdapGroupAttrs(allocation, gid_number):
     # ldap expects strings, django uses in unicode
     attrs = {}
     attrs["objectclass"] = ["top","posixGroup"]
     attrs["cn"] = str(allocation.name)
     attrs["gidNumber"] = "%d" % gid_number
+    attrs["memberUid"] = _getMemberUids(allocation)
+    return attrs
+
+def _getMemberUids(allocation):
     members = []
     members.append(str(allocation.principal_investigator.username))
     if allocation.allocation_manager is not None:
         members.append(str(allocation.allocation_manager.username))
     for user in allocation.users.all():
         members.append(str(user.username))
-    attrs["memberUid"] = members
+    return members
 
+def _updateLdapRoles(allocation):
+    print("## updateLdapRoles")
+    conn = _bindLdap()
+
+    # are we adding or updating?
+    try:
+        conn.search_s("cn=member,cn=%s,ou=group,dc=chameleoncloud,dc=org" % str(allocation.name),
+                      ldap.SCOPE_BASE,
+                      "(objectclass=*)")
+    except ldap.NO_SUCH_OBJECT:
+        _addLdapRoles(allocation)
+    else:
+        _modifyLdapRoles(allocation)
+    finally:
+        conn.unbind_s()
+
+def _addLdapRoles(allocation):
+    print("## addLdapRoles")
+    conn = _bindLdap()
+
+    attrs = {}
+    attrs["objectclass"] = ["organizationalRole"]
+    attrs["cn"] = "admin"
+    attrs["roleOccupant"] = ["cn=%s,ou=people,dc=chameleoncloud,dc=org" %
+                                 str(allocation.principal_investigator.username)]
     ldif = ldap.modlist.addModlist(attrs)
-    print("## ldif: %s" % ldif)
+    dn = str("cn=admin,cn=%s,ou=group,dc=chameleoncloud,dc=org" % allocation.name)
+    conn.add_s(dn,ldif)
 
+    attrs = {}
+    attrs["objectclass"] = ["organizationalRole"]
+    attrs["cn"] = "member"
+    attrs["roleOccupant"] = map(lambda uid: "cn=%s,ou=people,dc=chameleoncloud,dc=org" % str(uid),
+                                _getMemberUids(allocation))
+    ldif = ldap.modlist.addModlist(attrs)
+    dn = str("cn=member,cn=%s,ou=group,dc=chameleoncloud,dc=org" % allocation.name)
     conn.add_s(dn,ldif)
 
     conn.unbind_s()
 
+def _modifyLdapRoles(allocation):
+    print("## modifyLdapRoles")
+    conn = _bindLdap()
 
-def _add_to_allocation(allocation, allocation_request, granted_units, granted_duration):
+    entries = conn.search_s("cn=admin,cn=%s,ou=group,dc=chameleoncloud,dc=org" % str(allocation.name),
+                            ldap.SCOPE_BASE,
+                            "(objectclass=*)")
+    if entries is None:
+        print("cannot find existing LDAP admin roles for %s" % allocation.name)
+        return
+    (dn,old) = entries[0]
+    # the only thing that can be updated are the roleOccupant
+    new = copy.deepcopy(old)
+    new["roleOccupant"] = ["cn=%s,ou=people,dc=chameleoncloud,dc=org" %
+                           str(allocation.principal_investigator.username)]
+    ldif = ldap.modlist.modifyModlist(old,new)
+    conn.modify_s(dn,ldif)
+
+    entries = conn.search_s("cn=member,cn=%s,ou=group,dc=chameleoncloud,dc=org" % str(allocation.name),
+                            ldap.SCOPE_BASE,
+                            "(objectclass=*)")
+    if entries is None:
+        print("cannot find existing LDAP member roles for %s" % allocation.name)
+        return
+    (dn,old) = entries[0]
+    # the only thing that can be updated are the roleOccupant
+    new = copy.deepcopy(old)
+    attrs["roleOccupant"] = map(lambda uid: "cn=%s,ou=people,dc=chameleoncloud,dc=org" %
+                                uid,_getMemberUids(allocation))
+    ldif = ldap.modlist.modifyModlist(old,new)
+    conn.modify_s(dn,ldif)
+
+    conn.unbind_s()
+
+def _addToAllocation(allocation, allocation_request, granted_units, granted_duration):
     allocation.allocation_requests.add(allocation_request)
     allocation.granted_units += granted_units
     allocation.remaining_units += granted_units
@@ -236,13 +373,13 @@ def _add_to_allocation(allocation, allocation_request, granted_units, granted_du
 
 
 
-def _send_approve_email(allocation_request):
+def _sendApproveEmail(allocation_request):
     context = {"allocation_request": allocation_request}
     body = loader.render_to_string("allocation/approve_email.txt",context).strip()
     subject = "Chameleon allocation request approved"
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,[allocation_request.requester.email])
 
-def _send_deny_email(allocation_request):
+def _sendDenyEmail(allocation_request):
     context = {"allocation_request": allocation_request}
     body = loader.render_to_string("allocation/deny_email.txt",context).strip()
     subject = "Chameleon allocation request denied"
