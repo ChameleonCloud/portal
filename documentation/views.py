@@ -10,7 +10,7 @@ def _wantFile(path, file_name):
     return False
 
 def _wantDir(path, file_name):    
-    print("testing %s for directory" % os.path.join(path,file_name))
+    #print("testing %s for directory" % os.path.join(path,file_name))
     if os.path.isdir(os.path.join(path,file_name)):
         return True
     return False
@@ -33,9 +33,8 @@ def _getDirInfo(dir_name):
 # serve static documentation
 def doc(request):
 
-    #print("request is %s" % request)
-    print("request path is %s" % request.path)
-    print("pwd is %s" % request.META["PWD"])
+    #print("request path is %s" % request.path)
+    #print("pwd is %s" % request.META["PWD"])
 
     path = request.path[1:]  # drop leading '/'
 
@@ -44,7 +43,11 @@ def doc(request):
 
     print("path is %s" % path)
     if path[-1] == "/":
-        # maybe use the default index if there isn't an index file in the directory
+        if os.path.isfile(os.path.join(filesystem_path,"index.html")):
+            # use the index file in the directory
+            return render(request, os.path.join(path,"index.html"),{})
+
+        # use the default index
         path = path[:-1]
         print("  generate an index")
         file_names = filter(lambda fn: _wantFile(filesystem_path,fn),os.listdir(filesystem_path))
@@ -57,6 +60,6 @@ def doc(request):
             "file_info": map(lambda fn: _getFileInfo(fn),file_names),
             "dir_info": map(lambda dn: _getDirInfo(dn),dir_names),
             }
-        return render(request, "documentation/index.html", context)
+        return render(request,"documentation/default_index.html",context)
     else:
-        return render(request, path, {})
+        return render(request,path,{})

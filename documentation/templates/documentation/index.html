@@ -1,21 +1,17 @@
 {% extends "layout/default.html" %}
 
 {% block content %}
+{% load markdown_deux_tags %}
+{% markdown %}
 
-<h1>Documents in this Folder</h1>
+# Chameleon Documentation
 
-<ul>
-{% for info in file_info %}
-<li><a href="/{{path}}/{{info.file_name}}">{{info.title}}</a>
-{% endfor %}
-</ul>
+Welcome to the Chameleon cloud testbed. Our initial documentation consists of:
 
-<h1>Sub-Folders</h1>
+* Information about [Chameleon accounts](accounts.html)
+* Information about [Chameleon allocations](allocations.html)
+* [User guides](user-guides/)
 
-<ul>
-{% for info in dir_info %}
-<li><a href="/{{path}}/{{info.dir_name}}/">{{info.title}}</a>
-{% endfor %}
-</ul>
+{% endmarkdown %}
 
 {% endblock %}
