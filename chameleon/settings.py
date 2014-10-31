@@ -14,7 +14,6 @@ import django
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
@@ -41,10 +40,12 @@ INSTALLED_APPS = (
     # contrib
     'pipeline',
     'menu',
+    'markdown_deux',
 
     # custom
     'tas',
     'user_profile',
+    'documentation',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -94,7 +95,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/chameleoncloud.org/static'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, 'static'),
     '/var/www/static/',
 )
 
@@ -117,6 +118,7 @@ PIPELINE_COMPILERS = (
 )
 
 PIPELINE_CSS_COMPRESSOR = None
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
 
 # wildcards put the files in alphabetical order
 PIPELINE_CSS = {
@@ -126,13 +128,16 @@ PIPELINE_CSS = {
             ),
         'output_filename': 'css/main.css',
     },
-    'main_fa': {
+}
+
+PIPELINE_JS = {
+    'all': {
         'source_filenames': (
-            'scss/vendor/fontawesome/font_awesome.scss',
-            'scss/main.scss',
-            ),
-        'output_filename': 'css/main.css',
-    },
+            'bower_components/jquery/dist/jquery.js',
+            'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js'
+        ),
+        'output_filename': 'scripts/all.js'
+    }
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS

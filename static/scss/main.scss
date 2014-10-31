@@ -1,6 +1,6 @@
 
 // @import "normalize";
 @import "vars";
-@import "vendor/bootstrap-sass/assets/stylesheets/_bootstrap";
-@import "vendor/fontawesome/font-awesome";
+@import "../bower_components/bootstrap-sass-official/assets/stylesheets/_bootstrap";
+@import "../bower_components/fontawesome/scss/font-awesome";
 @import "chameleon";

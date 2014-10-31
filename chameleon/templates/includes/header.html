@@ -13,16 +13,22 @@
       </div>
       <ul class="nav navbar-nav">
         {% for item in menus.main %}
-          <li {% if item.url == request.path %}class="active"{% endif %}>
-            <a href="{{ item.url }}">{{ item.title }}</a>
-            {% if item.children %}
-              <ul>
+          {% if item.children %}
+            <li class="dropdown {% if item.selected %}active{% endif %}">
+              <a href="{{ item.url }}" data-toggle="dropdown">
+                {{ item.title }} <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
                 {% for child_item in item.children %}
                   <li><a href="{{ child_item.url }}">{{ child_item.title }}</a></li>
                 {% endfor %}
               </ul>
-            {% endif %}
-          </li>
+            </li>
+          {% else %}
+            <li {% if item.url == request.path %}class="active"{% endif %}>
+              <a href="{{ item.url }}">{{ item.title }}</a>
+            </li>
+          {% endif %}
         {% endfor %}
       </ul>
       <ul class="nav navbar-nav navbar-right navbar-user">
