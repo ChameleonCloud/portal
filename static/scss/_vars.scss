@@ -1,22 +1,23 @@
-/* colors */
-$primary: #9ad61a;
-$info: #239ff0;
-$success: #74a93c;
-$danger: red;
+/* bootstrap */
+$brand-primary: #9ad61a;
+$brand-info: #239ff0;
+$brand-success: #74a93c;
+$brand-danger: red;
 $grey: #7e7e7e;
-$darkGrey: #494949;
-$lightGrey: #f2f2f2;
-// wsmith made the grey a little lighter
-$origLightGrey: #e5e5e5;
+$grey-light: #e5e5e5;
+$grey-lighter: #f2f2f2;
 
-$linkColor: #4564E2;
-$linkColorActive: darken(#4564E2, 10%);
-$linkColorHover: $linkColorActive;
+$grey-dark: #494949;
 
-/* grid */
-$columnWidth: 60px;
-$gutterWidth: 20px;
-$fullWidth: 12 * ($columnWidth + $gutterWidth);
+$link-color: #4564E2;
+$link-hover-color: darken(#4564E2, 10%);
+$link-active-color: $link-hover-color;
+
+$font-size-base: 16px;
+$font-family-sans-serif: "Source Sans Pro", Helvetica, sans-serif;
+
+$navbar-height: 70px;
+$navbar-margin-bottom: 0;
 
 /* fontawesome */
 $fa-font-path: "../fonts/fontawesome";

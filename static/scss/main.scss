@@ -1,13 +1,6 @@
 
-@import "normalize";
+// @import "normalize";
 @import "vars";
-@import "mixins";
-@import "base";
-@import "scaffold";
-@import "type";
-@import "navigation";
-@import "jumbotron";
-@import "team";
-@import "front";
-
+@import "vendor/bootstrap-sass/assets/stylesheets/_bootstrap";
 @import "vendor/fontawesome/font-awesome";
+@import "chameleon";

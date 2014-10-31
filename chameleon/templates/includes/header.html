@@ -1,14 +1,10 @@
 {% load staticfiles %}
-{% load menu %} {% generate_menu %}
+
+{% load menu %}{% generate_menu %}
 
 <header class="site-header">
   <div class="container">
     <nav class="navbar">
-      <ul class="nav navbar-user">
-	{% for item in menus.user %}
-          <li><a href="{{ item.url }}">{{ item.title }}</a></li>
-	{% endfor %}
-      </ul>
       <div class="navbar-header">
         <a class="navbar-brand" href="{{ site.baseurl }}/">
           <img height="60" width="206" src="{% static "images/logo.png" %}" alt="Chameleon">
@@ -16,7 +12,7 @@
         </a>
       </div>
       <ul class="nav navbar-nav">
-	{% for item in menus.main %}
+        {% for item in menus.main %}
           <li {% if item.url == request.path %}class="active"{% endif %}>
             <a href="{{ item.url }}">{{ item.title }}</a>
             {% if item.children %}
@@ -27,7 +23,12 @@
               </ul>
             {% endif %}
           </li>
-	{% endfor %}
+        {% endfor %}
+      </ul>
+      <ul class="nav navbar-nav navbar-right navbar-user">
+        {% for item in menus.user %}
+          <li {% if item.selected %}class="active"{% endif %}><a href="{{ item.url }}">{{ item.title }}</a></li>
+        {% endfor %}
       </ul>
     </nav>
   </div>

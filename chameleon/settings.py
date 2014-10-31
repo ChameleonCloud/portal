@@ -8,29 +8,23 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import django
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-from django.conf import global_settings
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'g^j%2+ry^44nsni4am7*%ypfb3$dm$s=9+lpy$&^q6w3zcmvnc'
+SECRET_KEY = '&q*yhkpinzej(zcs$hq-g6@^y()d2h&36!m)8-5o3@d-4rth(b'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 TEMPLATE_DEBUG = True
-
-TEMPLATE_DIRS = [os.path.join(BASE_DIR,'chameleon','templates')]
-
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS
-TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)
-#TEMPLATE_CONTEXT_PROCESSORS += ("allauth.account.context_processors.account",)
-#TEMPLATE_CONTEXT_PROCESSORS += ("allauth.socialaccount.context_processors.socialaccount",)
 
 ALLOWED_HOSTS = []
 
@@ -40,41 +34,17 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    # humanize used by helpdisk
-    'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # to convert sass to css
+    # contrib
     'pipeline',
-
-    # django-simple-menu
     'menu',
 
-    'markdown_deux',
-    'bootstrapform',
-    'helpdesk',
-
-    # allauth seems to want sites
-    #'django.contrib.sites',
-    #'allauth',
-    #'allauth.account',
-
-    #'openstack_auth',
-
-    'password_reset',
-
-    'django_countries',
-
-    # local
-    'about',
-    'news',
-    'status',
-    'documentation',
-    'help',
-    'user',
-    'allocation',
+    # custom
+    'tas',
+    'user_profile',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,8 +77,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-#TIME_ZONE = 'UTC'
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -117,35 +86,40 @@ USE_L10N = True
 USE_TZ = True
 
 
-from markdown_deux.conf.settings import MARKDOWN_DEUX_DEFAULT_STYLE
-MARKDOWN_DEUX_DEFAULT_STYLE["extras"]["wiki-tables"] = None
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = '/var/www/chameleoncloud.org/static/'
+STATIC_ROOT = '/var/www/chameleoncloud.org/static'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
     '/var/www/static/',
 )
 
-MEDIA_ROOT = os.path.join(BASE_DIR,"media")
-MEDIA_URL = '/media/'
+TEMPLATE_DIRS = [os.path.join(BASE_DIR,'chameleon','templates')]
 
-#STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+AUTHENTICATION_BACKENDS = (
+    'tas.auth.TASBackend',
+)
 
-PIPELINE_COMPILERS = ( 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/profile/'
+
+#####
+#
+# Pipeline config
+#
+#####
+PIPELINE_COMPILERS = (
     'pipeline.compilers.sass.SASSCompiler',
-)   
+)
 
 PIPELINE_CSS_COMPRESSOR = None
 
 # wildcards put the files in alphabetical order
-PIPELINE_CSS = { 
+PIPELINE_CSS = {
     'main': {
         'source_filenames': (
             'scss/main.scss',
@@ -161,98 +135,7 @@ PIPELINE_CSS = {
     },
 }
 
-# django-password-reset
-DEFAULT_FROM_EMAIL = "help@chameleoncloud.org"
-# django.core.mail
-EMAIL_HOST = ""
-#EMAIL_PORT = 
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = ""
-# print emails to console
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
 
-HELPDESK_VIEW_A_TICKET_PUBLIC = False
-HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
-
-AUTH_USER_MODEL = "user.ChameleonUser"
-
-import ldap
-from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, PosixGroupType
-
-#AUTH_LDAP_START_TLS = True
-AUTH_LDAP_GLOBAL_OPTIONS = {
- ldap.OPT_X_TLS_REQUIRE_CERT: False,
- ldap.OPT_REFERRALS: False,
-}
-
-# Baseline configuration.
-AUTH_LDAP_SERVER_URI = "ldap://129.114.33.180"
-AUTH_LDAP_BIND_DN = "cn=portal,dc=chameleoncloud,dc=org"
-AUTH_LDAP_BIND_PASSWORD = "t3mp0rArY"
-
-#AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=people,dc=chameleoncloud,dc=org", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
-# or perhaps:
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=people,dc=chameleoncloud,dc=org"
-
-AUTH_LDAP_ALWAYS_UPDATE_USER = True
-
-# Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch("ou=group,dc=django,dc=chameleoncloud,dc=org",
-                                    ldap.SCOPE_SUBTREE, "(objectClass=groupOfNames)"
-#                                    ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)"
-)
-# set group type
-#AUTH_LDAP_GROUP_TYPE = PosixGroupType()
-AUTH_LDAP_GROUP_TYPE = GroupOfNamesType() # 'member' is the member attribute, 'cn' is the default name attribute
-# Simple group restrictions
-#~ AUTH_LDAP_REQUIRE_GROUP = "cn=enabled,ou=django,ou=group,dc=example,dc=com"
-#~ AUTH_LDAP_DENY_GROUP = "cn=disabled,ou=django,ou=group,dc=example,dc=com"
-# Populate the Django user from the LDAP directory.
-AUTH_LDAP_USER_ATTR_MAP = {
- "first_name": "givenName",
- "last_name": "sn",
- "email": "mail"
-}
-#~ AUTH_LDAP_PROFILE_ATTR_MAP = {
- #~ "employee_number": "employeeNumber"
-#~ }
-# these need to be posixGroup if AUTH_LDAP_GROUP_TYPE is PosixGroupType()
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-"is_active": "cn=active,ou=group,dc=django,dc=chameleoncloud,dc=org",
-"is_staff": "cn=staff,ou=group,dc=django,dc=chameleoncloud,dc=org",
-"is_superuser": "cn=superuser,ou=group,dc=django,dc=chameleoncloud,dc=org",
-}
-#~ AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {
- #~ "is_awesome": "cn=awesome,ou=django,ou=group,dc=example,dc=com",
-#~ }
-# important! to use the group's permission
-AUTH_LDAP_MIRROR_GROUPS = True
-# Use LDAP group membership to calculate group permissions.
-AUTH_LDAP_FIND_GROUP_PERMS = True
-# Cache group memberships for an hour to minimize LDAP traffic
-AUTH_LDAP_CACHE_GROUPS = True
-AUTH_LDAP_GROUP_CACHE_TIMEOUT = 2
-
-if DEBUG:
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-
-AUTHENTICATION_BACKENDS = (
-#    'user.backend.LDAPBackend',
-    'django_auth_ldap.backend.LDAPBackend',
-#    'django.contrib.auth.backends.ModelBackend',
-#    "allauth.account.auth_backends.AuthenticationBackend",
-)
-
-# for django-allauth
-SITE_ID = 1
-
-LOGIN_URL = "/user/login/"
-LOGIN_REDIRECT_URL = "/"
-
-ACCOUNT_AUTHENTICATION_METHOD = "username"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-# to get custom information about the user:
-#ACCOUNT_SIGNUP_FORM_CLASS = "user.forms.SignupForm"
+# include request for django-simple-menu
+TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)

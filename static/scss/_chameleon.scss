@@ -1,0 +1,202 @@
+h1, h2, h3 {
+  font-weight: 400;
+  border-bottom: 3px solid;
+  margin: 0.67em 0;
+}
+
+h1 {
+  color: $brand-info;
+  border-color: $brand-info;
+}
+
+h2 {
+  color: $brand-success;
+  border-color: $brand-success;
+}
+
+h3 {
+  color: $brand-info;
+  border-color: $brand-info;
+}
+
+h1 a, h1 a:hover, h1 a:focus,
+h2 a, h2 a:hover, h2 a:focus,
+h3 a, h3 a:hover, h3 a:focus {
+  color: inherit;
+}
+
+.front {
+
+  .jumbotron {
+    font-size: 2em;
+    border-bottom: 3px solid $brand-info;
+    background: #fff;
+    padding: 0;
+    margin-bottom: 0;
+
+    h1 {
+      font-size: 1.5em;
+      font-weight: 350;
+      color: $grey-dark;
+      border: 0;
+      line-height: 1.35em;
+    }
+  }
+}
+
+html, body {
+  background-color: #f2f2f2
+}
+
+.site-footer {
+  background-color: #f2f2f2;
+  border-top: 3px solid #9ad61a;
+  padding-top: 2em;
+}
+
+.main {
+  background-color: #fff;
+  background-image: url(../images/bg.jpg);
+  min-height: 400px;
+  padding-bottom: 2em;
+
+  & > .container {
+    position: relative;
+  }
+}
+
+.social {
+  > a {
+    color: #fff;
+    background-color: $brand-info;
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    line-height: 1.5em;
+    text-align: center;
+  }
+
+  &.social-front {
+    position: absolute;
+    right: 0;
+    top: -1.5em;
+  }
+}
+
+.team-member {
+  font-size: 0.8em;
+  border-bottom: 2px solid $brand-success;
+  margin-bottom: 1em;
+  padding-bottom: 0.5em;
+  @include clearfix();
+
+  img {
+    float: right;
+    width: 80px;
+  }
+
+  h4 {
+    font-size: 1.25em;
+  }
+
+  section {
+    padding-bottom: 0.5em;
+  }
+}
+
+.site-header {
+  background-image: url(../images/nav-bg.jpg);
+}
+
+.navbar-brand > img {
+  margin-top: -22px;
+}
+
+.partners {
+  a {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 1em;
+  }
+
+  margin-bottom: 1em;
+}
+
+article {
+  position: relative;
+  margin-bottom: 2em;
+
+  @include clearfix();
+
+  h2 {
+    border: 0;
+    margin-bottom: 0.33em;
+
+    .post-date {
+      white-space: nowrap;
+      text-transform: none;
+    }
+  }
+
+  .meta {
+    color: $grey;
+    font-size: 0.9em;
+  }
+
+  img {
+    float: left;
+    margin-right: 1.5em;
+    margin-bottom: 1.5em;
+  }
+
+  &.block {
+    position: relative;
+    border: 2px solid $brand-success;
+    padding: 0 0.75em;
+    margin-bottom: 0;
+    height: 190px;
+    overflow: hidden;
+
+    h2 {
+      font-size: 1.25em;
+      text-transform: uppercase;
+      color: $brand-success;
+    }
+
+    .block-image {
+      text-align: center;
+      height: 186px;
+    }
+
+    img {
+      float: none;
+      vertical-align: middle;
+      margin: 0;
+      max-width: 100%;
+      max-height: 100%;
+      position: relative;
+      top: 50%;
+      margin-top: -50%;
+    }
+
+    .excerpt {
+      height: 4.5em;
+      margin-bottom: 0.25em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .read-more {
+      color: #fff;
+      background-color: $brand-success;
+      border: 0;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+  }
+}
+
+.article-list article {
+  border-bottom: 2px solid $brand-success;
+}

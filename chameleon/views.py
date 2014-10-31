@@ -1,8 +1,6 @@
-
 from django.shortcuts import render
 from django.views import generic
-
-from news.models import Announcement
+from django.contrib.auth import authenticate, login
 
 site = {
     "title": "Chameleon Cloud",
@@ -13,13 +11,21 @@ site = {
 }
 
 def home(request):
-    announcements = Announcement.objects.order_by("-publish_date")
-    my_data = {"announcements": announcements[:2]}
 
     print("**** authenticated: %s" % request.user.is_authenticated())
     print("%s" % request.user)
 
+    context = dict(site.items())
 
-    context = dict(site.items() + my_data.items())
+    return render(request, 'home.html', context)
 
-    return render(request, 'index.html', context)
+def login(request):
+    context = {}
+
+    data = request.POST
+    if data:
+        
+        authenticate(username=data['username'], password=data['password'])
+        context['username'] = data['username']
+
+    return render(request, 'login.html', context)
