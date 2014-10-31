@@ -5,6 +5,9 @@ from django.conf.urls.static import static
 
 from documentation import views
 
-urlpatterns = patterns('',
-    url(r'\S*', views.doc, name='doc'),
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns = patterns(
+    'documentation.views',
+
+    url(r'^$', 'index'),
+    # url(r'\S*', views.doc, name='doc'),
+)
