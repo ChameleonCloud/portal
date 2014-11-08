@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'tas',
     'user_profile',
     'documentation',
+    'util',
 )
 
 MIDDLEWARE_CLASSES = (

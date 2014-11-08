@@ -1,0 +1,120 @@
+{% extends "layout/default.html" %}
+{% load chameleon_tags %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<h2>Edit Profile <small>| {{ user.username }} </small></h2>
+
+{% if profile %}
+<form method="post" action="{% url 'profile_edit' %}">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label class="control-label" for="firstName">First name</label>
+        <input type="text" class="form-control" name="firstName" id="firstName" placeholder="First name" value="{{ profile.firstName }}">
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="lastName">Last name</label>
+        <input type="text" class="form-control" name="lastName" id="lastName" placeholder="Last name" value="{{ profile.lastName }}">
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="email">Email address</label>
+        <input type="text" class="form-control" name="email" id="email" placeholder="Email address" value="{{ profile.email }}">
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="institution">Institution</label>
+        {% if institutions %}
+        <select class="form-control" name="institution" id="institution">
+          <option>Choose one</option>
+            {% for inst in institutions %}
+            <option {% if inst.id == profile.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|to_json }}">{{ inst.name }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <p class="alert alert-danger">Error loading institutions</p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="department">Department</label>
+        {% if institutions %}
+        <select class="form-control" name="department" id="department">
+          <option>Choose one</option>
+            {% for dept in curr_inst.children %}
+            <option {% if dept.id == profile.departmentId %}selected{% endif %} value="{{ dept.id }}">{{ dept.name }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <p class="alert alert-danger">Error loading departments</p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="country">Country</label>
+        {% if countries %}
+        <select class="form-control" name="country" id="country">
+          <option>Choose one</option>
+          {% for country in countries %}
+          <option value="{{ country.id }}" {% if country.id == profile.countryId %}selected{% endif %}>{{ country.name }}</option>
+          {% endfor %}
+        </select>
+        {% else %}
+          <p class="alert alert-danger">Error loading countries</p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="control-label" for="citizenship">Citizenship</label>
+        {% if countries %}
+        <select class="form-control" name="citizenship" id="citizenship">
+          <option>Choose one</option>
+          {% for country in countries %}
+          <option value="{{ country.id }}" {% if country.id == profile.citizenshipId %}selected{% endif %}>{{ country.name }}</option>
+          {% endfor %}
+        </select>
+        {% else %}
+          <p class="alert alert-danger">Error loading countries</p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-success">Save Profile</button>
+        <a href="{% url 'profile' %}" class="btn btn-default">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% else %}
+  <div class="alert alert-danger">
+    <p>There was an error loading your profile information.</p>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+jQuery(function($) {
+  $('#institution').on('change', function(e) {
+    console.log(e);
+    var id = this.value;
+    if (id) {
+      var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
+      if (depts.length) {
+        $('#department').attr('disabled', null);
+        console.log(depts);
+      } else {
+        $('#department').val('');
+        $('#department').attr('disabled', true);
+      }
+    } else {
+      $('#department').val('');
+      $('#department').attr('disabled', true);
+    }
+  });
+});
+</script>
+{% endblock %}

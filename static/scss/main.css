@@ -7115,6 +7115,19 @@ h3 a, h3 a:hover, h3 a:focus {
     color: #494949;
     border: 0;
     line-height: 1.35em; }
+.front .social-wrapper {
+  position: relative; }
+.front .social > a {
+  color: #fff;
+  background-color: #239ff0;
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  line-height: 1.5em;
+  text-align: center; }
+.front .social.social-front {
+  float: right;
+  margin-top: -1.5em; }
 
 html, body {
   background-color: #f2f2f2; }
@@ -7128,22 +7141,10 @@ html, body {
   background-color: #fff;
   background-image: url(../images/bg.jpg);
   min-height: 400px;
+  padding-top: 1em;
   padding-bottom: 2em; }
   .main > .container {
     position: relative; }
-
-.social > a {
-  color: #fff;
-  background-color: #239ff0;
-  display: inline-block;
-  width: 1.5em;
-  height: 1.5em;
-  line-height: 1.5em;
-  text-align: center; }
-.social.social-front {
-  position: absolute;
-  right: 0;
-  top: -1.5em; }
 
 .team-member {
   font-size: 0.8em;

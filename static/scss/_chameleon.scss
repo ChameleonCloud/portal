@@ -42,6 +42,27 @@ h3 a, h3 a:hover, h3 a:focus {
       line-height: 1.35em;
     }
   }
+
+  .social-wrapper {
+    position: relative;
+  }
+
+  .social {
+    > a {
+      color: #fff;
+      background-color: $brand-info;
+      display: inline-block;
+      width: 1.5em;
+      height: 1.5em;
+      line-height: 1.5em;
+      text-align: center;
+    }
+
+    &.social-front {
+      float: right;
+      margin-top: -1.5em;
+    }
+  }
 }
 
 html, body {
@@ -58,28 +79,11 @@ html, body {
   background-color: #fff;
   background-image: url(../images/bg.jpg);
   min-height: 400px;
+  padding-top: 1em;
   padding-bottom: 2em;
 
   & > .container {
     position: relative;
-  }
-}
-
-.social {
-  > a {
-    color: #fff;
-    background-color: $brand-info;
-    display: inline-block;
-    width: 1.5em;
-    height: 1.5em;
-    line-height: 1.5em;
-    text-align: center;
-  }
-
-  &.social-front {
-    position: absolute;
-    right: 0;
-    top: -1.5em;
   }
 }
 
