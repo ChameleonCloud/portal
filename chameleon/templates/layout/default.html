@@ -26,7 +26,7 @@
           {% for message in messages %}
           <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
             <button class="close pull-right" data-dismiss="alert">&times</button>
-            <p>{{ message }}</p>
+            <p>{{ message|safe }}</p>
           </div>
           {% endfor %}
         {% endif %}

@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from pytas.pytas import client as TASClient
+import logging
+import re
 
 class TASBackend(object):
 
@@ -8,16 +11,21 @@ class TASBackend(object):
 
     # Create an authentication method
     # This is called by the standard Django login procedure
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, username=None, password=None,errors=[]):
         tas_user = None
         try:
             # Check if this user is valid on the mail server
             if self.tas.authenticate(username, password):
                 tas_user = self.tas.get_user(username=username)
             else:
-                raise Exception('The username or password is incorrect.')
-        except:
-            return None
+                raise Exception('Authentication Error', 'Your username or password is incorrect.')
+        except Exception as e:
+            logger = logging.getLogger('tas')
+            logger.error(e.args)
+            if re.search(r'PendingEmailConfirmation', e.args[1]):
+                raise ValidationError('Please confirm your email address before logging in.')
+            else:
+                raise ValidationError(e.args[1])
 
         UserModel = get_user_model()
         try:
@@ -36,7 +44,7 @@ class TASBackend(object):
                 last_name=tas_user['lastName'],
                 email=tas_user['email']
                 )
-                
+
         return user
 
     # Required for your backend to work properly - unchanged in most scenarios

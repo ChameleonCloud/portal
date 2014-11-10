@@ -2,9 +2,9 @@ django
 django-pipeline
 pytas
 django-simple-menu
+django-markdown-deux
 
 #django-countries
-#django-markdown-deux
 #email-reply-parser
 #
 #django-password-reset

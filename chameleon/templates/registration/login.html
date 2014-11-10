@@ -5,12 +5,12 @@
 <div class="row">
   <div class="col-sm-6">
     <h2>Login to Chameleon</h2>
-    {% if form.errors %}
+    {% for error in form.non_field_errors %}
       <div class="alert alert-danger">
         <button class="close pull-right" data-dismiss="alert">&times</button>
-        <p>Your username and password didn't match. Please try again.</p>
+        <p>{{ error | escape}}</p>
       </div>
-    {% endif %}
+    {% endfor %}
     <form method="post">
       {% csrf_token %}
       <div class="form-group">

@@ -8,78 +8,112 @@
 <h2>Register</h2>
 
 <form method="post" action="{% url 'tas.views.register' %}">
+  {% csrf_token %}
   <div class="row">
     <div class="col-md-6">
-      <div class="form-group">
-        <label class="control-label" for="firstName">First name</label>
-        <input type="text" class="form-control" name="firstName" id="firstName" placeholder="First name" value="{{ profile.firstName }}">
-      </div>
+      <fieldset>
+        <legend>Contact Information</legend>
+        <div class="form-group {% if form.errors.firstName %}has-error{% endif %}">
+          <label class="control-label" for="firstName">First name</label>
+          <input type="text" class="form-control" name="firstName" id="firstName" placeholder="First name" value="{{ form.data.firstName }}">
+          <p class="help-block">{{ form.errors.firstName }}</p>
+        </div>
 
-      <div class="form-group">
-        <label class="control-label" for="lastName">Last name</label>
-        <input type="text" class="form-control" name="lastName" id="lastName" placeholder="Last name" value="{{ profile.lastName }}">
-      </div>
+        <div class="form-group {% if form.errors.lastName %}has-error{% endif %}">
+          <label class="control-label" for="lastName">Last name</label>
+          <input type="text" class="form-control" name="lastName" id="lastName" placeholder="Last name" value="{{ form.data.lastName }}">
+          <p class="help-block">{{ form.errors.lastName }}</p>
+        </div>
 
-      <div class="form-group">
-        <label class="control-label" for="email">Email address</label>
-        <input type="text" class="form-control" name="email" id="email" placeholder="Email address" value="{{ profile.email }}">
-      </div>
+        <div class="form-group {% if form.errors.email %}has-error{% endif %}">
+          <label class="control-label" for="email">Email address</label>
+          <input type="text" class="form-control" name="email" id="email" placeholder="Email address" value="{{ form.data.email }}">
+          <p class="help-block">{{ form.errors.email }}</p>
+        </div>
 
-      <div class="form-group">
-        <label class="control-label" for="institution">Institution</label>
-        {% if institutions %}
-        <select class="form-control" name="institution" id="institution">
-          <option>Choose one</option>
-            {% for inst in institutions %}
-            <option {% if inst.id == profile.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|to_json }}">{{ inst.name }}</option>
+        <div class="form-group {% if form.errors.institutionId %}has-error{% endif %}">
+          <label class="control-label" for="institutionId">Institution</label>
+          {% if institutions %}
+          <select class="form-control" name="institutionId" id="institutionId">
+            <option value="">Choose one</option>
+              {% for inst in institutions %}
+              <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|to_json }}">{{ inst.name }}</option>
+              {% endfor %}
+          </select>
+          {% else %}
+          <p class="alert alert-danger">Error loading institutions</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group {% if form.errors.departmentId %}has-error{% endif %}">
+          <label class="control-label" for="departmentId">Department</label>
+          {% if institutions %}
+          <select class="form-control" name="departmentId" id="departmentId">
+            <option value="">Choose one</option>
+              {% for dept in curr_inst.children %}
+              <option {% if dept.id == form.data.departmentId %}selected{% endif %} value="{{ dept.id }}">{{ dept.name }}</option>
+              {% endfor %}
+          </select>
+          {% else %}
+          <p class="alert alert-danger">Error loading departments</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group {% if form.errors.countryId %}has-error{% endif %}">
+          <label class="control-label" for="countryId">Country</label>
+          {% if countries %}
+          <select class="form-control" name="countryId" id="countryId">
+            <option value="">Choose one</option>
+            {% for country in countries %}
+            <option value="{{ country.id }}" {% if country.id == form.data.countryId %}selected{% endif %}>{{ country.name }}</option>
             {% endfor %}
-        </select>
-        {% else %}
-        <p class="alert alert-danger">Error loading institutions</p>
-        {% endif %}
-      </div>
+          </select>
+          {% else %}
+            <p class="alert alert-danger">Error loading countries</p>
+          {% endif %}
+        </div>
 
-      <div class="form-group">
-        <label class="control-label" for="department">Department</label>
-        {% if institutions %}
-        <select class="form-control" name="department" id="department">
-          <option>Choose one</option>
-            {% for dept in curr_inst.children %}
-            <option {% if dept.id == profile.departmentId %}selected{% endif %} value="{{ dept.id }}">{{ dept.name }}</option>
+        <div class="form-group {% if form.errors.citizenshipId %}has-error{% endif %}">
+          <label class="control-label" for="citizenshipId">Citizenship</label>
+          {% if countries %}
+          <select class="form-control" name="citizenshipId" id="citizenshipId">
+            <option value="">Choose one</option>
+            {% for country in countries %}
+            <option value="{{ country.id }}" {% if country.id == form.data.citizenshipId %}selected{% endif %}>{{ country.name }}</option>
             {% endfor %}
-        </select>
-        {% else %}
-        <p class="alert alert-danger">Error loading departments</p>
-        {% endif %}
-      </div>
+          </select>
+          {% else %}
+            <p class="alert alert-danger">Error loading countries</p>
+          {% endif %}
+        </div>
+      </fieldset>
 
-      <div class="form-group">
-        <label class="control-label" for="country">Country</label>
-        {% if countries %}
-        <select class="form-control" name="country" id="country">
-          <option>Choose one</option>
-          {% for country in countries %}
-          <option value="{{ country.id }}" {% if country.id == profile.countryId %}selected{% endif %}>{{ country.name }}</option>
-          {% endfor %}
-        </select>
-        {% else %}
-          <p class="alert alert-danger">Error loading countries</p>
-        {% endif %}
-      </div>
+      <fieldset>
+        <legend>Account Information</legend>
 
-      <div class="form-group">
-        <label class="control-label" for="citizenship">Citizenship</label>
-        {% if countries %}
-        <select class="form-control" name="citizenship" id="citizenship">
-          <option>Choose one</option>
-          {% for country in countries %}
-          <option value="{{ country.id }}" {% if country.id == profile.citizenshipId %}selected{% endif %}>{{ country.name }}</option>
-          {% endfor %}
-        </select>
-        {% else %}
-          <p class="alert alert-danger">Error loading countries</p>
-        {% endif %}
-      </div>
+        <div class="form-group {% if form.errors.username %}has-error{% endif %}">
+          <label class="control-label" for="username">Username</label>
+          <input type="text" class="form-control" name="username" id="username" placeholder="Username" value="{{ form.data.username }}">
+          <p class="help-block">{{ form.errors.username }} Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.
+        </div>
+
+        <div class="form-group {% if form.errors.password %}has-error{% endif %}">
+          <label class="control-label" for="password">Password</label>
+          <input type="password" class="form-control" name="password" id="password" placeholder="Password">
+          <p class="help-block">{{ form.errors.password }}</p>
+        </div>
+
+        <div class="form-group {% if form.errors.password %}has-error{% endif %}">
+          <label class="control-label" for="confirm_password">Confirm Password</label>
+          <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm Password">
+          <p class="help-block">Passwords must meet the following criteria:</p>
+          <ul class="help-block">
+            <li>Must not contain your account name or parts of your full name</li>
+            <li>Must be a minimum of 8 characters in length</li>
+            <li>Must contain characters from at least three of the following: uppercase letters, lowercase letters, numbers, symbols</li>
+          </ul>
+        </div>
+      </fieldset>
 
       <div class="form-group">
         <button type="submit" class="btn btn-success">Save Profile</button>
@@ -89,4 +123,35 @@
   </div>
 </form>
 
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+jQuery(function($) {
+  $('#institutionId').on('change', function(e) {
+    var id = this.value;
+    if (id) {
+      var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
+      if (depts.length) {
+        var opts = '<option value="">Choose One</option>';
+        $.each(depts, function(i, o) {
+          opts += '<option value="' + o.id + '">' + o.name + '</option>';
+        });
+        $('#departmentId').html(opts);
+        $('#departmentId').parent().removeClass('hide');
+      } else {
+        $('#departmentId').val('');
+        $('#departmentId').parent().addClass('hide');
+      }
+    } else {
+      $('#departmentId').val('');
+      $('#departmentId').parent().addClass('hide');
+    }
+  });
+
+  if ($('#departmentId').val() === '') {
+    $('#departmentId').parent().addClass('hide');
+  }
+});
+</script>
 {% endblock %}

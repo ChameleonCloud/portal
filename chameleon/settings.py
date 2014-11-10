@@ -110,6 +110,40 @@ LOGIN_REDIRECT_URL = '/user/'
 
 #####
 #
+# Logger config
+#
+#####
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'requests': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '../logs/requests.log',
+        },
+        'tas': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '../logs/tas.log',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['requests'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'tas': {
+            'handlers': ['tas'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+#####
+#
 # Pipeline config
 #
 #####

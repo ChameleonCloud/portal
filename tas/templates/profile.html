@@ -6,41 +6,47 @@
 <h2>{{ user.get_full_name }} <small>| {{ user.username }} </small></h2>
 
 {% if profile %}
-<div class="row">
-  <div class="col-sm-3 col-xs-5">
-    <b>Name</b>
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Name</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.firstName }} {{ profile.lastName }}
+    </div>
   </div>
-  <div class="col-sm-9 col-xs-7">
-    {{ profile.firstName }} {{ profile.lastName }}
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Email Address</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.email }}
+    </div>
   </div>
-</div>
-<div class="row">
-  <div class="col-sm-3 col-xs-5">
-    <b>Email Address</b>
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Institution</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.institution }}, {{ profile.department }}
+    </div>
   </div>
-  <div class="col-sm-9 col-xs-7">
-    {{ profile.email }}
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Country</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.country }}<br>
+      (citizenship: {{ profile.citizenship }})
+    </div>
   </div>
-</div>
-<div class="row">
-  <div class="col-sm-3 col-xs-5">
-    <b>Institution</b>
-  </div>
-  <div class="col-sm-9 col-xs-7">
-    {{ profile.institution }}, {{ profile.department }}
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-3 col-xs-5">
-    <b>Country</b>
-  </div>
-  <div class="col-sm-9 col-xs-7">
-    {{ profile.country }}<br>
-    (citizenship: {{ profile.citizenship }})
-  </div>
-</div>
 
-<a href="{% url 'profile_edit' %}" class="btn btn-default"><i class="fa fa-edit"></i> Edit Profile</a>
+  {% if profile.source == 'Chameleon' %}
+    <br>
+    <a href="{% url 'profile_edit' %}" class="btn btn-default">
+      <i class="fa fa-edit"></i>
+      Edit Profile
+    </a>
+  {% endif %}
 {% else %}
   <div class="alert alert-danger">
     <p>There was an error loading your profile information.</p>
