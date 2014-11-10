@@ -99,7 +99,6 @@
 <script type="text/javascript">
 jQuery(function($) {
   $('#institution').on('change', function(e) {
-    console.log(e);
     var id = this.value;
     if (id) {
       var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );

@@ -4122,13 +4122,13 @@ a.thumbnail.active {
   .alert-warning .alert-link {
     color: #66512c; }
 
-.alert-danger {
+.alert-danger, .alert-error {
   background-color: #f2dede;
   border-color: #ebccd1;
   color: #a94442; }
-  .alert-danger hr {
+  .alert-danger hr, .alert-error hr {
     border-top-color: #e4b9c0; }
-  .alert-danger .alert-link {
+  .alert-danger .alert-link, .alert-error .alert-link {
     color: #843534; }
 
 @-webkit-keyframes progress-bar-stripes {
@@ -7104,17 +7104,14 @@ h3 a, h3 a:hover, h3 a:focus {
   color: inherit; }
 
 .front .jumbotron {
-  font-size: 2em;
   border-bottom: 3px solid #239ff0;
   background: #fff;
   padding: 0;
   margin-bottom: 0; }
   .front .jumbotron h1 {
-    font-size: 1.5em;
-    font-weight: 350;
+    font-weight: 300;
     color: #494949;
-    border: 0;
-    line-height: 1.35em; }
+    border: 0; }
 .front .social-wrapper {
   position: relative; }
 .front .social > a {
@@ -7129,6 +7126,15 @@ h3 a, h3 a:hover, h3 a:focus {
   float: right;
   margin-top: -1.5em; }
 
+@media screen and (min-width: 768px) {
+  .front .jumbotron h1 {
+    font-size: 2em; } }
+@media screen and (min-width: 992px) {
+  .front .jumbotron h1 {
+    font-size: 2.75em; } }
+@media screen and (min-width: 1200px) {
+  .front .jumbotron h1 {
+    font-size: 3.5em; } }
 html, body {
   background-color: #f2f2f2; }
 

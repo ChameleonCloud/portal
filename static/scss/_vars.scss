@@ -21,3 +21,7 @@ $navbar-margin-bottom: 0;
 
 /* fontawesome */
 $fa-font-path: "../fonts/fontawesome";
+
+.alert-error {
+  @extend .alert-danger;
+}

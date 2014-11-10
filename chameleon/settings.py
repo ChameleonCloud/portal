@@ -44,7 +44,6 @@ INSTALLED_APPS = (
 
     # custom
     'tas',
-    'user_profile',
     'documentation',
     'util',
 )
@@ -107,7 +106,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/profile/'
+LOGIN_REDIRECT_URL = '/user/'
 
 #####
 #

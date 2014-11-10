@@ -22,6 +22,14 @@
 
     <div class="main">
       <div class="container">
+        {% if messages %}
+          {% for message in messages %}
+          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            <button class="close pull-right" data-dismiss="alert">&times</button>
+            <p>{{ message }}</p>
+          </div>
+          {% endfor %}
+        {% endif %}
         {% block content %}{% endblock %}
       </div>
     </div>

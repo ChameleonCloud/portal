@@ -25,7 +25,7 @@
               </ul>
             </li>
           {% else %}
-            <li {% if item.url == request.path %}class="active"{% endif %}>
+            <li {% if item.selected %}class="active"{% endif %}>
               <a href="{{ item.url }}">{{ item.title }}</a>
             </li>
           {% endif %}
@@ -33,7 +33,22 @@
       </ul>
       <ul class="nav navbar-nav navbar-right navbar-user">
         {% for item in menus.user %}
-          <li {% if item.selected %}class="active"{% endif %}><a href="{{ item.url }}">{{ item.title }}</a></li>
+          {% if item.children %}
+            <li class="dropdown {% if item.selected %}active{% endif %}">
+              <a href="{{ item.url }}" data-toggle="dropdown">
+                {{ item.title }} <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu">
+                {% for child_item in item.children %}
+                  <li><a href="{{ child_item.url }}">{{ child_item.title }}</a></li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% else %}
+            <li {% if item.selected %}class="active"{% endif %}>
+              <a href="{{ item.url }}">{{ item.title }}</a>
+            </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </nav>

@@ -3,15 +3,15 @@
 {% block content %}
 
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-sm-6">
     <h2>Login to Chameleon</h2>
     {% if form.errors %}
       <div class="alert alert-danger">
-        <button class="close pull-right">&times</button>
+        <button class="close pull-right" data-dismiss="alert">&times</button>
         <p>Your username and password didn't match. Please try again.</p>
       </div>
     {% endif %}
-    <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+    <form method="post">
       {% csrf_token %}
       <div class="form-group">
         <label for="username">Username</label>
@@ -25,15 +25,15 @@
 
       <div class="form-group">
         <button type="submit" class="btn btn-lg btn-success">Log in</button>
-        <a class="btn btn-link" href="/user/password-reset">Forgot your password?</a>
+        <a class="btn btn-link" href="{% url 'password-reset' %}">Forgot your password?</a>
       </div>
     </form>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-sm-6">
     <h2>Register for an Account</h2>
     <p>Don't have a Chameleon account?</p>
-    <a href="/register" class="btn btn-default">Register for an Account</a>
+    <a href="{% url 'register' %}" class="btn btn-default">Register for an Account</a>
   </div>
 </div>
 <br>
