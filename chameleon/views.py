@@ -10,22 +10,12 @@ site = {
     "url": "http://www.chameleoncloud.org"
 }
 
-def home(request):
-
-    print("**** authenticated: %s" % request.user.is_authenticated())
-    print("%s" % request.user)
+def home( request ):
 
     context = dict(site.items())
 
     return render(request, 'home.html', context)
 
-def login(request):
+def dashboard( request ):
     context = {}
-
-    data = request.POST
-    if data:
-        
-        authenticate(username=data['username'], password=data['password'])
-        context['username'] = data['username']
-
-    return render(request, 'login.html', context)
+    return render( request, 'dashboard.html', context)
