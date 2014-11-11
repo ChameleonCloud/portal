@@ -43,9 +43,10 @@ INSTALLED_APPS = (
     'markdown_deux',
 
     # custom
+    'site_menu',
+    'util',
     'tas',
     'documentation',
-    'util',
 )
 
 MIDDLEWARE_CLASSES = (

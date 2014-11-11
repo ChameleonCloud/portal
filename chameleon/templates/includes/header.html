@@ -1,7 +1,5 @@
 {% load staticfiles %}
 
-{% load menu %}{% generate_menu %}
-
 <header class="site-header">
   <div class="container">
     <nav class="navbar">
@@ -40,7 +38,9 @@
               </a>
               <ul class="dropdown-menu">
                 {% for child_item in item.children %}
-                  <li><a href="{{ child_item.url }}">{{ child_item.title }}</a></li>
+                  <li class="{% if child_item.selected %}active{% endif %}">
+                    <a href="{{ child_item.url }}">{{ child_item.title }}</a>
+                  </li>
                 {% endfor %}
               </ul>
             </li>
