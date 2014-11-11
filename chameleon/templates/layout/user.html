@@ -1,0 +1,20 @@
+{% extends "layout/base.html" %}
+
+{% block page_main %}
+  <div class="main">
+    <div class="container">
+
+      <ul class="nav nav-pills" role="tablist">
+        {% for item in menus.user_dashboard %}
+        <li role="presentation" class="{% if item.selected %}active{% endif %}">
+          <a href="{{ item.url }}">{{ item.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      
+      {% include "includes/messages.html" %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% load staticfiles %}
+{% load compressed %}
+{% load menu %}{% generate_menu %}
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>{% block title %}Page{% endblock %} | Chameleon Cloud</title>
+      <meta name="viewport" content="width=device-width">
+      <meta name="description" content="{{ site.description }}">
+      <link rel="icon" href="{% static "images/favicon.ico" %}">
+      <link rel="canonical" href="{{request.get_full_path}}">
+
+      <!-- Custom CSS -->
+      <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+      {% compressed_css 'main' %}
+  </head>
+  <body>
+    {% include "includes/header.html" %}
+
+    {% block page_top %}{% endblock %}
+
+    {% block page_main %}{% endblock %}
+
+    {% block page_bottom %}{% endblock %}
+
+    {% include "includes/footer.html" %}
+    {% include "includes/scripts.html" %}
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

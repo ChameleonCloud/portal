@@ -1,43 +1,10 @@
-{% load staticfiles %}
-{% load compressed %}
-<!DOCTYPE html>
-<html>
-  <head>
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <title>{% block title %}Page{% endblock %} | Chameleon Cloud</title>
-      <meta name="viewport" content="width=device-width">
-      <meta name="description" content="{{ site.description }}">
-      <link rel="icon" href="{% static "images/favicon.ico" %}">
-      <link rel="canonical" href="{{request.get_full_path}}">
+{% extends "layout/base.html" %}
 
-      <!-- Custom CSS -->
-      <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
-      {% compressed_css 'main' %}
-  </head>
-  <body>
-    {% include "includes/header.html" %}
-
-    {% block page_top %}{% endblock %}
-
-    <div class="main">
-      <div class="container">
-        {% if messages %}
-          {% for message in messages %}
-          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-            <button class="close pull-right" data-dismiss="alert">&times</button>
-            <p>{{ message|safe }}</p>
-          </div>
-          {% endfor %}
-        {% endif %}
-        {% block content %}{% endblock %}
-      </div>
+{% block page_main %}
+  <div class="main">
+    <div class="container">
+      {% include "includes/messages.html" %}
+      {% block content %}{% endblock %}
     </div>
-
-    {% block page_bottom %}{% endblock %}
-
-    {% include "includes/footer.html" %}
-    {% include "includes/scripts.html" %}
-    {% block scripts %}{% endblock %}
-  </body>
-</html>
+  </div>
+{% endblock %}
