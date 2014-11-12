@@ -88,3 +88,12 @@ Menu.add_item(
         check = lambda request: request.user.is_authenticated(),
     )
 )
+
+Menu.add_item(
+    'user_dashboard',
+    MenuItem(
+        'Helpdesk',
+        reverse( 'djangoRT.views.mytickets' ),
+        check = lambda request: request.user.is_authenticated(),
+    )
+)
