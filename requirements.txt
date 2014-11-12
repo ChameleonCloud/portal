@@ -1,11 +1,8 @@
 django
 django-pipeline
-pytas
 django-simple-menu
 django-markdown-deux
 
-#django-countries
-#email-reply-parser
-#
-#django-password-reset
-#django-allauth
+# these modules aren't in PIP
+#pytas
+#djangoRT
