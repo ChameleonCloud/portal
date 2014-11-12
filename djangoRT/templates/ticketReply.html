@@ -1,0 +1,37 @@
+{% extends "layout/default.html" %}
+{% block content %}
+
+{% include "includes.html" %}
+{% if not hasAccess %}
+	{% include "access_denied.html" %}
+{% else %}
+
+{% include "navigation.html" %}
+{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+	<h3>Reopen {{ ticket_id }} : {{ ticket.Subject }}</h3>
+{% else %}
+	<h3>Reply to {{ ticket_id }} : {{ ticket.Subject }}</h3>
+{% endif %}
+
+<div class='reply_description'>
+{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+	Please provide a message to explain why you are reopening this ticket.
+{% endif %}
+</div>
+
+<form action="" method="POST">
+	{% csrf_token %}
+	{{ form.as_p }}
+
+	{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+		<input type="submit" value="Reopen" />
+	{% else %}
+		<input type="submit" value="Reply" />
+	{% endif %}
+</form>
+
+{% endif %}
+{% endblock %}
+
+
+

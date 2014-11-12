@@ -1,0 +1,6 @@
+{% include "includes.html" %}
+{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+	<i class="fa fa-reply"></i>  <a href="{% url 'djangoRT.views.ticketreply' ticket.id %}">Reopen to this ticket</a>
+{% else %}
+	<i class="fa fa-reply"></i>  <a href="{% url 'djangoRT.views.ticketreply' ticket.id %}">Reply to this ticket</a>
+{% endif %}

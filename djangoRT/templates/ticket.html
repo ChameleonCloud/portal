@@ -1,0 +1,27 @@
+{% include "includes.html" %}
+<div class="ticket {{ticket.id}}">
+	<div class="status">
+		{% if ticket.Status == 'new' %}
+			<i class="fa fa-star-o"></i>
+		{% endif %}
+		{% if ticket.Status == 'open' %}
+			<i class="fa fa-envelope-o"></i>
+		{% endif %}
+		{% if ticket.Status == 'response required' %}
+			<i class="fa fa-exclamation"></i>
+		{% endif %}
+		{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+			<i class="fa fa-times"></i>
+		{% endif %}
+		{{ticket.Status}}
+	</div>
+	<div class="title">
+		<a href="{% url 'djangoRT.views.ticketdetail' ticket.id %}"> #{{ ticket.id }} : {{ ticket.Subject }}</a> 
+	</div>
+	<div class="updated">
+		{{ticket.LastUpdated|date:"F j Y"}}
+	</div>
+	<div class="reply">
+		{% include "reply.html" %}
+	</div>
+</div>

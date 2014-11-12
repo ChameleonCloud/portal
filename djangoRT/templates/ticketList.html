@@ -1,0 +1,42 @@
+{% extends "layout/default.html" %}
+{% block content %}
+
+{% include "includes.html" %}
+<h3><i class="fa fa-pencil-square-o"></i>  <a href="{% url 'djangoRT.views.ticketcreate' %}">Create a new ticket</a></h3>
+<br />
+<br />
+<h3>Current Tickets</h3>
+<select id="select">
+	<option value="new">New</option>
+	<option value="open">Open</option>
+	<option value="response">Response Required</option>
+	<option value="all" selected>All</option>
+</select>
+<br /><br />
+Search <input type="text" class="search" />
+<br /><br />
+<div class="none tickets empty">
+	No tickets to display.
+</div>
+<div class="open tickets none">
+	{% for ticket in open_tickets %}
+		{% include "ticket.html" %}
+	{% endfor %}
+</div>
+<div class="new tickets none">
+	{% for ticket in new_tickets %}
+		{% include "ticket.html" %}
+	{% endfor %}
+</div>
+<div class="response tickets none">
+	{% for ticket in response_tickets %}
+		{% include "ticket.html" %}
+	{% endfor %}
+</div>
+<h3>Resolved Tickets</h3>
+<div class="resolved tickets">
+	{% for ticket in resolved_tickets %}
+		{% include "ticket.html" %}
+	{% endfor %}
+</div>
+{% endblock %}

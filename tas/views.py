@@ -78,6 +78,13 @@ def password_reset( request ):
 
     return render(request, 'password_reset.html')
 
+def email_confirmation( request ):
+
+    if request.GET and 'code' in request.GET:
+        code = request.GET['code']
+
+    return HttpResponseRedirect( reverse( 'profile' ) )
+
 def register( request ):
     if request.user is not None and request.user.is_authenticated():
         return HttpResponseRedirect( reverse( 'profile' ) )

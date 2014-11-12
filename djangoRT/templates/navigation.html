@@ -1,0 +1,8 @@
+<div class="navigation">
+	<ul>
+		<li><i class="fa fa-long-arrow-left"></i>  <a href="{% url 'djangoRT.views.mytickets' %}">Back to ticket listing</a></li>
+		{% if ticket_id %}
+			<li><i class="fa fa-long-arrow-left"></i>  <a href="{% url 'djangoRT.views.ticketdetail' ticket_id %}">Back to ticket</a></li>
+		{% endif %}
+	</ul>
+</div>

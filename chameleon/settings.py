@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'util',
     'tas',
     'documentation',
+    'djangoRT',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,7 +108,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/user/'
+LOGIN_REDIRECT_URL = '/user/dashboard'
 
 #####
 #
@@ -160,6 +161,7 @@ PIPELINE_CSS = {
     'main': {
         'source_filenames': (
             'scss/main.scss',
+            'djangoRT/css/djangoRT.css',
             ),
         'output_filename': 'css/main.css',
     },
@@ -169,7 +171,8 @@ PIPELINE_JS = {
     'all': {
         'source_filenames': (
             'bower_components/jquery/dist/jquery.js',
-            'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js'
+            'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
+            'djangoRT/js/djangoRT.js',
         ),
         'output_filename': 'scripts/all.js'
     }
@@ -179,3 +182,15 @@ TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCE
 
 # include request for django-simple-menu
 TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)
+
+#####
+#
+# Django RT
+#
+#####
+DJANGO_RT = {
+    'RT_HOST': os.environ.get('RT_HOST'),
+    'RT_UN': os.environ.get('RT_USERNAME'),
+    'RT_PW': os.environ.get('RT_PASSWORD'),
+    'RT_QUEUE': os.environ.get('RT_DEFAULT_QUEUE'),
+}

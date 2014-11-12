@@ -1,0 +1,14 @@
+{% extends "layout/default.html" %}
+{% block content %}
+
+{% include "includes.html" %}
+{% include "navigation.html" %}
+<h1>Submit a new ticket</h1>
+
+<form action="" method="POST">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<input type="submit" value="Create ticket" />
+</form>
+{% endblock %}
+
