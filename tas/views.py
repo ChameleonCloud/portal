@@ -32,6 +32,8 @@ def profile( request ):
 def profile_edit( request ):
     context = {}
 
+    # TODO!
+
     tas = TASClient()
     try:
         resp = tas.get_user(username=request.user)
@@ -80,10 +82,40 @@ def password_reset( request ):
 
 def email_confirmation( request ):
 
-    if request.GET and 'code' in request.GET:
-        code = request.GET['code']
+    context = {}
 
-    return HttpResponseRedirect( reverse( 'profile' ) )
+    if request.method == 'POST':
+        if request.POST['code'] and request.POST['username']:
+            context['code'] = request.POST['code']
+            context['username'] = request.POST['username']
+            try:
+                tas = TASClient()
+                user = tas.get_user( username=context['username'] )
+                tas.verify_user( user['id'], context['code'] )
+                messages.success( request, 'Congratulations, your email has been verified! Please log in now.' )
+                return HttpResponseRedirect( reverse( 'profile' ) )
+            except Exception as e:
+                if e[0] == 'User not found':
+                    messages.error( request, e[1] )
+                else:
+                    messages.error( request, 'Email verification failed. Please check your verification code and username and try again.' )
+        else:
+            if request.POST['code']:
+                context['code'] = request.POST['code']
+            else:
+                messages.error( request, 'Please enter the verification code you received via email' )
+
+            if request.POST['username']:
+                context['username'] = request.POST['username']
+            else:
+                messages.error( request, 'Please verify your username' )
+
+
+
+    elif 'code' in request.GET:
+        context['code'] = request.GET['code']
+
+    return render( request, 'email_confirmation.html', context )
 
 def register( request ):
     if request.user is not None and request.user.is_authenticated():

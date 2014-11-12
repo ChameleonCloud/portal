@@ -1,0 +1,29 @@
+{% extends "layout/default.html" %}
+
+{% block title %}Email Confirmation{% endblock %}
+
+{% block content %}
+<h2>Email Confirmation</h2>
+
+<p class="lead">
+  Almost finished! Enter the verification code that you received via email
+  and the username you registered with to activate your account.
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="form-group">
+    <label class="control-label" for="username">Enter Your Verification Code</label>
+    <input type="text" class="form-control" name="code" id="code" placeholder="Verification Code" value="{{ code }}">
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="username">Enter Your Chameleon Cloud Username</label>
+    <input type="text" class="form-control" name="username" id="username" placeholder="Username" value="{{ username }}">
+  </div>
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-success">Verify</button>
+  </div>
+</form>
+{% endblock %}
