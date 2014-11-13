@@ -122,12 +122,12 @@ LOGGING = {
         'requests': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '../logs/requests.log',
+            'filename': '/tmp/requests.log',
         },
         'tas': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '../logs/tas.log',
+            'filename': '/tmp/tas.log',
         },
     },
     'loggers': {
