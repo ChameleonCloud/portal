@@ -83,8 +83,8 @@ Menu.add_item(
 Menu.add_item(
     'user_dashboard',
     MenuItem(
-        'Profile',
-        reverse( 'tas.views.profile' ),
+        'Projects',
+        reverse( 'projects.views.user_projects' ),
         check = lambda request: request.user.is_authenticated(),
     )
 )
@@ -92,8 +92,17 @@ Menu.add_item(
 Menu.add_item(
     'user_dashboard',
     MenuItem(
-        'Helpdesk',
+        'Help Desk',
         reverse( 'djangoRT.views.mytickets' ),
+        check = lambda request: request.user.is_authenticated(),
+    )
+)
+
+Menu.add_item(
+    'user_dashboard',
+    MenuItem(
+        'Profile',
+        reverse( 'tas.views.profile' ),
         check = lambda request: request.user.is_authenticated(),
     )
 )

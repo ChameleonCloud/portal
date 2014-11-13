@@ -5,8 +5,11 @@
 {% block content %}
 <h2>Dashboard</h2>
 
-<div class="jumbotron">
-  <h1>TODO!</h1>
-  <p>Create project, submit ticket, upload SSH key, other activities right from this view.</p>
+<div class="row">
+  {% for action in actions %}
+  <div class="col-sm-4">
+    <a href="{{ action.url }}" class="btn btn-default btn-lg btn-block">{{ action.name }}</a>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

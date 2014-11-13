@@ -15,6 +15,7 @@ urlpatterns = patterns(
     url(r'^register/', RedirectView.as_view(url=reverse_lazy('register'))),
     url(r'^user/', include('tas.urls')),
     url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
+    url(r'^user/projects/', include('projects.urls')),
     url(r'^email-confirmation', 'tas.views.email_confirmation', name='email_confirmation'),
     url(r'^help/', include('djangoRT.urls')),
     url(r'^documentation/', include('documentation.urls')),

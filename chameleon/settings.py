@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'tas',
     'documentation',
     'djangoRT',
+    'projects',
 )
 
 MIDDLEWARE_CLASSES = (
