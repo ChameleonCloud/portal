@@ -1,37 +1,40 @@
-{% extends "layout/default.html" %}
+{% extends "layout/user.html" %}
 {% block content %}
-{% include "includes.html" %}
 
 {% if not hasAccess %}
-	{% include "access_denied.html" %}
-	{% include "navigation.html" %}
+  {% include "access_denied.html" %}
+  {% include "navigation.html" %}
 {% else %}
-{% include "navigation.html" %}
-<h3>Ticket #{{ ticket_id }} : {{ ticket.Subject }} </h3>
-<div class="reply-link">
-	{% include "reply.html" %}
-</div>
-<div class="history-content-container">
-{% for history in ticket_history %}
 
-	{% if history.Type == "Correspond" or history.Type == "Create" %}
-	<div class="history-content">
-		{{history.Description}} on {{history.Created|date:"F j Y"}}
-		<pre>{{ history.Content }}</pre>
-	</div>
-	{% endif %}
-	{% if history.Type == "Status" %}
-	<div class="history-content">
-		<pre>{{ history.Description }}</pre>
-	</div>
-	{% endif %}
-{% endfor %}
-</div>
-<div class="reply-link">
+  <h2>Ticket #{{ ticket_id }} : {{ ticket.Subject }} </h2>
+
 	{% include "reply.html" %}
-</div>
+
+	<div class="row">
+		<div class="col-md-9">
+		  {% for history in ticket_history %}
+
+		    {% if history.Type == "Correspond" or history.Type == "Create" %}
+					<h4>
+						<i class="fa fa-{% if history.Type == "Correspond" %}comment{% elif history.Type == 'Create' %}plus-circle{% endif %}"></i>
+						{{history.Created|date:"M j Y P"}}
+						<small>{{history.Description}}</small>
+					</h4>
+
+					<pre>{{ history.Content }}</pre>
+
+		    {% elif history.Type == "Status" %}
+			    <blockquote>
+						<i class="fa fa-bell"></i>
+						{{history.Description }}<br>
+			      {{history.Created|date:"M j Y P"}}
+					</blockquote>
+		    {% endif %}
+		  {% endfor %}
+		</div>
+	</div>
+
+  {% include "reply.html" %}
+
 {% endif %}
 {% endblock %}
-
-
-

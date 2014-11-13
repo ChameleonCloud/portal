@@ -1,40 +1,31 @@
 (function($) {
-	$(document).ready(function() {
-		var show = $('#select option:selected').val();
+	function showHideTickets(show) {
 		if (show === 'all') {
+			$('.tickets').addClass('all');
 			$('.tickets').removeClass('none');
 		} else {
+			$('.tickets').addClass('none');
+			$('.tickets').removeClass('all');
 			$('.tickets.' + show).removeClass('none');
 		}
 
+		if ($('.tickets.' + show + ' .ticket').length == 0) {
+			$('.empty').removeClass('none');		
+		} else {
+			$('.empty').addClass('none');
+		}
+
+	}
+
+	$(document).ready(function() {
+		showHideTickets($('#select option:selected').val());
+
 		$('#select').on('change', function() {
-			show = $('#select option:selected').val();
-
-			if ($(this).val() != "all") {
-				$('.tickets').addClass('none');
-				$('.tickets.' + show).removeClass('none');
-
-				if ($('.tickets.' + show + ' .ticket').length == 0) {
-					$('.empty').removeClass('none');
-				} else {
-					$('.empty').addClass('none');
-				}
-			} else {
-				$('.tickets').removeClass('none');
-
-				if ($('.tickets .ticket').length == 0) {
-					$('.empty').removeClass('none');
-				} else {
-					$('.empty').addClass('none');
-				}
-			}
-
+			showHideTickets($('#select option:selected').val());
 		});
 
 		$(".search").keyup( function() {
 			var searchTerms = $(this).val();
-			// console.log(searchTerms);
-			// console.log(show);
 			if (searchTerms != "") {
 				$(".ticket").filter( function() {
 					return !$(this).is(":contains('" + searchTerms + "')");
@@ -46,6 +37,11 @@
 			} else {
 				$(".ticket").removeClass("none");
 			}
+		});
+
+		$('.errorlist').each(function() {
+			$(this).addClass('none');
+			$(this).next('p').addClass('required');
 		});
 
 	});

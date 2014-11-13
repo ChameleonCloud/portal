@@ -20,6 +20,14 @@
 	clear: left;
 }
 
+.button {
+	font-size: 2em;
+}
+
+.required {
+	color: red;
+}
+
 .navigation {
 	float: right;
 }

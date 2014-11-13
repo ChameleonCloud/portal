@@ -1,42 +1,67 @@
-{% extends "layout/default.html" %}
-{% block content %}
+{% extends "layout/user.html" %}
 
-{% include "includes.html" %}
-<h3><i class="fa fa-pencil-square-o"></i>  <a href="{% url 'djangoRT.views.ticketcreate' %}">Create a new ticket</a></h3>
-<br />
-<br />
+{% block title %}My Tickets{% endblock %}
+
+{% block content %}
+<h2>My Tickets</h2>
+
+<a class="btn btn-primary" href="{% url 'djangoRT.views.ticketcreate' %}">
+  <i class="fa fa-plus-circle"></i>
+  Create a new ticket
+</a>
+
 <h3>Current Tickets</h3>
-<select id="select">
-	<option value="new">New</option>
-	<option value="open">Open</option>
-	<option value="response">Response Required</option>
-	<option value="all" selected>All</option>
-</select>
-<br /><br />
-Search <input type="text" class="search" />
-<br /><br />
+
+<div class="row" style="margin-bottom: 1em">
+  <div class="col-sm-6">
+    <label class="control-label" for="select">Filter by status</label>
+    <select id="select" class="form-control">
+      <option value="new">New</option>
+      <option value="open">Open</option>
+      <option value="response">Response Required</option>
+      <option value="all" selected>All</option>
+    </select>
+  </div>
+
+  <div class="col-sm-6">
+    <label class="control-label" for="search">Search</label>
+    <input class="form-control" type="text" class="search" placeholder="Search tickets"/>
+  </div>
+</div>
+
 <div class="none tickets empty">
-	No tickets to display.
+  No tickets to display.
 </div>
+
 <div class="open tickets none">
-	{% for ticket in open_tickets %}
-		{% include "ticket.html" %}
-	{% endfor %}
+  {% for ticket in open_tickets %}
+    {% include "ticket.html" %}
+  {% endfor %}
 </div>
+
 <div class="new tickets none">
-	{% for ticket in new_tickets %}
-		{% include "ticket.html" %}
-	{% endfor %}
+  {% for ticket in new_tickets %}
+    {% include "ticket.html" %}
+  {% endfor %}
 </div>
+
 <div class="response tickets none">
-	{% for ticket in response_tickets %}
-		{% include "ticket.html" %}
-	{% endfor %}
+  {% for ticket in response_tickets %}
+    {% include "ticket.html" %}
+  {% endfor %}
 </div>
+
+<div class="buffer"><br /><br /></div>
+
+{% if resolved_tickets %}
+
 <h3>Resolved Tickets</h3>
-<div class="resolved tickets">
-	{% for ticket in resolved_tickets %}
-		{% include "ticket.html" %}
-	{% endfor %}
+<div class="resolved-tickets">
+  {% for ticket in resolved_tickets %}
+    {% include "ticket.html" %}
+  {% endfor %}
 </div>
+
+{% endif %}
+
 {% endblock %}

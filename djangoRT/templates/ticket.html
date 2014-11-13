@@ -1,27 +1,28 @@
-{% include "includes.html" %}
-<div class="ticket {{ticket.id}}">
-	<div class="status">
-		{% if ticket.Status == 'new' %}
-			<i class="fa fa-star-o"></i>
-		{% endif %}
-		{% if ticket.Status == 'open' %}
-			<i class="fa fa-envelope-o"></i>
-		{% endif %}
-		{% if ticket.Status == 'response required' %}
-			<i class="fa fa-exclamation"></i>
-		{% endif %}
-		{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
-			<i class="fa fa-times"></i>
-		{% endif %}
-		{{ticket.Status}}
-	</div>
-	<div class="title">
-		<a href="{% url 'djangoRT.views.ticketdetail' ticket.id %}"> #{{ ticket.id }} : {{ ticket.Subject }}</a> 
-	</div>
-	<div class="updated">
-		{{ticket.LastUpdated|date:"F j Y"}}
-	</div>
-	<div class="reply">
-		{% include "reply.html" %}
-	</div>
+<div class="ticket {{ticket.id}} row" style="border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 3px;">
+  <div class="col-sm-2">
+		<span class="label label-info">
+	    {% if ticket.Status == 'new' %}
+	      <i class="fa fa-star-o"></i>
+	    {% endif %}
+	    {% if ticket.Status == 'open' %}
+	      <i class="fa fa-envelope-o"></i>
+	    {% endif %}
+	    {% if ticket.Status == 'response required' %}
+	      <i class="fa fa-exclamation"></i>
+	    {% endif %}
+	    {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+	      <i class="fa fa-check"></i>
+	    {% endif %}
+	    {{ticket.Status}}
+		</span>
+  </div>
+	<div class="col-sm-4">
+    <a href="{% url 'djangoRT.views.ticketdetail' ticket.id %}"> #{{ ticket.id }} : {{ ticket.Subject }}</a>
+  </div>
+  <div class="col-sm-3">
+    {{ticket.LastUpdated|date:"F j Y"}}
+  </div>
+  <div class="col-sm-3">
+    {% include "reply.html" %}
+  </div>
 </div>

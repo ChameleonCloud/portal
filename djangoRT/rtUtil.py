@@ -15,14 +15,11 @@ class DjangoRt:
 		self.rtUn = settings.DJANGO_RT['RT_UN']
 		self.rtPw = settings.DJANGO_RT['RT_PW']
 		self.rtQueue = settings.DJANGO_RT['RT_QUEUE']
-		# self.defaultEmail = DEFAULT_EMAIL
 
 		self.tracker = rt.Rt(self.rtHost, self.rtUn, self.rtPw, basic_auth=(self.rtUn, self.rtPw))
 		self.tracker.login()
 
 	def getUserTickets(self, userEmail, status="ALL"):
-		# if not userEmail and self.defaultEmail:
-		# 	userEmail = self.defaultEmail
 		if not status == "ALL":
 			ticket_list = self.tracker.search(Queue=rt.ALL_QUEUES, Requestors__exact=userEmail, Status__exact=status, order='-LastUpdated')
 		else:
@@ -64,9 +61,6 @@ class DjangoRt:
 	# Also doesn't crap out if the user isn't logged in even though
 	# we should be checking before calling this
 	def hasAccess(self, ticket_id, user = None):
-		# TODO remove once emails are being set
-		# if not user and self.defaultEmail:
-		# 	user = self.defaultEmail
 		if user and ticket_id:
 			ticket = self.tracker.get_ticket(ticket_id)
 			if user in ticket.get('Requestors', '') or user in ticket.get('Cc', ''):
