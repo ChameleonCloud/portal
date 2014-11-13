@@ -38,7 +38,9 @@ The following environment variables must be configured for `djangoRT`:
 
 User the docker container! See the `Dockerfile`
 
-Running the portal with local code mounted:
+#### Development
+
+Running the portal with local code:
 
 ```bash
 docker run \
@@ -59,7 +61,13 @@ docker run \
     -d -p ::8888 chameleon/portal python manage.py runserver 0.0.0.0:8888
 ```
 
-Production run:
+#### Production
+
+Runs the code in the container
+
+**SSL certificates** are expected by nginx to be in
+`/etc/ssl/chameleoncloud.org`. This should be mounted into the
+container from the host. It looks for `bundle.crt` and `site.key`.
 
 ```bash
 docker run \
@@ -75,6 +83,7 @@ docker run \
     -e "DB-PORT=$DB-PORT" \
     -e "DB_USER=$DB_USER" \
     -e "DB_PASSWORD=$DB_PASSWORD" \
+    -v $(pwd)/certificates:/etc/ssl/chameleoncloud.org \
     --name chameleon_portal \
     -dP chameleon/portal
 ```
