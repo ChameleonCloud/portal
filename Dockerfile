@@ -22,5 +22,9 @@ RUN \
     && ln -s /project/docker-conf/nginx-app.conf /etc/nginx/sites-enabled/ \
     && ln -s /project/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
 
+# setup static assets
+
+RUN python manage.py collectstatic -link --noinput
+
 expose 80 443
 cmd ["supervisord", "-n"]

@@ -32,6 +32,8 @@ The following environment variables must be configured for `djangoRT`:
 -RT_PASSWORD: the RT account password
 -RT_DEFAULT_QUEUE: The default queue to which tickets will be submitted
 
+*TODO document database*
+
 ## Running the portal
 
 User the docker container! See the `Dockerfile`
@@ -45,6 +47,11 @@ docker run \
     -e "RT_USERNAME=$RT_USERNAME" \
     -e "RT_PASSWORD=$RT_PASSWORD" \
     -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
+    -e "DB_NAME=$DB_NAME" \
+    -e "DB_HOST=$DB_HOST" \
+    -e "DB-PORT=$DB-PORT" \
+    -e "DB_USER=$DB_USER" \
+    -e "DB_PASSWORD=$DB_PASSWORD" \
     -v $(pwd):/project \
     --name chameleon_portal \
     -dP chameleon/portal
