@@ -2,6 +2,7 @@ django
 django-pipeline
 django-simple-menu
 django-markdown-deux
+mysql-python
 
 # these modules aren't in PIP
 #pytas

@@ -38,6 +38,29 @@ The following environment variables must be configured for `djangoRT`:
 
 User the docker container! See the `Dockerfile`
 
+Running the portal with local code mounted:
+
+```bash
+docker run \
+    -e "TAS_URL=$TAS_URL" \
+    -e "TAS_CLIENT_KEY=$TAS_CLIENT_KEY" \
+    -e "TAS_CLIENT_SECRET=$TAS_CLIENT_SECRET" \
+    -e "RT_HOST=$RT_HOST" \
+    -e "RT_USERNAME=$RT_USERNAME" \
+    -e "RT_PASSWORD=$RT_PASSWORD" \
+    -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
+    -e "DB_NAME=$DB_NAME" \
+    -e "DB_HOST=$DB_HOST" \
+    -e "DB-PORT=$DB_PORT" \
+    -e "DB_USER=$DB_USER" \
+    -e "DB_PASSWORD=$DB_PASSWORD" \
+    -v $(pwd):/project \
+    --name chameleon_portal \
+    -d -p ::8888 chameleon/portal python manage.py runserver 0.0.0.0:8888
+```
+
+Production run:
+
 ```bash
 docker run \
     -e "TAS_URL=$TAS_URL" \
@@ -52,7 +75,6 @@ docker run \
     -e "DB-PORT=$DB-PORT" \
     -e "DB_USER=$DB_USER" \
     -e "DB_PASSWORD=$DB_PASSWORD" \
-    -v $(pwd):/project \
     --name chameleon_portal \
     -dP chameleon/portal
 ```

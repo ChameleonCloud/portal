@@ -24,7 +24,7 @@ RUN \
 
 # setup static assets
 
-RUN python manage.py collectstatic -link --noinput
+RUN mkdir /var/www/static && python manage.py collectstatic -link --noinput
 
 expose 80 443
 cmd ["supervisord", "-n"]
