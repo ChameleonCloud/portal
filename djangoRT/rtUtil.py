@@ -50,7 +50,7 @@ class DjangoRt:
 	def createTicket(self, ticket):
 		return self.tracker.create_ticket(Queue=self.rtQueue,
 				Subject=ticket.subject,
-				Text=ticket.problem_description,
+				Text=ticket.problem_description.replace('\n', ' '),
 				Requestors=ticket.requestor,
 				Cc=",".join(ticket.cc))
 
