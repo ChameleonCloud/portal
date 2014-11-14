@@ -51,15 +51,13 @@ docker run \
     -e "RT_USERNAME=$RT_USERNAME" \
     -e "RT_PASSWORD=$RT_PASSWORD" \
     -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
-    -e "DB_NAME=$DB_NAME" \
-    -e "DB_HOST=$DB_HOST" \
-    -e "DB-PORT=$DB_PORT" \
-    -e "DB_USER=$DB_USER" \
-    -e "DB_PASSWORD=$DB_PASSWORD" \
     -v $(pwd):/project \
-    --name chameleon_portal \
     -d -p ::8888 chameleon/portal python manage.py runserver 0.0.0.0:8888
 ```
+
+You can specify database ENV variables to connect to a MySQL backend
+(see production options below), otherwise it will just use the default
+SQLite db.
 
 #### Production
 
@@ -83,6 +81,7 @@ docker run \
     -e "DB-PORT=$DB-PORT" \
     -e "DB_USER=$DB_USER" \
     -e "DB_PASSWORD=$DB_PASSWORD" \
+    -e "DJANGO_ENV=Production" \
     -v $(pwd)/certificates:/etc/ssl/chameleoncloud.org \
     --name chameleon_portal \
     -dP chameleon/portal

@@ -3,9 +3,7 @@ FROM mrhanlon/python-nginx:latest
 MAINTAINER Matthew R Hanlon <mrhanlon@tacc.utexas.edu>
 
 # setup project code
-
 COPY . /project
-
 WORKDIR /project
 
 # install non-pip dependencies
@@ -15,7 +13,6 @@ RUN cd deps/pytas && python setup.py install && cd ../python-rt && python setup.
 RUN pip install -r requirements.txt
 
 # configure nginx, uwsgi, supervisord
-
 RUN \
     echo "daemon off;" >> /etc/nginx/nginx.conf \
     && rm /etc/nginx/sites-enabled/default \
@@ -23,8 +20,10 @@ RUN \
     && ln -s /project/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
 
 # setup static assets
-
 RUN mkdir /var/www/static && python manage.py collectstatic -link --noinput
+
+# database migrations, if necessary
+RUN python manage.py migrate
 
 expose 80 443
 cmd ["supervisord", "-n"]
