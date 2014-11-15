@@ -3,6 +3,10 @@
 {% block title %}Projects{% endblock %}
 
 {% block content %}
+<a href="{% url 'projects.views.create_project' %}" class="btn btn-info pull-right">
+  <i class="fa fa-plus-circle"></i> Create a Project
+</a>
+
 <h2>Projects</h2>
 
 {% for p in projects %}
@@ -10,9 +14,14 @@
 <h4>
   {{ p.title }} |
   <small>{{ p.chargeCode }}</small>
+  {% comment %}
+  &nbsp;&nbsp;<a href="{% url 'view_project' p.id %}" class="btn btn-default">View Project</a>
+  {% endcomment %}
 </h4>
 
-<table class="table table-responsive">
+
+
+<table class="table table-responsive" data-project-id="{{ p.id }}">
   <tbody>
     <tr>
       <th>PI</th>
@@ -34,7 +43,12 @@
   <div class="jumbotron">
     <h1>You don't have any projects!</h1>
     <p>Create a project to get access to Chameleon resources.</p>
-    <p><a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">Create a Project</a></p>
+    <p>
+      <a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">
+        <i class="fa fa-plus-circle"></i>
+        Create a Project
+      </a>
+    </p>
   </div>
 {% endfor %}
 

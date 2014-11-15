@@ -32,11 +32,23 @@ def profile( request ):
 def profile_edit( request ):
     context = {}
 
-    # TODO!
-
     tas = TASClient()
+
+    if request.method == 'POST':
+        data = tas.get_user( username=request.user )
+        data[ 'firstName' ] = request.POST[ 'firstName' ]
+        data[ 'lastName' ] = request.POST[ 'lastName' ]
+        data[ 'email' ] = request.POST[ 'email' ]
+        data[ 'institutionId' ] = int( request.POST[ 'institutionId' ] )
+        data[ 'departmentId' ] = int( request.POST[ 'departmentId' ] )
+        data[ 'countryId' ] = int( request.POST[ 'countryId' ] )
+        data[ 'citizenshipId' ] = int( request.POST[ 'citizenshipId' ] )
+        tas.save_user( data[ 'id' ], data )
+        messages.success( request, 'Your profile has been updated!' )
+        return HttpResponseRedirect( reverse( 'profile' ) )
+
     try:
-        resp = tas.get_user(username=request.user)
+        resp = tas.get_user( username=request.user )
         context['profile'] = resp
     except:
         context['profile'] = False

@@ -1,0 +1,19 @@
+{% extends 'layout/user.html' %}
+
+{% block title %}Project - {{ project.chargeCode }}{% endblock %}
+
+{% block content %}
+<h2>
+  {{ project.title }} |
+  <small>{{ project.chargeCode }}</small>
+</h2>
+
+<pre>
+  {{ project }}
+</pre>
+
+<pre>
+  {{ allocations }}
+</pre>
+
+{% endblock %}

@@ -6,4 +6,6 @@ urlpatterns = patterns(
     url( r'^$', 'user_projects', name='user_projects' ),
 
     url( r'^new/$', 'create_project', name='create_project' ),
+
+    url( r'^(\d+)/$', 'view_project', name='view_project' ),
 )
