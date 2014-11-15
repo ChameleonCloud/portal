@@ -1,1046 +1,0 @@
-3.4.4 (Selective Steve)
-5da49701fb838f3c4cfb556ed220d61e7c51b34d
-o:Sass::Tree::RootNode:@template"8// Variables
-// --------------------------
-
-$fa-font-path:        "../fonts" !default;
-//$fa-font-path:        "//netdna.bootstrapcdn.com/font-awesome/4.1.0/fonts" !default; // for referencing Bootstrap CDN font files directly
-$fa-css-prefix:       fa !default;
-$fa-version:          "4.1.0" !default;
-$fa-border-color:     #eee !default;
-$fa-inverse:          #fff !default;
-$fa-li-width:         (30em / 14) !default;
-
-$fa-var-adjust: "\f042";
-$fa-var-adn: "\f170";
-$fa-var-align-center: "\f037";
-$fa-var-align-justify: "\f039";
-$fa-var-align-left: "\f036";
-$fa-var-align-right: "\f038";
-$fa-var-ambulance: "\f0f9";
-$fa-var-anchor: "\f13d";
-$fa-var-android: "\f17b";
-$fa-var-angle-double-down: "\f103";
-$fa-var-angle-double-left: "\f100";
-$fa-var-angle-double-right: "\f101";
-$fa-var-angle-double-up: "\f102";
-$fa-var-angle-down: "\f107";
-$fa-var-angle-left: "\f104";
-$fa-var-angle-right: "\f105";
-$fa-var-angle-up: "\f106";
-$fa-var-apple: "\f179";
-$fa-var-archive: "\f187";
-$fa-var-arrow-circle-down: "\f0ab";
-$fa-var-arrow-circle-left: "\f0a8";
-$fa-var-arrow-circle-o-down: "\f01a";
-$fa-var-arrow-circle-o-left: "\f190";
-$fa-var-arrow-circle-o-right: "\f18e";
-$fa-var-arrow-circle-o-up: "\f01b";
-$fa-var-arrow-circle-right: "\f0a9";
-$fa-var-arrow-circle-up: "\f0aa";
-$fa-var-arrow-down: "\f063";
-$fa-var-arrow-left: "\f060";
-$fa-var-arrow-right: "\f061";
-$fa-var-arrow-up: "\f062";
-$fa-var-arrows: "\f047";
-$fa-var-arrows-alt: "\f0b2";
-$fa-var-arrows-h: "\f07e";
-$fa-var-arrows-v: "\f07d";
-$fa-var-asterisk: "\f069";
-$fa-var-automobile: "\f1b9";
-$fa-var-backward: "\f04a";
-$fa-var-ban: "\f05e";
-$fa-var-bank: "\f19c";
-$fa-var-bar-chart-o: "\f080";
-$fa-var-barcode: "\f02a";
-$fa-var-bars: "\f0c9";
-$fa-var-beer: "\f0fc";
-$fa-var-behance: "\f1b4";
-$fa-var-behance-square: "\f1b5";
-$fa-var-bell: "\f0f3";
-$fa-var-bell-o: "\f0a2";
-$fa-var-bitbucket: "\f171";
-$fa-var-bitbucket-square: "\f172";
-$fa-var-bitcoin: "\f15a";
-$fa-var-bold: "\f032";
-$fa-var-bolt: "\f0e7";
-$fa-var-bomb: "\f1e2";
-$fa-var-book: "\f02d";
-$fa-var-bookmark: "\f02e";
-$fa-var-bookmark-o: "\f097";
-$fa-var-briefcase: "\f0b1";
-$fa-var-btc: "\f15a";
-$fa-var-bug: "\f188";
-$fa-var-building: "\f1ad";
-$fa-var-building-o: "\f0f7";
-$fa-var-bullhorn: "\f0a1";
-$fa-var-bullseye: "\f140";
-$fa-var-cab: "\f1ba";
-$fa-var-calendar: "\f073";
-$fa-var-calendar-o: "\f133";
-$fa-var-camera: "\f030";
-$fa-var-camera-retro: "\f083";
-$fa-var-car: "\f1b9";
-$fa-var-caret-down: "\f0d7";
-$fa-var-caret-left: "\f0d9";
-$fa-var-caret-right: "\f0da";
-$fa-var-caret-square-o-down: "\f150";
-$fa-var-caret-square-o-left: "\f191";
-$fa-var-caret-square-o-right: "\f152";
-$fa-var-caret-square-o-up: "\f151";
-$fa-var-caret-up: "\f0d8";
-$fa-var-certificate: "\f0a3";
-$fa-var-chain: "\f0c1";
-$fa-var-chain-broken: "\f127";
-$fa-var-check: "\f00c";
-$fa-var-check-circle: "\f058";
-$fa-var-check-circle-o: "\f05d";
-$fa-var-check-square: "\f14a";
-$fa-var-check-square-o: "\f046";
-$fa-var-chevron-circle-down: "\f13a";
-$fa-var-chevron-circle-left: "\f137";
-$fa-var-chevron-circle-right: "\f138";
-$fa-var-chevron-circle-up: "\f139";
-$fa-var-chevron-down: "\f078";
-$fa-var-chevron-left: "\f053";
-$fa-var-chevron-right: "\f054";
-$fa-var-chevron-up: "\f077";
-$fa-var-child: "\f1ae";
-$fa-var-circle: "\f111";
-$fa-var-circle-o: "\f10c";
-$fa-var-circle-o-notch: "\f1ce";
-$fa-var-circle-thin: "\f1db";
-$fa-var-clipboard: "\f0ea";
-$fa-var-clock-o: "\f017";
-$fa-var-cloud: "\f0c2";
-$fa-var-cloud-download: "\f0ed";
-$fa-var-cloud-upload: "\f0ee";
-$fa-var-cny: "\f157";
-$fa-var-code: "\f121";
-$fa-var-code-fork: "\f126";
-$fa-var-codepen: "\f1cb";
-$fa-var-coffee: "\f0f4";
-$fa-var-cog: "\f013";
-$fa-var-cogs: "\f085";
-$fa-var-columns: "\f0db";
-$fa-var-comment: "\f075";
-$fa-var-comment-o: "\f0e5";
-$fa-var-comments: "\f086";
-$fa-var-comments-o: "\f0e6";
-$fa-var-compass: "\f14e";
-$fa-var-compress: "\f066";
-$fa-var-copy: "\f0c5";
-$fa-var-credit-card: "\f09d";
-$fa-var-crop: "\f125";
-$fa-var-crosshairs: "\f05b";
-$fa-var-css3: "\f13c";
-$fa-var-cube: "\f1b2";
-$fa-var-cubes: "\f1b3";
-$fa-var-cut: "\f0c4";
-$fa-var-cutlery: "\f0f5";
-$fa-var-dashboard: "\f0e4";
-$fa-var-database: "\f1c0";
-$fa-var-dedent: "\f03b";
-$fa-var-delicious: "\f1a5";
-$fa-var-desktop: "\f108";
-$fa-var-deviantart: "\f1bd";
-$fa-var-digg: "\f1a6";
-$fa-var-dollar: "\f155";
-$fa-var-dot-circle-o: "\f192";
-$fa-var-download: "\f019";
-$fa-var-dribbble: "\f17d";
-$fa-var-dropbox: "\f16b";
-$fa-var-drupal: "\f1a9";
-$fa-var-edit: "\f044";
-$fa-var-eject: "\f052";
-$fa-var-ellipsis-h: "\f141";
-$fa-var-ellipsis-v: "\f142";
-$fa-var-empire: "\f1d1";
-$fa-var-envelope: "\f0e0";
-$fa-var-envelope-o: "\f003";
-$fa-var-envelope-square: "\f199";
-$fa-var-eraser: "\f12d";
-$fa-var-eur: "\f153";
-$fa-var-euro: "\f153";
-$fa-var-exchange: "\f0ec";
-$fa-var-exclamation: "\f12a";
-$fa-var-exclamation-circle: "\f06a";
-$fa-var-exclamation-triangle: "\f071";
-$fa-var-expand: "\f065";
-$fa-var-external-link: "\f08e";
-$fa-var-external-link-square: "\f14c";
-$fa-var-eye: "\f06e";
-$fa-var-eye-slash: "\f070";
-$fa-var-facebook: "\f09a";
-$fa-var-facebook-square: "\f082";
-$fa-var-fast-backward: "\f049";
-$fa-var-fast-forward: "\f050";
-$fa-var-fax: "\f1ac";
-$fa-var-female: "\f182";
-$fa-var-fighter-jet: "\f0fb";
-$fa-var-file: "\f15b";
-$fa-var-file-archive-o: "\f1c6";
-$fa-var-file-audio-o: "\f1c7";
-$fa-var-file-code-o: "\f1c9";
-$fa-var-file-excel-o: "\f1c3";
-$fa-var-file-image-o: "\f1c5";
-$fa-var-file-movie-o: "\f1c8";
-$fa-var-file-o: "\f016";
-$fa-var-file-pdf-o: "\f1c1";
-$fa-var-file-photo-o: "\f1c5";
-$fa-var-file-picture-o: "\f1c5";
-$fa-var-file-powerpoint-o: "\f1c4";
-$fa-var-file-sound-o: "\f1c7";
-$fa-var-file-text: "\f15c";
-$fa-var-file-text-o: "\f0f6";
-$fa-var-file-video-o: "\f1c8";
-$fa-var-file-word-o: "\f1c2";
-$fa-var-file-zip-o: "\f1c6";
-$fa-var-files-o: "\f0c5";
-$fa-var-film: "\f008";
-$fa-var-filter: "\f0b0";
-$fa-var-fire: "\f06d";
-$fa-var-fire-extinguisher: "\f134";
-$fa-var-flag: "\f024";
-$fa-var-flag-checkered: "\f11e";
-$fa-var-flag-o: "\f11d";
-$fa-var-flash: "\f0e7";
-$fa-var-flask: "\f0c3";
-$fa-var-flickr: "\f16e";
-$fa-var-floppy-o: "\f0c7";
-$fa-var-folder: "\f07b";
-$fa-var-folder-o: "\f114";
-$fa-var-folder-open: "\f07c";
-$fa-var-folder-open-o: "\f115";
-$fa-var-font: "\f031";
-$fa-var-forward: "\f04e";
-$fa-var-foursquare: "\f180";
-$fa-var-frown-o: "\f119";
-$fa-var-gamepad: "\f11b";
-$fa-var-gavel: "\f0e3";
-$fa-var-gbp: "\f154";
-$fa-var-ge: "\f1d1";
-$fa-var-gear: "\f013";
-$fa-var-gears: "\f085";
-$fa-var-gift: "\f06b";
-$fa-var-git: "\f1d3";
-$fa-var-git-square: "\f1d2";
-$fa-var-github: "\f09b";
-$fa-var-github-alt: "\f113";
-$fa-var-github-square: "\f092";
-$fa-var-gittip: "\f184";
-$fa-var-glass: "\f000";
-$fa-var-globe: "\f0ac";
-$fa-var-google: "\f1a0";
-$fa-var-google-plus: "\f0d5";
-$fa-var-google-plus-square: "\f0d4";
-$fa-var-graduation-cap: "\f19d";
-$fa-var-group: "\f0c0";
-$fa-var-h-square: "\f0fd";
-$fa-var-hacker-news: "\f1d4";
-$fa-var-hand-o-down: "\f0a7";
-$fa-var-hand-o-left: "\f0a5";
-$fa-var-hand-o-right: "\f0a4";
-$fa-var-hand-o-up: "\f0a6";
-$fa-var-hdd-o: "\f0a0";
-$fa-var-header: "\f1dc";
-$fa-var-headphones: "\f025";
-$fa-var-heart: "\f004";
-$fa-var-heart-o: "\f08a";
-$fa-var-history: "\f1da";
-$fa-var-home: "\f015";
-$fa-var-hospital-o: "\f0f8";
-$fa-var-html5: "\f13b";
-$fa-var-image: "\f03e";
-$fa-var-inbox: "\f01c";
-$fa-var-indent: "\f03c";
-$fa-var-info: "\f129";
-$fa-var-info-circle: "\f05a";
-$fa-var-inr: "\f156";
-$fa-var-instagram: "\f16d";
-$fa-var-institution: "\f19c";
-$fa-var-italic: "\f033";
-$fa-var-joomla: "\f1aa";
-$fa-var-jpy: "\f157";
-$fa-var-jsfiddle: "\f1cc";
-$fa-var-key: "\f084";
-$fa-var-keyboard-o: "\f11c";
-$fa-var-krw: "\f159";
-$fa-var-language: "\f1ab";
-$fa-var-laptop: "\f109";
-$fa-var-leaf: "\f06c";
-$fa-var-legal: "\f0e3";
-$fa-var-lemon-o: "\f094";
-$fa-var-level-down: "\f149";
-$fa-var-level-up: "\f148";
-$fa-var-life-bouy: "\f1cd";
-$fa-var-life-ring: "\f1cd";
-$fa-var-life-saver: "\f1cd";
-$fa-var-lightbulb-o: "\f0eb";
-$fa-var-link: "\f0c1";
-$fa-var-linkedin: "\f0e1";
-$fa-var-linkedin-square: "\f08c";
-$fa-var-linux: "\f17c";
-$fa-var-list: "\f03a";
-$fa-var-list-alt: "\f022";
-$fa-var-list-ol: "\f0cb";
-$fa-var-list-ul: "\f0ca";
-$fa-var-location-arrow: "\f124";
-$fa-var-lock: "\f023";
-$fa-var-long-arrow-down: "\f175";
-$fa-var-long-arrow-left: "\f177";
-$fa-var-long-arrow-right: "\f178";
-$fa-var-long-arrow-up: "\f176";
-$fa-var-magic: "\f0d0";
-$fa-var-magnet: "\f076";
-$fa-var-mail-forward: "\f064";
-$fa-var-mail-reply: "\f112";
-$fa-var-mail-reply-all: "\f122";
-$fa-var-male: "\f183";
-$fa-var-map-marker: "\f041";
-$fa-var-maxcdn: "\f136";
-$fa-var-medkit: "\f0fa";
-$fa-var-meh-o: "\f11a";
-$fa-var-microphone: "\f130";
-$fa-var-microphone-slash: "\f131";
-$fa-var-minus: "\f068";
-$fa-var-minus-circle: "\f056";
-$fa-var-minus-square: "\f146";
-$fa-var-minus-square-o: "\f147";
-$fa-var-mobile: "\f10b";
-$fa-var-mobile-phone: "\f10b";
-$fa-var-money: "\f0d6";
-$fa-var-moon-o: "\f186";
-$fa-var-mortar-board: "\f19d";
-$fa-var-music: "\f001";
-$fa-var-navicon: "\f0c9";
-$fa-var-openid: "\f19b";
-$fa-var-outdent: "\f03b";
-$fa-var-pagelines: "\f18c";
-$fa-var-paper-plane: "\f1d8";
-$fa-var-paper-plane-o: "\f1d9";
-$fa-var-paperclip: "\f0c6";
-$fa-var-paragraph: "\f1dd";
-$fa-var-paste: "\f0ea";
-$fa-var-pause: "\f04c";
-$fa-var-paw: "\f1b0";
-$fa-var-pencil: "\f040";
-$fa-var-pencil-square: "\f14b";
-$fa-var-pencil-square-o: "\f044";
-$fa-var-phone: "\f095";
-$fa-var-phone-square: "\f098";
-$fa-var-photo: "\f03e";
-$fa-var-picture-o: "\f03e";
-$fa-var-pied-piper: "\f1a7";
-$fa-var-pied-piper-alt: "\f1a8";
-$fa-var-pied-piper-square: "\f1a7";
-$fa-var-pinterest: "\f0d2";
-$fa-var-pinterest-square: "\f0d3";
-$fa-var-plane: "\f072";
-$fa-var-play: "\f04b";
-$fa-var-play-circle: "\f144";
-$fa-var-play-circle-o: "\f01d";
-$fa-var-plus: "\f067";
-$fa-var-plus-circle: "\f055";
-$fa-var-plus-square: "\f0fe";
-$fa-var-plus-square-o: "\f196";
-$fa-var-power-off: "\f011";
-$fa-var-print: "\f02f";
-$fa-var-puzzle-piece: "\f12e";
-$fa-var-qq: "\f1d6";
-$fa-var-qrcode: "\f029";
-$fa-var-question: "\f128";
-$fa-var-question-circle: "\f059";
-$fa-var-quote-left: "\f10d";
-$fa-var-quote-right: "\f10e";
-$fa-var-ra: "\f1d0";
-$fa-var-random: "\f074";
-$fa-var-rebel: "\f1d0";
-$fa-var-recycle: "\f1b8";
-$fa-var-reddit: "\f1a1";
-$fa-var-reddit-square: "\f1a2";
-$fa-var-refresh: "\f021";
-$fa-var-renren: "\f18b";
-$fa-var-reorder: "\f0c9";
-$fa-var-repeat: "\f01e";
-$fa-var-reply: "\f112";
-$fa-var-reply-all: "\f122";
-$fa-var-retweet: "\f079";
-$fa-var-rmb: "\f157";
-$fa-var-road: "\f018";
-$fa-var-rocket: "\f135";
-$fa-var-rotate-left: "\f0e2";
-$fa-var-rotate-right: "\f01e";
-$fa-var-rouble: "\f158";
-$fa-var-rss: "\f09e";
-$fa-var-rss-square: "\f143";
-$fa-var-rub: "\f158";
-$fa-var-ruble: "\f158";
-$fa-var-rupee: "\f156";
-$fa-var-save: "\f0c7";
-$fa-var-scissors: "\f0c4";
-$fa-var-search: "\f002";
-$fa-var-search-minus: "\f010";
-$fa-var-search-plus: "\f00e";
-$fa-var-send: "\f1d8";
-$fa-var-send-o: "\f1d9";
-$fa-var-share: "\f064";
-$fa-var-share-alt: "\f1e0";
-$fa-var-share-alt-square: "\f1e1";
-$fa-var-share-square: "\f14d";
-$fa-var-share-square-o: "\f045";
-$fa-var-shield: "\f132";
-$fa-var-shopping-cart: "\f07a";
-$fa-var-sign-in: "\f090";
-$fa-var-sign-out: "\f08b";
-$fa-var-signal: "\f012";
-$fa-var-sitemap: "\f0e8";
-$fa-var-skype: "\f17e";
-$fa-var-slack: "\f198";
-$fa-var-sliders: "\f1de";
-$fa-var-smile-o: "\f118";
-$fa-var-sort: "\f0dc";
-$fa-var-sort-alpha-asc: "\f15d";
-$fa-var-sort-alpha-desc: "\f15e";
-$fa-var-sort-amount-asc: "\f160";
-$fa-var-sort-amount-desc: "\f161";
-$fa-var-sort-asc: "\f0de";
-$fa-var-sort-desc: "\f0dd";
-$fa-var-sort-down: "\f0dd";
-$fa-var-sort-numeric-asc: "\f162";
-$fa-var-sort-numeric-desc: "\f163";
-$fa-var-sort-up: "\f0de";
-$fa-var-soundcloud: "\f1be";
-$fa-var-space-shuttle: "\f197";
-$fa-var-spinner: "\f110";
-$fa-var-spoon: "\f1b1";
-$fa-var-spotify: "\f1bc";
-$fa-var-square: "\f0c8";
-$fa-var-square-o: "\f096";
-$fa-var-stack-exchange: "\f18d";
-$fa-var-stack-overflow: "\f16c";
-$fa-var-star: "\f005";
-$fa-var-star-half: "\f089";
-$fa-var-star-half-empty: "\f123";
-$fa-var-star-half-full: "\f123";
-$fa-var-star-half-o: "\f123";
-$fa-var-star-o: "\f006";
-$fa-var-steam: "\f1b6";
-$fa-var-steam-square: "\f1b7";
-$fa-var-step-backward: "\f048";
-$fa-var-step-forward: "\f051";
-$fa-var-stethoscope: "\f0f1";
-$fa-var-stop: "\f04d";
-$fa-var-strikethrough: "\f0cc";
-$fa-var-stumbleupon: "\f1a4";
-$fa-var-stumbleupon-circle: "\f1a3";
-$fa-var-subscript: "\f12c";
-$fa-var-suitcase: "\f0f2";
-$fa-var-sun-o: "\f185";
-$fa-var-superscript: "\f12b";
-$fa-var-support: "\f1cd";
-$fa-var-table: "\f0ce";
-$fa-var-tablet: "\f10a";
-$fa-var-tachometer: "\f0e4";
-$fa-var-tag: "\f02b";
-$fa-var-tags: "\f02c";
-$fa-var-tasks: "\f0ae";
-$fa-var-taxi: "\f1ba";
-$fa-var-tencent-weibo: "\f1d5";
-$fa-var-terminal: "\f120";
-$fa-var-text-height: "\f034";
-$fa-var-text-width: "\f035";
-$fa-var-th: "\f00a";
-$fa-var-th-large: "\f009";
-$fa-var-th-list: "\f00b";
-$fa-var-thumb-tack: "\f08d";
-$fa-var-thumbs-down: "\f165";
-$fa-var-thumbs-o-down: "\f088";
-$fa-var-thumbs-o-up: "\f087";
-$fa-var-thumbs-up: "\f164";
-$fa-var-ticket: "\f145";
-$fa-var-times: "\f00d";
-$fa-var-times-circle: "\f057";
-$fa-var-times-circle-o: "\f05c";
-$fa-var-tint: "\f043";
-$fa-var-toggle-down: "\f150";
-$fa-var-toggle-left: "\f191";
-$fa-var-toggle-right: "\f152";
-$fa-var-toggle-up: "\f151";
-$fa-var-trash-o: "\f014";
-$fa-var-tree: "\f1bb";
-$fa-var-trello: "\f181";
-$fa-var-trophy: "\f091";
-$fa-var-truck: "\f0d1";
-$fa-var-try: "\f195";
-$fa-var-tumblr: "\f173";
-$fa-var-tumblr-square: "\f174";
-$fa-var-turkish-lira: "\f195";
-$fa-var-twitter: "\f099";
-$fa-var-twitter-square: "\f081";
-$fa-var-umbrella: "\f0e9";
-$fa-var-underline: "\f0cd";
-$fa-var-undo: "\f0e2";
-$fa-var-university: "\f19c";
-$fa-var-unlink: "\f127";
-$fa-var-unlock: "\f09c";
-$fa-var-unlock-alt: "\f13e";
-$fa-var-unsorted: "\f0dc";
-$fa-var-upload: "\f093";
-$fa-var-usd: "\f155";
-$fa-var-user: "\f007";
-$fa-var-user-md: "\f0f0";
-$fa-var-users: "\f0c0";
-$fa-var-video-camera: "\f03d";
-$fa-var-vimeo-square: "\f194";
-$fa-var-vine: "\f1ca";
-$fa-var-vk: "\f189";
-$fa-var-volume-down: "\f027";
-$fa-var-volume-off: "\f026";
-$fa-var-volume-up: "\f028";
-$fa-var-warning: "\f071";
-$fa-var-wechat: "\f1d7";
-$fa-var-weibo: "\f18a";
-$fa-var-weixin: "\f1d7";
-$fa-var-wheelchair: "\f193";
-$fa-var-windows: "\f17a";
-$fa-var-won: "\f159";
-$fa-var-wordpress: "\f19a";
-$fa-var-wrench: "\f0ad";
-$fa-var-xing: "\f168";
-$fa-var-xing-square: "\f169";
-$fa-var-yahoo: "\f19e";
-$fa-var-yen: "\f157";
-$fa-var-youtube: "\f167";
-$fa-var-youtube-play: "\f16a";
-$fa-var-youtube-square: "\f166";
-
-:@children[ÿo:Sass::Tree::CommentNode
-:@value["2/* Variables
- * -------------------------- */;[ :
-@type:silent:@options{ :
-@lineio:Sass::Tree::VariableNode;[ :@global0;@:@guardedT:
-@name"fa-font-path:@source_rangeo:Sass::Source::Range	:@start_poso:Sass::Source::Position:@offseti;i	:@importero: Sass::Importers::Filesystem:@same_name_warningso:Set:
-@hash{ :@real_root")/home/ec2-user/chameleon/static/scss:
-@root")/home/ec2-user/chameleon/static/scss:
-@file"L/home/ec2-user/chameleon/static/scss/vendor/fontawesome/_variables.scss:@end_poso;;i/;i	;i	:
-@expro: Sass::Script::Tree::Literal	;	o: Sass::Script::Value::String;	"../fonts;
-:string;@:@filename@;o;	;o;;i;i	;@;@;o;;i&;i	;i	o;
-;	["/*$fa-font-path:        "//netdna.bootstrapcdn.com/font-awesome/4.1.0/fonts" !default; // for referencing Bootstrap CDN font files directly */;[ ;
-;;@;i
-o;;[ ;0;@;T;"fa-css-prefix;o;	;o;;i;i;@;@;o;;i';i;i; o;!	;	o;";	"fa;
-:identifier;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;T;"fa-version;o;	;o;;i;i;@;@;o;;i,;i;i; o;!	;	o;";	"
-4.1.0;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i#;i;io;;[ ;0;@;T;"fa-border-color;o;	;o;;i;i;@;@;o;;i);i;i; o;!	;	o:Sass::Script::Value::Color	;	0;@:@representation"	#eee:@attrs{	:rediî:
-greeniî:
-alphai:	blueiî;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;T;"fa-inverse;o;	;o;;i;i;@;@;o;;i);i;i; o;!	;	o;&	;	0;@;'"	#fff;({	;)iÿ;*iÿ;+i;,iÿ;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;T;"fa-li-width;o;	;o;;i;i;@;@;o;;i0;i;i; o:"Sass::Script::Tree::Operation;@:@operand2o;!	;	o: Sass::Script::Value::Number
-;	i:@original"14;@:@denominator_units[ :@numerator_units[ ;$@;o;	;o;;i$;i;@;@;o;;i&;i;i;$@;o;	;o;;i;i;@;@;o;;i&;i;i:@operand1o;!	;	o;/	;	i#;@;1[ ;2["em;$@;o;	;@e;@;@;o;;i!;i;i:@operator:divo;;[ ;0;@;0;"fa-var-adjust;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-adn;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…°;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-align-center;o;	;o;;i;i;@;@;o;;i#;i;i; o;!	;	o;";	"ï€·;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i#;i;io;;[ ;0;@;0;"fa-var-align-justify;o;	;o;;i;i;@;@;o;;i$;i;i; o;!	;	o;";	"ï€¹;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i$;i;io;;[ ;0;@;0;"fa-var-align-left;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï€¶;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-align-right;o;	;o;;i;i;@;@;o;;i";i;i; o;!	;	o;";	"ï€¸;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i";i;io;;[ ;0;@;0;"fa-var-ambulance;o;	;o;;i;i;@;@;o;;i ;i;i; o;!	;	o;";	"ïƒ¹;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;0;"fa-var-anchor;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï„½;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-android;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…»;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-angle-double-down;o;	;o;;i;i;@;@;o;;i(;i;i; o;!	;	o;";	"ï„ƒ;
-;#;@;$@;o;	;o;;i!;i;@;@;o;;i(;i;io;;[ ;0;@;0;"fa-var-angle-double-left;o;	;o;;i;i;@;@;o;;i(;i;i; o;!	;	o;";	"ï„€;
-;#;@;$@;o;	;o;;i!;i;@;@;o;;i(;i;io;;[ ;0;@;0;"fa-var-angle-double-right;o;	;o;;i;i;@;@;o;;i);i;i; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i";i;@;@;o;;i);i;io;;[ ;0;@;0;"fa-var-angle-double-up;o;	;o;;i;i;@;@;o;;i&;i;i; o;!	;	o;";	"ï„‚;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i&;i;io;;[ ;0;@;0;"fa-var-angle-down;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï„‡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-angle-left;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï„„;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-angle-right;o;	;o;;i;i ;@;@;o;;i";i ;i ; o;!	;	o;";	"ï„…;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i";i ;i o;;[ ;0;@;0;"fa-var-angle-up;o;	;o;;i;i!;@;@;o;;i;i!;i!; o;!	;	o;";	"ï„†;
-;#;@;$@;o;	;o;;i;i!;@;@;o;;i;i!;i!o;;[ ;0;@;0;"fa-var-apple;o;	;o;;i;i";@;@;o;;i;i";i"; o;!	;	o;";	"ï…¹;
-;#;@;$@;o;	;o;;i;i";@;@;o;;i;i";i"o;;[ ;0;@;0;"fa-var-archive;o;	;o;;i;i#;@;@;o;;i;i#;i#; o;!	;	o;";	"ï†‡;
-;#;@;$@;o;	;o;;i;i#;@;@;o;;i;i#;i#o;;[ ;0;@;0;"fa-var-arrow-circle-down;o;	;o;;i;i$;@;@;o;;i(;i$;i$; o;!	;	o;";	"ï‚«;
-;#;@;$@;o;	;o;;i!;i$;@;@;o;;i(;i$;i$o;;[ ;0;@;0;"fa-var-arrow-circle-left;o;	;o;;i;i%;@;@;o;;i(;i%;i%; o;!	;	o;";	"ï‚¨;
-;#;@;$@;o;	;o;;i!;i%;@;@;o;;i(;i%;i%o;;[ ;0;@;0;"fa-var-arrow-circle-o-down;o;	;o;;i;i&;@;@;o;;i*;i&;i&; o;!	;	o;";	"ï€š;
-;#;@;$@;o;	;o;;i#;i&;@;@;o;;i*;i&;i&o;;[ ;0;@;0;"fa-var-arrow-circle-o-left;o;	;o;;i;i';@;@;o;;i*;i';i'; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i#;i';@;@;o;;i*;i';i'o;;[ ;0;@;0;" fa-var-arrow-circle-o-right;o;	;o;;i;i(;@;@;o;;i+;i(;i(; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i$;i(;@;@;o;;i+;i(;i(o;;[ ;0;@;0;"fa-var-arrow-circle-o-up;o;	;o;;i;i);@;@;o;;i(;i);i); o;!	;	o;";	"ï€›;
-;#;@;$@;o;	;o;;i!;i);@;@;o;;i(;i);i)o;;[ ;0;@;0;"fa-var-arrow-circle-right;o;	;o;;i;i*;@;@;o;;i);i*;i*; o;!	;	o;";	"ï‚©;
-;#;@;$@;o;	;o;;i";i*;@;@;o;;i);i*;i*o;;[ ;0;@;0;"fa-var-arrow-circle-up;o;	;o;;i;i+;@;@;o;;i&;i+;i+; o;!	;	o;";	"ï‚ª;
-;#;@;$@;o;	;o;;i;i+;@;@;o;;i&;i+;i+o;;[ ;0;@;0;"fa-var-arrow-down;o;	;o;;i;i,;@;@;o;;i!;i,;i,; o;!	;	o;";	"ï£;
-;#;@;$@;o;	;o;;i;i,;@;@;o;;i!;i,;i,o;;[ ;0;@;0;"fa-var-arrow-left;o;	;o;;i;i-;@;@;o;;i!;i-;i-; o;!	;	o;";	"ï ;
-;#;@;$@;o;	;o;;i;i-;@;@;o;;i!;i-;i-o;;[ ;0;@;0;"fa-var-arrow-right;o;	;o;;i;i.;@;@;o;;i";i.;i.; o;!	;	o;";	"ï¡;
-;#;@;$@;o;	;o;;i;i.;@;@;o;;i";i.;i.o;;[ ;0;@;0;"fa-var-arrow-up;o;	;o;;i;i/;@;@;o;;i;i/;i/; o;!	;	o;";	"ï¢;
-;#;@;$@;o;	;o;;i;i/;@;@;o;;i;i/;i/o;;[ ;0;@;0;"fa-var-arrows;o;	;o;;i;i0;@;@;o;;i;i0;i0; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i0;@;@;o;;i;i0;i0o;;[ ;0;@;0;"fa-var-arrows-alt;o;	;o;;i;i1;@;@;o;;i!;i1;i1; o;!	;	o;";	"ï‚²;
-;#;@;$@;o;	;o;;i;i1;@;@;o;;i!;i1;i1o;;[ ;0;@;0;"fa-var-arrows-h;o;	;o;;i;i2;@;@;o;;i;i2;i2; o;!	;	o;";	"ï¾;
-;#;@;$@;o;	;o;;i;i2;@;@;o;;i;i2;i2o;;[ ;0;@;0;"fa-var-arrows-v;o;	;o;;i;i3;@;@;o;;i;i3;i3; o;!	;	o;";	"ï½;
-;#;@;$@;o;	;o;;i;i3;@;@;o;;i;i3;i3o;;[ ;0;@;0;"fa-var-asterisk;o;	;o;;i;i4;@;@;o;;i;i4;i4; o;!	;	o;";	"ï©;
-;#;@;$@;o;	;o;;i;i4;@;@;o;;i;i4;i4o;;[ ;0;@;0;"fa-var-automobile;o;	;o;;i;i5;@;@;o;;i!;i5;i5; o;!	;	o;";	"ï†¹;
-;#;@;$@;o;	;o;;i;i5;@;@;o;;i!;i5;i5o;;[ ;0;@;0;"fa-var-backward;o;	;o;;i;i6;@;@;o;;i;i6;i6; o;!	;	o;";	"ïŠ;
-;#;@;$@;o;	;o;;i;i6;@;@;o;;i;i6;i6o;;[ ;0;@;0;"fa-var-ban;o;	;o;;i;i7;@;@;o;;i;i7;i7; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;i7;@;@;o;;i;i7;i7o;;[ ;0;@;0;"fa-var-bank;o;	;o;;i;i8;@;@;o;;i;i8;i8; o;!	;	o;";	"ï†œ;
-;#;@;$@;o;	;o;;i;i8;@;@;o;;i;i8;i8o;;[ ;0;@;0;"fa-var-bar-chart-o;o;	;o;;i;i9;@;@;o;;i";i9;i9; o;!	;	o;";	"ï‚€;
-;#;@;$@;o;	;o;;i;i9;@;@;o;;i";i9;i9o;;[ ;0;@;0;"fa-var-barcode;o;	;o;;i;i:;@;@;o;;i;i:;i:; o;!	;	o;";	"ï€ª;
-;#;@;$@;o;	;o;;i;i:;@;@;o;;i;i:;i:o;;[ ;0;@;0;"fa-var-bars;o;	;o;;i;i;;@;@;o;;i;i;;i;; o;!	;	o;";	"ïƒ‰;
-;#;@;$@;o;	;o;;i;i;;@;@;o;;i;i;;i;o;;[ ;0;@;0;"fa-var-beer;o;	;o;;i;i<;@;@;o;;i;i<;i<; o;!	;	o;";	"ïƒ¼;
-;#;@;$@;o;	;o;;i;i<;@;@;o;;i;i<;i<o;;[ ;0;@;0;"fa-var-behance;o;	;o;;i;i=;@;@;o;;i;i=;i=; o;!	;	o;";	"ï†´;
-;#;@;$@;o;	;o;;i;i=;@;@;o;;i;i=;i=o;;[ ;0;@;0;"fa-var-behance-square;o;	;o;;i;i>;@;@;o;;i%;i>;i>; o;!	;	o;";	"ï†µ;
-;#;@;$@;o;	;o;;i;i>;@;@;o;;i%;i>;i>o;;[ ;0;@;0;"fa-var-bell;o;	;o;;i;i?;@;@;o;;i;i?;i?; o;!	;	o;";	"ïƒ³;
-;#;@;$@;o;	;o;;i;i?;@;@;o;;i;i?;i?o;;[ ;0;@;0;"fa-var-bell-o;o;	;o;;i;i@;@;@;o;;i;i@;i@; o;!	;	o;";	"ï‚¢;
-;#;@;$@;o;	;o;;i;i@;@;@;o;;i;i@;i@o;;[ ;0;@;0;"fa-var-bitbucket;o;	;o;;i;iA;@;@;o;;i ;iA;iA; o;!	;	o;";	"ï…±;
-;#;@;$@;o;	;o;;i;iA;@;@;o;;i ;iA;iAo;;[ ;0;@;0;"fa-var-bitbucket-square;o;	;o;;i;iB;@;@;o;;i';iB;iB; o;!	;	o;";	"ï…²;
-;#;@;$@;o;	;o;;i ;iB;@;@;o;;i';iB;iBo;;[ ;0;@;0;"fa-var-bitcoin;o;	;o;;i;iC;@;@;o;;i;iC;iC; o;!	;	o;";	"ï…š;
-;#;@;$@;o;	;o;;i;iC;@;@;o;;i;iC;iCo;;[ ;0;@;0;"fa-var-bold;o;	;o;;i;iD;@;@;o;;i;iD;iD; o;!	;	o;";	"ï€²;
-;#;@;$@;o;	;o;;i;iD;@;@;o;;i;iD;iDo;;[ ;0;@;0;"fa-var-bolt;o;	;o;;i;iE;@;@;o;;i;iE;iE; o;!	;	o;";	"ïƒ§;
-;#;@;$@;o;	;o;;i;iE;@;@;o;;i;iE;iEo;;[ ;0;@;0;"fa-var-bomb;o;	;o;;i;iF;@;@;o;;i;iF;iF; o;!	;	o;";	"ï‡¢;
-;#;@;$@;o;	;o;;i;iF;@;@;o;;i;iF;iFo;;[ ;0;@;0;"fa-var-book;o;	;o;;i;iG;@;@;o;;i;iG;iG; o;!	;	o;";	"ï€­;
-;#;@;$@;o;	;o;;i;iG;@;@;o;;i;iG;iGo;;[ ;0;@;0;"fa-var-bookmark;o;	;o;;i;iH;@;@;o;;i;iH;iH; o;!	;	o;";	"ï€®;
-;#;@;$@;o;	;o;;i;iH;@;@;o;;i;iH;iHo;;[ ;0;@;0;"fa-var-bookmark-o;o;	;o;;i;iI;@;@;o;;i!;iI;iI; o;!	;	o;";	"ï‚—;
-;#;@;$@;o;	;o;;i;iI;@;@;o;;i!;iI;iIo;;[ ;0;@;0;"fa-var-briefcase;o;	;o;;i;iJ;@;@;o;;i ;iJ;iJ; o;!	;	o;";	"ï‚±;
-;#;@;$@;o;	;o;;i;iJ;@;@;o;;i ;iJ;iJo;;[ ;0;@;0;"fa-var-btc;o;	;o;;i;iK;@;@;o;;i;iK;iK; o;!	;	o;";	"ï…š;
-;#;@;$@;o;	;o;;i;iK;@;@;o;;i;iK;iKo;;[ ;0;@;0;"fa-var-bug;o;	;o;;i;iL;@;@;o;;i;iL;iL; o;!	;	o;";	"ï†ˆ;
-;#;@;$@;o;	;o;;i;iL;@;@;o;;i;iL;iLo;;[ ;0;@;0;"fa-var-building;o;	;o;;i;iM;@;@;o;;i;iM;iM; o;!	;	o;";	"ï†­;
-;#;@;$@;o;	;o;;i;iM;@;@;o;;i;iM;iMo;;[ ;0;@;0;"fa-var-building-o;o;	;o;;i;iN;@;@;o;;i!;iN;iN; o;!	;	o;";	"ïƒ·;
-;#;@;$@;o;	;o;;i;iN;@;@;o;;i!;iN;iNo;;[ ;0;@;0;"fa-var-bullhorn;o;	;o;;i;iO;@;@;o;;i;iO;iO; o;!	;	o;";	"ï‚¡;
-;#;@;$@;o;	;o;;i;iO;@;@;o;;i;iO;iOo;;[ ;0;@;0;"fa-var-bullseye;o;	;o;;i;iP;@;@;o;;i;iP;iP; o;!	;	o;";	"ï…€;
-;#;@;$@;o;	;o;;i;iP;@;@;o;;i;iP;iPo;;[ ;0;@;0;"fa-var-cab;o;	;o;;i;iQ;@;@;o;;i;iQ;iQ; o;!	;	o;";	"ï†º;
-;#;@;$@;o;	;o;;i;iQ;@;@;o;;i;iQ;iQo;;[ ;0;@;0;"fa-var-calendar;o;	;o;;i;iR;@;@;o;;i;iR;iR; o;!	;	o;";	"ï³;
-;#;@;$@;o;	;o;;i;iR;@;@;o;;i;iR;iRo;;[ ;0;@;0;"fa-var-calendar-o;o;	;o;;i;iS;@;@;o;;i!;iS;iS; o;!	;	o;";	"ï„³;
-;#;@;$@;o;	;o;;i;iS;@;@;o;;i!;iS;iSo;;[ ;0;@;0;"fa-var-camera;o;	;o;;i;iT;@;@;o;;i;iT;iT; o;!	;	o;";	"ï€°;
-;#;@;$@;o;	;o;;i;iT;@;@;o;;i;iT;iTo;;[ ;0;@;0;"fa-var-camera-retro;o;	;o;;i;iU;@;@;o;;i#;iU;iU; o;!	;	o;";	"ï‚ƒ;
-;#;@;$@;o;	;o;;i;iU;@;@;o;;i#;iU;iUo;;[ ;0;@;0;"fa-var-car;o;	;o;;i;iV;@;@;o;;i;iV;iV; o;!	;	o;";	"ï†¹;
-;#;@;$@;o;	;o;;i;iV;@;@;o;;i;iV;iVo;;[ ;0;@;0;"fa-var-caret-down;o;	;o;;i;iW;@;@;o;;i!;iW;iW; o;!	;	o;";	"ïƒ—;
-;#;@;$@;o;	;o;;i;iW;@;@;o;;i!;iW;iWo;;[ ;0;@;0;"fa-var-caret-left;o;	;o;;i;iX;@;@;o;;i!;iX;iX; o;!	;	o;";	"ïƒ™;
-;#;@;$@;o;	;o;;i;iX;@;@;o;;i!;iX;iXo;;[ ;0;@;0;"fa-var-caret-right;o;	;o;;i;iY;@;@;o;;i";iY;iY; o;!	;	o;";	"ïƒš;
-;#;@;$@;o;	;o;;i;iY;@;@;o;;i";iY;iYo;;[ ;0;@;0;"fa-var-caret-square-o-down;o;	;o;;i;iZ;@;@;o;;i*;iZ;iZ; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i#;iZ;@;@;o;;i*;iZ;iZo;;[ ;0;@;0;"fa-var-caret-square-o-left;o;	;o;;i;i[;@;@;o;;i*;i[;i[; o;!	;	o;";	"ï†‘;
-;#;@;$@;o;	;o;;i#;i[;@;@;o;;i*;i[;i[o;;[ ;0;@;0;" fa-var-caret-square-o-right;o;	;o;;i;i\;@;@;o;;i+;i\;i\; o;!	;	o;";	"ï…’;
-;#;@;$@;o;	;o;;i$;i\;@;@;o;;i+;i\;i\o;;[ ;0;@;0;"fa-var-caret-square-o-up;o;	;o;;i;i];@;@;o;;i(;i];i]; o;!	;	o;";	"ï…‘;
-;#;@;$@;o;	;o;;i!;i];@;@;o;;i(;i];i]o;;[ ;0;@;0;"fa-var-caret-up;o;	;o;;i;i^;@;@;o;;i;i^;i^; o;!	;	o;";	"ïƒ˜;
-;#;@;$@;o;	;o;;i;i^;@;@;o;;i;i^;i^o;;[ ;0;@;0;"fa-var-certificate;o;	;o;;i;i_;@;@;o;;i";i_;i_; o;!	;	o;";	"ï‚£;
-;#;@;$@;o;	;o;;i;i_;@;@;o;;i";i_;i_o;;[ ;0;@;0;"fa-var-chain;o;	;o;;i;i`;@;@;o;;i;i`;i`; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i`;@;@;o;;i;i`;i`o;;[ ;0;@;0;"fa-var-chain-broken;o;	;o;;i;ia;@;@;o;;i#;ia;ia; o;!	;	o;";	"ï„§;
-;#;@;$@;o;	;o;;i;ia;@;@;o;;i#;ia;iao;;[ ;0;@;0;"fa-var-check;o;	;o;;i;ib;@;@;o;;i;ib;ib; o;!	;	o;";	"ï€Œ;
-;#;@;$@;o;	;o;;i;ib;@;@;o;;i;ib;ibo;;[ ;0;@;0;"fa-var-check-circle;o;	;o;;i;ic;@;@;o;;i#;ic;ic; o;!	;	o;";	"ï˜;
-;#;@;$@;o;	;o;;i;ic;@;@;o;;i#;ic;ico;;[ ;0;@;0;"fa-var-check-circle-o;o;	;o;;i;id;@;@;o;;i%;id;id; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;id;@;@;o;;i%;id;ido;;[ ;0;@;0;"fa-var-check-square;o;	;o;;i;ie;@;@;o;;i#;ie;ie; o;!	;	o;";	"ï…Š;
-;#;@;$@;o;	;o;;i;ie;@;@;o;;i#;ie;ieo;;[ ;0;@;0;"fa-var-check-square-o;o;	;o;;i;if;@;@;o;;i%;if;if; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;if;@;@;o;;i%;if;ifo;;[ ;0;@;0;"fa-var-chevron-circle-down;o;	;o;;i;ig;@;@;o;;i*;ig;ig; o;!	;	o;";	"ï„º;
-;#;@;$@;o;	;o;;i#;ig;@;@;o;;i*;ig;igo;;[ ;0;@;0;"fa-var-chevron-circle-left;o;	;o;;i;ih;@;@;o;;i*;ih;ih; o;!	;	o;";	"ï„·;
-;#;@;$@;o;	;o;;i#;ih;@;@;o;;i*;ih;iho;;[ ;0;@;0;" fa-var-chevron-circle-right;o;	;o;;i;ii;@;@;o;;i+;ii;ii; o;!	;	o;";	"ï„¸;
-;#;@;$@;o;	;o;;i$;ii;@;@;o;;i+;ii;iio;;[ ;0;@;0;"fa-var-chevron-circle-up;o;	;o;;i;ij;@;@;o;;i(;ij;ij; o;!	;	o;";	"ï„¹;
-;#;@;$@;o;	;o;;i!;ij;@;@;o;;i(;ij;ijo;;[ ;0;@;0;"fa-var-chevron-down;o;	;o;;i;ik;@;@;o;;i#;ik;ik; o;!	;	o;";	"ï¸;
-;#;@;$@;o;	;o;;i;ik;@;@;o;;i#;ik;iko;;[ ;0;@;0;"fa-var-chevron-left;o;	;o;;i;il;@;@;o;;i#;il;il; o;!	;	o;";	"ï“;
-;#;@;$@;o;	;o;;i;il;@;@;o;;i#;il;ilo;;[ ;0;@;0;"fa-var-chevron-right;o;	;o;;i;im;@;@;o;;i$;im;im; o;!	;	o;";	"ï”;
-;#;@;$@;o;	;o;;i;im;@;@;o;;i$;im;imo;;[ ;0;@;0;"fa-var-chevron-up;o;	;o;;i;in;@;@;o;;i!;in;in; o;!	;	o;";	"ï·;
-;#;@;$@;o;	;o;;i;in;@;@;o;;i!;in;ino;;[ ;0;@;0;"fa-var-child;o;	;o;;i;io;@;@;o;;i;io;io; o;!	;	o;";	"ï†®;
-;#;@;$@;o;	;o;;i;io;@;@;o;;i;io;ioo;;[ ;0;@;0;"fa-var-circle;o;	;o;;i;ip;@;@;o;;i;ip;ip; o;!	;	o;";	"ï„‘;
-;#;@;$@;o;	;o;;i;ip;@;@;o;;i;ip;ipo;;[ ;0;@;0;"fa-var-circle-o;o;	;o;;i;iq;@;@;o;;i;iq;iq; o;!	;	o;";	"ï„Œ;
-;#;@;$@;o;	;o;;i;iq;@;@;o;;i;iq;iqo;;[ ;0;@;0;"fa-var-circle-o-notch;o;	;o;;i;ir;@;@;o;;i%;ir;ir; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;ir;@;@;o;;i%;ir;iro;;[ ;0;@;0;"fa-var-circle-thin;o;	;o;;i;is;@;@;o;;i";is;is; o;!	;	o;";	"ï‡›;
-;#;@;$@;o;	;o;;i;is;@;@;o;;i";is;iso;;[ ;0;@;0;"fa-var-clipboard;o;	;o;;i;it;@;@;o;;i ;it;it; o;!	;	o;";	"ïƒª;
-;#;@;$@;o;	;o;;i;it;@;@;o;;i ;it;ito;;[ ;0;@;0;"fa-var-clock-o;o;	;o;;i;iu;@;@;o;;i;iu;iu; o;!	;	o;";	"ï€—;
-;#;@;$@;o;	;o;;i;iu;@;@;o;;i;iu;iuo;;[ ;0;@;0;"fa-var-cloud;o;	;o;;i;iv;@;@;o;;i;iv;iv; o;!	;	o;";	"ïƒ‚;
-;#;@;$@;o;	;o;;i;iv;@;@;o;;i;iv;ivo;;[ ;0;@;0;"fa-var-cloud-download;o;	;o;;i;iw;@;@;o;;i%;iw;iw; o;!	;	o;";	"ïƒ­;
-;#;@;$@;o;	;o;;i;iw;@;@;o;;i%;iw;iwo;;[ ;0;@;0;"fa-var-cloud-upload;o;	;o;;i;ix;@;@;o;;i#;ix;ix; o;!	;	o;";	"ïƒ®;
-;#;@;$@;o;	;o;;i;ix;@;@;o;;i#;ix;ixo;;[ ;0;@;0;"fa-var-cny;o;	;o;;i;iy;@;@;o;;i;iy;iy; o;!	;	o;";	"ï…—;
-;#;@;$@;o;	;o;;i;iy;@;@;o;;i;iy;iyo;;[ ;0;@;0;"fa-var-code;o;	;o;;i;iz;@;@;o;;i;iz;iz; o;!	;	o;";	"ï„¡;
-;#;@;$@;o;	;o;;i;iz;@;@;o;;i;iz;izo;;[ ;0;@;0;"fa-var-code-fork;o;	;o;;i;i{;@;@;o;;i ;i{;i{; o;!	;	o;";	"ï„¦;
-;#;@;$@;o;	;o;;i;i{;@;@;o;;i ;i{;i{o;;[ ;0;@;0;"fa-var-codepen;o;	;o;;i;i|;@;@;o;;i;i|;i|; o;!	;	o;";	"ï‡‹;
-;#;@;$@;o;	;o;;i;i|;@;@;o;;i;i|;i|o;;[ ;0;@;0;"fa-var-coffee;o;	;o;;i;i};@;@;o;;i;i};i}; o;!	;	o;";	"ïƒ´;
-;#;@;$@;o;	;o;;i;i};@;@;o;;i;i};i}o;;[ ;0;@;0;"fa-var-cog;o;	;o;;i;i~;@;@;o;;i;i~;i~; o;!	;	o;";	"ï€“;
-;#;@;$@;o;	;o;;i;i~;@;@;o;;i;i~;i~o;;[ ;0;@;0;"fa-var-cogs;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‚…;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-columns;o;	;o;;i;i{;@;@;o;;i;i{;i{; o;!	;	o;";	"ïƒ›;
-;#;@;$@;o;	;o;;i;i{;@;@;o;;i;i{;i{o;;[ ;0;@;0;"fa-var-comment;o;	;o;;i;i|;@;@;o;;i;i|;i|; o;!	;	o;";	"ïµ;
-;#;@;$@;o;	;o;;i;i|;@;@;o;;i;i|;i|o;;[ ;0;@;0;"fa-var-comment-o;o;	;o;;i;i};@;@;o;;i ;i};i}; o;!	;	o;";	"ïƒ¥;
-;#;@;$@;o;	;o;;i;i};@;@;o;;i ;i};i}o;;[ ;0;@;0;"fa-var-comments;o;	;o;;i;i~;@;@;o;;i;i~;i~; o;!	;	o;";	"ï‚†;
-;#;@;$@;o;	;o;;i;i~;@;@;o;;i;i~;i~o;;[ ;0;@;0;"fa-var-comments-o;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ïƒ¦;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-compass;o;	;o;;i;i€;@;@;o;;i;i€;i€; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;i€;@;@;o;;i;i€;i€o;;[ ;0;@;0;"fa-var-compress;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï¦;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-copy;o;	;o;;i;i‚;@;@;o;;i;i‚;i‚; o;!	;	o;";	"ïƒ…;
-;#;@;$@;o;	;o;;i;i‚;@;@;o;;i;i‚;i‚o;;[ ;0;@;0;"fa-var-credit-card;o;	;o;;i;iƒ;@;@;o;;i";iƒ;iƒ; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;iƒ;@;@;o;;i";iƒ;iƒo;;[ ;0;@;0;"fa-var-crop;o;	;o;;i;i„;@;@;o;;i;i„;i„; o;!	;	o;";	"ï„¥;
-;#;@;$@;o;	;o;;i;i„;@;@;o;;i;i„;i„o;;[ ;0;@;0;"fa-var-crosshairs;o;	;o;;i;i…;@;@;o;;i!;i…;i…; o;!	;	o;";	"ï›;
-;#;@;$@;o;	;o;;i;i…;@;@;o;;i!;i…;i…o;;[ ;0;@;0;"fa-var-css3;o;	;o;;i;i†;@;@;o;;i;i†;i†; o;!	;	o;";	"ï„¼;
-;#;@;$@;o;	;o;;i;i†;@;@;o;;i;i†;i†o;;[ ;0;@;0;"fa-var-cube;o;	;o;;i;i‡;@;@;o;;i;i‡;i‡; o;!	;	o;";	"ï†²;
-;#;@;$@;o;	;o;;i;i‡;@;@;o;;i;i‡;i‡o;;[ ;0;@;0;"fa-var-cubes;o;	;o;;i;iˆ;@;@;o;;i;iˆ;iˆ; o;!	;	o;";	"ï†³;
-;#;@;$@;o;	;o;;i;iˆ;@;@;o;;i;iˆ;iˆo;;[ ;0;@;0;"fa-var-cut;o;	;o;;i;i‰;@;@;o;;i;i‰;i‰; o;!	;	o;";	"ïƒ„;
-;#;@;$@;o;	;o;;i;i‰;@;@;o;;i;i‰;i‰o;;[ ;0;@;0;"fa-var-cutlery;o;	;o;;i;iŠ;@;@;o;;i;iŠ;iŠ; o;!	;	o;";	"ïƒµ;
-;#;@;$@;o;	;o;;i;iŠ;@;@;o;;i;iŠ;iŠo;;[ ;0;@;0;"fa-var-dashboard;o;	;o;;i;i‹;@;@;o;;i ;i‹;i‹; o;!	;	o;";	"ïƒ¤;
-;#;@;$@;o;	;o;;i;i‹;@;@;o;;i ;i‹;i‹o;;[ ;0;@;0;"fa-var-database;o;	;o;;i;iŒ;@;@;o;;i;iŒ;iŒ; o;!	;	o;";	"ï‡€;
-;#;@;$@;o;	;o;;i;iŒ;@;@;o;;i;iŒ;iŒo;;[ ;0;@;0;"fa-var-dedent;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï€»;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-delicious;o;	;o;;i;i;@;@;o;;i ;i;i; o;!	;	o;";	"ï†¥;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;0;"fa-var-desktop;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï„ˆ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-deviantart;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï†½;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-digg;o;	;o;;i;i‘;@;@;o;;i;i‘;i‘; o;!	;	o;";	"ï†¦;
-;#;@;$@;o;	;o;;i;i‘;@;@;o;;i;i‘;i‘o;;[ ;0;@;0;"fa-var-dollar;o;	;o;;i;i’;@;@;o;;i;i’;i’; o;!	;	o;";	"ï…•;
-;#;@;$@;o;	;o;;i;i’;@;@;o;;i;i’;i’o;;[ ;0;@;0;"fa-var-dot-circle-o;o;	;o;;i;i“;@;@;o;;i#;i“;i“; o;!	;	o;";	"ï†’;
-;#;@;$@;o;	;o;;i;i“;@;@;o;;i#;i“;i“o;;[ ;0;@;0;"fa-var-download;o;	;o;;i;i”;@;@;o;;i;i”;i”; o;!	;	o;";	"ï€™;
-;#;@;$@;o;	;o;;i;i”;@;@;o;;i;i”;i”o;;[ ;0;@;0;"fa-var-dribbble;o;	;o;;i;i•;@;@;o;;i;i•;i•; o;!	;	o;";	"ï…½;
-;#;@;$@;o;	;o;;i;i•;@;@;o;;i;i•;i•o;;[ ;0;@;0;"fa-var-dropbox;o;	;o;;i;i–;@;@;o;;i;i–;i–; o;!	;	o;";	"ï…«;
-;#;@;$@;o;	;o;;i;i–;@;@;o;;i;i–;i–o;;[ ;0;@;0;"fa-var-drupal;o;	;o;;i;i—;@;@;o;;i;i—;i—; o;!	;	o;";	"ï†©;
-;#;@;$@;o;	;o;;i;i—;@;@;o;;i;i—;i—o;;[ ;0;@;0;"fa-var-edit;o;	;o;;i;i˜;@;@;o;;i;i˜;i˜; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;i˜;@;@;o;;i;i˜;i˜o;;[ ;0;@;0;"fa-var-eject;o;	;o;;i;i™;@;@;o;;i;i™;i™; o;!	;	o;";	"ï’;
-;#;@;$@;o;	;o;;i;i™;@;@;o;;i;i™;i™o;;[ ;0;@;0;"fa-var-ellipsis-h;o;	;o;;i;iš;@;@;o;;i!;iš;iš; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;iš;@;@;o;;i!;iš;išo;;[ ;0;@;0;"fa-var-ellipsis-v;o;	;o;;i;i›;@;@;o;;i!;i›;i›; o;!	;	o;";	"ï…‚;
-;#;@;$@;o;	;o;;i;i›;@;@;o;;i!;i›;i›o;;[ ;0;@;0;"fa-var-empire;o;	;o;;i;iœ;@;@;o;;i;iœ;iœ; o;!	;	o;";	"ï‡‘;
-;#;@;$@;o;	;o;;i;iœ;@;@;o;;i;iœ;iœo;;[ ;0;@;0;"fa-var-envelope;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒ ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-envelope-o;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï€ƒ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-envelope-square;o;	;o;;i;iŸ;@;@;o;;i&;iŸ;iŸ; o;!	;	o;";	"ï†™;
-;#;@;$@;o;	;o;;i;iŸ;@;@;o;;i&;iŸ;iŸo;;[ ;0;@;0;"fa-var-eraser;o;	;o;;i;i ;@;@;o;;i;i ;i ; o;!	;	o;";	"ï„­;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i;i ;i o;;[ ;0;@;0;"fa-var-eur;o;	;o;;i;i¡;@;@;o;;i;i¡;i¡; o;!	;	o;";	"ï…“;
-;#;@;$@;o;	;o;;i;i¡;@;@;o;;i;i¡;i¡o;;[ ;0;@;0;"fa-var-euro;o;	;o;;i;i¢;@;@;o;;i;i¢;i¢; o;!	;	o;";	"ï…“;
-;#;@;$@;o;	;o;;i;i¢;@;@;o;;i;i¢;i¢o;;[ ;0;@;0;"fa-var-exchange;o;	;o;;i;i£;@;@;o;;i;i£;i£; o;!	;	o;";	"ïƒ¬;
-;#;@;$@;o;	;o;;i;i£;@;@;o;;i;i£;i£o;;[ ;0;@;0;"fa-var-exclamation;o;	;o;;i;i¤;@;@;o;;i";i¤;i¤; o;!	;	o;";	"ï„ª;
-;#;@;$@;o;	;o;;i;i¤;@;@;o;;i";i¤;i¤o;;[ ;0;@;0;"fa-var-exclamation-circle;o;	;o;;i;i¥;@;@;o;;i);i¥;i¥; o;!	;	o;";	"ïª;
-;#;@;$@;o;	;o;;i";i¥;@;@;o;;i);i¥;i¥o;;[ ;0;@;0;" fa-var-exclamation-triangle;o;	;o;;i;i¦;@;@;o;;i+;i¦;i¦; o;!	;	o;";	"ï±;
-;#;@;$@;o;	;o;;i$;i¦;@;@;o;;i+;i¦;i¦o;;[ ;0;@;0;"fa-var-expand;o;	;o;;i;i§;@;@;o;;i;i§;i§; o;!	;	o;";	"ï¥;
-;#;@;$@;o;	;o;;i;i§;@;@;o;;i;i§;i§o;;[ ;0;@;0;"fa-var-external-link;o;	;o;;i;i¨;@;@;o;;i$;i¨;i¨; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;i¨;@;@;o;;i$;i¨;i¨o;;[ ;0;@;0;" fa-var-external-link-square;o;	;o;;i;i©;@;@;o;;i+;i©;i©; o;!	;	o;";	"ï…Œ;
-;#;@;$@;o;	;o;;i$;i©;@;@;o;;i+;i©;i©o;;[ ;0;@;0;"fa-var-eye;o;	;o;;i;iª;@;@;o;;i;iª;iª; o;!	;	o;";	"ï®;
-;#;@;$@;o;	;o;;i;iª;@;@;o;;i;iª;iªo;;[ ;0;@;0;"fa-var-eye-slash;o;	;o;;i;i«;@;@;o;;i ;i«;i«; o;!	;	o;";	"ï°;
-;#;@;$@;o;	;o;;i;i«;@;@;o;;i ;i«;i«o;;[ ;0;@;0;"fa-var-facebook;o;	;o;;i;i¬;@;@;o;;i;i¬;i¬; o;!	;	o;";	"ï‚š;
-;#;@;$@;o;	;o;;i;i¬;@;@;o;;i;i¬;i¬o;;[ ;0;@;0;"fa-var-facebook-square;o;	;o;;i;i­;@;@;o;;i&;i­;i­; o;!	;	o;";	"ï‚‚;
-;#;@;$@;o;	;o;;i;i­;@;@;o;;i&;i­;i­o;;[ ;0;@;0;"fa-var-fast-backward;o;	;o;;i;i®;@;@;o;;i$;i®;i®; o;!	;	o;";	"ï‰;
-;#;@;$@;o;	;o;;i;i®;@;@;o;;i$;i®;i®o;;[ ;0;@;0;"fa-var-fast-forward;o;	;o;;i;i¯;@;@;o;;i#;i¯;i¯; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;i¯;@;@;o;;i#;i¯;i¯o;;[ ;0;@;0;"fa-var-fax;o;	;o;;i;i°;@;@;o;;i;i°;i°; o;!	;	o;";	"ï†¬;
-;#;@;$@;o;	;o;;i;i°;@;@;o;;i;i°;i°o;;[ ;0;@;0;"fa-var-female;o;	;o;;i;i±;@;@;o;;i;i±;i±; o;!	;	o;";	"ï†‚;
-;#;@;$@;o;	;o;;i;i±;@;@;o;;i;i±;i±o;;[ ;0;@;0;"fa-var-fighter-jet;o;	;o;;i;i²;@;@;o;;i";i²;i²; o;!	;	o;";	"ïƒ»;
-;#;@;$@;o;	;o;;i;i²;@;@;o;;i";i²;i²o;;[ ;0;@;0;"fa-var-file;o;	;o;;i;i³;@;@;o;;i;i³;i³; o;!	;	o;";	"ï…›;
-;#;@;$@;o;	;o;;i;i³;@;@;o;;i;i³;i³o;;[ ;0;@;0;"fa-var-file-archive-o;o;	;o;;i;i´;@;@;o;;i%;i´;i´; o;!	;	o;";	"ï‡†;
-;#;@;$@;o;	;o;;i;i´;@;@;o;;i%;i´;i´o;;[ ;0;@;0;"fa-var-file-audio-o;o;	;o;;i;iµ;@;@;o;;i#;iµ;iµ; o;!	;	o;";	"ï‡‡;
-;#;@;$@;o;	;o;;i;iµ;@;@;o;;i#;iµ;iµo;;[ ;0;@;0;"fa-var-file-code-o;o;	;o;;i;i¶;@;@;o;;i";i¶;i¶; o;!	;	o;";	"ï‡‰;
-;#;@;$@;o;	;o;;i;i¶;@;@;o;;i";i¶;i¶o;;[ ;0;@;0;"fa-var-file-excel-o;o;	;o;;i;i·;@;@;o;;i#;i·;i·; o;!	;	o;";	"ï‡ƒ;
-;#;@;$@;o;	;o;;i;i·;@;@;o;;i#;i·;i·o;;[ ;0;@;0;"fa-var-file-image-o;o;	;o;;i;i¸;@;@;o;;i#;i¸;i¸; o;!	;	o;";	"ï‡…;
-;#;@;$@;o;	;o;;i;i¸;@;@;o;;i#;i¸;i¸o;;[ ;0;@;0;"fa-var-file-movie-o;o;	;o;;i;i¹;@;@;o;;i#;i¹;i¹; o;!	;	o;";	"ï‡ˆ;
-;#;@;$@;o;	;o;;i;i¹;@;@;o;;i#;i¹;i¹o;;[ ;0;@;0;"fa-var-file-o;o;	;o;;i;iº;@;@;o;;i;iº;iº; o;!	;	o;";	"ï€–;
-;#;@;$@;o;	;o;;i;iº;@;@;o;;i;iº;iºo;;[ ;0;@;0;"fa-var-file-pdf-o;o;	;o;;i;i»;@;@;o;;i!;i»;i»; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i»;@;@;o;;i!;i»;i»o;;[ ;0;@;0;"fa-var-file-photo-o;o;	;o;;i;i¼;@;@;o;;i#;i¼;i¼; o;!	;	o;";	"ï‡…;
-;#;@;$@;o;	;o;;i;i¼;@;@;o;;i#;i¼;i¼o;;[ ;0;@;0;"fa-var-file-picture-o;o;	;o;;i;i½;@;@;o;;i%;i½;i½; o;!	;	o;";	"ï‡…;
-;#;@;$@;o;	;o;;i;i½;@;@;o;;i%;i½;i½o;;[ ;0;@;0;"fa-var-file-powerpoint-o;o;	;o;;i;i¾;@;@;o;;i(;i¾;i¾; o;!	;	o;";	"ï‡„;
-;#;@;$@;o;	;o;;i!;i¾;@;@;o;;i(;i¾;i¾o;;[ ;0;@;0;"fa-var-file-sound-o;o;	;o;;i;i¿;@;@;o;;i#;i¿;i¿; o;!	;	o;";	"ï‡‡;
-;#;@;$@;o;	;o;;i;i¿;@;@;o;;i#;i¿;i¿o;;[ ;0;@;0;"fa-var-file-text;o;	;o;;i;iÀ;@;@;o;;i ;iÀ;iÀ; o;!	;	o;";	"ï…œ;
-;#;@;$@;o;	;o;;i;iÀ;@;@;o;;i ;iÀ;iÀo;;[ ;0;@;0;"fa-var-file-text-o;o;	;o;;i;iÁ;@;@;o;;i";iÁ;iÁ; o;!	;	o;";	"ïƒ¶;
-;#;@;$@;o;	;o;;i;iÁ;@;@;o;;i";iÁ;iÁo;;[ ;0;@;0;"fa-var-file-video-o;o;	;o;;i;iÂ;@;@;o;;i#;iÂ;iÂ; o;!	;	o;";	"ï‡ˆ;
-;#;@;$@;o;	;o;;i;iÂ;@;@;o;;i#;iÂ;iÂo;;[ ;0;@;0;"fa-var-file-word-o;o;	;o;;i;iÃ;@;@;o;;i";iÃ;iÃ; o;!	;	o;";	"ï‡‚;
-;#;@;$@;o;	;o;;i;iÃ;@;@;o;;i";iÃ;iÃo;;[ ;0;@;0;"fa-var-file-zip-o;o;	;o;;i;iÄ;@;@;o;;i!;iÄ;iÄ; o;!	;	o;";	"ï‡†;
-;#;@;$@;o;	;o;;i;iÄ;@;@;o;;i!;iÄ;iÄo;;[ ;0;@;0;"fa-var-files-o;o;	;o;;i;iÅ;@;@;o;;i;iÅ;iÅ; o;!	;	o;";	"ïƒ…;
-;#;@;$@;o;	;o;;i;iÅ;@;@;o;;i;iÅ;iÅo;;[ ;0;@;0;"fa-var-film;o;	;o;;i;iÆ;@;@;o;;i;iÆ;iÆ; o;!	;	o;";	"ï€ˆ;
-;#;@;$@;o;	;o;;i;iÆ;@;@;o;;i;iÆ;iÆo;;[ ;0;@;0;"fa-var-filter;o;	;o;;i;iÇ;@;@;o;;i;iÇ;iÇ; o;!	;	o;";	"ï‚°;
-;#;@;$@;o;	;o;;i;iÇ;@;@;o;;i;iÇ;iÇo;;[ ;0;@;0;"fa-var-fire;o;	;o;;i;iÈ;@;@;o;;i;iÈ;iÈ; o;!	;	o;";	"ï­;
-;#;@;$@;o;	;o;;i;iÈ;@;@;o;;i;iÈ;iÈo;;[ ;0;@;0;"fa-var-fire-extinguisher;o;	;o;;i;iÉ;@;@;o;;i(;iÉ;iÉ; o;!	;	o;";	"ï„´;
-;#;@;$@;o;	;o;;i!;iÉ;@;@;o;;i(;iÉ;iÉo;;[ ;0;@;0;"fa-var-flag;o;	;o;;i;iÊ;@;@;o;;i;iÊ;iÊ; o;!	;	o;";	"ï€¤;
-;#;@;$@;o;	;o;;i;iÊ;@;@;o;;i;iÊ;iÊo;;[ ;0;@;0;"fa-var-flag-checkered;o;	;o;;i;iË;@;@;o;;i%;iË;iË; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;iË;@;@;o;;i%;iË;iËo;;[ ;0;@;0;"fa-var-flag-o;o;	;o;;i;iÌ;@;@;o;;i;iÌ;iÌ; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;iÌ;@;@;o;;i;iÌ;iÌo;;[ ;0;@;0;"fa-var-flash;o;	;o;;i;iÍ;@;@;o;;i;iÍ;iÍ; o;!	;	o;";	"ïƒ§;
-;#;@;$@;o;	;o;;i;iÍ;@;@;o;;i;iÍ;iÍo;;[ ;0;@;0;"fa-var-flask;o;	;o;;i;iÎ;@;@;o;;i;iÎ;iÎ; o;!	;	o;";	"ïƒƒ;
-;#;@;$@;o;	;o;;i;iÎ;@;@;o;;i;iÎ;iÎo;;[ ;0;@;0;"fa-var-flickr;o;	;o;;i;iÏ;@;@;o;;i;iÏ;iÏ; o;!	;	o;";	"ï…®;
-;#;@;$@;o;	;o;;i;iÏ;@;@;o;;i;iÏ;iÏo;;[ ;0;@;0;"fa-var-floppy-o;o;	;o;;i;iĞ;@;@;o;;i;iĞ;iĞ; o;!	;	o;";	"ïƒ‡;
-;#;@;$@;o;	;o;;i;iĞ;@;@;o;;i;iĞ;iĞo;;[ ;0;@;0;"fa-var-folder;o;	;o;;i;iÑ;@;@;o;;i;iÑ;iÑ; o;!	;	o;";	"ï»;
-;#;@;$@;o;	;o;;i;iÑ;@;@;o;;i;iÑ;iÑo;;[ ;0;@;0;"fa-var-folder-o;o;	;o;;i;iÒ;@;@;o;;i;iÒ;iÒ; o;!	;	o;";	"ï„”;
-;#;@;$@;o;	;o;;i;iÒ;@;@;o;;i;iÒ;iÒo;;[ ;0;@;0;"fa-var-folder-open;o;	;o;;i;iÓ;@;@;o;;i";iÓ;iÓ; o;!	;	o;";	"ï¼;
-;#;@;$@;o;	;o;;i;iÓ;@;@;o;;i";iÓ;iÓo;;[ ;0;@;0;"fa-var-folder-open-o;o;	;o;;i;iÔ;@;@;o;;i$;iÔ;iÔ; o;!	;	o;";	"ï„•;
-;#;@;$@;o;	;o;;i;iÔ;@;@;o;;i$;iÔ;iÔo;;[ ;0;@;0;"fa-var-font;o;	;o;;i;iÕ;@;@;o;;i;iÕ;iÕ; o;!	;	o;";	"ï€±;
-;#;@;$@;o;	;o;;i;iÕ;@;@;o;;i;iÕ;iÕo;;[ ;0;@;0;"fa-var-forward;o;	;o;;i;iÖ;@;@;o;;i;iÖ;iÖ; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;iÖ;@;@;o;;i;iÖ;iÖo;;[ ;0;@;0;"fa-var-foursquare;o;	;o;;i;i×;@;@;o;;i!;i×;i×; o;!	;	o;";	"ï†€;
-;#;@;$@;o;	;o;;i;i×;@;@;o;;i!;i×;i×o;;[ ;0;@;0;"fa-var-frown-o;o;	;o;;i;iØ;@;@;o;;i;iØ;iØ; o;!	;	o;";	"ï„™;
-;#;@;$@;o;	;o;;i;iØ;@;@;o;;i;iØ;iØo;;[ ;0;@;0;"fa-var-gamepad;o;	;o;;i;iÙ;@;@;o;;i;iÙ;iÙ; o;!	;	o;";	"ï„›;
-;#;@;$@;o;	;o;;i;iÙ;@;@;o;;i;iÙ;iÙo;;[ ;0;@;0;"fa-var-gavel;o;	;o;;i;iÚ;@;@;o;;i;iÚ;iÚ; o;!	;	o;";	"ïƒ£;
-;#;@;$@;o;	;o;;i;iÚ;@;@;o;;i;iÚ;iÚo;;[ ;0;@;0;"fa-var-gbp;o;	;o;;i;iÛ;@;@;o;;i;iÛ;iÛ; o;!	;	o;";	"ï…”;
-;#;@;$@;o;	;o;;i;iÛ;@;@;o;;i;iÛ;iÛo;;[ ;0;@;0;"fa-var-ge;o;	;o;;i;iÜ;@;@;o;;i;iÜ;iÜ; o;!	;	o;";	"ï‡‘;
-;#;@;$@;o;	;o;;i;iÜ;@;@;o;;i;iÜ;iÜo;;[ ;0;@;0;"fa-var-gear;o;	;o;;i;iİ;@;@;o;;i;iİ;iİ; o;!	;	o;";	"ï€“;
-;#;@;$@;o;	;o;;i;iİ;@;@;o;;i;iİ;iİo;;[ ;0;@;0;"fa-var-gears;o;	;o;;i;iŞ;@;@;o;;i;iŞ;iŞ; o;!	;	o;";	"ï‚…;
-;#;@;$@;o;	;o;;i;iŞ;@;@;o;;i;iŞ;iŞo;;[ ;0;@;0;"fa-var-gift;o;	;o;;i;iß;@;@;o;;i;iß;iß; o;!	;	o;";	"ï«;
-;#;@;$@;o;	;o;;i;iß;@;@;o;;i;iß;ißo;;[ ;0;@;0;"fa-var-git;o;	;o;;i;ià;@;@;o;;i;ià;ià; o;!	;	o;";	"ï‡“;
-;#;@;$@;o;	;o;;i;ià;@;@;o;;i;ià;iào;;[ ;0;@;0;"fa-var-git-square;o;	;o;;i;iá;@;@;o;;i!;iá;iá; o;!	;	o;";	"ï‡’;
-;#;@;$@;o;	;o;;i;iá;@;@;o;;i!;iá;iáo;;[ ;0;@;0;"fa-var-github;o;	;o;;i;iâ;@;@;o;;i;iâ;iâ; o;!	;	o;";	"ï‚›;
-;#;@;$@;o;	;o;;i;iâ;@;@;o;;i;iâ;iâo;;[ ;0;@;0;"fa-var-github-alt;o;	;o;;i;iã;@;@;o;;i!;iã;iã; o;!	;	o;";	"ï„“;
-;#;@;$@;o;	;o;;i;iã;@;@;o;;i!;iã;ião;;[ ;0;@;0;"fa-var-github-square;o;	;o;;i;iä;@;@;o;;i$;iä;iä; o;!	;	o;";	"ï‚’;
-;#;@;$@;o;	;o;;i;iä;@;@;o;;i$;iä;iäo;;[ ;0;@;0;"fa-var-gittip;o;	;o;;i;iå;@;@;o;;i;iå;iå; o;!	;	o;";	"ï†„;
-;#;@;$@;o;	;o;;i;iå;@;@;o;;i;iå;iåo;;[ ;0;@;0;"fa-var-glass;o;	;o;;i;iæ;@;@;o;;i;iæ;iæ; o;!	;	o;";	"ï€€;
-;#;@;$@;o;	;o;;i;iæ;@;@;o;;i;iæ;iæo;;[ ;0;@;0;"fa-var-globe;o;	;o;;i;iç;@;@;o;;i;iç;iç; o;!	;	o;";	"ï‚¬;
-;#;@;$@;o;	;o;;i;iç;@;@;o;;i;iç;iço;;[ ;0;@;0;"fa-var-google;o;	;o;;i;iè;@;@;o;;i;iè;iè; o;!	;	o;";	"ï† ;
-;#;@;$@;o;	;o;;i;iè;@;@;o;;i;iè;ièo;;[ ;0;@;0;"fa-var-google-plus;o;	;o;;i;ié;@;@;o;;i";ié;ié; o;!	;	o;";	"ïƒ•;
-;#;@;$@;o;	;o;;i;ié;@;@;o;;i";ié;iéo;;[ ;0;@;0;"fa-var-google-plus-square;o;	;o;;i;iê;@;@;o;;i);iê;iê; o;!	;	o;";	"ïƒ”;
-;#;@;$@;o;	;o;;i";iê;@;@;o;;i);iê;iêo;;[ ;0;@;0;"fa-var-graduation-cap;o;	;o;;i;ië;@;@;o;;i%;ië;ië; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;ië;@;@;o;;i%;ië;iëo;;[ ;0;@;0;"fa-var-group;o;	;o;;i;iì;@;@;o;;i;iì;iì; o;!	;	o;";	"ïƒ€;
-;#;@;$@;o;	;o;;i;iì;@;@;o;;i;iì;iìo;;[ ;0;@;0;"fa-var-h-square;o;	;o;;i;ií;@;@;o;;i;ií;ií; o;!	;	o;";	"ïƒ½;
-;#;@;$@;o;	;o;;i;ií;@;@;o;;i;ií;iío;;[ ;0;@;0;"fa-var-hacker-news;o;	;o;;i;iî;@;@;o;;i";iî;iî; o;!	;	o;";	"ï‡”;
-;#;@;$@;o;	;o;;i;iî;@;@;o;;i";iî;iîo;;[ ;0;@;0;"fa-var-hand-o-down;o;	;o;;i;iï;@;@;o;;i";iï;iï; o;!	;	o;";	"ï‚§;
-;#;@;$@;o;	;o;;i;iï;@;@;o;;i";iï;iïo;;[ ;0;@;0;"fa-var-hand-o-left;o;	;o;;i;iğ;@;@;o;;i";iğ;iğ; o;!	;	o;";	"ï‚¥;
-;#;@;$@;o;	;o;;i;iğ;@;@;o;;i";iğ;iğo;;[ ;0;@;0;"fa-var-hand-o-right;o;	;o;;i;iñ;@;@;o;;i#;iñ;iñ; o;!	;	o;";	"ï‚¤;
-;#;@;$@;o;	;o;;i;iñ;@;@;o;;i#;iñ;iño;;[ ;0;@;0;"fa-var-hand-o-up;o;	;o;;i;iò;@;@;o;;i ;iò;iò; o;!	;	o;";	"ï‚¦;
-;#;@;$@;o;	;o;;i;iò;@;@;o;;i ;iò;iòo;;[ ;0;@;0;"fa-var-hdd-o;o;	;o;;i;ió;@;@;o;;i;ió;ió; o;!	;	o;";	"ï‚ ;
-;#;@;$@;o;	;o;;i;ió;@;@;o;;i;ió;ióo;;[ ;0;@;0;"fa-var-header;o;	;o;;i;iô;@;@;o;;i;iô;iô; o;!	;	o;";	"ï‡œ;
-;#;@;$@;o;	;o;;i;iô;@;@;o;;i;iô;iôo;;[ ;0;@;0;"fa-var-headphones;o;	;o;;i;iõ;@;@;o;;i!;iõ;iõ; o;!	;	o;";	"ï€¥;
-;#;@;$@;o;	;o;;i;iõ;@;@;o;;i!;iõ;iõo;;[ ;0;@;0;"fa-var-heart;o;	;o;;i;iö;@;@;o;;i;iö;iö; o;!	;	o;";	"ï€„;
-;#;@;$@;o;	;o;;i;iö;@;@;o;;i;iö;iöo;;[ ;0;@;0;"fa-var-heart-o;o;	;o;;i;i÷;@;@;o;;i;i÷;i÷; o;!	;	o;";	"ï‚Š;
-;#;@;$@;o;	;o;;i;i÷;@;@;o;;i;i÷;i÷o;;[ ;0;@;0;"fa-var-history;o;	;o;;i;iø;@;@;o;;i;iø;iø; o;!	;	o;";	"ï‡š;
-;#;@;$@;o;	;o;;i;iø;@;@;o;;i;iø;iøo;;[ ;0;@;0;"fa-var-home;o;	;o;;i;iù;@;@;o;;i;iù;iù; o;!	;	o;";	"ï€•;
-;#;@;$@;o;	;o;;i;iù;@;@;o;;i;iù;iùo;;[ ;0;@;0;"fa-var-hospital-o;o;	;o;;i;iú;@;@;o;;i!;iú;iú; o;!	;	o;";	"ïƒ¸;
-;#;@;$@;o;	;o;;i;iú;@;@;o;;i!;iú;iúo;;[ ;0;@;0;"fa-var-html5;o;	;o;;i;iû;@;@;o;;i;iû;iû; o;!	;	o;";	"ï„»;
-;#;@;$@;o;	;o;;i;iû;@;@;o;;i;iû;iûo;;[ ;0;@;0;"fa-var-image;o;	;o;;i;iü;@;@;o;;i;iü;iü; o;!	;	o;";	"ï€¾;
-;#;@;$@;o;	;o;;i;iü;@;@;o;;i;iü;iüo;;[ ;0;@;0;"fa-var-inbox;o;	;o;;i;iı;@;@;o;;i;iı;iı; o;!	;	o;";	"ï€œ;
-;#;@;$@;o;	;o;;i;iı;@;@;o;;i;iı;iıo;;[ ;0;@;0;"fa-var-indent;o;	;o;;i;iş;@;@;o;;i;iş;iş; o;!	;	o;";	"ï€¼;
-;#;@;$@;o;	;o;;i;iş;@;@;o;;i;iş;işo;;[ ;0;@;0;"fa-var-info;o;	;o;;i;iÿ;@;@;o;;i;iÿ;iÿ; o;!	;	o;";	"ï„©;
-;#;@;$@;o;	;o;;i;iÿ;@;@;o;;i;iÿ;iÿo;;[ ;0;@;0;"fa-var-info-circle;o;	;o;;i;i ;@;@;o;;i";i ;i ; o;!	;	o;";	"ïš;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i";i ;i o;;[ ;0;@;0;"fa-var-inr;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…–;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-instagram;o;	;o;;i;i;@;@;o;;i ;i;i; o;!	;	o;";	"ï…­;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;0;"fa-var-institution;o;	;o;;i;i;@;@;o;;i";i;i; o;!	;	o;";	"ï†œ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i";i;io;;[ ;0;@;0;"fa-var-italic;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï€³;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-joomla;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï†ª;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-jpy;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…—;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-jsfiddle;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‡Œ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-key;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‚„;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-keyboard-o;o;	;o;;i;i	;@;@;o;;i!;i	;i	; o;!	;	o;";	"ï„œ;
-;#;@;$@;o;	;o;;i;i	;@;@;o;;i!;i	;i	o;;[ ;0;@;0;"fa-var-krw;o;	;o;;i;i
-;@;@;o;;i;i
-;i
-; o;!	;	o;";	"ï…™;
-;#;@;$@;o;	;o;;i;i
-;@;@;o;;i;i
-;i
-o;;[ ;0;@;0;"fa-var-language;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï†«;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-laptop;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï„‰;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-leaf;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï¬;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-legal;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒ£;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-lemon-o;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‚”;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-level-down;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï…‰;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-level-up;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…ˆ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-life-bouy;o;	;o;;i;i;@;@;o;;i ;i;i; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;0;"fa-var-life-ring;o;	;o;;i;i;@;@;o;;i ;i;i; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i ;i;io;;[ ;0;@;0;"fa-var-life-saver;o;	;o;;i;i;@;@;o;;i!;i;i; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i!;i;io;;[ ;0;@;0;"fa-var-lightbulb-o;o;	;o;;i;i;@;@;o;;i";i;i; o;!	;	o;";	"ïƒ«;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i";i;io;;[ ;0;@;0;"fa-var-link;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-linkedin;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒ¡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-linkedin-square;o;	;o;;i;i;@;@;o;;i&;i;i; o;!	;	o;";	"ï‚Œ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i&;i;io;;[ ;0;@;0;"fa-var-linux;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï…¼;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-list;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï€º;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-list-alt;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï€¢;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-list-ol;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒ‹;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-list-ul;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒŠ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-location-arrow;o;	;o;;i;i;@;@;o;;i%;i;i; o;!	;	o;";	"ï„¤;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i%;i;io;;[ ;0;@;0;"fa-var-lock;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï€£;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-long-arrow-down;o;	;o;;i;i ;@;@;o;;i&;i ;i ; o;!	;	o;";	"ï…µ;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i&;i ;i o;;[ ;0;@;0;"fa-var-long-arrow-left;o;	;o;;i;i!;@;@;o;;i&;i!;i!; o;!	;	o;";	"ï…·;
-;#;@;$@;o;	;o;;i;i!;@;@;o;;i&;i!;i!o;;[ ;0;@;0;"fa-var-long-arrow-right;o;	;o;;i;i";@;@;o;;i';i";i"; o;!	;	o;";	"ï…¸;
-;#;@;$@;o;	;o;;i ;i";@;@;o;;i';i";i"o;;[ ;0;@;0;"fa-var-long-arrow-up;o;	;o;;i;i#;@;@;o;;i$;i#;i#; o;!	;	o;";	"ï…¶;
-;#;@;$@;o;	;o;;i;i#;@;@;o;;i$;i#;i#o;;[ ;0;@;0;"fa-var-magic;o;	;o;;i;i$;@;@;o;;i;i$;i$; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i$;@;@;o;;i;i$;i$o;;[ ;0;@;0;"fa-var-magnet;o;	;o;;i;i%;@;@;o;;i;i%;i%; o;!	;	o;";	"ï¶;
-;#;@;$@;o;	;o;;i;i%;@;@;o;;i;i%;i%o;;[ ;0;@;0;"fa-var-mail-forward;o;	;o;;i;i&;@;@;o;;i#;i&;i&; o;!	;	o;";	"ï¤;
-;#;@;$@;o;	;o;;i;i&;@;@;o;;i#;i&;i&o;;[ ;0;@;0;"fa-var-mail-reply;o;	;o;;i;i';@;@;o;;i!;i';i'; o;!	;	o;";	"ï„’;
-;#;@;$@;o;	;o;;i;i';@;@;o;;i!;i';i'o;;[ ;0;@;0;"fa-var-mail-reply-all;o;	;o;;i;i(;@;@;o;;i%;i(;i(; o;!	;	o;";	"ï„¢;
-;#;@;$@;o;	;o;;i;i(;@;@;o;;i%;i(;i(o;;[ ;0;@;0;"fa-var-male;o;	;o;;i;i);@;@;o;;i;i);i); o;!	;	o;";	"ï†ƒ;
-;#;@;$@;o;	;o;;i;i);@;@;o;;i;i);i)o;;[ ;0;@;0;"fa-var-map-marker;o;	;o;;i;i*;@;@;o;;i!;i*;i*; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;i*;@;@;o;;i!;i*;i*o;;[ ;0;@;0;"fa-var-maxcdn;o;	;o;;i;i+;@;@;o;;i;i+;i+; o;!	;	o;";	"ï„¶;
-;#;@;$@;o;	;o;;i;i+;@;@;o;;i;i+;i+o;;[ ;0;@;0;"fa-var-medkit;o;	;o;;i;i,;@;@;o;;i;i,;i,; o;!	;	o;";	"ïƒº;
-;#;@;$@;o;	;o;;i;i,;@;@;o;;i;i,;i,o;;[ ;0;@;0;"fa-var-meh-o;o;	;o;;i;i-;@;@;o;;i;i-;i-; o;!	;	o;";	"ï„š;
-;#;@;$@;o;	;o;;i;i-;@;@;o;;i;i-;i-o;;[ ;0;@;0;"fa-var-microphone;o;	;o;;i;i.;@;@;o;;i!;i.;i.; o;!	;	o;";	"ï„°;
-;#;@;$@;o;	;o;;i;i.;@;@;o;;i!;i.;i.o;;[ ;0;@;0;"fa-var-microphone-slash;o;	;o;;i;i/;@;@;o;;i';i/;i/; o;!	;	o;";	"ï„±;
-;#;@;$@;o;	;o;;i ;i/;@;@;o;;i';i/;i/o;;[ ;0;@;0;"fa-var-minus;o;	;o;;i;i0;@;@;o;;i;i0;i0; o;!	;	o;";	"ï¨;
-;#;@;$@;o;	;o;;i;i0;@;@;o;;i;i0;i0o;;[ ;0;@;0;"fa-var-minus-circle;o;	;o;;i;i1;@;@;o;;i#;i1;i1; o;!	;	o;";	"ï–;
-;#;@;$@;o;	;o;;i;i1;@;@;o;;i#;i1;i1o;;[ ;0;@;0;"fa-var-minus-square;o;	;o;;i;i2;@;@;o;;i#;i2;i2; o;!	;	o;";	"ï…†;
-;#;@;$@;o;	;o;;i;i2;@;@;o;;i#;i2;i2o;;[ ;0;@;0;"fa-var-minus-square-o;o;	;o;;i;i3;@;@;o;;i%;i3;i3; o;!	;	o;";	"ï…‡;
-;#;@;$@;o;	;o;;i;i3;@;@;o;;i%;i3;i3o;;[ ;0;@;0;"fa-var-mobile;o;	;o;;i;i4;@;@;o;;i;i4;i4; o;!	;	o;";	"ï„‹;
-;#;@;$@;o;	;o;;i;i4;@;@;o;;i;i4;i4o;;[ ;0;@;0;"fa-var-mobile-phone;o;	;o;;i;i5;@;@;o;;i#;i5;i5; o;!	;	o;";	"ï„‹;
-;#;@;$@;o;	;o;;i;i5;@;@;o;;i#;i5;i5o;;[ ;0;@;0;"fa-var-money;o;	;o;;i;i6;@;@;o;;i;i6;i6; o;!	;	o;";	"ïƒ–;
-;#;@;$@;o;	;o;;i;i6;@;@;o;;i;i6;i6o;;[ ;0;@;0;"fa-var-moon-o;o;	;o;;i;i7;@;@;o;;i;i7;i7; o;!	;	o;";	"ï††;
-;#;@;$@;o;	;o;;i;i7;@;@;o;;i;i7;i7o;;[ ;0;@;0;"fa-var-mortar-board;o;	;o;;i;i8;@;@;o;;i#;i8;i8; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;i8;@;@;o;;i#;i8;i8o;;[ ;0;@;0;"fa-var-music;o;	;o;;i;i9;@;@;o;;i;i9;i9; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;i9;@;@;o;;i;i9;i9o;;[ ;0;@;0;"fa-var-navicon;o;	;o;;i;i:;@;@;o;;i;i:;i:; o;!	;	o;";	"ïƒ‰;
-;#;@;$@;o;	;o;;i;i:;@;@;o;;i;i:;i:o;;[ ;0;@;0;"fa-var-openid;o;	;o;;i;i;;@;@;o;;i;i;;i;; o;!	;	o;";	"ï†›;
-;#;@;$@;o;	;o;;i;i;;@;@;o;;i;i;;i;o;;[ ;0;@;0;"fa-var-outdent;o;	;o;;i;i<;@;@;o;;i;i<;i<; o;!	;	o;";	"ï€»;
-;#;@;$@;o;	;o;;i;i<;@;@;o;;i;i<;i<o;;[ ;0;@;0;"fa-var-pagelines;o;	;o;;i;i=;@;@;o;;i ;i=;i=; o;!	;	o;";	"ï†Œ;
-;#;@;$@;o;	;o;;i;i=;@;@;o;;i ;i=;i=o;;[ ;0;@;0;"fa-var-paper-plane;o;	;o;;i;i>;@;@;o;;i";i>;i>; o;!	;	o;";	"ï‡˜;
-;#;@;$@;o;	;o;;i;i>;@;@;o;;i";i>;i>o;;[ ;0;@;0;"fa-var-paper-plane-o;o;	;o;;i;i?;@;@;o;;i$;i?;i?; o;!	;	o;";	"ï‡™;
-;#;@;$@;o;	;o;;i;i?;@;@;o;;i$;i?;i?o;;[ ;0;@;0;"fa-var-paperclip;o;	;o;;i;i@;@;@;o;;i ;i@;i@; o;!	;	o;";	"ïƒ†;
-;#;@;$@;o;	;o;;i;i@;@;@;o;;i ;i@;i@o;;[ ;0;@;0;"fa-var-paragraph;o;	;o;;i;iA;@;@;o;;i ;iA;iA; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;iA;@;@;o;;i ;iA;iAo;;[ ;0;@;0;"fa-var-paste;o;	;o;;i;iB;@;@;o;;i;iB;iB; o;!	;	o;";	"ïƒª;
-;#;@;$@;o;	;o;;i;iB;@;@;o;;i;iB;iBo;;[ ;0;@;0;"fa-var-pause;o;	;o;;i;iC;@;@;o;;i;iC;iC; o;!	;	o;";	"ïŒ;
-;#;@;$@;o;	;o;;i;iC;@;@;o;;i;iC;iCo;;[ ;0;@;0;"fa-var-paw;o;	;o;;i;iD;@;@;o;;i;iD;iD; o;!	;	o;";	"ï†°;
-;#;@;$@;o;	;o;;i;iD;@;@;o;;i;iD;iDo;;[ ;0;@;0;"fa-var-pencil;o;	;o;;i;iE;@;@;o;;i;iE;iE; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;iE;@;@;o;;i;iE;iEo;;[ ;0;@;0;"fa-var-pencil-square;o;	;o;;i;iF;@;@;o;;i$;iF;iF; o;!	;	o;";	"ï…‹;
-;#;@;$@;o;	;o;;i;iF;@;@;o;;i$;iF;iFo;;[ ;0;@;0;"fa-var-pencil-square-o;o;	;o;;i;iG;@;@;o;;i&;iG;iG; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;iG;@;@;o;;i&;iG;iGo;;[ ;0;@;0;"fa-var-phone;o;	;o;;i;iH;@;@;o;;i;iH;iH; o;!	;	o;";	"ï‚•;
-;#;@;$@;o;	;o;;i;iH;@;@;o;;i;iH;iHo;;[ ;0;@;0;"fa-var-phone-square;o;	;o;;i;iI;@;@;o;;i#;iI;iI; o;!	;	o;";	"ï‚˜;
-;#;@;$@;o;	;o;;i;iI;@;@;o;;i#;iI;iIo;;[ ;0;@;0;"fa-var-photo;o;	;o;;i;iJ;@;@;o;;i;iJ;iJ; o;!	;	o;";	"ï€¾;
-;#;@;$@;o;	;o;;i;iJ;@;@;o;;i;iJ;iJo;;[ ;0;@;0;"fa-var-picture-o;o;	;o;;i;iK;@;@;o;;i ;iK;iK; o;!	;	o;";	"ï€¾;
-;#;@;$@;o;	;o;;i;iK;@;@;o;;i ;iK;iKo;;[ ;0;@;0;"fa-var-pied-piper;o;	;o;;i;iL;@;@;o;;i!;iL;iL; o;!	;	o;";	"ï†§;
-;#;@;$@;o;	;o;;i;iL;@;@;o;;i!;iL;iLo;;[ ;0;@;0;"fa-var-pied-piper-alt;o;	;o;;i;iM;@;@;o;;i%;iM;iM; o;!	;	o;";	"ï†¨;
-;#;@;$@;o;	;o;;i;iM;@;@;o;;i%;iM;iMo;;[ ;0;@;0;"fa-var-pied-piper-square;o;	;o;;i;iN;@;@;o;;i(;iN;iN; o;!	;	o;";	"ï†§;
-;#;@;$@;o;	;o;;i!;iN;@;@;o;;i(;iN;iNo;;[ ;0;@;0;"fa-var-pinterest;o;	;o;;i;iO;@;@;o;;i ;iO;iO; o;!	;	o;";	"ïƒ’;
-;#;@;$@;o;	;o;;i;iO;@;@;o;;i ;iO;iOo;;[ ;0;@;0;"fa-var-pinterest-square;o;	;o;;i;iP;@;@;o;;i';iP;iP; o;!	;	o;";	"ïƒ“;
-;#;@;$@;o;	;o;;i ;iP;@;@;o;;i';iP;iPo;;[ ;0;@;0;"fa-var-plane;o;	;o;;i;iQ;@;@;o;;i;iQ;iQ; o;!	;	o;";	"ï²;
-;#;@;$@;o;	;o;;i;iQ;@;@;o;;i;iQ;iQo;;[ ;0;@;0;"fa-var-play;o;	;o;;i;iR;@;@;o;;i;iR;iR; o;!	;	o;";	"ï‹;
-;#;@;$@;o;	;o;;i;iR;@;@;o;;i;iR;iRo;;[ ;0;@;0;"fa-var-play-circle;o;	;o;;i;iS;@;@;o;;i";iS;iS; o;!	;	o;";	"ï…„;
-;#;@;$@;o;	;o;;i;iS;@;@;o;;i";iS;iSo;;[ ;0;@;0;"fa-var-play-circle-o;o;	;o;;i;iT;@;@;o;;i$;iT;iT; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;iT;@;@;o;;i$;iT;iTo;;[ ;0;@;0;"fa-var-plus;o;	;o;;i;iU;@;@;o;;i;iU;iU; o;!	;	o;";	"ï§;
-;#;@;$@;o;	;o;;i;iU;@;@;o;;i;iU;iUo;;[ ;0;@;0;"fa-var-plus-circle;o;	;o;;i;iV;@;@;o;;i";iV;iV; o;!	;	o;";	"ï•;
-;#;@;$@;o;	;o;;i;iV;@;@;o;;i";iV;iVo;;[ ;0;@;0;"fa-var-plus-square;o;	;o;;i;iW;@;@;o;;i";iW;iW; o;!	;	o;";	"ïƒ¾;
-;#;@;$@;o;	;o;;i;iW;@;@;o;;i";iW;iWo;;[ ;0;@;0;"fa-var-plus-square-o;o;	;o;;i;iX;@;@;o;;i$;iX;iX; o;!	;	o;";	"ï†–;
-;#;@;$@;o;	;o;;i;iX;@;@;o;;i$;iX;iXo;;[ ;0;@;0;"fa-var-power-off;o;	;o;;i;iY;@;@;o;;i ;iY;iY; o;!	;	o;";	"ï€‘;
-;#;@;$@;o;	;o;;i;iY;@;@;o;;i ;iY;iYo;;[ ;0;@;0;"fa-var-print;o;	;o;;i;iZ;@;@;o;;i;iZ;iZ; o;!	;	o;";	"ï€¯;
-;#;@;$@;o;	;o;;i;iZ;@;@;o;;i;iZ;iZo;;[ ;0;@;0;"fa-var-puzzle-piece;o;	;o;;i;i[;@;@;o;;i#;i[;i[; o;!	;	o;";	"ï„®;
-;#;@;$@;o;	;o;;i;i[;@;@;o;;i#;i[;i[o;;[ ;0;@;0;"fa-var-qq;o;	;o;;i;i\;@;@;o;;i;i\;i\; o;!	;	o;";	"ï‡–;
-;#;@;$@;o;	;o;;i;i\;@;@;o;;i;i\;i\o;;[ ;0;@;0;"fa-var-qrcode;o;	;o;;i;i];@;@;o;;i;i];i]; o;!	;	o;";	"ï€©;
-;#;@;$@;o;	;o;;i;i];@;@;o;;i;i];i]o;;[ ;0;@;0;"fa-var-question;o;	;o;;i;i^;@;@;o;;i;i^;i^; o;!	;	o;";	"ï„¨;
-;#;@;$@;o;	;o;;i;i^;@;@;o;;i;i^;i^o;;[ ;0;@;0;"fa-var-question-circle;o;	;o;;i;i_;@;@;o;;i&;i_;i_; o;!	;	o;";	"ï™;
-;#;@;$@;o;	;o;;i;i_;@;@;o;;i&;i_;i_o;;[ ;0;@;0;"fa-var-quote-left;o;	;o;;i;i`;@;@;o;;i!;i`;i`; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;i`;@;@;o;;i!;i`;i`o;;[ ;0;@;0;"fa-var-quote-right;o;	;o;;i;ia;@;@;o;;i";ia;ia; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;ia;@;@;o;;i";ia;iao;;[ ;0;@;0;"fa-var-ra;o;	;o;;i;ib;@;@;o;;i;ib;ib; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;ib;@;@;o;;i;ib;ibo;;[ ;0;@;0;"fa-var-random;o;	;o;;i;ic;@;@;o;;i;ic;ic; o;!	;	o;";	"ï´;
-;#;@;$@;o;	;o;;i;ic;@;@;o;;i;ic;ico;;[ ;0;@;0;"fa-var-rebel;o;	;o;;i;id;@;@;o;;i;id;id; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;id;@;@;o;;i;id;ido;;[ ;0;@;0;"fa-var-recycle;o;	;o;;i;ie;@;@;o;;i;ie;ie; o;!	;	o;";	"ï†¸;
-;#;@;$@;o;	;o;;i;ie;@;@;o;;i;ie;ieo;;[ ;0;@;0;"fa-var-reddit;o;	;o;;i;if;@;@;o;;i;if;if; o;!	;	o;";	"ï†¡;
-;#;@;$@;o;	;o;;i;if;@;@;o;;i;if;ifo;;[ ;0;@;0;"fa-var-reddit-square;o;	;o;;i;ig;@;@;o;;i$;ig;ig; o;!	;	o;";	"ï†¢;
-;#;@;$@;o;	;o;;i;ig;@;@;o;;i$;ig;igo;;[ ;0;@;0;"fa-var-refresh;o;	;o;;i;ih;@;@;o;;i;ih;ih; o;!	;	o;";	"ï€¡;
-;#;@;$@;o;	;o;;i;ih;@;@;o;;i;ih;iho;;[ ;0;@;0;"fa-var-renren;o;	;o;;i;ii;@;@;o;;i;ii;ii; o;!	;	o;";	"ï†‹;
-;#;@;$@;o;	;o;;i;ii;@;@;o;;i;ii;iio;;[ ;0;@;0;"fa-var-reorder;o;	;o;;i;ij;@;@;o;;i;ij;ij; o;!	;	o;";	"ïƒ‰;
-;#;@;$@;o;	;o;;i;ij;@;@;o;;i;ij;ijo;;[ ;0;@;0;"fa-var-repeat;o;	;o;;i;ik;@;@;o;;i;ik;ik; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;ik;@;@;o;;i;ik;iko;;[ ;0;@;0;"fa-var-reply;o;	;o;;i;il;@;@;o;;i;il;il; o;!	;	o;";	"ï„’;
-;#;@;$@;o;	;o;;i;il;@;@;o;;i;il;ilo;;[ ;0;@;0;"fa-var-reply-all;o;	;o;;i;im;@;@;o;;i ;im;im; o;!	;	o;";	"ï„¢;
-;#;@;$@;o;	;o;;i;im;@;@;o;;i ;im;imo;;[ ;0;@;0;"fa-var-retweet;o;	;o;;i;in;@;@;o;;i;in;in; o;!	;	o;";	"ï¹;
-;#;@;$@;o;	;o;;i;in;@;@;o;;i;in;ino;;[ ;0;@;0;"fa-var-rmb;o;	;o;;i;io;@;@;o;;i;io;io; o;!	;	o;";	"ï…—;
-;#;@;$@;o;	;o;;i;io;@;@;o;;i;io;ioo;;[ ;0;@;0;"fa-var-road;o;	;o;;i;ip;@;@;o;;i;ip;ip; o;!	;	o;";	"ï€˜;
-;#;@;$@;o;	;o;;i;ip;@;@;o;;i;ip;ipo;;[ ;0;@;0;"fa-var-rocket;o;	;o;;i;iq;@;@;o;;i;iq;iq; o;!	;	o;";	"ï„µ;
-;#;@;$@;o;	;o;;i;iq;@;@;o;;i;iq;iqo;;[ ;0;@;0;"fa-var-rotate-left;o;	;o;;i;ir;@;@;o;;i";ir;ir; o;!	;	o;";	"ïƒ¢;
-;#;@;$@;o;	;o;;i;ir;@;@;o;;i";ir;iro;;[ ;0;@;0;"fa-var-rotate-right;o;	;o;;i;is;@;@;o;;i#;is;is; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;is;@;@;o;;i#;is;iso;;[ ;0;@;0;"fa-var-rouble;o;	;o;;i;it;@;@;o;;i;it;it; o;!	;	o;";	"ï…˜;
-;#;@;$@;o;	;o;;i;it;@;@;o;;i;it;ito;;[ ;0;@;0;"fa-var-rss;o;	;o;;i;iu;@;@;o;;i;iu;iu; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;iu;@;@;o;;i;iu;iuo;;[ ;0;@;0;"fa-var-rss-square;o;	;o;;i;iv;@;@;o;;i!;iv;iv; o;!	;	o;";	"ï…ƒ;
-;#;@;$@;o;	;o;;i;iv;@;@;o;;i!;iv;ivo;;[ ;0;@;0;"fa-var-rub;o;	;o;;i;iw;@;@;o;;i;iw;iw; o;!	;	o;";	"ï…˜;
-;#;@;$@;o;	;o;;i;iw;@;@;o;;i;iw;iwo;;[ ;0;@;0;"fa-var-ruble;o;	;o;;i;ix;@;@;o;;i;ix;ix; o;!	;	o;";	"ï…˜;
-;#;@;$@;o;	;o;;i;ix;@;@;o;;i;ix;ixo;;[ ;0;@;0;"fa-var-rupee;o;	;o;;i;iy;@;@;o;;i;iy;iy; o;!	;	o;";	"ï…–;
-;#;@;$@;o;	;o;;i;iy;@;@;o;;i;iy;iyo;;[ ;0;@;0;"fa-var-save;o;	;o;;i;iz;@;@;o;;i;iz;iz; o;!	;	o;";	"ïƒ‡;
-;#;@;$@;o;	;o;;i;iz;@;@;o;;i;iz;izo;;[ ;0;@;0;"fa-var-scissors;o;	;o;;i;i{;@;@;o;;i;i{;i{; o;!	;	o;";	"ïƒ„;
-;#;@;$@;o;	;o;;i;i{;@;@;o;;i;i{;i{o;;[ ;0;@;0;"fa-var-search;o;	;o;;i;i|;@;@;o;;i;i|;i|; o;!	;	o;";	"ï€‚;
-;#;@;$@;o;	;o;;i;i|;@;@;o;;i;i|;i|o;;[ ;0;@;0;"fa-var-search-minus;o;	;o;;i;i};@;@;o;;i#;i};i}; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;i};@;@;o;;i#;i};i}o;;[ ;0;@;0;"fa-var-search-plus;o;	;o;;i;i~;@;@;o;;i";i~;i~; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;i~;@;@;o;;i";i~;i~o;;[ ;0;@;0;"fa-var-send;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‡˜;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-send-o;o;	;o;;i;i€;@;@;o;;i;i€;i€; o;!	;	o;";	"ï‡™;
-;#;@;$@;o;	;o;;i;i€;@;@;o;;i;i€;i€o;;[ ;0;@;0;"fa-var-share;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï¤;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-share-alt;o;	;o;;i;i‚;@;@;o;;i ;i‚;i‚; o;!	;	o;";	"ï‡ ;
-;#;@;$@;o;	;o;;i;i‚;@;@;o;;i ;i‚;i‚o;;[ ;0;@;0;"fa-var-share-alt-square;o;	;o;;i;iƒ;@;@;o;;i';iƒ;iƒ; o;!	;	o;";	"ï‡¡;
-;#;@;$@;o;	;o;;i ;iƒ;@;@;o;;i';iƒ;iƒo;;[ ;0;@;0;"fa-var-share-square;o;	;o;;i;i„;@;@;o;;i#;i„;i„; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;i„;@;@;o;;i#;i„;i„o;;[ ;0;@;0;"fa-var-share-square-o;o;	;o;;i;i…;@;@;o;;i%;i…;i…; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;i…;@;@;o;;i%;i…;i…o;;[ ;0;@;0;"fa-var-shield;o;	;o;;i;i†;@;@;o;;i;i†;i†; o;!	;	o;";	"ï„²;
-;#;@;$@;o;	;o;;i;i†;@;@;o;;i;i†;i†o;;[ ;0;@;0;"fa-var-shopping-cart;o;	;o;;i;i‡;@;@;o;;i$;i‡;i‡; o;!	;	o;";	"ïº;
-;#;@;$@;o;	;o;;i;i‡;@;@;o;;i$;i‡;i‡o;;[ ;0;@;0;"fa-var-sign-in;o;	;o;;i;iˆ;@;@;o;;i;iˆ;iˆ; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;iˆ;@;@;o;;i;iˆ;iˆo;;[ ;0;@;0;"fa-var-sign-out;o;	;o;;i;i‰;@;@;o;;i;i‰;i‰; o;!	;	o;";	"ï‚‹;
-;#;@;$@;o;	;o;;i;i‰;@;@;o;;i;i‰;i‰o;;[ ;0;@;0;"fa-var-signal;o;	;o;;i;iŠ;@;@;o;;i;iŠ;iŠ; o;!	;	o;";	"ï€’;
-;#;@;$@;o;	;o;;i;iŠ;@;@;o;;i;iŠ;iŠo;;[ ;0;@;0;"fa-var-sitemap;o;	;o;;i;i‹;@;@;o;;i;i‹;i‹; o;!	;	o;";	"ïƒ¨;
-;#;@;$@;o;	;o;;i;i‹;@;@;o;;i;i‹;i‹o;;[ ;0;@;0;"fa-var-skype;o;	;o;;i;iŒ;@;@;o;;i;iŒ;iŒ; o;!	;	o;";	"ï…¾;
-;#;@;$@;o;	;o;;i;iŒ;@;@;o;;i;iŒ;iŒo;;[ ;0;@;0;"fa-var-slack;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï†˜;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-sliders;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-smile-o;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï„˜;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-sort;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ïƒœ;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-sort-alpha-asc;o;	;o;;i;i‘;@;@;o;;i%;i‘;i‘; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;i‘;@;@;o;;i%;i‘;i‘o;;[ ;0;@;0;"fa-var-sort-alpha-desc;o;	;o;;i;i’;@;@;o;;i&;i’;i’; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;i’;@;@;o;;i&;i’;i’o;;[ ;0;@;0;"fa-var-sort-amount-asc;o;	;o;;i;i“;@;@;o;;i&;i“;i“; o;!	;	o;";	"ï… ;
-;#;@;$@;o;	;o;;i;i“;@;@;o;;i&;i“;i“o;;[ ;0;@;0;"fa-var-sort-amount-desc;o;	;o;;i;i”;@;@;o;;i';i”;i”; o;!	;	o;";	"ï…¡;
-;#;@;$@;o;	;o;;i ;i”;@;@;o;;i';i”;i”o;;[ ;0;@;0;"fa-var-sort-asc;o;	;o;;i;i•;@;@;o;;i;i•;i•; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i•;@;@;o;;i;i•;i•o;;[ ;0;@;0;"fa-var-sort-desc;o;	;o;;i;i–;@;@;o;;i ;i–;i–; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i–;@;@;o;;i ;i–;i–o;;[ ;0;@;0;"fa-var-sort-down;o;	;o;;i;i—;@;@;o;;i ;i—;i—; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i—;@;@;o;;i ;i—;i—o;;[ ;0;@;0;"fa-var-sort-numeric-asc;o;	;o;;i;i˜;@;@;o;;i';i˜;i˜; o;!	;	o;";	"ï…¢;
-;#;@;$@;o;	;o;;i ;i˜;@;@;o;;i';i˜;i˜o;;[ ;0;@;0;"fa-var-sort-numeric-desc;o;	;o;;i;i™;@;@;o;;i(;i™;i™; o;!	;	o;";	"ï…£;
-;#;@;$@;o;	;o;;i!;i™;@;@;o;;i(;i™;i™o;;[ ;0;@;0;"fa-var-sort-up;o;	;o;;i;iš;@;@;o;;i;iš;iš; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;iš;@;@;o;;i;iš;išo;;[ ;0;@;0;"fa-var-soundcloud;o;	;o;;i;i›;@;@;o;;i!;i›;i›; o;!	;	o;";	"ï†¾;
-;#;@;$@;o;	;o;;i;i›;@;@;o;;i!;i›;i›o;;[ ;0;@;0;"fa-var-space-shuttle;o;	;o;;i;iœ;@;@;o;;i$;iœ;iœ; o;!	;	o;";	"ï†—;
-;#;@;$@;o;	;o;;i;iœ;@;@;o;;i$;iœ;iœo;;[ ;0;@;0;"fa-var-spinner;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï„;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-spoon;o;	;o;;i;i;@;@;o;;i;i;i; o;!	;	o;";	"ï†±;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i;i;io;;[ ;0;@;0;"fa-var-spotify;o;	;o;;i;iŸ;@;@;o;;i;iŸ;iŸ; o;!	;	o;";	"ï†¼;
-;#;@;$@;o;	;o;;i;iŸ;@;@;o;;i;iŸ;iŸo;;[ ;0;@;0;"fa-var-square;o;	;o;;i;i ;@;@;o;;i;i ;i ; o;!	;	o;";	"ïƒˆ;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i;i ;i o;;[ ;0;@;0;"fa-var-square-o;o;	;o;;i;i¡;@;@;o;;i;i¡;i¡; o;!	;	o;";	"ï‚–;
-;#;@;$@;o;	;o;;i;i¡;@;@;o;;i;i¡;i¡o;;[ ;0;@;0;"fa-var-stack-exchange;o;	;o;;i;i¢;@;@;o;;i%;i¢;i¢; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;i¢;@;@;o;;i%;i¢;i¢o;;[ ;0;@;0;"fa-var-stack-overflow;o;	;o;;i;i£;@;@;o;;i%;i£;i£; o;!	;	o;";	"ï…¬;
-;#;@;$@;o;	;o;;i;i£;@;@;o;;i%;i£;i£o;;[ ;0;@;0;"fa-var-star;o;	;o;;i;i¤;@;@;o;;i;i¤;i¤; o;!	;	o;";	"ï€…;
-;#;@;$@;o;	;o;;i;i¤;@;@;o;;i;i¤;i¤o;;[ ;0;@;0;"fa-var-star-half;o;	;o;;i;i¥;@;@;o;;i ;i¥;i¥; o;!	;	o;";	"ï‚‰;
-;#;@;$@;o;	;o;;i;i¥;@;@;o;;i ;i¥;i¥o;;[ ;0;@;0;"fa-var-star-half-empty;o;	;o;;i;i¦;@;@;o;;i&;i¦;i¦; o;!	;	o;";	"ï„£;
-;#;@;$@;o;	;o;;i;i¦;@;@;o;;i&;i¦;i¦o;;[ ;0;@;0;"fa-var-star-half-full;o;	;o;;i;i§;@;@;o;;i%;i§;i§; o;!	;	o;";	"ï„£;
-;#;@;$@;o;	;o;;i;i§;@;@;o;;i%;i§;i§o;;[ ;0;@;0;"fa-var-star-half-o;o;	;o;;i;i¨;@;@;o;;i";i¨;i¨; o;!	;	o;";	"ï„£;
-;#;@;$@;o;	;o;;i;i¨;@;@;o;;i";i¨;i¨o;;[ ;0;@;0;"fa-var-star-o;o;	;o;;i;i©;@;@;o;;i;i©;i©; o;!	;	o;";	"ï€†;
-;#;@;$@;o;	;o;;i;i©;@;@;o;;i;i©;i©o;;[ ;0;@;0;"fa-var-steam;o;	;o;;i;iª;@;@;o;;i;iª;iª; o;!	;	o;";	"ï†¶;
-;#;@;$@;o;	;o;;i;iª;@;@;o;;i;iª;iªo;;[ ;0;@;0;"fa-var-steam-square;o;	;o;;i;i«;@;@;o;;i#;i«;i«; o;!	;	o;";	"ï†·;
-;#;@;$@;o;	;o;;i;i«;@;@;o;;i#;i«;i«o;;[ ;0;@;0;"fa-var-step-backward;o;	;o;;i;i¬;@;@;o;;i$;i¬;i¬; o;!	;	o;";	"ïˆ;
-;#;@;$@;o;	;o;;i;i¬;@;@;o;;i$;i¬;i¬o;;[ ;0;@;0;"fa-var-step-forward;o;	;o;;i;i­;@;@;o;;i#;i­;i­; o;!	;	o;";	"ï‘;
-;#;@;$@;o;	;o;;i;i­;@;@;o;;i#;i­;i­o;;[ ;0;@;0;"fa-var-stethoscope;o;	;o;;i;i®;@;@;o;;i";i®;i®; o;!	;	o;";	"ïƒ±;
-;#;@;$@;o;	;o;;i;i®;@;@;o;;i";i®;i®o;;[ ;0;@;0;"fa-var-stop;o;	;o;;i;i¯;@;@;o;;i;i¯;i¯; o;!	;	o;";	"ï;
-;#;@;$@;o;	;o;;i;i¯;@;@;o;;i;i¯;i¯o;;[ ;0;@;0;"fa-var-strikethrough;o;	;o;;i;i°;@;@;o;;i$;i°;i°; o;!	;	o;";	"ïƒŒ;
-;#;@;$@;o;	;o;;i;i°;@;@;o;;i$;i°;i°o;;[ ;0;@;0;"fa-var-stumbleupon;o;	;o;;i;i±;@;@;o;;i";i±;i±; o;!	;	o;";	"ï†¤;
-;#;@;$@;o;	;o;;i;i±;@;@;o;;i";i±;i±o;;[ ;0;@;0;"fa-var-stumbleupon-circle;o;	;o;;i;i²;@;@;o;;i);i²;i²; o;!	;	o;";	"ï†£;
-;#;@;$@;o;	;o;;i";i²;@;@;o;;i);i²;i²o;;[ ;0;@;0;"fa-var-subscript;o;	;o;;i;i³;@;@;o;;i ;i³;i³; o;!	;	o;";	"ï„¬;
-;#;@;$@;o;	;o;;i;i³;@;@;o;;i ;i³;i³o;;[ ;0;@;0;"fa-var-suitcase;o;	;o;;i;i´;@;@;o;;i;i´;i´; o;!	;	o;";	"ïƒ²;
-;#;@;$@;o;	;o;;i;i´;@;@;o;;i;i´;i´o;;[ ;0;@;0;"fa-var-sun-o;o;	;o;;i;iµ;@;@;o;;i;iµ;iµ; o;!	;	o;";	"ï†…;
-;#;@;$@;o;	;o;;i;iµ;@;@;o;;i;iµ;iµo;;[ ;0;@;0;"fa-var-superscript;o;	;o;;i;i¶;@;@;o;;i";i¶;i¶; o;!	;	o;";	"ï„«;
-;#;@;$@;o;	;o;;i;i¶;@;@;o;;i";i¶;i¶o;;[ ;0;@;0;"fa-var-support;o;	;o;;i;i·;@;@;o;;i;i·;i·; o;!	;	o;";	"ï‡;
-;#;@;$@;o;	;o;;i;i·;@;@;o;;i;i·;i·o;;[ ;0;@;0;"fa-var-table;o;	;o;;i;i¸;@;@;o;;i;i¸;i¸; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;i¸;@;@;o;;i;i¸;i¸o;;[ ;0;@;0;"fa-var-tablet;o;	;o;;i;i¹;@;@;o;;i;i¹;i¹; o;!	;	o;";	"ï„Š;
-;#;@;$@;o;	;o;;i;i¹;@;@;o;;i;i¹;i¹o;;[ ;0;@;0;"fa-var-tachometer;o;	;o;;i;iº;@;@;o;;i!;iº;iº; o;!	;	o;";	"ïƒ¤;
-;#;@;$@;o;	;o;;i;iº;@;@;o;;i!;iº;iºo;;[ ;0;@;0;"fa-var-tag;o;	;o;;i;i»;@;@;o;;i;i»;i»; o;!	;	o;";	"ï€«;
-;#;@;$@;o;	;o;;i;i»;@;@;o;;i;i»;i»o;;[ ;0;@;0;"fa-var-tags;o;	;o;;i;i¼;@;@;o;;i;i¼;i¼; o;!	;	o;";	"ï€¬;
-;#;@;$@;o;	;o;;i;i¼;@;@;o;;i;i¼;i¼o;;[ ;0;@;0;"fa-var-tasks;o;	;o;;i;i½;@;@;o;;i;i½;i½; o;!	;	o;";	"ï‚®;
-;#;@;$@;o;	;o;;i;i½;@;@;o;;i;i½;i½o;;[ ;0;@;0;"fa-var-taxi;o;	;o;;i;i¾;@;@;o;;i;i¾;i¾; o;!	;	o;";	"ï†º;
-;#;@;$@;o;	;o;;i;i¾;@;@;o;;i;i¾;i¾o;;[ ;0;@;0;"fa-var-tencent-weibo;o;	;o;;i;i¿;@;@;o;;i$;i¿;i¿; o;!	;	o;";	"ï‡•;
-;#;@;$@;o;	;o;;i;i¿;@;@;o;;i$;i¿;i¿o;;[ ;0;@;0;"fa-var-terminal;o;	;o;;i;iÀ;@;@;o;;i;iÀ;iÀ; o;!	;	o;";	"ï„ ;
-;#;@;$@;o;	;o;;i;iÀ;@;@;o;;i;iÀ;iÀo;;[ ;0;@;0;"fa-var-text-height;o;	;o;;i;iÁ;@;@;o;;i";iÁ;iÁ; o;!	;	o;";	"ï€´;
-;#;@;$@;o;	;o;;i;iÁ;@;@;o;;i";iÁ;iÁo;;[ ;0;@;0;"fa-var-text-width;o;	;o;;i;iÂ;@;@;o;;i!;iÂ;iÂ; o;!	;	o;";	"ï€µ;
-;#;@;$@;o;	;o;;i;iÂ;@;@;o;;i!;iÂ;iÂo;;[ ;0;@;0;"fa-var-th;o;	;o;;i;iÃ;@;@;o;;i;iÃ;iÃ; o;!	;	o;";	"ï€Š;
-;#;@;$@;o;	;o;;i;iÃ;@;@;o;;i;iÃ;iÃo;;[ ;0;@;0;"fa-var-th-large;o;	;o;;i;iÄ;@;@;o;;i;iÄ;iÄ; o;!	;	o;";	"ï€‰;
-;#;@;$@;o;	;o;;i;iÄ;@;@;o;;i;iÄ;iÄo;;[ ;0;@;0;"fa-var-th-list;o;	;o;;i;iÅ;@;@;o;;i;iÅ;iÅ; o;!	;	o;";	"ï€‹;
-;#;@;$@;o;	;o;;i;iÅ;@;@;o;;i;iÅ;iÅo;;[ ;0;@;0;"fa-var-thumb-tack;o;	;o;;i;iÆ;@;@;o;;i!;iÆ;iÆ; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;iÆ;@;@;o;;i!;iÆ;iÆo;;[ ;0;@;0;"fa-var-thumbs-down;o;	;o;;i;iÇ;@;@;o;;i";iÇ;iÇ; o;!	;	o;";	"ï…¥;
-;#;@;$@;o;	;o;;i;iÇ;@;@;o;;i";iÇ;iÇo;;[ ;0;@;0;"fa-var-thumbs-o-down;o;	;o;;i;iÈ;@;@;o;;i$;iÈ;iÈ; o;!	;	o;";	"ï‚ˆ;
-;#;@;$@;o;	;o;;i;iÈ;@;@;o;;i$;iÈ;iÈo;;[ ;0;@;0;"fa-var-thumbs-o-up;o;	;o;;i;iÉ;@;@;o;;i";iÉ;iÉ; o;!	;	o;";	"ï‚‡;
-;#;@;$@;o;	;o;;i;iÉ;@;@;o;;i";iÉ;iÉo;;[ ;0;@;0;"fa-var-thumbs-up;o;	;o;;i;iÊ;@;@;o;;i ;iÊ;iÊ; o;!	;	o;";	"ï…¤;
-;#;@;$@;o;	;o;;i;iÊ;@;@;o;;i ;iÊ;iÊo;;[ ;0;@;0;"fa-var-ticket;o;	;o;;i;iË;@;@;o;;i;iË;iË; o;!	;	o;";	"ï……;
-;#;@;$@;o;	;o;;i;iË;@;@;o;;i;iË;iËo;;[ ;0;@;0;"fa-var-times;o;	;o;;i;iÌ;@;@;o;;i;iÌ;iÌ; o;!	;	o;";	"ï€;
-;#;@;$@;o;	;o;;i;iÌ;@;@;o;;i;iÌ;iÌo;;[ ;0;@;0;"fa-var-times-circle;o;	;o;;i;iÍ;@;@;o;;i#;iÍ;iÍ; o;!	;	o;";	"ï—;
-;#;@;$@;o;	;o;;i;iÍ;@;@;o;;i#;iÍ;iÍo;;[ ;0;@;0;"fa-var-times-circle-o;o;	;o;;i;iÎ;@;@;o;;i%;iÎ;iÎ; o;!	;	o;";	"ïœ;
-;#;@;$@;o;	;o;;i;iÎ;@;@;o;;i%;iÎ;iÎo;;[ ;0;@;0;"fa-var-tint;o;	;o;;i;iÏ;@;@;o;;i;iÏ;iÏ; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;iÏ;@;@;o;;i;iÏ;iÏo;;[ ;0;@;0;"fa-var-toggle-down;o;	;o;;i;iĞ;@;@;o;;i";iĞ;iĞ; o;!	;	o;";	"ï…;
-;#;@;$@;o;	;o;;i;iĞ;@;@;o;;i";iĞ;iĞo;;[ ;0;@;0;"fa-var-toggle-left;o;	;o;;i;iÑ;@;@;o;;i";iÑ;iÑ; o;!	;	o;";	"ï†‘;
-;#;@;$@;o;	;o;;i;iÑ;@;@;o;;i";iÑ;iÑo;;[ ;0;@;0;"fa-var-toggle-right;o;	;o;;i;iÒ;@;@;o;;i#;iÒ;iÒ; o;!	;	o;";	"ï…’;
-;#;@;$@;o;	;o;;i;iÒ;@;@;o;;i#;iÒ;iÒo;;[ ;0;@;0;"fa-var-toggle-up;o;	;o;;i;iÓ;@;@;o;;i ;iÓ;iÓ; o;!	;	o;";	"ï…‘;
-;#;@;$@;o;	;o;;i;iÓ;@;@;o;;i ;iÓ;iÓo;;[ ;0;@;0;"fa-var-trash-o;o;	;o;;i;iÔ;@;@;o;;i;iÔ;iÔ; o;!	;	o;";	"ï€”;
-;#;@;$@;o;	;o;;i;iÔ;@;@;o;;i;iÔ;iÔo;;[ ;0;@;0;"fa-var-tree;o;	;o;;i;iÕ;@;@;o;;i;iÕ;iÕ; o;!	;	o;";	"ï†»;
-;#;@;$@;o;	;o;;i;iÕ;@;@;o;;i;iÕ;iÕo;;[ ;0;@;0;"fa-var-trello;o;	;o;;i;iÖ;@;@;o;;i;iÖ;iÖ; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;iÖ;@;@;o;;i;iÖ;iÖo;;[ ;0;@;0;"fa-var-trophy;o;	;o;;i;i×;@;@;o;;i;i×;i×; o;!	;	o;";	"ï‚‘;
-;#;@;$@;o;	;o;;i;i×;@;@;o;;i;i×;i×o;;[ ;0;@;0;"fa-var-truck;o;	;o;;i;iØ;@;@;o;;i;iØ;iØ; o;!	;	o;";	"ïƒ‘;
-;#;@;$@;o;	;o;;i;iØ;@;@;o;;i;iØ;iØo;;[ ;0;@;0;"fa-var-try;o;	;o;;i;iÙ;@;@;o;;i;iÙ;iÙ; o;!	;	o;";	"ï†•;
-;#;@;$@;o;	;o;;i;iÙ;@;@;o;;i;iÙ;iÙo;;[ ;0;@;0;"fa-var-tumblr;o;	;o;;i;iÚ;@;@;o;;i;iÚ;iÚ; o;!	;	o;";	"ï…³;
-;#;@;$@;o;	;o;;i;iÚ;@;@;o;;i;iÚ;iÚo;;[ ;0;@;0;"fa-var-tumblr-square;o;	;o;;i;iÛ;@;@;o;;i$;iÛ;iÛ; o;!	;	o;";	"ï…´;
-;#;@;$@;o;	;o;;i;iÛ;@;@;o;;i$;iÛ;iÛo;;[ ;0;@;0;"fa-var-turkish-lira;o;	;o;;i;iÜ;@;@;o;;i#;iÜ;iÜ; o;!	;	o;";	"ï†•;
-;#;@;$@;o;	;o;;i;iÜ;@;@;o;;i#;iÜ;iÜo;;[ ;0;@;0;"fa-var-twitter;o;	;o;;i;iİ;@;@;o;;i;iİ;iİ; o;!	;	o;";	"ï‚™;
-;#;@;$@;o;	;o;;i;iİ;@;@;o;;i;iİ;iİo;;[ ;0;@;0;"fa-var-twitter-square;o;	;o;;i;iŞ;@;@;o;;i%;iŞ;iŞ; o;!	;	o;";	"ï‚;
-;#;@;$@;o;	;o;;i;iŞ;@;@;o;;i%;iŞ;iŞo;;[ ;0;@;0;"fa-var-umbrella;o;	;o;;i;iß;@;@;o;;i;iß;iß; o;!	;	o;";	"ïƒ©;
-;#;@;$@;o;	;o;;i;iß;@;@;o;;i;iß;ißo;;[ ;0;@;0;"fa-var-underline;o;	;o;;i;ià;@;@;o;;i ;ià;ià; o;!	;	o;";	"ïƒ;
-;#;@;$@;o;	;o;;i;ià;@;@;o;;i ;ià;iào;;[ ;0;@;0;"fa-var-undo;o;	;o;;i;iá;@;@;o;;i;iá;iá; o;!	;	o;";	"ïƒ¢;
-;#;@;$@;o;	;o;;i;iá;@;@;o;;i;iá;iáo;;[ ;0;@;0;"fa-var-university;o;	;o;;i;iâ;@;@;o;;i!;iâ;iâ; o;!	;	o;";	"ï†œ;
-;#;@;$@;o;	;o;;i;iâ;@;@;o;;i!;iâ;iâo;;[ ;0;@;0;"fa-var-unlink;o;	;o;;i;iã;@;@;o;;i;iã;iã; o;!	;	o;";	"ï„§;
-;#;@;$@;o;	;o;;i;iã;@;@;o;;i;iã;ião;;[ ;0;@;0;"fa-var-unlock;o;	;o;;i;iä;@;@;o;;i;iä;iä; o;!	;	o;";	"ï‚œ;
-;#;@;$@;o;	;o;;i;iä;@;@;o;;i;iä;iäo;;[ ;0;@;0;"fa-var-unlock-alt;o;	;o;;i;iå;@;@;o;;i!;iå;iå; o;!	;	o;";	"ï„¾;
-;#;@;$@;o;	;o;;i;iå;@;@;o;;i!;iå;iåo;;[ ;0;@;0;"fa-var-unsorted;o;	;o;;i;iæ;@;@;o;;i;iæ;iæ; o;!	;	o;";	"ïƒœ;
-;#;@;$@;o;	;o;;i;iæ;@;@;o;;i;iæ;iæo;;[ ;0;@;0;"fa-var-upload;o;	;o;;i;iç;@;@;o;;i;iç;iç; o;!	;	o;";	"ï‚“;
-;#;@;$@;o;	;o;;i;iç;@;@;o;;i;iç;iço;;[ ;0;@;0;"fa-var-usd;o;	;o;;i;iè;@;@;o;;i;iè;iè; o;!	;	o;";	"ï…•;
-;#;@;$@;o;	;o;;i;iè;@;@;o;;i;iè;ièo;;[ ;0;@;0;"fa-var-user;o;	;o;;i;ié;@;@;o;;i;ié;ié; o;!	;	o;";	"ï€‡;
-;#;@;$@;o;	;o;;i;ié;@;@;o;;i;ié;iéo;;[ ;0;@;0;"fa-var-user-md;o;	;o;;i;iê;@;@;o;;i;iê;iê; o;!	;	o;";	"ïƒ°;
-;#;@;$@;o;	;o;;i;iê;@;@;o;;i;iê;iêo;;[ ;0;@;0;"fa-var-users;o;	;o;;i;ië;@;@;o;;i;ië;ië; o;!	;	o;";	"ïƒ€;
-;#;@;$@;o;	;o;;i;ië;@;@;o;;i;ië;iëo;;[ ;0;@;0;"fa-var-video-camera;o;	;o;;i;iì;@;@;o;;i#;iì;iì; o;!	;	o;";	"ï€½;
-;#;@;$@;o;	;o;;i;iì;@;@;o;;i#;iì;iìo;;[ ;0;@;0;"fa-var-vimeo-square;o;	;o;;i;ií;@;@;o;;i#;ií;ií; o;!	;	o;";	"ï†”;
-;#;@;$@;o;	;o;;i;ií;@;@;o;;i#;ií;iío;;[ ;0;@;0;"fa-var-vine;o;	;o;;i;iî;@;@;o;;i;iî;iî; o;!	;	o;";	"ï‡Š;
-;#;@;$@;o;	;o;;i;iî;@;@;o;;i;iî;iîo;;[ ;0;@;0;"fa-var-vk;o;	;o;;i;iï;@;@;o;;i;iï;iï; o;!	;	o;";	"ï†‰;
-;#;@;$@;o;	;o;;i;iï;@;@;o;;i;iï;iïo;;[ ;0;@;0;"fa-var-volume-down;o;	;o;;i;iğ;@;@;o;;i";iğ;iğ; o;!	;	o;";	"ï€§;
-;#;@;$@;o;	;o;;i;iğ;@;@;o;;i";iğ;iğo;;[ ;0;@;0;"fa-var-volume-off;o;	;o;;i;iñ;@;@;o;;i!;iñ;iñ; o;!	;	o;";	"ï€¦;
-;#;@;$@;o;	;o;;i;iñ;@;@;o;;i!;iñ;iño;;[ ;0;@;0;"fa-var-volume-up;o;	;o;;i;iò;@;@;o;;i ;iò;iò; o;!	;	o;";	"ï€¨;
-;#;@;$@;o;	;o;;i;iò;@;@;o;;i ;iò;iòo;;[ ;0;@;0;"fa-var-warning;o;	;o;;i;ió;@;@;o;;i;ió;ió; o;!	;	o;";	"ï±;
-;#;@;$@;o;	;o;;i;ió;@;@;o;;i;ió;ióo;;[ ;0;@;0;"fa-var-wechat;o;	;o;;i;iô;@;@;o;;i;iô;iô; o;!	;	o;";	"ï‡—;
-;#;@;$@;o;	;o;;i;iô;@;@;o;;i;iô;iôo;;[ ;0;@;0;"fa-var-weibo;o;	;o;;i;iõ;@;@;o;;i;iõ;iõ; o;!	;	o;";	"ï†Š;
-;#;@;$@;o;	;o;;i;iõ;@;@;o;;i;iõ;iõo;;[ ;0;@;0;"fa-var-weixin;o;	;o;;i;iö;@;@;o;;i;iö;iö; o;!	;	o;";	"ï‡—;
-;#;@;$@;o;	;o;;i;iö;@;@;o;;i;iö;iöo;;[ ;0;@;0;"fa-var-wheelchair;o;	;o;;i;i÷;@;@;o;;i!;i÷;i÷; o;!	;	o;";	"ï†“;
-;#;@;$@;o;	;o;;i;i÷;@;@;o;;i!;i÷;i÷o;;[ ;0;@;0;"fa-var-windows;o;	;o;;i;iø;@;@;o;;i;iø;iø; o;!	;	o;";	"ï…º;
-;#;@;$@;o;	;o;;i;iø;@;@;o;;i;iø;iøo;;[ ;0;@;0;"fa-var-won;o;	;o;;i;iù;@;@;o;;i;iù;iù; o;!	;	o;";	"ï…™;
-;#;@;$@;o;	;o;;i;iù;@;@;o;;i;iù;iùo;;[ ;0;@;0;"fa-var-wordpress;o;	;o;;i;iú;@;@;o;;i ;iú;iú; o;!	;	o;";	"ï†š;
-;#;@;$@;o;	;o;;i;iú;@;@;o;;i ;iú;iúo;;[ ;0;@;0;"fa-var-wrench;o;	;o;;i;iû;@;@;o;;i;iû;iû; o;!	;	o;";	"ï‚­;
-;#;@;$@;o;	;o;;i;iû;@;@;o;;i;iû;iûo;;[ ;0;@;0;"fa-var-xing;o;	;o;;i;iü;@;@;o;;i;iü;iü; o;!	;	o;";	"ï…¨;
-;#;@;$@;o;	;o;;i;iü;@;@;o;;i;iü;iüo;;[ ;0;@;0;"fa-var-xing-square;o;	;o;;i;iı;@;@;o;;i";iı;iı; o;!	;	o;";	"ï…©;
-;#;@;$@;o;	;o;;i;iı;@;@;o;;i";iı;iıo;;[ ;0;@;0;"fa-var-yahoo;o;	;o;;i;iş;@;@;o;;i;iş;iş; o;!	;	o;";	"ï†;
-;#;@;$@;o;	;o;;i;iş;@;@;o;;i;iş;işo;;[ ;0;@;0;"fa-var-yen;o;	;o;;i;iÿ;@;@;o;;i;iÿ;iÿ; o;!	;	o;";	"ï…—;
-;#;@;$@;o;	;o;;i;iÿ;@;@;o;;i;iÿ;iÿo;;[ ;0;@;0;"fa-var-youtube;o;	;o;;i;i ;@;@;o;;i;i ;i ; o;!	;	o;";	"ï…§;
-;#;@;$@;o;	;o;;i;i ;@;@;o;;i;i ;i o;;[ ;0;@;0;"fa-var-youtube-play;o;	;o;;i;i;@;@;o;;i#;i;i; o;!	;	o;";	"ï…ª;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i#;i;io;;[ ;0;@;0;"fa-var-youtube-square;o;	;o;;i;i;@;@;o;;i%;i;i; o;!	;	o;";	"ï…¦;
-;#;@;$@;o;	;o;;i;i;@;@;o;;i%;i;i;@;o;	;o;;i;i;@;@;o;;i;i;i:@has_childrenT
