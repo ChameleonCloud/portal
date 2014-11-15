@@ -172,7 +172,7 @@ LOGGING = {
 PIPELINE_COMPILERS = (
     'pipeline.compilers.sass.SASSCompiler',
 )
-
+PIPELINE_SASS_ARGUMENTS = '--compass --style compressed'
 PIPELINE_CSS_COMPRESSOR = None
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 
@@ -180,10 +180,10 @@ PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 PIPELINE_CSS = {
     'main': {
         'source_filenames': (
-            'scss/main.scss',
+            'styles/main.scss',
             'djangoRT/css/djangoRT.css',
             ),
-        'output_filename': 'css/main.css',
+        'output_filename': 'styles/main.css',
     },
 }
 
