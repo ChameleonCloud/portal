@@ -174,7 +174,7 @@ PIPELINE_COMPILERS = (
 )
 
 PIPELINE_CSS_COMPRESSOR = None
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.uglifyjs.UglifyJSCompressor'
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 
 # wildcards put the files in alphabetical order
 PIPELINE_CSS = {
@@ -197,6 +197,9 @@ PIPELINE_JS = {
         'output_filename': 'scripts/all.js'
     }
 }
+
+# compress when collect static
+STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
 
 TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
 

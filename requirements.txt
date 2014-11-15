@@ -3,6 +3,7 @@ django-pipeline
 django-simple-menu
 django-markdown-deux
 mysql-python
+slimit
 
 # these modules aren't in PIP
 #pytas
