@@ -21,18 +21,27 @@ checked out before building the image.
 
 The following environment variables must be configured for `pytas`:
 
-- TAS_URL: the full base URI for the TAS API, e.g. https://tas.tacc.utexas.edu/api
-- TAS_CLIENT_KEY: the api key
-- TAS_CLIENT_SECRET: the api secret
+- `TAS_URL`: the full base URI for the TAS API, e.g. https://tas.tacc.utexas.edu/api
+- `TAS_CLIENT_KEY`: the api key
+- `TAS_CLIENT_SECRET`: the api secret
 
 The following environment variables must be configured for `djangoRT`:
 
--RT_HOST: the hostname for the RT instance's REST endpoint, e.g., https://example.com/REST/1.0/
--RT_USERNAME: the RT account username
--RT_PASSWORD: the RT account password
--RT_DEFAULT_QUEUE: The default queue to which tickets will be submitted
+- `RT_HOST`: the hostname for the RT instance's REST endpoint, e.g., https://example.com/REST/1.0/
+- `RT_USERNAME`: the RT account username
+- `RT_PASSWORD`: the RT account password
+- `RT_DEFAULT_QUEUE`: The default queue to which tickets will be submitted
 
-*TODO document database*
+If you omit the `DB_*` environment variables, Django will create and use
+the default SQLite database. This is intended only for development/testing.
+For production, provide the following environment variables to configure the
+MySQL database connection:
+
+- `DB_HOST`: The hostname to connect to, e.g., database.example.com
+- `DB_PORT`: The MySQL port, e.g., 3306
+- `DB_NAME`: The database name
+- `DB_USER`: The username to authenticate
+- `DB_PASSWORD`: The password to authenticate
 
 ## Running the portal
 
@@ -78,7 +87,7 @@ docker run \
     -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
     -e "DB_NAME=$DB_NAME" \
     -e "DB_HOST=$DB_HOST" \
-    -e "DB-PORT=$DB-PORT" \
+    -e "DB_PORT=$DB-PORT" \
     -e "DB_USER=$DB_USER" \
     -e "DB_PASSWORD=$DB_PASSWORD" \
     -e "DJANGO_ENV=Production" \
