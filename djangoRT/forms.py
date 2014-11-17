@@ -1,5 +1,6 @@
 from django import forms
 from django.core.validators import validate_email
+from captcha.fields import CaptchaField
 
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):
@@ -28,6 +29,15 @@ class TicketForm(forms.Form):
 	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Subject', max_length=100, required=True)
 	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': 'ticket-input'}))
 
+class TicketGuestForm(forms.Form):
+	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='First name', max_length=100, required=True)
+	last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Last name', max_length=100, required=True)
+	email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : 'ticket-input'}), label='Email', required=True)
+	cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), required=False, help_text='Multiple emails should be comma-separated')
+	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Subject', max_length=100, required=True)
+	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': 'ticket-input'}))
+	captcha = CaptchaField()
+	
 class ReplyForm(forms.Form):
 	reply = forms.CharField(required=True, widget=forms.Textarea, label="")
 

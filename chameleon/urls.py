@@ -20,4 +20,5 @@ urlpatterns = patterns(
     url(r'^help/', include('djangoRT.urls')),
     url(r'^documentation/', include('documentation.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^captcha/', include('captcha.urls')),
 )

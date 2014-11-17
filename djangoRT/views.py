@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from djangoRT import rtUtil, forms, rtModels
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 @login_required
 def mytickets(request):
@@ -31,6 +32,8 @@ def ticketcreate(request):
 	data = {}
 	if request.user.is_authenticated():
 		data = { 'email' : request.user.email, 'first_name' : request.user.first_name, 'last_name' : request.user.last_name}
+	else:
+		return HttpResponseRedirect( reverse( 'djangoRT.views.ticketcreateguest'), )
 
 	if request.method == 'POST':
 		form = forms.TicketForm(request.POST)
@@ -43,7 +46,7 @@ def ticketcreate(request):
 			ticket_id = rt.createTicket(ticket)
 
 			if ticket_id > -1:
-				return HttpResponseRedirect( reverse( 'djangoRT.views.ticketdetail', args=[ ticket_id ] ) )
+				return HttpResponseRedirect( reverse( 'djangoRT.views.ticketdetail', args=[ ticket_id ]) )
 			else:
 				# make this cleaner probably
 				data['subject'] = ticket.subject
@@ -53,6 +56,39 @@ def ticketcreate(request):
 	else:
 		form = forms.TicketForm(data)
 	return render(request, 'ticketCreate.html', { 'form' : form })
+
+def ticketcreateguest(request):
+	rt = rtUtil.DjangoRt()
+
+	data = {}
+	if request.user.is_authenticated():
+		return HttpResponseRedirect( reverse( 'djangoRT.views.ticketcreate'), )
+
+	if request.method == 'POST':
+		form = forms.TicketGuestForm(request.POST)
+
+		if form.is_valid():
+			ticket = rtModels.Ticket(subject = form.cleaned_data['subject'],
+					problem_description = form.cleaned_data['problem_description'],
+					requestor = form.cleaned_data['email'],
+					cc = form.cleaned_data['cc'])
+			ticket_id = rt.createTicket(ticket)
+
+			if ticket_id > -1:
+				messages.add_message(request, messages.SUCCESS, 'Ticket #%s has been successfully created. We will respond to your request as soon as possible.' % ticket_id)
+				return render(request, 'ticketCreateGuest.html', { 'form': form })
+			else:
+				# make this cleaner probably
+				data['first_name'] = form.cleaned_data['first_name']
+				data['last_name'] = form.cleaned_data['last_name']
+				data['requestor'] = ticket.requestor
+				data['subject'] = ticket.subject
+				data['problem_description'] = ticket.problem_description
+				data['cc'] = ticket.cc
+				form = forms.TicketGuestForm(data)
+	else:
+		form = forms.TicketGuestForm(data)
+	return render(request, 'ticketCreateGuest.html', { 'form' : form })
 
 @login_required
 def ticketreply(request, ticketId):

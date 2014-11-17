@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'pipeline',
     'menu',
     'markdown_deux',
+    'captcha',
 
     # custom
     'site_menu',

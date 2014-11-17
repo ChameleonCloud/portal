@@ -7,4 +7,5 @@ urlpatterns = patterns('',
 		url(r'^ticket/(?P<ticketId>\d+)/$', views.ticketdetail, name='detail'),
 		url(r'^ticket/new/$', views.ticketcreate, name='create'),
 		url(r'^ticket/reply/(?P<ticketId>\d+)/$', views.ticketreply, name='reply'),
+		url(r'^ticket/new/guest$', views.ticketcreateguest, name='createguest'),
 )

@@ -1,0 +1,24 @@
+{% extends "layout/default.html" %}
+{% block content %}
+
+{% include "navigation.html" %}
+<h1>Submit a new ticket</h1>
+<i>Fields in red are required.</i>
+<br /><br />
+{% if messages %}
+<ul class="messages">
+	{% for message in messages %}
+		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+			{{ message }}
+		</li>
+	{% endfor %}
+</ul>
+{% endif %}
+<form action="" method="POST">
+	{% csrf_token %}
+
+	{{ form.as_p }}
+
+	<button type="submit" class="btn btn-success">Create Ticket</button>
+</form>
+{% endblock %}
