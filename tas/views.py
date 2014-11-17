@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from pytas.pytas import client as TASClient
+import re
 import logging
 import json
 
@@ -93,9 +94,7 @@ def password_reset( request ):
     return render(request, 'password_reset.html')
 
 def email_confirmation( request ):
-
     context = {}
-
     if request.method == 'POST':
         if request.POST['code'] and request.POST['username']:
             context['code'] = request.POST['code']
@@ -121,8 +120,6 @@ def email_confirmation( request ):
                 context['username'] = request.POST['username']
             else:
                 messages.error( request, 'Please verify your username' )
-
-
 
     elif 'code' in request.GET:
         context['code'] = request.GET['code']
@@ -208,9 +205,20 @@ def register( request ):
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect( '/' )
             except Exception as e:
-                logger.error('Error saving user')
-                logger.error(e.args)
-                messages.error(request, 'An unexpected error occurred. If this problem persists please create a help ticket.')
+                logger.error('Error saving user', e.args)
+                if len(e.args) > 1:
+                    if re.search( 'DuplicateLoginException', e.args[1] ):
+                        message = 'The username you chose has already been taken. Please choose another.'
+                        messages.error( request, message )
+                        errors['username'] = message
+                    elif re.search( 'DuplicateEmailException', e.args[1] ):
+                        message = 'This email is already registered.'
+                        messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas.views.password_reset') ) )
+                        errors['email'] = message
+                    else:
+                        messages.error( request, 'An unexpected error occurred. If this problem persists please create a help ticket.' )
+                else:
+                    messages.error( request, 'An unexpected error occurred. If this problem persists please create a help ticket.' )
         else:
             messages.error(request, 'There was an error in your registration. See below for details.')
 
@@ -222,20 +230,19 @@ def register( request ):
     try:
         inst = tas.institutions()
         context['institutions'] = inst
-
-        # todo
         if 'institutionId' in data and data['institutionId']:
             context['curr_inst'] = next((x for x in inst if x['id'] == data['institutionId']), None)
         else:
             context['curr_inst'] = None
     except Exception as e:
-        print e
+        logger.error( 'Error loading institutions', e )
         context['institutions'] = False
 
     try:
         countries = tas.countries()
         context['countries'] = countries
-    except:
+    except Exception as e:
+        logger.error( 'Error loading countries', e )
         context['countries'] = False
 
     return render(request, 'register.html', context)
