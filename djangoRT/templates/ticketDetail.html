@@ -1,4 +1,7 @@
 {% extends "layout/user.html" %}
+
+{% block title %}Ticket #{{ ticket_id }}{% endblock %}
+
 {% block content %}
 
 {% if not hasAccess %}
