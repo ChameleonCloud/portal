@@ -1,0 +1,17 @@
+{% extends 'layout/user.html' %}
+
+{% block title %}My FutureGrid Projects{% endblock %}
+
+{% block content %}
+	{% for project in projects %}
+		<h2>
+		  {{ project.title }} |
+		  <small>FG-{{ project.chargeCode }}</small>
+		</h2>
+
+		<pre>
+		  {{ project.abstract }}
+		</pre>
+
+	{% endfor %}
+{% endblock %}
