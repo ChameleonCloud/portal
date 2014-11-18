@@ -1,7 +1,8 @@
+from django.core.urlresolvers import reverse
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth import authenticate, login
-from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 
 site = {
     "title": "Chameleon Cloud",
@@ -15,6 +16,7 @@ def home( request ):
     context = dict(site.items())
     return render(request, 'home.html', context)
 
+@login_required
 def dashboard( request ):
     actions = []
     actions.append( { 'name': 'Manage your Projects', 'url': reverse( 'user_projects' ) } )
