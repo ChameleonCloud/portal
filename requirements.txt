@@ -5,6 +5,7 @@ django-markdown-deux
 mysql-python
 slimit
 django-simple-captcha
+pyyaml
 
 # these modules aren't in PIP
 #pytas
