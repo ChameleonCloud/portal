@@ -10,7 +10,7 @@ import re
 import logging
 import json
 
-logger = logging.getLogger('tas')
+logger = logging.getLogger('default')
 
 @login_required
 def profile( request ):
