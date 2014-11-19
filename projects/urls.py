@@ -8,6 +8,8 @@ urlpatterns = patterns(
     url( r'^new/$', 'create_project', name='create_project' ),
 
     url( r'^(\d+)/$', 'view_project', name='view_project' ),
-    
+
     url( r'^futuregrid/$', 'lookup_fg_projects', name='lookup_fg_projects' ),
+
+    url( r'^futuregrid/migrate$', 'fg_project_migrate', name='fg_project_migrate' ),
 )

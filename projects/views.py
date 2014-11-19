@@ -8,6 +8,8 @@ from pytas.pytas import client as TASClient
 from django.db import connections
 from projectModel import Project
 
+logger = logging.getLogger('default')
+
 @login_required
 def user_projects( request ):
     context = {}
@@ -107,7 +109,7 @@ def create_project( request ):
                     # error
                     messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
             except Exception as e:
-                print e
+                logger.error(e)
                 messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
 
         context[ 'form' ][ 'data' ] = data
@@ -128,17 +130,47 @@ def edit_project( request ):
 
 @login_required
 def lookup_fg_projects( request ):
-	cursor = connections['futuregrid'].cursor()
+    cursor = connections['futuregrid'].cursor()
 
-	cursor.execute("select name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value from users left join content_field_project_members cfpm on users.uid = cfpm.field_project_members_uid left join content_type_fg_projects ctfp on ctfp.nid = cfpm.nid left join node on node.nid = ctfp.nid where users.mail = %s", request.user.email)
+    cursor.execute("select name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value from users left join content_field_project_members cfpm on users.uid = cfpm.field_project_members_uid left join content_type_fg_projects ctfp on ctfp.nid = cfpm.nid left join node on node.nid = ctfp.nid where users.mail = %s", [request.user.email])
 
-	project = cursor.fetchall()
+    project = cursor.fetchall()
 
-	projects = []
+    projects = []
 
-	for p in project:
-		projects.append(Project(p[0], p[1], p[2], p[3]))
+    for p in project:
+        projects.append(Project(p[0], p[1], p[2], p[3]))
 
-	context = { "projects" : projects }
+    context = { "projects" : projects }
 
-	return render( request, 'lookup_fg_project.html', context)
+    return render( request, 'lookup_fg_project.html', context)
+
+def fg_project_migrate( request ):
+    if request.method == 'POST':
+        try:
+            pi_user = tas.get_user( username=request.user )
+            project_id = tas.create_project(
+                request.POST['project_code'],
+                2, # startup
+                1, # not chosen
+                request.POST['project_title'],
+                request.POST['abstract'],
+                pi_user['id'],
+            )
+
+            if project_id:
+                tas.request_allocation(
+                    pi_user['id'],
+                    project_id,
+                    39, # chameleon resource_id
+                    request.POST[ 'abstract' ], # reuse abstract as justification
+                    1, # right now this is YES/NO
+                )
+                messages.success( request, 'Your project {0} has been migrated to Chameleon!' )
+                return HttpResponseRedirect( reverse( 'view_project', args=[ project_id ] ) )
+            else:
+                messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
+        except Exception as e:
+            logger.error(e)
+            messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
+    return HttpResponseRedirect( reverse( 'lookup_fg_projects' ) )

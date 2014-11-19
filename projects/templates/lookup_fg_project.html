@@ -1,17 +1,43 @@
 {% extends 'layout/user.html' %}
 
-{% block title %}My FutureGrid Projects{% endblock %}
+{% block title %}Migrate FutureGrid Projects to Chameleon{% endblock %}
 
 {% block content %}
-	{% for project in projects %}
-		<h2>
-		  {{ project.title }} |
-		  <small>FG-{{ project.chargeCode }}</small>
-		</h2>
-
-		<pre>
-		  {{ project.abstract }}
-		</pre>
-
-	{% endfor %}
+<h2>Migrate FutureGrid Projects to Chameleon</h2>
+{% if projects %}
+  <p class="lead">
+    We located the following FutureGrid projects that are
+    available to you for migration to Chameleon:
+  </p>
+  <ol>
+    {% for project in projects %}
+    <li class="project">
+      <h4>
+        {{ project.title }} |
+        <small>FG-{{ project.chargeCode }}</small>
+      </h4>
+      <p class="abstract">{{ project.abstract }}</p>
+      <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
+        {% csrf_token %}
+        <input type="hidden" name="project_code" value="FG-{{ project.chargeCode }}">
+        <input type="hidden" name="project_title" value="{{ project.title }}">
+        <input type="hidden" name="project_abstract" value="{{ project.abstract }}">
+        <button type="submit" class="btn btn-primary">Migrate this project</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ol>
+{% else %}
+  <p class="lead">
+    No FutureGrid projects were found for migration!
+  </p>
+  <p>
+    We attempt to locate your projects by matching your Chameleon
+    account email address with the email that was registered with
+    FutureGrid as of October 1, 2014. If you believe you have
+    FutureGrid projects and you want to migrate them to Chameleon,
+    please open a <a href="{% url 'djangoRT.views.ticketcreate' %}">
+    Help Desk ticket</a>.
+  </p>
+{% endif %}
 {% endblock %}
