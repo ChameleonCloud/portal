@@ -28,6 +28,13 @@ Menu.add_item( 'main',
     )
 )
 
+Menu.add_item( 'main',
+    MenuItem(
+        'About',
+        reverse( 'github_content.views.about' ),
+    )
+)
+
 """
 User Menu
 """

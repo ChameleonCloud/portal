@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'documentation',
     'djangoRT',
     'projects',
+    'github_content',
 )
 
 MIDDLEWARE_CLASSES = (

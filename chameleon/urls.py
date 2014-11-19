@@ -21,4 +21,7 @@ urlpatterns = patterns(
     url(r'^documentation/', include('documentation.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^captcha/', include('captcha.urls')),
+
+    # content urls
+    url( r'^about/', 'github_content.views.about'),
 )
