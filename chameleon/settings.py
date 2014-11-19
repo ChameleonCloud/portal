@@ -86,7 +86,7 @@ if os.environ.get('DB_NAME'):
             'PORT': os.environ.get('DB_PORT'),
             'USER': os.environ.get('DB_USER'),
             'PASSWORD': os.environ.get('DB_PASSWORD'),
-        }
+        },
     }
 else:
     # use SQLite
@@ -94,8 +94,17 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+        },
     }
+
+DATABASES['futuregrid'] = {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': os.environ.get('FG_DB_NAME'),
+    'HOST': os.environ.get('FG_DB_HOST'),
+    'PORT': os.environ.get('FG_DB_PORT'),
+    'USER': os.environ.get('FG_DB_USER'),
+    'PASSWORD': os.environ.get('FG_DB_PASSWORD'),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -140,27 +149,30 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'requests': {
+        'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/requests.log',
+            'filename': '/tmp/chameleon.log',
         },
-        'tas': {
+        'auth': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/tas.log',
+            'filename': '/tmp/chameleon-auth.log',
         },
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['requests'],
-            'level': 'DEBUG',
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
             'propagate': True,
         },
-        'tas': {
-            'handlers': ['tas'],
+        'default': {
+            'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': True,
+        },
+        'auth': {
+            'handlers': ['file', 'auth'],
+            'level': 'DEBUG',
         },
     },
 }

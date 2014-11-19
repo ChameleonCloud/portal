@@ -20,7 +20,7 @@ class TASBackend(object):
             else:
                 raise Exception('Authentication Error', 'Your username or password is incorrect.')
         except Exception as e:
-            logger = logging.getLogger('tas')
+            logger = logging.getLogger('auth')
             logger.error(e.args)
             if re.search(r'PendingEmailConfirmation', e.args[1]):
                 raise ValidationError('Please confirm your email address before logging in.')
