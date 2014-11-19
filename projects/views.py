@@ -7,6 +7,7 @@ from datetime import datetime
 from pytas.pytas import client as TASClient
 from django.db import connections
 from projectModel import Project
+import logging
 
 logger = logging.getLogger('default')
 
