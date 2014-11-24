@@ -46,7 +46,6 @@ INSTALLED_APPS = (
     # contrib
     'pipeline',
     'menu',
-    'markdown_deux',
     'captcha',
     'bootstrap3',
 
