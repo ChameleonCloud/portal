@@ -233,3 +233,19 @@ article {
 .messages {
   margin: 1em 0;
 }
+
+.navbar-chameleon {
+  .navbar-toggle {
+    border-color: white;
+    // color: $brand-info;
+    background-color: $brand-info;
+
+    .icon-bar {
+      background-color: white;
+    }
+
+    &:hover {
+      background-color: darken($brand-info, 10%);
+    }
+  }
+}
