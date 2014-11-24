@@ -1,7 +1,6 @@
 django
 django-pipeline
 django-simple-menu
-django-markdown-deux
 mysql-python
 slimit
 django-simple-captcha
