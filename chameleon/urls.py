@@ -23,11 +23,6 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^captcha/', include('captcha.urls')),
 
-    # content urls
-    url( r'^about/$', 'github_content.views.about'),
-    url( r'^news/$', 'github_content.views.news'),
-    url( r'^news/', include('github_content.urls')),
-    url( r'^NSFCloudWorkshop/', RedirectView.as_view(url=reverse_lazy('github_content.views.nsf_cloud_workshop'))),
-    url( r'^nsf-cloud-workshop/$', 'github_content.views.nsf_cloud_workshop'),
-    url( r'^nsf-cloud-workshop/NSFCloud Workshop Tentative Agenda.pdf$', 'github_content.views.nsf_cloud_workshop_agenda'),
+    # pass any other urls to github_content
+    url( r'^', include( 'github_content.urls' ) ),
 )

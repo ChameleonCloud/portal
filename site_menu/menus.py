@@ -19,14 +19,14 @@ doc_children = (
     MenuItem( 'Acceptable Usage Policy', '/documentation/acceptable-usage.html' ),
 )
 
-Menu.add_item( 'main',
-    MenuItem(
-        'Documentation',
-        reverse( 'documentation.views.index' ),
-        weight = 0,
-        children = doc_children
-    )
-)
+# Menu.add_item( 'main',
+#     MenuItem(
+#         'Documentation',
+#         reverse( 'documentation.views.index' ),
+#         weight = 0,
+#         children = doc_children
+#     )
+# )
 
 Menu.add_item( 'main',
     MenuItem(
@@ -39,6 +39,13 @@ Menu.add_item( 'main',
     MenuItem(
         'News',
         reverse( 'github_content.views.news' ),
+    )
+)
+
+Menu.add_item( 'main',
+    MenuItem(
+        'Talks',
+        reverse( 'github_content.views.talks' ),
     )
 )
 

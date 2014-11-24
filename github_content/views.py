@@ -4,6 +4,7 @@ from django.http import Http404
 from django.core.servers.basehttp import FileWrapper
 import yaml
 import os
+import mimetypes
 
 content_dir = os.path.join( os.path.dirname( __file__ ), 'content' )
 
@@ -48,13 +49,8 @@ def nsf_cloud_workshop( request ):
     }
     return render( request, 'github_content/markdown_page.html', context )
 
-def nsf_cloud_workshop_agenda( request ):
-    response = HttpResponse(
-        FileWrapper( open( os.path.join( content_dir, 'NSFCloudWorkshop', 'NSFCloud Workshop Tentative Agenda.pdf' ) ) ),
-        content_type='application/pdf'
-    )
-    response['Content-Disposition'] = 'attachment; filename=%s' % 'NSFCloud Workshop Tentative Agenda.pdf'
-    return response
+def nsf_cloud_workshop_attachment( request, attachment ):
+    return _serve_attachment( request, 'NSFCloudWorkshop', attachment )
 
 def news( request ):
 
@@ -109,3 +105,31 @@ def news_story( request, year, month, day, slug ):
         context['image'] = meta.get('image')[1:]
 
     return render( request, 'github_content/news_story.html', context )
+
+def talks( request ):
+
+    fh = open( os.path.join( content_dir, 'talks', 'index.md' ) )
+    jekyll_content = fh.read()
+    fh.close()
+    meta, content = _parse_jekyll( jekyll_content )
+
+    context = {
+        'meta': meta,
+        'content': content
+    }
+    return render( request, 'github_content/markdown_page.html', context )
+
+def talks_attachment( request, attachment ):
+    return _serve_attachment( request, 'talks', attachment )
+
+def _serve_attachment( request, dir_path, file ):
+    file_path = os.path.join( content_dir, dir_path, file )
+    if os.path.isfile( file_path ):
+        response = HttpResponse(
+            FileWrapper( open( file_path ) ),
+            content_type=mimetypes.guess_type( file_path )
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % file
+        return response
+    else:
+        raise Http404
