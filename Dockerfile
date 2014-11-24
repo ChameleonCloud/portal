@@ -6,6 +6,9 @@ MAINTAINER Matthew R Hanlon <mrhanlon@tacc.utexas.edu>
 COPY . /project
 WORKDIR /project
 
+# kramdown for parsing static site content
+RUN gem install kramdown
+
 # install non-pip dependencies
 RUN cd deps/pytas && python setup.py install && cd ../python-rt && python setup.py install
 
