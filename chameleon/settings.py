@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'menu',
     'markdown_deux',
     'captcha',
+    'bootstrap3',
 
     # custom
     'site_menu',

@@ -5,7 +5,9 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django import forms
 from pytas.pytas import client as TASClient
+from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 import re
 import logging
 import json
@@ -77,21 +79,69 @@ def profile_edit( request ):
 
     return render(request, 'profile_edit.html', context)
 
-# TODO!
 def password_reset( request ):
     if request.user is not None and request.user.is_authenticated():
         return HttpResponseRedirect( reverse( 'profile' ) )
 
     if request.POST:
-        uname = request.POST['username']
-        print uname
-        if uname:
-            messages.success(request, 'Your request has been received. If an account matching the username you provided is found, you will receive an email with further instructions to complete the password reset process.')
-            return redirect( 'django.contrib.auth.views.login' )
+        if 'code' in request.GET:
+            form = PasswordResetConfirmForm( request.POST )
+            if _process_password_reset_confirm( request, form ):
+                messages.success( request, 'Your password has been reset! You can now log in using your new password' )
+                return HttpResponseRedirect( reverse( 'profile' ) )
         else:
-            messages.error(request, 'Please provide your Chameleon Cloud Username')
+            form = PasswordResetRequestForm( request.POST )
+            if _process_password_reset_request( request, form ):
+                form = PasswordResetRequestForm()
 
-    return render(request, 'password_reset.html')
+    elif 'code' in request.GET:
+        form = PasswordResetConfirmForm( initial={ 'code': request.GET['code'] } )
+        form.fields['code'].widget = forms.HiddenInput()
+    else:
+        form = PasswordResetRequestForm()
+
+    if 'code' in request.GET:
+        message = 'Confirm your password reset using the form below. Enter your Chameleon username and new password to complete the password reset process.'
+    else:
+        message = 'Enter your Chameleon username to request a password reset. If your account is found, you will receive an email at the registered email address with instructions to complete the password reset.'
+
+    return render(request, 'password_reset.html', { 'message': message, 'form': form })
+
+def _process_password_reset_request( request, form ):
+    if form.is_valid():
+        # always show success to prevent data leaks
+        messages.success(request, 'Your request has been received. If an account matching the username you provided is found, you will receive an email with further instructions to complete the password reset process.')
+
+        username = form.cleaned_data['username']
+        logger.info( 'Password reset request for username: "%s"', username)
+        try:
+            tas = TASClient()
+            user = tas.get_user( username=username )
+            tas.request_password_reset( user['username'] )
+        except:
+            logger.exception( 'Failed password reset request' )
+
+        return True
+    else:
+        return False
+
+def _process_password_reset_confirm( request, form ):
+    if form.is_valid():
+        data = form.cleaned_data
+        try:
+            tas = TASClient()
+            return tas.confirm_password_reset( data['username'], data['code'], data['password'] )
+        except Exception as e:
+            logger.exception( 'Password reset failed' )
+
+            if re.search( 'account does not match', e.args[1] ):
+                form.add_error( 'username', e.args[1] )
+            elif re.search( 'No password reset request matches', e.args[1] ):
+                form.add_error( 'code', e.args[1] )
+            else:
+                form.add_error( '__all__', 'An unexpected error occurred. Please try again' )
+
+    return False
 
 def email_confirmation( request ):
     context = {}

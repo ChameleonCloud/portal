@@ -6,6 +6,7 @@ mysql-python
 slimit
 django-simple-captcha
 pyyaml
+django-bootstrap3
 
 # these modules aren't in PIP
 #pytas
