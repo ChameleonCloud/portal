@@ -35,6 +35,13 @@ Menu.add_item( 'main',
     )
 )
 
+Menu.add_item( 'main',
+    MenuItem(
+        'News',
+        reverse( 'github_content.views.news' ),
+    )
+)
+
 """
 User Menu
 """
@@ -63,6 +70,7 @@ Menu.add_item( 'user', profile_item )
 menu_children = (
     MenuItem( 'Log In', reverse( 'django.contrib.auth.views.login' ) ),
     MenuItem( 'Register', reverse( 'tas.views.register' ) ),
+    MenuItem( 'Help', reverse( 'djangoRT.views.ticketcreateguest' ) ),
 )
 
 Menu.add_item( 'user',
