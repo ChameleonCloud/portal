@@ -1,0 +1,43 @@
+{% load staticfiles %}
+
+<div class="team-member" vocab="http://schema.org/" typeof="Person">
+  <img src="{% static member.image %}" property="image">
+  <h4 property="name">{{ member.name }}</h4>
+  {% if member.organization or member.department %}
+    <section>
+      {% if member.organization %}
+        <span property="organization">{{ member.organization }}</span> <br>
+      {% endif %}
+      {% if member.department %}
+        <span property="department">{{ member.department }}</span> <br>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% if member.roles %}
+    <section>
+      {% for role in member.roles %}
+      <span property="jobTitle">{{ role.role }}</span><br>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if member.contact %}
+    <section>
+      {% if member.contact.phone %}
+        <b>Phone</b> <a property="telephone" href="tel:{{ member.contact.phone }}">{{ member.contact.phone }}</a> <br>
+      {% endif %}
+      {% if member.contact.email %}
+        <b>Email</b> <a property="email" href="mailto:{{ member.contact.email }}">{{ member.contact.email }}</a> <br>
+      {% endif %}
+      {% if member.contact.github %}
+        <b>Github</b> <a property="url" href="https://github.com/{{ member.contact.github }}">{{ member.contact.github }}</a> <br>
+      {% endif %}
+      {% if member.contact.twitter %}
+        <b>Twitter</b> <a property="url" href="https://twitter.com/{{ member.contact.twitter}}">@{{ member.contact.twitter }}</a> <br>
+      {% endif %}
+    </section>
+  {% endif %}
+</address>
+{% if member.bio %} <p>{{member.bio}}</p> {% endif %}
+</div>
