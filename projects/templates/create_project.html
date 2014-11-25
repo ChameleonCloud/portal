@@ -1,5 +1,7 @@
 {% extends 'layout/user.html' %}
 
+{% load bootstrap3 %}
+
 {% block title %}Create Project{% endblock %}
 
 {% block content %}
@@ -16,6 +18,7 @@
 <form method="post">
   {% csrf_token %}
 
+{% comment %}
   <div class="form-group {% if form.errors.project_title %}has-error{% endif %}">
     <label class="control-label" for="id_project_title">Title</label>
     <input type="text" class="form-control" name="project_title" id="id_project_title" placeholder="Research into how..." value="{{ form.data.project_title }}">
@@ -58,7 +61,10 @@
     </select>
     <p class="help-block">Please indicate a primary field of science for this research</p>
   </div>
+{% endcomment %}
 
+  {% bootstrap_form form %}
+  
   <div class="form-group">
     <label class="control-label">Project ID</label>
     <input type="text" disabled readonly class="form-control" placeholder="CH-XXXXXX">

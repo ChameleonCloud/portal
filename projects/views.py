@@ -7,7 +7,9 @@ from datetime import datetime
 from pytas.pytas import client as TASClient
 from django.db import connections
 from projectModel import Project
+from forms import ProjectCreateForm, ProjectAddUserForm
 import logging
+import json
 
 logger = logging.getLogger('default')
 
@@ -21,16 +23,8 @@ def user_projects( request ):
     ch_projects = []
 
     for p in projects:
-        if p[ 'allocations' ]:
-            # filter to just allocations with chameleon
-            for a in p[ 'allocations' ]:
-                if a[ 'resource' ] == 'Chameleon':
-                    ch_projects.append( p )
-                    break
-
-        elif p[ 'chargeCode' ].startswith( 'FG-' ) or p[ 'chargeCode' ].startswith( 'CH-' ):
+        if p[ 'source' ] == 'Chameleon':
             ch_projects.append( p )
-
 
     context['projects'] = ch_projects
 
@@ -38,90 +32,158 @@ def user_projects( request ):
 
 @login_required
 def view_project( request, project_id ):
-
     tas = TASClient()
-    project = tas.project( project_id )
-    allocations = tas.project_allocations( project_id )
 
-    return render( request, 'view_project.html', { 'project': project, 'allocations': allocations } )
+    if request.POST:
+        if 'add_user' in request.POST:
+            form = ProjectAddUserForm( request.POST )
+            if form.is_valid():
+                # try to add user
+                try:
+                    if tas.add_project_user( project_id, form.cleaned_data['username'] ):
+                        form = ProjectAddUserForm()
+                        messages.success( request, 'User "%s" added to project!' % form.cleaned_data['username'] )
+                except:
+                    logger.exception( 'Failed adding user' )
+                    form.add_error( 'username', '' )
+                    form.add_error( '__all__', 'Unable to add user. Confirm that the username is correct.' )
+        else:
+            form = ProjectAddUserForm()
+
+        if 'del_user' in request.POST:
+            # try to remove user
+            try:
+                if tas.del_project_user( project_id, request.POST['username'] ):
+                    messages.success( request, 'User "%s" removed from project' % request.POST['username'] )
+            except:
+                logger.exception( 'Failed removing user' )
+                messages.error( request, 'An unexpected error occurred while attempting to remove this user. Please try again' )
+
+    else:
+        form = ProjectAddUserForm()
+
+    project = tas.project( project_id )
+    users = tas.get_project_users( project_id )
+
+    return render( request, 'view_project.html', {
+        'project': project,
+        'users': users,
+        'is_pi': request.user.username == project['pi']['username'],
+        'form': form,
+    } )
 
 @login_required
 def create_project( request ):
-    context = { 'form': {} }
     tas = TASClient()
 
-    if request.method == 'POST':
-        data = request.POST.copy()
-        errors = {}
+    # context = { 'form': {} }
+    #
+    # if request.method == 'POST':
+    #     data = request.POST.copy()
+    #     errors = {}
+    #
+    #     if not data[ 'project_title' ]:
+    #         errors[ 'project_title' ] = 'Please provide a project title'
+    #
+    #     if not data[ 'abstract' ]:
+    #         errors[ 'abstract' ] = 'Please provide a project abstract'
+    #
+    #     if data[ 'project_type' ] == '-1':
+    #         errors[ 'project_type' ] = 'Please select a project type'
+    #     else:
+    #         data[ 'project_type' ] = int( data[ 'project_type' ] )
+    #
+    #     if data[ 'field_of_science' ]:
+    #         data[ 'field_of_science' ] = int( data[ 'field_of_science' ] )
+    #     else:
+    #         errors[ 'field_of_science' ] = 'Please select a field of science'
+    #
+    #     if len(errors) == 0:
+    #         # success!
+    #         try:
+    #             pi_user = tas.get_user( username=request.user )
+    #
+    #             data[ 'project_code' ] = 'CH-{0}'.format( datetime.now().microsecond )
+    #             data[ 'pi_user_id' ] = pi_user[ 'id' ]
+    #             print data
+    #
+    #             project_id = tas.create_project(
+    #                 data[ 'project_code' ],
+    #                 data[ 'project_type' ],
+    #                 data[ 'field_of_science' ],
+    #                 data[ 'project_title' ],
+    #                 data[ 'abstract' ],
+    #                 data[ 'pi_user_id' ],
+    #             )
+    #
+    #             if project_id:
+    #                 # hack to fix the project_code to be CH-{{project_id}}
+    #                 tas.edit_project(
+    #                     project_id,
+    #                     'CH-{0}'.format(project_id),
+    #                     data[ 'field_of_science' ],
+    #                     data[ 'project_title' ],
+    #                     data[ 'abstract' ],
+    #                 )
+    #
+    #                 tas.request_allocation(
+    #                     data[ 'pi_user_id' ],
+    #                     project_id,
+    #                     39, # chameleon resource_id
+    #                     data[ 'abstract' ], # reuse abstract as justification
+    #                     1, # right now this is YES/NO
+    #                 )
+    #                 return HttpResponseRedirect( reverse( 'view_project', args=[ project_id ] ) )
+    #             else:
+    #                 # error
+    #                 messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
+    #         except Exception as e:
+    #             logger.error(e)
+    #             messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
+    #
+    #     context[ 'form' ][ 'data' ] = data
+    #     context[ 'form' ][ 'errors' ] = errors
+    # else:
+    #     context[ 'form' ][ 'data' ] = {}
+    #     context[ 'form' ][ 'data' ][ 'field_of_science' ] = 3
+    #
+    # context[ 'fields' ] = tas.fields()
+    if request.POST:
+        form = ProjectCreateForm( request.POST )
+        if form.is_valid():
+            # title, description, typeId, fieldId
+            project = form.cleaned_data.copy()
 
-        if not data[ 'project_title' ]:
-            errors[ 'project_title' ] = 'Please provide a project title'
+            # pi
+            pi_user = tas.get_user( username=request.user )
+            project['piId'] = pi_user['id']
 
-        if not data[ 'abstract' ]:
-            errors[ 'abstract' ] = 'Please provide a project abstract'
+            # allocations
+            project['allocations'] = [
+                {
+                    'resourceId': 39,                        # chameleon
+                    'requestorId': pi_user['id'],            # initial PI requestor
+                    'justification': 'Initial; see abstract',# reuse for now
+                    'computeRequested': 1,                   # simple request for now
+                }
+            ]
 
-        if data[ 'project_type' ] == '-1':
-            errors[ 'project_type' ] = 'Please select a project type'
-        else:
-            data[ 'project_type' ] = int( data[ 'project_type' ] )
+            # source
+            project['source'] = 'Chameleon'
 
-        if data[ 'field_of_science' ]:
-            data[ 'field_of_science' ] = int( data[ 'field_of_science' ] )
-        else:
-            errors[ 'field_of_science' ] = 'Please select a field of science'
-
-        if len(errors) == 0:
-            # success!
             try:
-                pi_user = tas.get_user( username=request.user )
+                created_project = tas.create_project( project )
+                # print json.dumps( created_project )
+                messages.success( request, 'Your project has been created!' )
+                return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+            except:
+                logger.exception( 'Error creating project' )
+                form.add_error('__all__', 'An unexpected error occurred. Please try again')
 
-                data[ 'project_code' ] = 'CH-{0}'.format( datetime.now().microsecond )
-                data[ 'pi_user_id' ] = pi_user[ 'id' ]
-                print data
-
-                project_id = tas.create_project(
-                    data[ 'project_code' ],
-                    data[ 'project_type' ],
-                    data[ 'field_of_science' ],
-                    data[ 'project_title' ],
-                    data[ 'abstract' ],
-                    data[ 'pi_user_id' ],
-                )
-
-                if project_id:
-                    # hack to fix the project_code to be CH-{{project_id}}
-                    tas.edit_project(
-                        project_id,
-                        'CH-{0}'.format(project_id),
-                        data[ 'field_of_science' ],
-                        data[ 'project_title' ],
-                        data[ 'abstract' ],
-                    )
-
-                    tas.request_allocation(
-                        data[ 'pi_user_id' ],
-                        project_id,
-                        39, # chameleon resource_id
-                        data[ 'abstract' ], # reuse abstract as justification
-                        1, # right now this is YES/NO
-                    )
-                    return HttpResponseRedirect( reverse( 'view_project', args=[ project_id ] ) )
-                else:
-                    # error
-                    messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
-            except Exception as e:
-                logger.error(e)
-                messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
-
-        context[ 'form' ][ 'data' ] = data
-        context[ 'form' ][ 'errors' ] = errors
     else:
-        context[ 'form' ][ 'data' ] = {}
-        context[ 'form' ][ 'data' ][ 'field_of_science' ] = 3
+        form = ProjectCreateForm()
 
-    context[ 'fields' ] = tas.fields()
-
-    return render( request, 'create_project.html', context )
+    return render( request, 'create_project.html', { 'form': form } )
 
 @login_required
 def edit_project( request ):

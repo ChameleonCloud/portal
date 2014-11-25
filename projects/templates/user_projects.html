@@ -14,9 +14,7 @@
 <h4>
   {{ p.title }} |
   <small>{{ p.chargeCode }}</small>
-  {% comment %}
   &nbsp;&nbsp;<a href="{% url 'view_project' p.id %}" class="btn btn-default">View Project</a>
-  {% endcomment %}
 </h4>
 
 
@@ -26,10 +24,6 @@
     <tr>
       <th>PI</th>
       <td>{{ p.pi.firstName }} {{ p.pi.lastName }} <a href="mailto:{{ p.pi.email }}">&lt;{{ p.pi.email }}&gt;</a></td>
-    </tr>
-    <tr>
-      <th>Project Group</th>
-      <td>G-{{ p.gid }}</td>
     </tr>
     <tr>
       <th>Abstract</th>
