@@ -1,4 +1,0 @@
-
-Dear {{allocation_request.requester.first_name}},
-
-Your Chameleon allocation request has been approved! You should be able to start using Chameleon resources shortly.

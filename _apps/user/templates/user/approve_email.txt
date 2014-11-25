@@ -1,4 +1,0 @@
-
-Dear {{user.first_name}},
-
-Your Chameleon account request has been approved! Your next step is to set a password using our password recovery process. Please visit http://www.chameleoncloud.org/user/password_reset/recover/.

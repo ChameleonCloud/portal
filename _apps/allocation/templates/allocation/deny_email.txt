@@ -1,8 +1,0 @@
-
-Dear {{allocation_request.requester.first_name}},
-
-We are sorry to inform you that your Chameleon allocation request "{{allocation_request.title}}" has been denied. The reason for this is:
-
-{{allocation_request.deny_reason}}
-
-If you have any questions or wish to contact us, please visit our helpdesk at http://www.chameleoncloud.org/helpdesk/
