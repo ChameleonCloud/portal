@@ -7,7 +7,7 @@
     Chameleon is in an initial transition phase. We currently provide virtual
     environments using OpenStack on our legacy FutureGrid clusters (Alamo and
     Hotel). We'll provide additional functionality and new hardware in the
-    future! Please see our <a href="about/schedule/">schedule</a> for
+    future! Please see our <a href="{% url 'github_content.views.news_story' '2014' '07' '23' 'chameleon-cloud-will-be-launching-soon' %}">schedule</a> for
     more information.
   </p>
 
@@ -22,14 +22,14 @@
 
       <ol>
         <li>
-          <a href="/documentation/accounts.html">Create an account</a>
+          <a href="{% url 'documentation.views.display_doc' 'accounts' %}">Create an account</a>
         </li>
         <li>
-          <a href="/documentation/allocations.html">Request an allocation.</a>
+          <a href="{% url 'documentation.views.display_doc' 'allocations' %}">Request an allocation.</a>
         </li>
         <li>
           Once your allocation is approved, follow our
-          <a href="documentation/user-guides/openstack-icehouse-user-guide.html">OpenStack User Guide</a>
+          <a href="{% url 'documentation.views.display_doc' 'user-guides/openstack-icehouse-user-guide' %}">OpenStack User Guide</a>
         </li>
       </ol>
 
@@ -47,8 +47,8 @@
         </p>
 
         <ol>
-          <li> <a href="/documentation/futuregrid/accounts.html">Activate your account</a>
-            <li> <a href="/documentation/futuregrid/allocations.html">Activate your allocation</a>
+          <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/accounts' %}">Activate your account</a>
+            <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/allocations' %}">Activate your allocation</a>
         </ol>
       </article>
     </div>
