@@ -1,0 +1,15 @@
+{% load staticfiles %}
+{% load kramdown_tags %}
+
+<article class="block">
+  <header class="post-header">
+    <h2><a href="{{ post.meta.url }}">{{ post.meta.title }}</a></h2>
+    <p class="meta">Posted on {{ post.meta.date }} by {{ post.meta.author }}</p>
+  </header>
+  <div class="post-content">
+    {% if post.meta.image %}
+      <img src="{% static post.meta.image %}" class="pull-left" height="90">
+    {% endif %}
+    {{ post.teaser | kramdown }}
+  </div>
+</article>

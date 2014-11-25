@@ -8,6 +8,6 @@ from documentation import views
 urlpatterns = patterns(
     'documentation.views',
 
-    url(r'^$', 'index'),
-    # url(r'\S*', views.doc, name='doc'),
+    url(r'^$', 'display_doc' ),
+    url(r'^(.*)/$', 'display_doc' ),
 )

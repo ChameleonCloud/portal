@@ -55,12 +55,12 @@
   </div>
 
   <h2>Recent News</h2>
-  {% for announcement in announcements %}
-  <div class="col-md-6">
-    {% include "news/includes/announcement_block.html" %}
+  <div class="row">
+    {% for post in posts %}
+      <div class="col-md-6">
+        {% include "github_content/news_teaser.html" %}
+      </div>
+    {% endfor %}
   </div>
-  {% endfor %}
-
-  </div>
-  </div>
-  {% endblock %}
+</div>
+{% endblock %}

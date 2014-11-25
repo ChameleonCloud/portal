@@ -1,8 +1,6 @@
-{% extends "layout/default.html" %}
-{% load markdown_deux_tags %}
-
-{% block content %}
-{% markdown %}
+---
+title: Chameleon Allocations
+---
 
 # Chameleon Allocations
 
@@ -13,14 +11,11 @@ To be eligible to request an allocation on Chameleon, you must be faculty or res
 U.S. educational institution (this is often referred to as "PI status" by your organization). We do provide
 case-by-case exceptions to this guideline.
 
-If you have a [Chameleon user account](accounts.html) with PI status, you can [request an
+If you have a [Chameleon user account](../accounts) with PI status, you can [request an
 allocation](/allocation/request/).
 
 ## Activating a FutureGrid Allocation
 
 If you were the PI of a FutureGrid project, you already have an allocation on Chameleon, you just
-need to activate it. See our [FutureGrid allocation documentation](futuregrid/allocations.html) for more
+need to activate it. See our [FutureGrid allocation documentation](../futuregrid/allocations) for more
 information.
-
-{% endmarkdown %}
-{% endblock %}

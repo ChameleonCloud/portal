@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import Http404
+from django.core.urlresolvers import reverse
 from django.core.servers.basehttp import FileWrapper
+from github_content import util
 import yaml
 import os
 import mimetypes
@@ -18,29 +20,12 @@ def about( request ):
 
     return render( request, 'github_content/about.html', { 'team': team, 'title': 'About' } )
 
-def _parse_jekyll( content ):
-    meta = []
-    rest = []
-    in_header = False
-    for line in content.splitlines():
-        if in_header:
-            if line == '---':
-                in_header = False;
-            else:
-                meta.append( line )
-        elif line == '---':
-            in_header = True
-        else:
-            rest.append( line )
-
-    return (yaml.load( '\n'.join( meta ) ), '\n'.join( rest ))
-
 def nsf_cloud_workshop( request ):
     fh = open( os.path.join( content_dir, 'NSFCloudWorkshop', 'index.md' ) )
     jekyll_content = fh.read()
     fh.close()
 
-    meta, content = _parse_jekyll( jekyll_content )
+    meta, content = util.parse_jekyll( jekyll_content )
     meta['image'] = meta['image'][1:]
 
     context = {
@@ -60,11 +45,12 @@ def news( request ):
         fh = open( os.path.join( posts_dir, post ) )
         jekyll_content = fh.read()
         fh.close()
-        meta, content = _parse_jekyll( jekyll_content )
+        meta, content = util.parse_jekyll( jekyll_content )
         if 'image' in meta:
             meta['image'] = meta['image'][1:]
 
-        meta['url'] = '/'.join( os.path.splitext( post )[0].split( '-', 3 ) )
+        args = os.path.splitext( post )[0].split( '-', 3 )
+        meta['url'] = reverse( 'github_content.views.news_story', args=args )
 
         posts.append( ( meta, content, ) )
 
@@ -87,13 +73,13 @@ def news_story( request, year, month, day, slug ):
     except:
         try:
             post_name = '{0}-{1}-{2}-{3}.markdown'.format(year, month, day, slug)
-            fh = open( os.path.join( posts_dir, post_name ) )
+            fh = open( os.path.join( content_dir, '_posts', post_name ) )
             jekyll_content = fh.read()
             fh.close()
         except:
             raise Http404
 
-    meta, content = _parse_jekyll( jekyll_content )
+    meta, content = util.parse_jekyll( jekyll_content )
     context = {
         'title': meta.get('title'),
         'author': meta.get('author'),
@@ -111,7 +97,7 @@ def talks( request ):
     fh = open( os.path.join( content_dir, 'talks', 'index.md' ) )
     jekyll_content = fh.read()
     fh.close()
-    meta, content = _parse_jekyll( jekyll_content )
+    meta, content = util.parse_jekyll( jekyll_content )
 
     context = {
         'meta': meta,

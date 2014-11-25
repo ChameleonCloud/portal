@@ -13,20 +13,18 @@ def profile_title(request):
 Main Menu
 """
 doc_children = (
-    MenuItem( 'Getting Started', '/documentation/getting_started.html' ),
-    MenuItem( 'FAQ', '/documentation/faq.html' ),
-    MenuItem( 'User Guides', '/documentation/user-guides/' ),
-    MenuItem( 'Acceptable Usage Policy', '/documentation/acceptable-usage.html' ),
+    MenuItem( 'Overview', reverse( 'documentation.views.display_doc'), ),
+    MenuItem( 'User Guides', reverse( 'documentation.views.display_doc', args=['user-guides']), ),
 )
 
-# Menu.add_item( 'main',
-#     MenuItem(
-#         'Documentation',
-#         reverse( 'documentation.views.index' ),
-#         weight = 0,
-#         children = doc_children
-#     )
-# )
+Menu.add_item( 'main',
+    MenuItem(
+        'Documentation',
+        reverse( 'documentation.views.display_doc'),
+        weight = 0,
+        children = doc_children
+    )
+)
 
 Menu.add_item( 'main',
     MenuItem(
