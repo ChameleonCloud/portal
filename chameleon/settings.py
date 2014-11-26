@@ -28,9 +28,10 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'www.chameleoncloud.org',
     'chameleoncloud.org',
-    'www.chameleon.tacc.utexas.edu'
+    'www.chameleoncloud.org',
+    'www.tacc.chameleoncloud.org',
+    'www.chameleon.tacc.utexas.edu',
 ]
 
 # Application definition
