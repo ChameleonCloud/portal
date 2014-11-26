@@ -6,8 +6,10 @@
 <h2>Migrate FutureGrid Projects to Chameleon</h2>
 {% if projects %}
   <p class="lead">
-    We located the following FutureGrid projects that are
-    available to you for migration to Chameleon:
+    We located the following FutureGrid projects that you were
+    associated with. Projects on which you are the PI are available
+    for you to migrate to Chameleon. If you are the project
+    PI, you can select migrate the project.
   </p>
   <ol>
     {% for project in projects %}
@@ -17,13 +19,17 @@
         <small>FG-{{ project.chargeCode }}</small>
       </h4>
       <p class="abstract">{{ project.abstract }}</p>
-      <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
-        {% csrf_token %}
-        <input type="hidden" name="project_code" value="FG-{{ project.chargeCode }}">
-        <input type="hidden" name="project_title" value="{{ project.title }}">
-        <input type="hidden" name="project_abstract" value="{{ project.abstract }}">
-        <button type="submit" class="btn btn-primary">Migrate this project</button>
-      </form>
+      {% if project.is_pi %}
+        <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
+          {% csrf_token %}
+          <input type="hidden" name="name" value="FG-{{ project.chargeCode }}">
+          <input type="hidden" name="title" value="{{ project.title }}">
+          <input type="hidden" name="description" value="{{ project.abstract }}">
+          <button type="submit" class="btn btn-primary">Migrate this project</button>
+        </form>
+      {% else %}
+      <a class="btn btn-default" href="mailto:{{ project.pi_email }}">Contact the PI</a>
+      {% endif %}
     </li>
     {% endfor %}
   </ol>

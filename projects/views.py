@@ -101,7 +101,6 @@ def create_project( request ):
 
             try:
                 created_project = tas.create_project( project )
-                # print json.dumps( created_project )
                 messages.success( request, 'Your project has been created!' )
                 return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
             except:
@@ -123,14 +122,14 @@ def edit_project( request ):
 def lookup_fg_projects( request ):
     cursor = connections['futuregrid'].cursor()
 
-    cursor.execute("select name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value from users left join content_field_project_members cfpm on users.uid = cfpm.field_project_members_uid left join content_type_fg_projects ctfp on ctfp.nid = cfpm.nid left join node on node.nid = ctfp.nid where users.mail = %s", [request.user.email])
+    cursor.execute("select users.name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value, users.uid = node.uid as is_pi, pis.mail as pi_email from users left join content_field_project_members cfpm on users.uid = cfpm.field_project_members_uid left join content_type_fg_projects ctfp on ctfp.nid = cfpm.nid left join node on node.nid = ctfp.nid left join users as pis on pis.uid = node.uid where users.mail = %s", [request.user.email])
 
     project = cursor.fetchall()
 
     projects = []
 
     for p in project:
-        projects.append(Project(p[0], p[1], p[2], p[3]))
+        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5]))
 
     context = { "projects" : projects }
 
@@ -140,28 +139,23 @@ def fg_project_migrate( request ):
     if request.method == 'POST':
         try:
             pi_user = tas.get_user( username=request.user )
-            project_id = tas.create_project(
-                request.POST['project_code'],
-                2, # startup
-                1, # not chosen
-                request.POST['project_title'],
-                request.POST['abstract'],
-                pi_user['id'],
-            )
+            project = request.POST.copy()
+            project['typeId'] = 2 # startup
+            project['fieldId'] = 1 # not chosen
+            project['piId'] = pi_user['id']
+            project['allocations'] = [
+                {
+                    'resourceId': 39,                        # chameleon
+                    'requestorId': pi_user['id'],            # initial PI requestor
+                    'justification': 'FutureGrid migration', # reuse for now
+                    'computeRequested': 1,                   # simple request for now
+                }
+            ]
 
-            if project_id:
-                tas.request_allocation(
-                    pi_user['id'],
-                    project_id,
-                    39, # chameleon resource_id
-                    request.POST[ 'abstract' ], # reuse abstract as justification
-                    1, # right now this is YES/NO
-                )
-                messages.success( request, 'Your project {0} has been migrated to Chameleon!' )
-                return HttpResponseRedirect( reverse( 'view_project', args=[ project_id ] ) )
-            else:
-                messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
-        except Exception as e:
-            logger.error(e)
-            messages.error( request, 'An unexpected error occurred while creating your project request. Please try again.' )
+            created_project = tas.create_project( project )
+            messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['name'] )
+            return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+        except:
+            logger.exception( 'Error migrating project' )
+            messages.error( request, 'An unexpected error occurred. Please try again' )
     return HttpResponseRedirect( reverse( 'lookup_fg_projects' ) )
