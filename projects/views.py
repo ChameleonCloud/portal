@@ -131,6 +131,15 @@ def lookup_fg_projects( request ):
     for p in project:
         projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5]))
 
+
+    cursor.execute("select users.name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value, users.uid = node.uid as is_pi, pis.mail as pi_email from users left join content_type_fg_projects ctfp on ctfp.field_project_manager_uid = users.uid OR ctfp.field_project_lead_uid = users.uid left join node on node.nid = ctfp.nid left join users as pis on pis.uid = node.uid where users.mail = %s AND ctfp.field_projectid_value IS NOT NULL", [request.user.email])
+
+    project = cursor.fetchall()
+
+    for p in project:
+        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5]))
+
+
     context = { "projects" : projects }
 
     return render( request, 'lookup_fg_project.html', context)
