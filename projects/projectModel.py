@@ -1,13 +1,14 @@
 from HTMLParser import HTMLParser
 
 class Project:
-    def __init__(self, username = "", project_title = "", project_id = "", abstract = "", is_pi = False, pi_email = ""):
+    def __init__(self, username = "", project_title = "", project_id = "", abstract = "", manager_email = "", lead_email = "", is_pi = False):
         self.username = username
         self.title = project_title
         self.chargeCode = project_id
         self.abstract = self.strip_tags(abstract)
+        self.manager_email = manager_email
+        self.lead_email = lead_email
         self.is_pi = is_pi
-        self.pi_email = pi_email
 
     def strip_tags(self, html):
         s = MLStripper()

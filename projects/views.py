@@ -122,23 +122,33 @@ def edit_project( request ):
 def lookup_fg_projects( request ):
     cursor = connections['futuregrid'].cursor()
 
-    cursor.execute("select users.name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value, users.uid = node.uid as is_pi, pis.mail as pi_email from users left join content_field_project_members cfpm on users.uid = cfpm.field_project_members_uid left join content_type_fg_projects ctfp on ctfp.nid = cfpm.nid left join node on node.nid = ctfp.nid left join users as pis on pis.uid = node.uid where users.mail = %s", [request.user.email])
+    query_str = """SELECT DISTINCT
+                u.name,
+                n.title,
+                p.field_projectid_value,
+                p.field_project_abstract_value,
+                manager.mail AS manager,
+                lead.mail AS lead,
+                u.uid = lead.uid OR u.uid = manager.uid AS is_pi
+                FROM node n
+                LEFT JOIN content_type_fg_projects p on p.nid = n.nid
+                LEFT JOIN content_field_project_members mem ON mem.nid = n.nid
+                LEFT JOIN users manager on manager.uid = p.field_project_manager_uid
+                LEFT JOIN users lead on lead.uid = p.field_project_lead_uid
+                LEFT JOIN users member ON mem.field_project_members_uid = member.uid
+                LEFT JOIN users u on u.uid = member.uid OR u.uid = lead.uid OR u.uid = manager.uid
+                WHERE n.type = 'fg_projects'
+                AND u.mail = %s"""
+
+    # cursor.execute(query_str, [request.user.email])
+    cursor.execute(query_str, ['priteau@uchicago.edu'])
 
     project = cursor.fetchall()
 
     projects = []
 
     for p in project:
-        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5]))
-
-
-    cursor.execute("select users.name, node.title, ctfp.field_projectid_value, ctfp.field_project_abstract_value, users.uid = node.uid as is_pi, pis.mail as pi_email from users left join content_type_fg_projects ctfp on ctfp.field_project_manager_uid = users.uid OR ctfp.field_project_lead_uid = users.uid left join node on node.nid = ctfp.nid left join users as pis on pis.uid = node.uid where users.mail = %s AND ctfp.field_projectid_value IS NOT NULL", [request.user.email])
-
-    project = cursor.fetchall()
-
-    for p in project:
-        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5]))
-
+        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5], p[6]))
 
     context = { "projects" : projects }
 

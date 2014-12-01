@@ -7,9 +7,9 @@
 {% if projects %}
   <p class="lead">
     We located the following FutureGrid projects that you were
-    associated with. Projects on which you are the PI are available
+    associated with. Projects on which you are the Manager or Lead are available
     for you to migrate to Chameleon. For other projects contact the
-    PI if you would like to see the project migrated.
+    Manager/Lead if you would like to see the project migrated.
   </p>
   <ol>
     {% for project in projects %}
@@ -28,7 +28,12 @@
           <button type="submit" class="btn btn-primary">Migrate this project</button>
         </form>
       {% else %}
-      <a class="btn btn-default" href="mailto:{{ project.pi_email }}">Contact the PI</a>
+        Contact the
+        <a class="btn btn-default" href="mailto:{{ project.manager_email }}">Project Manager</a>
+        {% if project.manager_email != project.lead_email %}
+          or
+          <a class="btn btn-default" href="mailto:{{ project.lead_email }}">Project Lead</a>
+        {% endif %}
       {% endif %}
     </li>
     {% endfor %}
