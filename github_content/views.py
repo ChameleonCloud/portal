@@ -54,7 +54,7 @@ def news( request ):
 
         posts.append( ( meta, content, ) )
 
-    posts.reverse()
+    posts.sort(key = lambda p: p[0]['date'], reverse = True)
 
     context = {
         'title': 'News',

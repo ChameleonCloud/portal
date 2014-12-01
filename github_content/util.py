@@ -42,4 +42,6 @@ def get_posts( limit=None ):
 
         posts.append( { 'meta': meta, 'content': content, 'teaser': content.split('<!--more-->')[0] } )
 
+    posts.sort( key = lambda p: p['meta']['date'], reverse = True )
+
     return posts
