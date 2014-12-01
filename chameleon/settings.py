@@ -151,16 +151,26 @@ LOGIN_REDIRECT_URL = '/user/dashboard'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)s %(message)s'
+        },
+    },
     'handlers': {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/tmp/chameleon.log',
+            'formatter': 'verbose',
         },
         'auth': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/chameleon-auth.log',
+            'filename': '/tmp/chameleon_auth.log',
+            'formatter': 'simple',
         },
     },
     'loggers': {
