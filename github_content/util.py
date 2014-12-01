@@ -25,7 +25,8 @@ def get_posts( limit=None ):
     posts = []
     posts_dir = os.path.join( content_dir, '_posts' )
     files = os.listdir( posts_dir )
-    files.reverse()
+    files.sort(reverse=True)
+
     if limit:
         files = files[0:limit]
 

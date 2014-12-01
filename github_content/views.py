@@ -41,7 +41,9 @@ def news( request ):
 
     posts = []
     posts_dir = os.path.join( content_dir, '_posts' )
-    for post in os.listdir( posts_dir ):
+    files = os.listdir( posts_dir )
+    files.sort( reverse=True )
+    for post in files:
         fh = open( os.path.join( posts_dir, post ) )
         jekyll_content = fh.read()
         fh.close()
@@ -53,8 +55,6 @@ def news( request ):
         meta['url'] = reverse( 'github_content.views.news_story', args=args )
 
         posts.append( ( meta, content, ) )
-
-    posts.sort(key = lambda p: p[0]['date'], reverse = True)
 
     context = {
         'title': 'News',
