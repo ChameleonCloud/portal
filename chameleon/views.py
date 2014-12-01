@@ -27,3 +27,6 @@ def dashboard( request ):
     actions.append( { 'name': 'Help Desk Tickets', 'url': reverse( 'mytickets' ) } )
     actions.append( { 'name': 'Manage Your Account', 'url': reverse( 'profile' ) } )
     return render( request, 'dashboard.html', { 'actions': actions })
+
+def newsletter( request ):
+    return render( request, 'newsletter.html' )

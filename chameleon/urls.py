@@ -10,6 +10,7 @@ urlpatterns = patterns(
     '',
 
     url(r'^$', 'chameleon.views.home', name='home'),
+    url(r'^newsletter/$', 'chameleon.views.newsletter', name='newsletter'),
     url(r'^login/', 'django.contrib.auth.views.login'),
     url(r'^logout/', 'django.contrib.auth.views.logout', { 'next_page': '/' }),
     url(r'^register/', RedirectView.as_view(url=reverse_lazy('register'))),

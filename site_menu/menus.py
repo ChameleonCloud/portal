@@ -47,6 +47,13 @@ Menu.add_item( 'main',
     )
 )
 
+Menu.add_item( 'main',
+    MenuItem(
+        'Stay in Touch',
+        reverse( 'chameleon.views.newsletter' ),
+    )
+)
+
 """
 User Menu
 """
