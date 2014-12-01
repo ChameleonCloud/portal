@@ -140,8 +140,7 @@ def lookup_fg_projects( request ):
                 WHERE n.type = 'fg_projects'
                 AND u.mail = %s"""
 
-    # cursor.execute(query_str, [request.user.email])
-    cursor.execute(query_str, ['priteau@uchicago.edu'])
+    cursor.execute(query_str, [request.user.email])
 
     project = cursor.fetchall()
 
