@@ -24,10 +24,6 @@
 	font-size: 2em;
 }
 
-.required {
-	color: red;
-}
-
 .navigation {
 	float: right;
 }
@@ -55,10 +51,7 @@
 	width: 100%;
 }
 
-input.ticket-input {
-	width: 30%;
-}
-
-p label {
-	width: 10%;
+.required label:after, label.required:after {
+	content: "*";
+	color: red;
 }

@@ -22,22 +22,21 @@ class MultiEmailField(forms.Field):
             validate_email(email.strip())
 
 class TicketForm(forms.Form):
-	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='First name', max_length=100, required=True)
-	last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Last name', max_length=100, required=True)
-	email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : 'ticket-input'}), label='Email', required=True)
-	cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), required=False, help_text='Multiple emails should be comma-separated')
-	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Subject', max_length=100, required=True)
-	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': 'ticket-input'}))
+	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'required'}), label='First name', max_length=100, required=True)
+	last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Last name', max_length=100, required=True)
+	email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : ''}), label='Email', required=True)
+	cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : ''}), required=False, help_text='Multiple emails should be comma-separated')
+	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Subject', max_length=100, required=True)
+	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': ''}))
 
 class TicketGuestForm(forms.Form):
-	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='First name', max_length=100, required=True)
-	last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Last name', max_length=100, required=True)
-	email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : 'ticket-input'}), label='Email', required=True)
-	cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), required=False, help_text='Multiple emails should be comma-separated')
-	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : 'ticket-input'}), label='Subject', max_length=100, required=True)
-	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': 'ticket-input'}))
+	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='First name', max_length=100, required=True)
+	last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Last name', max_length=100, required=True)
+	email = forms.EmailField(widget=forms.EmailInput(attrs={'class' : ''}), label='Email', required=True)
+	# cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : ''}), required=False, help_text='Multiple emails should be comma-separated')
+	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Subject', max_length=100, required=True)
+	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': ''}))
 	captcha = CaptchaField()
-	
-class ReplyForm(forms.Form):
-	reply = forms.CharField(required=True, widget=forms.Textarea, label="")
 
+class ReplyForm(forms.Form):
+	reply = forms.CharField(required=True, widget=forms.Textarea, label="Enter Reply")

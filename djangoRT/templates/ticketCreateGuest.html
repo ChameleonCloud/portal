@@ -1,22 +1,13 @@
 {% extends "layout/default.html" %}
+{% load bootstrap3 %}
 {% block title %}Create a Ticket{% endblock %}
 {% block content %}
 <h1>Submit a new ticket</h1>
-<i>Fields in red are required.</i>
-<br /><br />
-{% if messages %}
-<ul class="messages">
-	{% for message in messages %}
-		<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-			{{ message }}
-		</li>
-	{% endfor %}
-</ul>
-{% endif %}
+<p><i>Fields marked with <label class="required"></label> are required.</i></p>
 <form action="" method="POST">
 	{% csrf_token %}
 
-	{{ form.as_p }}
+	{% bootstrap_form form %}
 
 	<button type="submit" class="btn btn-success">Create Ticket</button>
 </form>
