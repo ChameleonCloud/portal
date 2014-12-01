@@ -233,3 +233,12 @@ DJANGO_RT = {
     'RT_PW': os.environ.get('RT_PASSWORD'),
     'RT_QUEUE': os.environ.get('RT_DEFAULT_QUEUE'),
 }
+
+#####
+#
+# Bootstrap3 Settings
+#
+#####
+BOOTSTRAP3 = {
+    'required_css_class': 'required',
+}
