@@ -22,7 +22,7 @@
       {% if project.is_pi %}
         <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
           {% csrf_token %}
-          <input type="hidden" name="name" value="FG-{{ project.chargeCode }}">
+          <input type="hidden" name="chargeCode" value="FG-{{ project.chargeCode }}">
           <input type="hidden" name="title" value="{{ project.title }}">
           <input type="hidden" name="description" value="{{ project.abstract }}">
           <button type="submit" class="btn btn-primary">Migrate this project</button>

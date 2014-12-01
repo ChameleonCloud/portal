@@ -18,53 +18,8 @@
 <form method="post">
   {% csrf_token %}
 
-{% comment %}
-  <div class="form-group {% if form.errors.project_title %}has-error{% endif %}">
-    <label class="control-label" for="id_project_title">Title</label>
-    <input type="text" class="form-control" name="project_title" id="id_project_title" placeholder="Research into how..." value="{{ form.data.project_title }}">
-  </div>
-
-  <div class="form-group {% if form.errors.abstract %}has-error{% endif %}">
-    <label class="control-label" for="id_abstract">Abstract</label>
-    <textarea rows="5" class="form-control" name="abstract" id="id_abstract" placeholder="We propose to...">{{ form.data.abstract }}</textarea>
-  </div>
-
-  <div class="form-group {% if form.errors.project_type %}has-error{% endif %}">
-    <label class="control-label" for="it_project_type">Type</label>
-    <select class="form-control" name="project_type" id="it_project_type">
-      <option value="-1">Choose One</option>
-      <option value="2" {% if form.data.project_type == 2 %}selected{% endif %}>Startup</option>
-      <option value="0" {% if form.data.project_type == 0 %}selected{% endif %}>Research</option>
-    </select>
-    <p class="help-block">
-      Please select the project type
-    </p>
-  </div>
-
-  <div class="form-group {% if form.errors.field_of_science %}has-error{% endif %}">
-    <label class="control-label" for="id_field_of_science">Field of Science</label>
-    <select name="field_of_science" id="id_field_of_science" class="form-control">
-      <option value="">Choose One</option>
-      {% for field in fields %}
-        <option value="{{ field.id }}" {% if field.id == form.data.field_of_science %}selected{% endif %}>{{ field.name }}</option>
-        {% if field.children %}
-          {% for child in field.children %}
-            <option value="{{ child.id }}" {% if child.id == form.data.field_of_science %}selected{% endif %}>--- {{ child.name }}</option>
-            {% if child.children %}
-              {% for grandc in child.children %}
-                <option value="{{ grandc.id }}" {% if grandc.id == form.data.field_of_science %}selected{% endif %}>--- --- {{ grandc.name }}</option>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    </select>
-    <p class="help-block">Please indicate a primary field of science for this research</p>
-  </div>
-{% endcomment %}
-
   {% bootstrap_form form %}
-  
+
   <div class="form-group">
     <label class="control-label">Project ID</label>
     <input type="text" disabled readonly class="form-control" placeholder="CH-XXXXXX">

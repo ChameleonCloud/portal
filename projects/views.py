@@ -155,23 +155,35 @@ def lookup_fg_projects( request ):
 
 def fg_project_migrate( request ):
     if request.method == 'POST':
+        tas = TASClient()
         try:
             pi_user = tas.get_user( username=request.user )
+
+            # migrated data
             project = request.POST.copy()
+
+            # default values
             project['typeId'] = 2 # startup
             project['fieldId'] = 1 # not chosen
             project['piId'] = pi_user['id']
+
+            # allocation
             project['allocations'] = [
                 {
                     'resourceId': 39,                        # chameleon
                     'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': 'FutureGrid migration', # reuse for now
+                    'justification': 'FutureGrid project migration', # reuse for now
                     'computeRequested': 1,                   # simple request for now
                 }
             ]
 
+            # source
+            project['source'] = 'Chameleon'
+
+            logger.debug( project )
+
             created_project = tas.create_project( project )
-            messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['name'] )
+            messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'] )
             return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
         except:
             logger.exception( 'Error migrating project' )
