@@ -4,7 +4,7 @@
 
 {% block content %}
 <h2>Migrate FutureGrid Projects to Chameleon</h2>
-{% if projects %}
+{% if fg_projects %}
   <p class="lead">
     We located the following FutureGrid projects that you were
     associated with. Projects on which you are the Manager or Lead are available
@@ -12,7 +12,7 @@
     Manager/Lead if you would like to see the project migrated.
   </p>
   <ol>
-    {% for project in projects %}
+    {% for project in fg_projects %}
     <li class="project">
       <h4>
         {{ project.title }} |

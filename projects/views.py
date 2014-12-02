@@ -133,8 +133,14 @@ def edit_project( request ):
 
 @login_required
 def lookup_fg_projects( request ):
-    projects = project_util.list_migration_projects( request.user.email )
-    return render( request, 'lookup_fg_project.html', { 'projects': projects } )
+    fg_projects = project_util.list_migration_projects( request.user.email )
+
+    # filter already migrated projects
+    tas = TASClient()
+    projects = tas.projects_for_user( request.user )
+    fg_projects = [p for p in fg_projects if not any( q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode ) ]
+
+    return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
 
 @login_required
 def fg_project_migrate( request ):
