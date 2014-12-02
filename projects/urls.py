@@ -11,5 +11,7 @@ urlpatterns = patterns(
 
     url( r'^futuregrid/$', 'lookup_fg_projects', name='lookup_fg_projects' ),
 
-    url( r'^futuregrid/migrate$', 'fg_project_migrate', name='fg_project_migrate' ),
+    url( r'^futuregrid/migrate/$', 'fg_project_migrate', name='fg_project_migrate' ),
+
+    url( r'^(\d+)/fg_add_user/$', 'fg_add_user', name='fg_add_user' ),
 )

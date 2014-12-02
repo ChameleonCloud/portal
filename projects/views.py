@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.core.urlresolvers import reverse
 from datetime import datetime
 from pytas.pytas import client as TASClient
-from django.db import connections
-from projectModel import Project
 from forms import ProjectCreateForm, ProjectAddUserForm
+import project_util
+import re
 import logging
 import json
 
@@ -66,11 +66,22 @@ def view_project( request, project_id ):
 
     project = tas.project( project_id )
     users = tas.get_project_users( project_id )
+    fg_migration = re.search( r'FG-(\d+)', project['chargeCode'] )
+    if fg_migration:
+        fg_project_num = fg_migration.group( 1 )
+        fg_users = project_util.list_migration_users( fg_project_num )
+
+        # filter out existing users
+        fg_users = [u for u in fg_users if not any( x for x in users if x['username'] == u['username'] ) ]
+    else:
+        fg_users = None
 
     return render( request, 'view_project.html', {
         'project': project,
         'users': users,
         'is_pi': request.user.username == project['pi']['username'],
+        'fg_migration': fg_migration,
+        'fg_users': fg_users,
         'form': form,
     } )
 
@@ -122,39 +133,10 @@ def edit_project( request ):
 
 @login_required
 def lookup_fg_projects( request ):
-    cursor = connections['futuregrid'].cursor()
+    projects = project_util.list_migration_projects( request.user.email )
+    return render( request, 'lookup_fg_project.html', { 'projects': projects } )
 
-    query_str = """SELECT DISTINCT
-                u.name,
-                n.title,
-                p.field_projectid_value,
-                p.field_project_abstract_value,
-                manager.mail AS manager,
-                lead.mail AS lead,
-                u.uid = lead.uid OR u.uid = manager.uid AS is_pi
-                FROM node n
-                LEFT JOIN content_type_fg_projects p on p.nid = n.nid
-                LEFT JOIN content_field_project_members mem ON mem.nid = n.nid
-                LEFT JOIN users manager on manager.uid = p.field_project_manager_uid
-                LEFT JOIN users lead on lead.uid = p.field_project_lead_uid
-                LEFT JOIN users member ON mem.field_project_members_uid = member.uid
-                LEFT JOIN users u on u.uid = member.uid OR u.uid = lead.uid OR u.uid = manager.uid
-                WHERE n.type = 'fg_projects'
-                AND u.mail = %s"""
-
-    cursor.execute(query_str, [request.user.email])
-
-    project = cursor.fetchall()
-
-    projects = []
-
-    for p in project:
-        projects.append(Project(p[0], p[1], p[2], p[3], p[4], p[5], p[6]))
-
-    context = { "projects" : projects }
-
-    return render( request, 'lookup_fg_project.html', context)
-
+@login_required
 def fg_project_migrate( request ):
     if request.method == 'POST':
         tas = TASClient()
@@ -191,3 +173,51 @@ def fg_project_migrate( request ):
             logger.exception( 'Error migrating project' )
             messages.error( request, 'An unexpected error occurred. Please try again' )
     return HttpResponseRedirect( reverse( 'lookup_fg_projects' ) )
+
+@login_required
+def fg_add_user( request, project_id ):
+    response = {}
+
+    if request.POST:
+        username = request.POST['username']
+        email = request.POST['email']
+        try:
+            tas = TASClient()
+            user = tas.get_user( username=username )
+            if user['email'] == email:
+                # add user to project
+                if tas.add_project_user( project_id, username ):
+                    response['status'] = 'success'
+                    response['message'] = 'User added to project!'
+                    response['result'] = True
+                else:
+                    response['status'] = 'error'
+                    response['message'] = 'An unexpected error occurred. Please try again.'
+                    response['result'] = {
+                        'error': 'unexpected_error'
+                    }
+            else:
+                response['status'] = 'error'
+                response['message'] = 'A user with this username exists, but the email is different. Please confirm that they are the same user (%s). You can add the user manually on the left.' % user['email']
+                response['result'] = {
+                    'error': 'user_email_mismatch'
+                }
+        except Exception as e:
+            logger.exception( 'Error adding FG user to project' )
+
+            if e.args and e.args[0] == 'User not found':
+                response['status'] = 'error'
+                response['message'] = e.args[1]
+                response['result'] = {
+                    'error': 'user_not_found'
+                }
+            else:
+                response['status'] = 'error'
+                response['message'] = 'An unexpected error occurred. Please try again.'
+                response['result'] = {
+                    'error': 'unexpected_error'
+                }
+
+        return HttpResponse( json.dumps( response ), content_type='application/json' )
+    else:
+        return HttpResponseNotAllowed( ['POST'] )
