@@ -1,8 +1,8 @@
 ---
-title: FutureGrid User Documentation
+title: FutureGrid@Chameleon Documentation
 ---
 
-# FutureGrid User Documentation
+# FutureGrid@Chameleon Documentation
 
 - [Accounts](accounts)
 - [Allocations](allocations)

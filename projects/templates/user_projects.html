@@ -3,9 +3,12 @@
 {% block title %}Projects{% endblock %}
 
 {% block content %}
+
+{% comment %}
 <a href="{% url 'projects.views.create_project' %}" class="btn btn-info pull-right">
   <i class="fa fa-plus-circle"></i> Create a Project
 </a>
+{% endcomment %}
 
 <h2>Projects</h2>
 
@@ -36,11 +39,16 @@
 {% empty %}
   <div class="jumbotron">
     <h1>You don't have any projects!</h1>
-    <p>Create a project to get access to Chameleon resources.</p>
     <p>
-      <a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">
+      At this time, Chameleon is supporting
+      <a href="{% url 'documentation.views.display_doc' 'futuregrid' %}">FutureGrid@Chameleon</a>.
+      If you are a former FutureGrid User, you can migrate your project to
+      Chameleon.
+    </p>
+    <p>
+      <a href="{% url 'projects.views.lookup_fg_projects' %}" class="btn btn-info">
         <i class="fa fa-plus-circle"></i>
-        Create a Project
+        Migrate a FutureGrid Project
       </a>
     </p>
   </div>
