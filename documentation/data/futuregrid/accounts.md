@@ -3,7 +3,11 @@ title: FutureGrid Accounts
 ---
 # Activating a FutureGrid Account
 
-If you were a FutureGrid user, we have a very simple process for you to activate your Chameleon account.
+If you were a FutureGrid user, we have a very simple process for you to activate
+your Chameleon account.
 
-Simply enter the user name or email address you used with FutureGrid into our email-based [password recovery](/password-reset) process. You will receive an email with a link where you can set a
-password for Chameleon.
+[Create a new Chameleon Account](/user/register/) using the same email address
+as you used for you FutureGrid Account. You will receive and email confirmation
+to verify your account. Once you log in, you can
+[review your FutureGrid projects](/user/projects/futuregrid) and proceed from
+there to [activate your FutureGrid project on Chameleon](../allocations).

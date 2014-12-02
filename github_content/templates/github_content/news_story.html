@@ -13,7 +13,7 @@
   </header>
   <div class="post-content">
     {% if image %}
-      <img src="{% static image %}">
+      <img src="{% static image %}" class="img-responsive pull-left" style="margin: 0 1em 1em 0">
     {% endif %}
     {{ content|kramdown }}
   </div>

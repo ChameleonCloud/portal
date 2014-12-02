@@ -3,14 +3,19 @@ title: FutureGrid Allocations
 ---
 # Activating a FutureGrid Allocation
 
-All FutureGrid allocations have been entered into Chameleon, but they must be activated before they can be
-used. Only the PI of the FutureGrid allocation can claim it in Chameleon.
+All FutureGrid allocations have been entered into Chameleon, but they must be
+activated before they can be used. Only the Project Manager or Lead of the
+FutureGrid allocation can claim it in Chameleon. If you are a member of a
+project you will be able to view the project information and we will provide you
+links to contact the Manager/Lead if you would like to see the project migrated.
 
-The PI must first [activate their Chameleon account](../accounts). The PI can then log in to the Chameleon
-portal and go to their [allocation](/user/projects/) page. This page lists the Chameleon allocation requests
-(former FutureGrid projects) as 'Incomplete'. The PI simply needs to 'Edit' the allocation request, fill in
-any missing information, and submit the request. The allocation request will be approved quickly.
+After [activating your Chameleon account](../accounts), visit the
+[FutureGrid@Chameleon](/user/projects/futuregrid) page to view the FutureGrid
+projects that are available for migration. Migrated projects are queued for
+fast-track approval so that users can continue working on Chameleon.
 
-If you are not the PI of the FutureGrid project you wish to activate in Chameleon, your
-[allocation](/user/projects/futuregrid/) page includes a list of Chameleon allocation requests (former FutureGrid projects)
-that list you as a user. Contact the 'Requester' of the allocation and ask them to activate it.
+After migrating a project, you will be provided with a list of the former
+members of the project on FutureGrid. If these users have an account on
+Chameleon it is a one-click process to add them back to the project on
+Chameleon. For users that don't already have a Chameleon account, you can easily
+invite those users to create an account on Chameleon.

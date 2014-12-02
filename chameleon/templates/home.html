@@ -2,65 +2,39 @@
 {% load staticfiles %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div>
-  <p>
-    Chameleon is in an initial transition phase. We currently provide virtual
-    environments using OpenStack on our legacy FutureGrid clusters (Alamo and
-    Hotel). We'll provide additional functionality and new hardware in the
-    future! Please see our <a href="{% url 'github_content.views.news_story' '2014' '07' '23' 'chameleon-cloud-will-be-launching-soon' %}">schedule</a> for
-    more information.
-  </p>
-
-  <h2>Getting Started</h2>
-
-  <div class="row">
-    <div class="col-md-6">
+<div class="row">
+  <div class="col-md-6">
+    <h2>FutureGrid<span>@</span>Chameleon</h2>
+    <p>
+      FutureGrid<span>@</span>Chameleon is a transitional phase allowing Chameleon users to use
+      our legacy FutureGrid clusters, Alamo and Hotel, configured as they were in
+      FutureGrid: as OpenStack resources. New Chameleon hardware and capabilities
+      will become available next year. Please
+      <a href="{% url 'github_content.views.news_story' '2014' '07' '23' 'chameleon-cloud-will-be-launching-soon' %}">see our project schedule</a>
+      for more information.
+    </p>
+  </div>
+  <div class="col-md-6">
+    <div>
+      <h2>Getting Started</h2>
       <p>
-        If you are performing research and development on large-scale cloud
-        software and platforms, Chameleon is for you! To get started:
+        All active FutureGrid users and projects have been imported into Chameleon. To
+        begin using Chameleon, all you need to do is:
       </p>
-
       <ol>
-        <li>
-          <a href="{% url 'documentation.views.display_doc' 'accounts' %}">Create an account</a>
-        </li>
-        <li>
-          <a href="{% url 'documentation.views.display_doc' 'allocations' %}">Request an allocation.</a>
-        </li>
-        <li>
-          Once your allocation is approved, follow our
-          <a href="{% url 'documentation.views.display_doc' 'user-guides/openstack-icehouse-user-guide' %}">OpenStack User Guide</a>
-        </li>
+        <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/accounts' %}">Activate your account</a>
+        <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/allocations' %}">Activate your allocation</a>
       </ol>
-
-      <p>
-        In the near future, we'll also be supporting research on cloud infrastructure.
-      </p>
     </div>
+  </div>
+</div>
 
+<h2>Recent News</h2>
+<div class="row">
+  {% for post in posts %}
     <div class="col-md-6">
-      <article class="block">
-        <h2>FutureGrid Users</h2>
-        <p>
-          All active FutureGrid users and projects have been imported into Chameleon. To
-          begin using Chameleon, all you need to do is:
-        </p>
-
-        <ol>
-          <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/accounts' %}">Activate your account</a>
-            <li> <a href="{% url 'documentation.views.display_doc' 'futuregrid/allocations' %}">Activate your allocation</a>
-        </ol>
-      </article>
+      {% include "github_content/news_teaser.html" %}
     </div>
-  </div>
-
-  <h2>Recent News</h2>
-  <div class="row">
-    {% for post in posts %}
-      <div class="col-md-6">
-        {% include "github_content/news_teaser.html" %}
-      </div>
-    {% endfor %}
-  </div>
+  {% endfor %}
 </div>
 {% endblock %}

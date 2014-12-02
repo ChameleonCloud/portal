@@ -172,19 +172,14 @@ article {
     font-size: 0.9em;
   }
 
-  img {
-    float: left;
-    margin-right: 1.5em;
-    margin-bottom: 1.5em;
-  }
-
   &.block {
     position: relative;
-    border: 2px solid $brand-success;
+    border-color: $brand-success;
+    border-style: solid;
+    border-width: 2px;
     padding: 0 0.75em;
-    margin-bottom: 0;
-    height: 190px;
-    overflow: hidden;
+    margin-bottom: 0.5em;
+    min-height: 170px;
 
     h2 {
       font-size: 1.25em;
@@ -200,6 +195,8 @@ article {
     }
 
     .read-more {
+      text-transform: uppercase;
+      padding: 1px 3px;
       color: #fff;
       background-color: $brand-success;
       border: 0;
