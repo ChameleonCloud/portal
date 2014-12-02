@@ -40,9 +40,10 @@ def view_project( request, project_id ):
             if form.is_valid():
                 # try to add user
                 try:
-                    if tas.add_project_user( project_id, form.cleaned_data['username'] ):
+                    add_username = form.cleaned_data['username']
+                    if tas.add_project_user( project_id, add_username ):
+                        messages.success( request, 'User "%s" added to project!' % add_username )
                         form = ProjectAddUserForm()
-                        messages.success( request, 'User "%s" added to project!' % form.cleaned_data['username'] )
                 except:
                     logger.exception( 'Failed adding user' )
                     form.add_error( 'username', '' )
@@ -53,8 +54,9 @@ def view_project( request, project_id ):
         if 'del_user' in request.POST:
             # try to remove user
             try:
-                if tas.del_project_user( project_id, request.POST['username'] ):
-                    messages.success( request, 'User "%s" removed from project' % request.POST['username'] )
+                del_username = request.POST['username']
+                if tas.del_project_user( project_id, del_username ):
+                    messages.success( request, 'User "%s" removed from project' % del_username )
             except:
                 logger.exception( 'Failed removing user' )
                 messages.error( request, 'An unexpected error occurred while attempting to remove this user. Please try again' )
