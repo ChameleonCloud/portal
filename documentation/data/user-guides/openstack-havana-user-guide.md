@@ -20,27 +20,32 @@ propagate to the OpenStack interface on Hotel in less than an hour.
 
 The initial log in page appears as:
 
-![Log in page](images/openstack_hotel_login.png)
+![Log in page](/static/documentation/images/openstack_hotel_login.png)
+{: .thumbnail}
 
 After a successful log in, you will see the Overview page as shown below. This page provides a summary of your current and recent usage and provides links to various other pages. Most of the tasks you will perform are done via the menu on the lower left and will be described below. One thing to note is that on the left, your current project is displayed. If you have multiple Chameleon projects, you can change which of them is your current project. All of the information displayed and actions that you take apply to your current project. So in the screen shot below, the quota and usage apply to the current project you have selected and no information about your other projects is shown.
 
-![Project Overview](images/openstack_hotel_overview.png)
+![Project Overview](/static/documentation/images/openstack_hotel_overview.png)
+{: .thumbnail}
 
 ## Managing Virtual Machine Instances
 
 One of the main activities you'll be performing in this web interface is the management of virtual machines, or instances. You do this via the Instances page that is reachable from the menu in the lower left of the Overview page. An example Instances page is shown below. For instances that you have running, you can click on the name of the instance to get more information about it and to access the VNC interface to the console. The dropdown menu to the left of the instance lets you perform a variety of tasks such as suspending, terminating, or rebooting the instance.
 
-![Instances Overview](images/openstack_hotel_instances.png)
+![Instances Overview](/static/documentation/images/openstack_hotel_instances.png)
+{: .thumbnail}
 
 The Instances page also lets you create new virtual machines by using the 'Launch Instance' button in the upper-right. When you click this button, a dialog window pops up. In the first 'Details' tab, you select the 'Instance Boot Source' of the instance, which is either an 'Image', a 'Snapshot' (an image created from a running virtual machine), or a 'Volume' (a persistent virtual disk that can be attached to a virtual machine). If you select 'Boot from image', the Image Name dropdown presents a list of virtual machine images that we have provided, that other Chameleon users have uploaded and made public, or images that you have uploaded for yourself. If you select 'Boot from snapshot', the Instance Snapshot dropdown presents a list of virtual machine images that you have created from your running virtual machines.
 
 On the Details tab, you also provide a name for this instance (to help you identify instances that you are running), and select the amount of resources (Flavor) to allocate to the instance. If you select different flavors from the Flavor dropdown, their characteristics are displayed on the right.
 
-![Launch Instance: Details](images/openstack_hotel_launch_details.png)
+![Launch Instance: Details](/static/documentation/images/openstack_hotel_launch_details.png)
+{: .thumbnail}
 
 The next tab is 'Access & Security' where you select an SSH keypair that will be inserted into your virtual machine. These keypairs can be uploaded via the main 'Access & Security' section. If you had a FutureGrid account you should also find the SSH public keys that you uploaded via the FutureGrid portal. You will need to select a keypair here to be able to access an instance created from one of the public images Chameleon provides. These images are not configured with a default root password and you will not be able to log in to them without configuring an SSH key.
 
-![Launch Instance: Access & Security](images/openstack_hotel_launch_access.png)
+![Launch Instance: Access & Security](/static/documentation/images/openstack_hotel_launch_access.png)
+{: .thumbnail}
 
 Once you do this, you can Launch your instance and the Instances page will show progress as it starts.
 
@@ -54,15 +59,18 @@ The OpenStack cloud on Hotel assigns both a public and a private IP address to e
 
 To enable more traffic, you need to configure the security group used by your virtual machine. You can see a list of your security groups using the "Access & Security" link on the left.
 
-![Security Groups Overview](images/openstack_hotel_security_groups.png)
+![Security Groups Overview](/static/documentation/images/openstack_hotel_security_groups.png)
+{: .thumbnail}
 
 To edit a security group, click on "Edit Rules". This opens a page showing the existing rules in the security group.
 
-![Edit Security Group Rules](images/openstack_hotel_edit_rules.png)
+![Edit Security Group Rules](/static/documentation/images/openstack_hotel_edit_rules.png)
+{: .thumbnail}
 
 Then, click on "Add Rule" and enter the protocol (by default TCP) and the port number that you want to authorize. Finally, click on Add to save the new rule. Modifications are automatically propagated to the OpenStack cloud.
 
-![Add Security Group Rule](images/openstack_hotel_add_secgroup_rule.png)
+![Add Security Group Rule](/static/documentation/images/openstack_hotel_add_secgroup_rule.png)
+{: .thumbnail}
 
 ## Accessing Your Virtual Machine
 
