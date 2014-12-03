@@ -1,7 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 from django.views import generic
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from github_content import util as content_util
 
