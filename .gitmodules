@@ -1,6 +1,6 @@
 [submodule "deps/pytas"]
 	path = deps/pytas
-	url = git@bitbucket.org:mrhanlon/pytas.git
+	url = git@bitbucket.org:taccaci/pytas.git
 [submodule "deps/python-rt"]
 	path = deps/python-rt
 	url = https://gitlab.labs.nic.cz/labs/python-rt.git
