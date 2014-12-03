@@ -23,6 +23,7 @@ urlpatterns = patterns(
     url(r'^docs/', include('documentation.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^captcha/', include('captcha.urls')),
+    url(r'^terms/', include('termsandconditions.urls')),
 
     # pass any other urls to github_content
     url( r'^', include( 'github_content.urls' ) ),

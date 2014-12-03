@@ -6,6 +6,8 @@ slimit
 django-simple-captcha
 pyyaml
 django-bootstrap3
+django-termsandconditions
+pytz
 
 # these modules aren't in PIP
 #pytas

@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'menu',
     'captcha',
     'bootstrap3',
+    'termsandconditions',
 
     # custom
     'site_menu',
@@ -65,6 +66,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'termsandconditions.middleware.TermsAndConditionsRedirectMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -252,3 +254,14 @@ DJANGO_RT = {
 BOOTSTRAP3 = {
     'required_css_class': 'required',
 }
+
+#####
+#
+# Terms and Conditions settings
+#
+#####
+DEFAULT_TERMS_SLUG = 'user-terms'
+ACCEPT_TERMS_PATH = '/terms/accept/'
+TERMS_EXCLUDE_URL_PREFIX_LIST = {'/admin', '/terms'}
+TERMS_EXCLUDE_URL_LIST = {'/', '/termsrequired/', '/logout/', '/securetoo/'}
+MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
