@@ -24,7 +24,7 @@ def user_projects( request ):
     ch_projects = []
 
     for p in projects:
-        if p[ 'source' ] == 'Chameleon':
+        if 'source' in p and p[ 'source' ] == 'Chameleon':
             ch_projects.append( p )
 
     context['projects'] = ch_projects
@@ -143,6 +143,20 @@ def lookup_fg_projects( request ):
     fg_projects = [p for p in fg_projects if not any( q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode ) ]
 
     return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
+
+@login_required
+def fg_project_confirm( request ):
+    postData = request.POST.copy()
+
+    if request.POST and 'chargeCode' in postData:
+        project = project_util.get_project(postData['chargeCode'])
+        form = ProjectCreateForm( request.POST )
+    else:
+        project = {}
+        form = ProjectCreateForm()
+
+
+    return render( request, 'confirm_fg_project.html', { 'project': project, 'form': form } )
 
 @login_required
 @terms_required('project-terms')

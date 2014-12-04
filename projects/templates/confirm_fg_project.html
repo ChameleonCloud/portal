@@ -1,0 +1,29 @@
+{% extends 'layout/user.html' %}
+
+{% load bootstrap3 %}
+
+{% block title %}Review and Confirm Project Migration{% endblock %}
+
+{% block content %}
+
+    {% if project %}
+    <h3>Confirm migration of {{ project.title }} [FG-{{ project.chargeCode }}]</h2>
+    {% else %}
+        <div class="alert alert-danger">There was an issue loading your Futuregrid project for migration</div>
+    {% endif %}
+
+    <p>
+        <b>* You will be able to add previous users to this project after it has been migrated.</b>
+    </p>
+
+    <p>
+    <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+    </p>
+    <div class="form-group">
+        <button type="submit" class="btn btn-success">Migrate Project</button>
+    </div>
+    </form>
+
+{% endblock %}
