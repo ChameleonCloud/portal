@@ -12,8 +12,6 @@ import re
 import logging
 import json
 
-logger = logging.getLogger('default')
-
 @login_required
 def profile( request ):
     context = {}
@@ -113,11 +111,13 @@ def _process_password_reset_request( request, form ):
         messages.success(request, 'Your request has been received. If an account matching the username you provided is found, you will receive an email with further instructions to complete the password reset process.')
 
         username = form.cleaned_data['username']
+        logger = logging.getLogger('auth')
         logger.info( 'Password reset request for username: "%s"', username)
         try:
             tas = TASClient()
             user = tas.get_user( username=username )
-            tas.request_password_reset( user['username'] )
+            resp = tas.request_password_reset( user['username'], source='Chameleon' )
+            logger.debug( resp )
         except:
             logger.exception( 'Failed password reset request' )
 
@@ -132,12 +132,15 @@ def _process_password_reset_confirm( request, form ):
             tas = TASClient()
             return tas.confirm_password_reset( data['username'], data['code'], data['password'] )
         except Exception as e:
+            logger = logging.getLogger('auth')
             logger.exception( 'Password reset failed' )
-
-            if re.search( 'account does not match', e.args[1] ):
-                form.add_error( 'username', e.args[1] )
-            elif re.search( 'No password reset request matches', e.args[1] ):
-                form.add_error( 'code', e.args[1] )
+            if len( e.args ) > 1:
+                if re.search( 'account does not match', e.args[1] ):
+                    form.add_error( 'username', e.args[1] )
+                elif re.search( 'No password reset request matches', e.args[1] ):
+                    form.add_error( 'code', e.args[1] )
+                else:
+                    form.add_error( '__all__', 'An unexpected error occurred. Please try again' )
             else:
                 form.add_error( '__all__', 'An unexpected error occurred. Please try again' )
 
@@ -246,7 +249,10 @@ def register( request ):
             data['piEligibility'] = 'Ineligible'
 
             # log the request
-            logger.info('processing user registration: ' + str(data))
+            logger = logging.getLogger('auth')
+            cleaned = data.copy()
+            cleaned['password'] = cleaned['confirm_password'] = '********'
+            logger.info( 'processing user registration: ', json.dumps( cleaned ) )
 
             try:
                 created_user = tas.save_user( None, data )
@@ -285,6 +291,7 @@ def register( request ):
         else:
             context['curr_inst'] = None
     except Exception as e:
+        logger = logging.getLogger('default')
         logger.error( 'Error loading institutions', e )
         context['institutions'] = False
 
@@ -292,6 +299,7 @@ def register( request ):
         countries = tas.countries()
         context['countries'] = countries
     except Exception as e:
+        logger = logging.getLogger('default')
         logger.error( 'Error loading countries', e )
         context['countries'] = False
 
