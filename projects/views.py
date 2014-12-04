@@ -145,6 +145,7 @@ def lookup_fg_projects( request ):
     return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
 
 @login_required
+@terms_required( 'project-terms' )
 def fg_project_confirm( request ):
     postData = request.POST.copy()
 
