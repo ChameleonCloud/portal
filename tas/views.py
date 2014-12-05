@@ -41,7 +41,11 @@ def profile_edit( request ):
         data[ 'lastName' ] = request.POST[ 'lastName' ]
         data[ 'email' ] = request.POST[ 'email' ]
         data[ 'institutionId' ] = int( request.POST[ 'institutionId' ] )
-        data[ 'departmentId' ] = int( request.POST[ 'departmentId' ] )
+        try:
+            data[ 'departmentId' ] = int( request.POST[ 'departmentId' ] )
+        except:
+            data[ 'departmentId' ] = None
+
         data[ 'countryId' ] = int( request.POST[ 'countryId' ] )
         data[ 'citizenshipId' ] = int( request.POST[ 'citizenshipId' ] )
         tas.save_user( data[ 'id' ], data )
@@ -130,7 +134,7 @@ def _process_password_reset_confirm( request, form ):
         data = form.cleaned_data
         try:
             tas = TASClient()
-            return tas.confirm_password_reset( data['username'], data['code'], data['password'] )
+            return tas.confirm_password_reset( data['username'], data['code'], data['password'], source='Chameleon' )
         except Exception as e:
             logger = logging.getLogger('auth')
             logger.exception( 'Password reset failed' )

@@ -99,22 +99,30 @@
 {% block scripts %}
 <script type="text/javascript">
 jQuery(function($) {
-  $('#institution').on('change', function(e) {
+  $('#institutionId').on('change', function(e) {
     var id = this.value;
     if (id) {
       var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
       if (depts.length) {
-        $('#department').attr('disabled', null);
-        console.log(depts);
+        var opts = '<option value="">Choose One</option>';
+        $.each(depts, function(i, o) {
+          opts += '<option value="' + o.id + '">' + o.name + '</option>';
+        });
+        $('#departmentId').html(opts);
+        $('#departmentId').parent().removeClass('hide');
       } else {
-        $('#department').val('');
-        $('#department').attr('disabled', true);
+        $('#departmentId').val('');
+        $('#departmentId').parent().addClass('hide');
       }
     } else {
-      $('#department').val('');
-      $('#department').attr('disabled', true);
+      $('#departmentId').val('');
+      $('#departmentId').parent().addClass('hide');
     }
   });
+
+  if ($('#departmentId').val() === '') {
+    $('#departmentId').parent().addClass('hide');
+  }
 });
 </script>
 {% endblock %}
