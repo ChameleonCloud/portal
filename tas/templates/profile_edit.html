@@ -28,7 +28,7 @@
         <label class="control-label" for="institutionId">Institution</label>
         {% if institutions %}
         <select class="form-control" name="institutionId" id="institutionId">
-          <option>Choose one</option>
+          <option value="">Choose one</option>
             {% for inst in institutions %}
             <option {% if inst.id == profile.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|to_json }}">{{ inst.name }}</option>
             {% endfor %}
@@ -42,7 +42,7 @@
         <label class="control-label" for="departmentId">Department</label>
         {% if institutions %}
         <select class="form-control" name="departmentId" id="departmentId">
-          <option>Choose one</option>
+          <option value="">Choose one</option>
             {% for dept in curr_inst.children %}
             <option {% if dept.id == profile.departmentId %}selected{% endif %} value="{{ dept.id }}">{{ dept.name }}</option>
             {% endfor %}
@@ -56,7 +56,7 @@
         <label class="control-label" for="countryId">Country</label>
         {% if countries %}
         <select class="form-control" name="countryId" id="countryId">
-          <option>Choose one</option>
+          <option value="">Choose one</option>
           {% for country in countries %}
           <option value="{{ country.id }}" {% if country.id == profile.countryId %}selected{% endif %}>{{ country.name }}</option>
           {% endfor %}
@@ -70,7 +70,7 @@
         <label class="control-label" for="citizenshipId">Citizenship</label>
         {% if countries %}
         <select class="form-control" name="citizenshipId" id="citizenshipId">
-          <option>Choose one</option>
+          <option value="">Choose one</option>
           {% for country in countries %}
           <option value="{{ country.id }}" {% if country.id == profile.citizenshipId %}selected{% endif %}>{{ country.name }}</option>
           {% endfor %}

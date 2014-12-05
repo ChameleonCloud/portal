@@ -27,7 +27,7 @@
       <b>Institution</b>
     </div>
     <div class="col-sm-9 col-xs-7">
-      {{ profile.institution }}, {{ profile.department }}
+      {{ profile.institution }}{% if profile.department %}, {{ profile.department }}{% endif %}
     </div>
   </div>
   <div class="row">
