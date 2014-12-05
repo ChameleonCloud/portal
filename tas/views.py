@@ -197,7 +197,7 @@ def register( request ):
             errors['lastName'] = 'Please provide your last name'
 
         if data['username']:
-            validate_username = validators.RegexValidator( '[a-z][a-z0-9_]{2,7}', 'Please enter a valid username.' )
+            validate_username = validators.RegexValidator( '^[a-z][a-z0-9_]{2,7}$', 'Please enter a valid username.' )
             try:
                 validate_username( data['username'] )
             except ValidationError as e:
