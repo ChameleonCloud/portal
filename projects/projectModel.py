@@ -4,6 +4,7 @@ class Project:
     def __init__(self, username = "", project_title = "", project_id = "", abstract = "", manager_email = "", lead_email = "", is_pi = False):
         self.username = username
         self.title = project_title
+        self.project_id = project_id
         self.chargeCode = project_id
         self.abstract = self.strip_tags(abstract)
         self.manager_email = manager_email

@@ -10,10 +10,8 @@ urlpatterns = patterns(
     url( r'^(\d+)/$', 'view_project', name='view_project' ),
 
     url( r'^futuregrid/$', 'lookup_fg_projects', name='lookup_fg_projects' ),
-    
-    url( r'^futuregrid/confirm/$', 'fg_project_confirm', name='fg_project_confirm' ),
 
-    url( r'^futuregrid/migrate/$', 'fg_project_migrate', name='fg_project_migrate' ),
+    url( r'^futuregrid/(\d+)/migrate/$', 'fg_project_migrate', name='fg_project_migrate' ),
 
     url( r'^(\d+)/fg_add_user/$', 'fg_add_user', name='fg_add_user' ),
 )

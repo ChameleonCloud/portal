@@ -4,6 +4,7 @@ from chameleon.decorators import terms_required
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.core.urlresolvers import reverse
+from django import forms
 from datetime import datetime
 from pytas.pytas import client as TASClient
 from forms import ProjectCreateForm, ProjectAddUserForm
@@ -145,24 +146,10 @@ def lookup_fg_projects( request ):
     return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
 
 @login_required
-@terms_required( 'project-terms' )
-def fg_project_confirm( request ):
-    postData = request.POST.copy()
-
-    if request.POST and 'chargeCode' in postData:
-        project = project_util.get_project(postData['chargeCode'])
-        form = ProjectCreateForm( request.POST )
-    else:
-        project = {}
-        form = ProjectCreateForm()
-
-
-    return render( request, 'confirm_fg_project.html', { 'project': project, 'form': form } )
-
-@login_required
 @terms_required('project-terms')
-def fg_project_migrate( request ):
+def fg_project_migrate( request, project_id ):
     if request.method == 'POST':
+        form = ProjectCreateForm( request.POST )
         tas = TASClient()
         try:
             pi_user = tas.get_user( username=request.user )
@@ -171,8 +158,8 @@ def fg_project_migrate( request ):
             project = request.POST.copy()
 
             # default values
+            project['chargeCode'] = 'FG-%s' % project_id
             project['typeId'] = 2 # startup
-            project['fieldId'] = 1 # not chosen
             project['piId'] = pi_user['id']
 
             # allocation
@@ -193,10 +180,27 @@ def fg_project_migrate( request ):
             created_project = tas.create_project( project )
             messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'] )
             return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
-        except:
+        except Exception as e:
             logger.exception( 'Error migrating project' )
-            messages.error( request, 'An unexpected error occurred. Please try again' )
-    return HttpResponseRedirect( reverse( 'lookup_fg_projects' ) )
+            if len( e.args ) > 1:
+                if re.search( 'DuplicateProjectNameException', e.args[1] ):
+                    messages.error( request, 'A project with this name already exists. This project may have already been migrated.' )
+                else:
+                    messages.error( request, 'An unexpected error occurred. Please try again' )
+            else:
+                messages.error( request, 'An unexpected error occurred. Please try again' )
+    else:
+        project = project_util.get_project( project_id )
+
+        form = ProjectCreateForm( initial={
+            'title': project.title,
+            'description': project.abstract,
+            'typeId': 2,
+            'fieldId': 1,
+        } )
+
+    form.fields['typeId'].widget = forms.HiddenInput()
+    return render( request, 'fg_project_migrate.html', { 'project': project, 'form': form } )
 
 @login_required
 def fg_add_user( request, project_id ):

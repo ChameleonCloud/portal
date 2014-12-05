@@ -7,18 +7,19 @@
 {% block content %}
 
     {% if project %}
-    <h3>Confirm migration of {{ project.title }} [FG-{{ project.chargeCode }}]</h2>
+    <h3>Confirm migration of {{ project.title }} [FG-{{ project.project_id }}]</h2>
     {% else %}
         <div class="alert alert-danger">There was an issue loading your Futuregrid project for migration</div>
     {% endif %}
 
-    <p>
-        <b>* You will be able to add previous users to this project after it has been migrated.</b>
+    <p class="alert alert-info">
+      <i class="fa fa-asterisk"></i> You will be able to add previous users to this project after it has been migrated.
     </p>
 
     <p>
-    <form method="post" action="{% url 'projects.views.fg_project_migrate' %}">
+    <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="project_id" value="{{ project.project_id }}">
         {% bootstrap_form form %}
     </p>
     <div class="form-group">
