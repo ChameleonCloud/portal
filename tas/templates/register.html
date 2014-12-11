@@ -40,7 +40,7 @@
               <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|dictsort:"name"|to_json }}">{{ inst.name }}</option>
               {% endfor %}
               <optgroup label="Not Listed">
-                <option value="-1">My Institution is not Listed</option>
+                <option value="175">My Institution is not Listed</option>
               </optgroup>
           </select>
           {% else %}
@@ -174,25 +174,27 @@ jQuery(function($) {
 
     var id = parseInt(this.value);
     if (id > 0) {
-      var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
-      if (depts.length) {
-        var opts = '<option value="">Choose One</option>';
-        $.each(depts, function(i, o) {
-          opts += '<option value="' + o.id + '">' + o.name + '</option>';
-        });
-        $('#departmentId').html(opts);
-        $('#departmentId').parent().removeClass('hide');
-      } else {
+      if (id === 175) {
         $('#departmentId').val('');
         $('#departmentId').parent().addClass('hide');
+        $('#newInstitution').removeClass('hide');
+      } else {
+        var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
+        if (depts.length) {
+          var opts = '<option value="">Choose One</option>';
+          $.each(depts, function(i, o) {
+            opts += '<option value="' + o.id + '">' + o.name + '</option>';
+          });
+          $('#departmentId').html(opts);
+          $('#departmentId').parent().removeClass('hide');
+        } else {
+          $('#departmentId').val('');
+          $('#departmentId').parent().addClass('hide');
+        }
       }
     } else {
       $('#departmentId').val('');
       $('#departmentId').parent().addClass('hide');
-
-      if (id === -1) {
-        $('#newInstitution').removeClass('hide');
-      }
     }
   });
 
@@ -201,7 +203,7 @@ jQuery(function($) {
   }
 
   $('#institutionNotListed').on('click', function() {
-    $('#institutionId').val(-1).trigger('change');
+    $('#institutionId').val(175).trigger('change');
   });
 });
 </script>
