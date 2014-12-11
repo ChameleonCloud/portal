@@ -4,11 +4,11 @@
 
 {% block content %}
 
-{% comment %}
+{% if is_pi_eligible %}
 <a href="{% url 'projects.views.create_project' %}" class="btn btn-info pull-right">
   <i class="fa fa-plus-circle"></i> Create a Project
 </a>
-{% endcomment %}
+{% endif %}
 
 <h2>Projects</h2>
 
@@ -38,7 +38,8 @@
 <hr>
 {% empty %}
   <div class="jumbotron">
-    <h1>You don't have any projects!</h1>
+    <h1 style="border:0;margin-top:0;font-size:48px">You don't have any projects!</h1>
+    <h4>FutureGrid@Chameleon</h4>
     <p>
       At this time, Chameleon is supporting
       <a href="{% url 'documentation.views.display_doc' 'futuregrid' %}">FutureGrid@Chameleon</a>.
@@ -51,6 +52,18 @@
         Migrate a FutureGrid Project
       </a>
     </p>
+    {% if is_pi_eligible %}
+    <h4>Create a New Project</h4>
+    <p>
+      Now, PI eligible users can create new Chameleon projects!
+    </p>
+    <p>
+      <a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">
+        <i class="fa fa-plus-circle"></i>
+        Create a New Project
+      </a>
+    </p>
+    {% endif %}
   </div>
 {% endfor %}
 
