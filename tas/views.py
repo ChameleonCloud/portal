@@ -266,7 +266,7 @@ def register( request ):
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect( '/' )
             except Exception as e:
-                logger.error('Error saving user', e.args)
+                logger.exception('Error saving user')
                 if len(e.args) > 1:
                     if re.search( 'DuplicateLoginException', e.args[1] ):
                         message = 'The username you chose has already been taken. Please choose another.'
@@ -276,6 +276,11 @@ def register( request ):
                         message = 'This email is already registered.'
                         messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas.views.password_reset') ) )
                         errors['email'] = message
+                    elif re.search( 'PasswordInvalidException', e.args[1] ):
+                        message = 'The password you provided did not meet the complexity requirements.'
+                        messages.error( request, message )
+                        errors['password'] = message
+                        errors['confirm_password'] = message
                     else:
                         messages.error( request, 'An unexpected error occurred. If this problem persists please create a help ticket.' )
                 else:
