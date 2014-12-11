@@ -66,8 +66,8 @@
           <a tabindex="-1" href="#" id="institutionNotListed"><i class="fa fa-question-circle"></i> My Institution is not listed</a>
         </p>
         <div id="newInstitution" class="form-group hide">
-          <label class="control-label" for="institutionName">Institution name</label>
-          <input class="form-control" type="text" name="institutionName" id="institutionName" value="{{ form.data.institutionName }}">
+          <label class="control-label" for="institution">Institution name</label>
+          <input class="form-control" type="text" name="institution" id="institution" value="{{ form.data.institution }}">
           <p class="help-block">
             If your institution is not listed, please provide the name of the institution
             as it should be shown here.
@@ -202,7 +202,8 @@ jQuery(function($) {
     $('#departmentId').parent().addClass('hide');
   }
 
-  $('#institutionNotListed').on('click', function() {
+  $('#institutionNotListed').on('click', function(e) {
+    e.preventDefault();
     $('#institutionId').val(175).trigger('change');
   });
 

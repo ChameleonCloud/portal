@@ -69,14 +69,17 @@ def profile_edit( request ):
         curr_inst = next( ( x for x in inst if x['id'] == context['profile']['institutionId'] ), None)
         context['curr_inst'] = curr_inst
     except Exception as e:
-        print e
+        logger = logging.getLogger('default')
+        logger.exception('Error loading institutions')
         context['institutions'] = False
 
 
     try:
         countries = tas.countries()
         context['countries'] = countries
-    except:
+    except Exception as e:
+        logger = logging.getLogger('default')
+        logger.exception('Error loading countries')
         context['countries'] = False
 
     return render(request, 'profile_edit.html', context)
@@ -192,8 +195,6 @@ def register( request ):
     context = { 'form': {} }
     if request.POST:
         data = request.POST.copy()
-
-        print data
 
         errors = {}
 
