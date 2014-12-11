@@ -79,7 +79,7 @@
     </ul>
   </div>
 
-  {% if fg_migration %}
+  {% if fg_migration and is_pi %}
   <input type="hidden" name="fg_add_user_url" value="{% url 'projects.views.fg_add_user' project.id %}">
   <div class="col-md-6">
     <div class="well">

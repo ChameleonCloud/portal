@@ -20,8 +20,10 @@ def user_projects( request ):
     context = {}
 
     tas = TASClient()
-    projects = tas.projects_for_user( request.user )
+    user = tas.get_user( username=request.user )
+    context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
 
+    projects = tas.projects_for_user( request.user )
     ch_projects = []
 
     for p in projects:
@@ -91,6 +93,11 @@ def view_project( request, project_id ):
 @terms_required('project-terms')
 def create_project( request ):
     tas = TASClient()
+
+    user = tas.get_user( username=request.user )
+    if user['piEligibility'] != 'Eligible':
+        messages.error( request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please submit a help desk ticket!' )
+        return HttpResponseRedirect( reverse( 'user_projects' ) )
 
     if request.POST:
         form = ProjectCreateForm( request.POST )
