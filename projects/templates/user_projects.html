@@ -53,9 +53,10 @@
       </a>
     </p>
     {% if is_pi_eligible %}
+    <hr>
     <h4>Create a New Project</h4>
     <p>
-      Now, PI eligible users can create new Chameleon projects!
+      <span class="label label-default">New!</span> PI eligible users can now create new Chameleon projects!
     </p>
     <p>
       <a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">

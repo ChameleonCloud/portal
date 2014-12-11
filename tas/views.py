@@ -249,7 +249,6 @@ def register( request ):
         else:
             errors['password'] = 'Please provide and confirm your password'
 
-
         if len( errors ) == 0:
             # success!
 
@@ -257,15 +256,13 @@ def register( request ):
             data['source'] = 'Chameleon'
 
             # log the request
-            logger = logging.getLogger('auth')
             cleaned = data.copy()
             cleaned['password'] = cleaned['confirm_password'] = '********'
-            logger.info( 'processing user registration: ', json.dumps( cleaned ) )
+            logger = logging.getLogger('auth')
+            logger.info( 'processing user registration: data=%s', json.dumps( cleaned ) )
 
             try:
                 created_user = tas.save_user( None, data )
-                print created_user
-
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect( '/' )
             except Exception as e:
