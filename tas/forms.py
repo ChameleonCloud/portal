@@ -2,20 +2,20 @@ from django import forms
 from pytas.pytas import client as TASClient
 import re
 
-ELIGIBLE = 'Eligible'
-INELIGIBLE = 'Ineligible'
-PI_ELIGIBILITY = (
-    ('', 'Choose One'),
-    (ELIGIBLE, ELIGIBLE),
-    (INELIGIBLE, INELIGIBLE),
-)
-
-COUNTRIES = (('', 'Choose One'))
-
-INSTITUTIONS = (('', 'Choose One'))
-inst = tas.institutions()
-for i in inst:
-    INSTITUTIONS += ((i['id'], i['name']))
+# ELIGIBLE = 'Eligible'
+# INELIGIBLE = 'Ineligible'
+# PI_ELIGIBILITY = (
+#     ('', 'Choose One'),
+#     (ELIGIBLE, ELIGIBLE),
+#     (INELIGIBLE, INELIGIBLE),
+# )
+#
+# COUNTRIES = (('', 'Choose One'))
+#
+# INSTITUTIONS = (('', 'Choose One'))
+# inst = tas.institutions()
+# for i in inst:
+#     INSTITUTIONS += ((i['id'], i['name']))
 
 
 
@@ -59,30 +59,35 @@ class PasswordResetConfirmForm( forms.Form ):
                 self.add_error( 'confirm_password', '' )
                 raise forms.ValidationError( 'The password provided does not match the confirmation' )
 
-class UserRegistrationForm( forms.Form ):
-    firstName = forms.CharField( label='First Name', required=True )
-    lastName = forms.CharField( label='Last Name', required=True )
-    email = forms.EmailField( label='Email Address', required=True )
-    institutionId = forms.CharField( label='Institution', required=True )
-    countryId = forms.CharField( label='Country of Residence', required=True )
-    citizenshipId = forms.CharField( label='Country of Citizenship', required=True )
-    piEligibility =
-    username = forms.CharField( label='Username', required=True )
-    password = forms.CharField( widget=forms.PasswordInput, label='Password', required=True )
-    confirmPassword = forms.CharField( widget=forms.PasswordInput, label='Confirm Password', required=True )
-
-    def clean( self ):
-        cleaned_data = self.cleaned_data
-        password = cleaned_data.get( 'password' )
-        confirmPassword = cleaned_data.get( 'confirmPassword' )
-
-        if password and confirmPassword:
-            if password != confirmPassword:
-                self.add_error( 'password', 'The password provided does not match the confirmation' )
-                self.add_error( 'confirmPassword', '' )
-                raise forms.ValidationError( 'The password provided does not match the confirmation' )
-
             if not _password_policy( password ):
                 self.add_error( 'password', 'The password provided does not satisfy the password complexity requirements' )
-                self.add_error( 'confirmPassword', '' )
+                self.add_error( 'confirm_password', '' )
                 raise forms.ValidationError( 'The password provided does not satisfy the password complexity requirements' )
+
+# class UserRegistrationForm( forms.Form ):
+#     firstName = forms.CharField( label='First Name', required=True )
+#     lastName = forms.CharField( label='Last Name', required=True )
+#     email = forms.EmailField( label='Email Address', required=True )
+#     institutionId = forms.CharField( label='Institution', required=True )
+#     countryId = forms.CharField( label='Country of Residence', required=True )
+#     citizenshipId = forms.CharField( label='Country of Citizenship', required=True )
+#     piEligibility =
+#     username = forms.CharField( label='Username', required=True )
+#     password = forms.CharField( widget=forms.PasswordInput, label='Password', required=True )
+#     confirmPassword = forms.CharField( widget=forms.PasswordInput, label='Confirm Password', required=True )
+#
+#     def clean( self ):
+#         cleaned_data = self.cleaned_data
+#         password = cleaned_data.get( 'password' )
+#         confirmPassword = cleaned_data.get( 'confirmPassword' )
+#
+#         if password and confirmPassword:
+#             if password != confirmPassword:
+#                 self.add_error( 'password', 'The password provided does not match the confirmation' )
+#                 self.add_error( 'confirmPassword', '' )
+#                 raise forms.ValidationError( 'The password provided does not match the confirmation' )
+#
+#             if not _password_policy( password ):
+#                 self.add_error( 'password', 'The password provided does not satisfy the password complexity requirements' )
+#                 self.add_error( 'confirmPassword', '' )
+#                 raise forms.ValidationError( 'The password provided does not satisfy the password complexity requirements' )

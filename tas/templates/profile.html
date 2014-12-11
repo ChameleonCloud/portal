@@ -40,6 +40,16 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>PI Eligibility</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.piEligibility }}
+      <a data-toggle="tooltip" data-placement="top" title="Faculty and Research Staff from U.S.-based institutions can request PI Eligibility. If you are not PI Eligible and would like to request to be eligible, please file a help desk ticket."><i class="fa fa-info-circle"></i></a>
+    </div>
+  </div>
+
   {% if profile.source == 'Chameleon' %}
     <br>
     <a href="{% url 'profile_edit' %}" class="btn btn-default">
@@ -53,4 +63,10 @@
   </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip();
+</script>
 {% endblock %}

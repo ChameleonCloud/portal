@@ -192,6 +192,9 @@ def register( request ):
     context = { 'form': {} }
     if request.POST:
         data = request.POST.copy()
+
+        print data
+
         errors = {}
 
         if not data['firstName']:
@@ -235,6 +238,11 @@ def register( request ):
         else:
             errors['citizenshipId'] = 'Please provide your country of citizenship'
 
+        if 'piEligibility' in request.POST:
+            data['piEligibility'] = 'Eligible'
+        else:
+            data['piEligibility'] = 'Ineligible'
+
         if data['password'] and data['confirm_password']:
             if data['password'] != data['confirm_password']:
                 errors['password'] = 'The passwords provided do not match'
@@ -247,10 +255,6 @@ def register( request ):
 
             # source
             data['source'] = 'Chameleon'
-
-            # TODO?
-            # pi eligible
-            data['piEligibility'] = 'Ineligible'
 
             # log the request
             logger = logging.getLogger('auth')
