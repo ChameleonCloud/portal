@@ -4,4 +4,5 @@ title: User Guides
 
 # User Guides
 
-- [OpenStack Havana](openstack-havana-user-guide)
+- [Alamo User Guide](alamo-user-guide)
+- [Hotel User Guide](hotel-user-guide)

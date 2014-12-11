@@ -15,7 +15,7 @@ This tutorial provide basic information about how to use the OpenStack web inter
 ## Web Interface (Horizon)
 
 An easy way to use OpenStack on Alamo is via [the OpenStack web interface on
-Alamo](https://https://horizon.chameleon.tacc.utexas.edu). You log in to the web interface using your Chameleon username and
+Alamo](https://horizon.chameleon.tacc.utexas.edu). You log in to the web interface using your Chameleon username and
 password. If you change your Chameleon password in the portal, that change will
 propagate to the OpenStack interface on Alamo in less than an hour.
 
@@ -79,7 +79,7 @@ There are two ways you can access your virtual machine. One way is you can acces
 
 The second way is via SSH. When you created your virtual machine, you specified an SSH key to load in to the VM. OpenStack injects this SSH key into the VM and you can use the corresponding private SSH key to log in to the VM. You will need to use the public IP assigned to your VM to connect from outside of the Alamo cluster.
 
-**An important note is that many of the images that we provide do not allow you to SSH into the root account. Instead, you SSH into a different account and use passwordless sudo for any administrative tasks. For CentOS, Ubuntu, Fedora, and images, you SSH in to the 'cc' account. 
+**An important note is that many of the images that we provide do not allow you to SSH into the root account. Instead, you SSH into a different account and use passwordless sudo for any administrative tasks. For CentOS, Ubuntu, Fedora, and images, you SSH in to the 'cc' account.
 
 ## OpenStack REST Interfaces
 
@@ -92,4 +92,3 @@ If your command-line tool complains about the certificate, [download the Mozilla
 ## EC2 Interface
 
 OpenStack on Alamo supports the EC2 interface for programmatic access. You can download your EC2 credentials from the web interface via the "Access & Security"  link in the left of any page and then click on the "API Access" link on the top. You should see a 'Download EC2 Credentials' button on the top-right. Note that you have different EC2 credentials for each Chameleon project you participate in. If you are a member of multiple Chameleon projects, we request that you use the corresponding EC2 credentials when starting virtual machines for a project.
-
