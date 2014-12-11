@@ -37,7 +37,7 @@
           <select class="form-control" name="institutionId" id="institutionId">
             <option value="">Choose one</option>
               {% for inst in institutions %}
-              <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|to_json }}">{{ inst.name }}</option>
+              <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|dictsort:"name"|to_json }}">{{ inst.name }}</option>
               {% endfor %}
               <optgroup label="Not Listed">
                 <option value="-1">My Institution is not Listed</option>
@@ -53,7 +53,7 @@
           {% if institutions %}
           <select class="form-control" name="departmentId" id="departmentId">
             <option value="">Choose one</option>
-              {% for dept in curr_inst.children %}
+              {% for dept in curr_inst.children|dictsort:"name" %}
               <option {% if dept.id == form.data.departmentId %}selected{% endif %} value="{{ dept.id }}">{{ dept.name }}</option>
               {% endfor %}
           </select>
@@ -63,7 +63,7 @@
         </div>
 
         <p>
-          <a href="#" id="institutionNotListed"><i class="fa fa-question-circle"></i> My Institution is not listed</a>
+          <a tabindex="-1" href="#" id="institutionNotListed"><i class="fa fa-question-circle"></i> My Institution is not listed</a>
         </p>
         <div id="newInstitution" class="form-group hide">
           <label class="control-label" for="institutionName">Institution name</label>
