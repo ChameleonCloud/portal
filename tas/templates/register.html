@@ -40,7 +40,7 @@
               <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|dictsort:"name"|to_json }}">{{ inst.name }}</option>
               {% endfor %}
               <optgroup label="Not Listed">
-                <option value="175">My Institution is not Listed</option>
+                <option value="175" {% if 175 == form.data.institutionId %}selected{% endif %}>My Institution is not listed</option>
               </optgroup>
           </select>
           {% else %}
@@ -205,6 +205,10 @@ jQuery(function($) {
   $('#institutionNotListed').on('click', function() {
     $('#institutionId').val(175).trigger('change');
   });
+
+  if ($('#institutionId').val() === '175') {
+    $('#newInstitution').removeClass('hide');
+  }
 });
 </script>
 {% endblock %}
