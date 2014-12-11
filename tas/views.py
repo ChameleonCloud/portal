@@ -293,6 +293,9 @@ def register( request ):
 
     try:
         inst = tas.institutions()
+        # a tiny hack; we want "n/a" to be last in the list; done manually in template
+        inst = [i for i in inst if i['id'] is not 175]
+
         context['institutions'] = inst
         if 'institutionId' in data and data['institutionId']:
             context['curr_inst'] = next((x for x in inst if x['id'] == data['institutionId']), None)
