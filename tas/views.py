@@ -270,11 +270,11 @@ def register( request ):
                 logger.exception('Error saving user')
                 if len(e.args) > 1:
                     if re.search( 'DuplicateLoginException', e.args[1] ):
-                        message = 'The username you chose has already been taken. Please choose another.'
+                        message = 'The username you chose has already been taken. Please choose another. If you already have an account with TACC, please log in using those credentials.'
                         messages.error( request, message )
                         errors['username'] = message
                     elif re.search( 'DuplicateEmailException', e.args[1] ):
-                        message = 'This email is already registered.'
+                        message = 'This email is already registered. If you already have an account with TACC, please log in using those credentials.'
                         messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas.views.password_reset') ) )
                         errors['email'] = message
                     elif re.search( 'PasswordInvalidException', e.args[1] ):
