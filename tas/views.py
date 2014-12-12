@@ -296,7 +296,8 @@ def register( request ):
 
     try:
         inst = tas.institutions()
-        # a tiny hack; we want "n/a" to be last in the list; done manually in template
+        
+        # remove "n/a" from list
         inst = [i for i in inst if i['id'] is not 175]
 
         context['institutions'] = inst
