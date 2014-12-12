@@ -1,7 +1,7 @@
 ---
-title: OpenStack Havana User Guide
+title: Hotel User Guide
 ---
-# OpenStack Havana User Guide
+# Hotel User Guide
 
 ## Overview
 
