@@ -1,4 +1,6 @@
---- title: Alamo User Guide ---
+---
+title: Alamo User Guide
+---
 
 # Alamo User Guide
 
@@ -25,8 +27,8 @@ interface on Alamo in about 5 minutes.
 
 The initial log in page appears as:
 
-![Log in page](/static/documentation/images/openstack_alamo_login.png) {:
-.thumbnail}
+![Log in page](/static/documentation/images/openstack_alamo_login.png)
+{: .thumbnail}
 
 After a successful log in, you will see the Overview page as shown below. This
 page provides a summary of your current and recent usage and provides links to
@@ -52,9 +54,8 @@ access the VNC interface to the console. The dropdown menu to the left of the
 instance lets you perform a variety of tasks such as suspending, terminating,
 or rebooting the instance.
 
-![Instances
-Overview](/static/documentation/images/openstack_alamo_instances.png) {:
-.thumbnail}
+![Instances Overview](/static/documentation/images/openstack_alamo_instances.png)
+{: .thumbnail}
 
 The Instances page also lets you create new virtual machines by using the
 'Launch Instance' button in the upper-right. When you click this button, a
@@ -73,9 +74,8 @@ identify instances that you are running), and select the amount of resources
 (Flavor) to allocate to the instance. If you select different flavors from the
 Flavor dropdown, their characteristics are displayed on the right.
 
-![Launch Instance:
-Details](/static/documentation/images/openstack_alamo_launch_details.png) {:
-.thumbnail}
+![Launch Instance: Details](/static/documentation/images/openstack_alamo_launch_details.png)
+{: .thumbnail}
 
 The next tab is 'Access & Security', where you select an SSH keypair that will
 be inserted into your virtual machine. These keypairs can be uploaded via the
@@ -84,20 +84,21 @@ able to access an instance created from one of the public images Chameleon
 provides. These images are not configured with a default root password and you
 will not be able to log in to them without configuring an SSH key.
 
-![Launch Instance: Access &
-Security](/static/documentation/images/openstack_alamo_launch_access.png) {:
-.thumbnail}
+![Launch Instance: Access & Security](/static/documentation/images/openstack_alamo_launch_access.png)
+{: .thumbnail}
 
 Next is 'Networking', where you select which network should be associated with the instance. Click the + next to your your project's private network (PROJECT_NAME-net), not ext-net.
 
-![Launch Instance: Networking](/static/documentation/images/openstack_alamo_networking.png) {: .thumbnail}
+![Launch Instance: Networking](/static/documentation/images/openstack_alamo_networking.png)
+{: .thumbnail}
 
 Once you do this, you can Launch your instance and the Instances page will show
 progress as it starts.
 
 If you would like to assign a public IP address to your VM, you can do that while it is booting up. Click on the dropdown under *Actions* and choose *Associate Floating IP*. Choose an IP from the *IP Address* menu and click *Associate*. If there are no addresses available, click the + and follow the prompts to add one.
 
-![Launch Instance: Networking](/static/documentation/images/openstack_alamo_floating.png) {: .thumbnail}
+![Launch Instance: Networking](/static/documentation/images/openstack_alamo_floating.png)
+{: .thumbnail}
 
 OpenStack injects your SSH key into the VM and you can use the corresponding
 private SSH key to log in to the VM. You will need to use the public IP
@@ -125,24 +126,21 @@ To enable this traffic, you need to configure the security group used by your
 virtual machine. You can see a list of your security groups using the "Access &
 Security" link on the left.
 
-![Security Groups
-Overview](/static/documentation/images/openstack_alamo_security_groups.png) {:
-.thumbnail}
+![Security Groups Overview](/static/documentation/images/openstack_alamo_security_groups.png)
+{: .thumbnail}
 
 To edit a security group, click on "Edit Rules". This opens a page showing the
 existing rules in the security group.
 
-![Edit Security Group
-Rules](/static/documentation/images/openstack_alamo_edit_rules.png) {:
-.thumbnail}
+![Edit Security Group Rules](/static/documentation/images/openstack_alamo_edit_rules.png)
+{: .thumbnail}
 
 Click on "Add Rule" and choose the *SSH* rule from the list, and click *Add*.
 Modifications are automatically propagated to the OpenStack cloud. Feel free to
 add other rules as necessary.
 
-![Add Security Group
-Rule](/static/documentation/images/openstack_alamo_add_secgroup_rule.png) {:
-.thumbnail}
+![Add Security Group Rule](/static/documentation/images/openstack_alamo_add_secgroup_rule.png)
+{: .thumbnail}
 
 ## OpenStack REST Interfaces
 
