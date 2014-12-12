@@ -40,7 +40,7 @@
               <option {% if inst.id == form.data.institutionId %}selected{% endif %} value="{{ inst.id }}" data-depts="{{ inst.children|dictsort:"name"|to_json }}">{{ inst.name }}</option>
               {% endfor %}
               <optgroup label="Not Listed">
-                <option value="175" {% if 175 == form.data.institutionId %}selected{% endif %}>My Institution is not listed</option>
+                <option value="0" {% if 0 == form.data.institutionId %}selected{% endif %}>My Institution is not listed</option>
               </optgroup>
           </select>
           {% else %}
@@ -174,24 +174,22 @@ jQuery(function($) {
 
     var id = parseInt(this.value);
     if (id > 0) {
-      if (id === 175) {
+      var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
+      if (depts.length) {
+        var opts = '<option value="">Choose One</option>';
+        $.each(depts, function(i, o) {
+          opts += '<option value="' + o.id + '">' + o.name + '</option>';
+        });
+        $('#departmentId').html(opts);
+        $('#departmentId').parent().removeClass('hide');
+      } else {
         $('#departmentId').val('');
         $('#departmentId').parent().addClass('hide');
-        $('#newInstitution').removeClass('hide');
-      } else {
-        var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
-        if (depts.length) {
-          var opts = '<option value="">Choose One</option>';
-          $.each(depts, function(i, o) {
-            opts += '<option value="' + o.id + '">' + o.name + '</option>';
-          });
-          $('#departmentId').html(opts);
-          $('#departmentId').parent().removeClass('hide');
-        } else {
-          $('#departmentId').val('');
-          $('#departmentId').parent().addClass('hide');
-        }
       }
+    } else if (if === 0) {
+      $('#departmentId').val('');
+      $('#departmentId').parent().addClass('hide');
+      $('#newInstitution').removeClass('hide');
     } else {
       $('#departmentId').val('');
       $('#departmentId').parent().addClass('hide');
@@ -204,10 +202,10 @@ jQuery(function($) {
 
   $('#institutionNotListed').on('click', function(e) {
     e.preventDefault();
-    $('#institutionId').val(175).trigger('change');
+    $('#institutionId').val(0).trigger('change');
   });
 
-  if ($('#institutionId').val() === '175') {
+  if ($('#institutionId').val() === '0') {
     $('#newInstitution').removeClass('hide');
   }
 });
