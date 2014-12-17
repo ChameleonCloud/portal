@@ -236,6 +236,14 @@ TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)
 
 #####
 #
+# Google Analytics
+#
+#####
+GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get( 'GOOGLE_ANALYTICS_PROPERTY_ID' )
+TEMPLATE_CONTEXT_PROCESSORS += ( 'chameleon.context_processors.google_analytics', )
+
+#####
+#
 # Django RT
 #
 #####
