@@ -5,22 +5,27 @@ MAINTAINER Matthew R Hanlon <mrhanlon@tacc.utexas.edu>
 # kramdown for parsing static site content
 RUN gem install kramdown
 
-# setup project code
-COPY . /project
-WORKDIR /project
-
-# install non-pip dependencies
-RUN cd deps/pytas && python setup.py install && cd ../python-rt && python setup.py install
+# copy requirements.txt, deps, and config separate from the rest of the project
+COPY requirements.txt /setup/requirements.txt
+COPY deps /setup/deps
+COPY docker-conf /setup/docker-conf
 
 # install pip dependencies
-RUN pip install -r requirements.txt
+RUN pip install -r /setup/requirements.txt
+
+# install non-pip dependencies
+RUN cd /setup/deps/pytas && python setup.py install && cd ../python-rt && python setup.py install
 
 # configure nginx, uwsgi, supervisord
 RUN \
     echo "daemon off;" >> /etc/nginx/nginx.conf \
     && rm /etc/nginx/sites-enabled/default \
-    && ln -s /project/docker-conf/nginx-app.conf /etc/nginx/sites-enabled/ \
-    && ln -s /project/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
+    && ln -s /setup/docker-conf/nginx-app.conf /etc/nginx/sites-enabled/ \
+    && ln -s /setup/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
+
+# setup project code
+COPY . /project
+WORKDIR /project
 
 # database migrations, if necessary
 RUN python manage.py migrate
