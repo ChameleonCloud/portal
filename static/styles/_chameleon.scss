@@ -230,3 +230,14 @@ article {
     }
   }
 }
+
+@media screen and (min-width:768px) and (max-width:991px) {
+  .navbar-chameleon {
+    .navbar-brand {
+      width: 175px;
+      img {
+        margin-top: -16px;
+      }
+    }
+  }
+}

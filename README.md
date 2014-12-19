@@ -98,6 +98,10 @@ docker run \
 
 ## Release History
 
+### v1.1.2
+
+- Fix new institution creation when not listed
+
 ### v1.1.1
 
 - Fixed documentation errors

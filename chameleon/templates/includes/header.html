@@ -10,13 +10,14 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="/">
-          <img height="60" width="206" src="{% static "images/logo.png" %}" alt="Chameleon">
+        <a class="navbar-brand" href="/" style="margin-left:-20px">
+          <img class="img-responsive" height="60" width="206" src="{% static "images/logo.png" %}" alt="Chameleon">
           <span class="sr-only">{{ site.title }}</span>
         </a>
       </div>
       <div class="collapse navbar-collapse" id="main-nav">
         <ul class="nav navbar-nav">
+          <li><a href="/"><i class="fa fa-home"></i><span class="sr-only">Home</span></a></li>
           {% for item in menus.main %}
             {% if item.children %}
               <li class="dropdown {% if item.selected %}active{% endif %}">
