@@ -13,10 +13,8 @@ site = {
 
 def home( request ):
     context = dict(site.items())
-
     posts = content_util.get_posts( limit=2 )
     context['posts'] = posts
-
     return render(request, 'home.html', context)
 
 @login_required
