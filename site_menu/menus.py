@@ -12,24 +12,17 @@ def profile_title(request):
 """
 Main Menu
 """
-# doc_children = (
-#     MenuItem( 'Overview', reverse( 'documentation.views.display_doc'), ),
-#     MenuItem( 'User Guides', reverse( 'documentation.views.display_doc', args=['user-guides']), ),
-# )
-#
-# Menu.add_item( 'main',
-#     MenuItem(
-#         'Documentation',
-#         reverse( 'documentation.views.display_doc'),
-#         weight = 0,
-#         children = doc_children
-#     )
-# )
+doc_children = (
+    MenuItem( 'Overview', reverse( 'documentation.views.display_doc'), ),
+    MenuItem( 'Getting Started', reverse( 'documentation.views.display_doc', args=['getting-started']), ),
+    MenuItem( 'User Guides', reverse( 'documentation.views.display_doc', args=['user-guides']), ),
+)
 
 Menu.add_item( 'main',
     MenuItem(
-        'About',
-        reverse( 'github_content.views.about' ),
+        'Documentation',
+        reverse( 'documentation.views.display_doc'),
+        children = doc_children
     )
 )
 
@@ -49,8 +42,18 @@ Menu.add_item( 'main',
 
 Menu.add_item( 'main',
     MenuItem(
-        'Stay in Touch',
-        reverse( 'chameleon.views.newsletter' ),
+        'About',
+        reverse( 'github_content.views.about' ),
+        children = (
+            MenuItem(
+                'About',
+                reverse( 'github_content.views.about' ),
+            ),
+            MenuItem(
+                'Stay in Touch',
+                reverse( 'chameleon.views.newsletter' ),
+            ),
+        )
     )
 )
 
@@ -61,6 +64,11 @@ menu_children = (
     MenuItem(
         'Dashboard',
         reverse( 'chameleon.views.dashboard' ),
+        check = lambda request: request.user.is_authenticated(),
+    ),
+    MenuItem(
+        'Experiment',
+        'https://horizon.chameleon.tacc.utexas.edu/',
         check = lambda request: request.user.is_authenticated(),
     ),
     MenuItem(
