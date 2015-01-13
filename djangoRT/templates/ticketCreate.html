@@ -6,7 +6,7 @@
 {% include "navigation.html" %}
 <h1>Submit a new ticket</h1>
 <p><i>Fields marked with <label class="required"></label> are required.</i></p>
-<form action="" method="POST">
+<form action="" method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 
 	{% bootstrap_form form %}
