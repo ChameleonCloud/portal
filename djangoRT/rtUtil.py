@@ -54,8 +54,8 @@ class DjangoRt:
 				Requestors=ticket.requestor,
 				Cc=",".join(ticket.cc))
 
-	def replyToTicket(self, ticket_id, reply_text):
-		return self.tracker.reply(ticket_id, text=reply_text)
+	def replyToTicket(self, ticket_id, text='', files=[]):
+	    return self.tracker.reply(ticket_id, text=text, files=files)
 
 	# Checks if the current user is a requestor or CC on the ticket
 	# Also doesn't crap out if the user isn't logged in even though

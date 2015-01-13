@@ -28,6 +28,7 @@ class TicketForm(forms.Form):
 	cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : ''}), required=False, help_text='Multiple emails should be comma-separated')
 	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Subject', max_length=100, required=True)
 	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': ''}))
+        attachment = forms.FileField(required=False)
 
 class TicketGuestForm(forms.Form):
 	first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='First name', max_length=100, required=True)
@@ -36,7 +37,9 @@ class TicketGuestForm(forms.Form):
 	# cc = MultiEmailField(widget=forms.TextInput(attrs={'class' : ''}), required=False, help_text='Multiple emails should be comma-separated')
 	subject = forms.CharField(widget=forms.TextInput(attrs={'class' : ''}), label='Subject', max_length=100, required=True)
 	problem_description = forms.CharField(label='Problem Description', required=True, widget=forms.Textarea({'class': ''}))
+        attachment = forms.FileField(required=False)
 	captcha = CaptchaField()
 
 class ReplyForm(forms.Form):
 	reply = forms.CharField(required=True, widget=forms.Textarea, label="Enter Reply")
+        attachment = forms.FileField(required=False)
