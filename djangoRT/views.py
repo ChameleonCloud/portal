@@ -47,7 +47,7 @@ def ticketcreate(request):
 
             if ticket_id > -1:
                 if 'attachment' in request.FILES:
-                    rt.replyToTicket(ticket_id, files=(request.FILES['attachment'],))
+                    rt.replyToTicket(ticket_id, files=([request.FILES['attachment'].name, request.FILES['attachment']],))
                 return HttpResponseRedirect( reverse( 'djangoRT.views.ticketdetail', args=[ ticket_id ]) )
             else:
                 # make this cleaner probably
@@ -77,7 +77,7 @@ def ticketcreateguest(request):
 
             if ticket_id > -1:
                 if 'attachment' in request.FILES:
-                    rt.replyToTicket(ticket_id, files=(request.FILES['attachment'],))
+                    rt.replyToTicket(ticket_id, files=([request.FILES['attachment'].name, request.FILES['attachment']],))
                 messages.add_message(request, messages.SUCCESS, 'Ticket #%s has been successfully created. We will respond to your request as soon as possible.' % ticket_id)
                 form = forms.TicketGuestForm()
                 return render(request, 'ticketCreateGuest.html', { 'form': form })
@@ -107,7 +107,7 @@ def ticketreply(request, ticketId):
 
         if form.is_valid():
             if 'attachment' in request.FILES:
-                if rt.replyToTicket(ticketId, text=form.cleaned_data['reply'], files=(request.FILES['attachment'],)):
+                if rt.replyToTicket(ticketId, text=form.cleaned_data['reply'], files=([request.FILES['attachment'].name, request.FILES['attachment']],)):
                     return HttpResponseRedirect(reverse( 'djangoRT.views.ticketdetail', args=[ ticketId ] ) )
                 else:
                     data['reply'] = form.cleaned_data['reply']
