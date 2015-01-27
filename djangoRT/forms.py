@@ -43,3 +43,4 @@ class TicketGuestForm(forms.Form):
 class ReplyForm(forms.Form):
 	reply = forms.CharField(required=True, widget=forms.Textarea, label="Enter Reply")
         attachment = forms.FileField(required=False)
+
