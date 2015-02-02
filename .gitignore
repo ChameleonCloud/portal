@@ -1,6 +1,6 @@
 db.sqlite3
 .sass-cache/
-
+media/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

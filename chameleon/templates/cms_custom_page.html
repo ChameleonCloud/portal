@@ -1,0 +1,16 @@
+{% extends "layout/base.html" %}
+
+{% load cms_tags staticfiles sekizai_tags menu_tags %}
+
+{% block page_top %}{% placeholder "page_top" %}{% endblock page_top %}
+
+{% block page_main %}
+  <div class="main">
+    <div class="container">
+      {% include "includes/messages.html" %}
+      {% placeholder "content" %}
+    </div>
+  </div>
+{% endblock page_main %}
+
+{% block page_bottom %}{% placeholder "page_bottom" %}{% endblock page_bottom %}
