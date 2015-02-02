@@ -13,6 +13,14 @@ import logging
 import json
 
 @login_required
+def dashboard( request ):
+    actions = []
+    actions.append( { 'name': 'Manage your Projects', 'url': reverse( 'user_projects' ) } )
+    actions.append( { 'name': 'Help Desk Tickets', 'url': reverse( 'mytickets' ) } )
+    actions.append( { 'name': 'Manage Your Account', 'url': reverse( 'profile' ) } )
+    return render( request, 'tas/dashboard.html', { 'actions': actions })
+
+@login_required
 def profile( request ):
     context = {}
 
@@ -27,7 +35,7 @@ def profile( request ):
     if context['profile']['source'] != 'Chameleon':
         messages.info( request, 'Your account was created outside of the Chameleon Portal. Please visit the <a target="_blank" href="https://portal.tacc.utexas.edu">TACC User Portal</a> to edit your profile.' )
 
-    return render(request, 'profile.html', context)
+    return render(request, 'tas/profile.html', context)
 
 @login_required
 def profile_edit( request ):
@@ -82,7 +90,7 @@ def profile_edit( request ):
         logger.exception('Error loading countries')
         context['countries'] = False
 
-    return render(request, 'profile_edit.html', context)
+    return render(request, 'tas/profile_edit.html', context)
 
 def password_reset( request ):
     if request.user is not None and request.user.is_authenticated():
@@ -110,7 +118,7 @@ def password_reset( request ):
     else:
         message = 'Enter your Chameleon username to request a password reset. If your account is found, you will receive an email at the registered email address with instructions to complete the password reset.'
 
-    return render(request, 'password_reset.html', { 'message': message, 'form': form })
+    return render(request, 'tas/password_reset.html', { 'message': message, 'form': form })
 
 def _process_password_reset_request( request, form ):
     if form.is_valid():
@@ -184,7 +192,7 @@ def email_confirmation( request ):
     elif 'code' in request.GET:
         context['code'] = request.GET['code']
 
-    return render( request, 'email_confirmation.html', context )
+    return render( request, 'tas/email_confirmation.html', context )
 
 def register( request ):
     if request.user is not None and request.user.is_authenticated():
@@ -296,7 +304,7 @@ def register( request ):
 
     try:
         inst = tas.institutions()
-        
+
         # remove "n/a" from list
         inst = [i for i in inst if i['id'] is not 175]
 
@@ -318,4 +326,4 @@ def register( request ):
         logger.error( 'Error loading countries', e )
         context['countries'] = False
 
-    return render(request, 'register.html', context)
+    return render(request, 'tas/register.html', context)
