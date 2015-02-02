@@ -1,0 +1,28 @@
+{% extends 'layout/default.html' %}
+{% block title %}{{ news.title }}{% endblock %}
+{% block content %}
+<h1>{{ news.title }}</h1>
+<article class="news-item">
+  <header>
+    <div class="meta">
+      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  {% if news.event %}
+    <section>
+      <div>
+        <b>Event type</b>: {{ news.event.event_type }}
+      </div>
+      <div>
+        <b>Event date</b>: {{ news.event.event_date|date:"l, F d, o f a"}}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if news.outage %}
+  {% endif %}
+  <section class="news-item-summary">
+    {{ news.body|safe }}
+  </section>
+</article>
+{% endblock %}

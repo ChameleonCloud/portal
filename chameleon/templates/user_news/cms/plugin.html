@@ -1,0 +1,18 @@
+<div class="row">
+{% for news in news_list %}
+<div class="col-sm-6">
+  <article class="block news-item">
+    <header class="post-header">
+      <h2>
+        <a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a>
+        <small>| {{ news.created|date:"F d, o" }}</small>
+      </h2>
+    </header>
+    <section class="news-item-summary post-content">
+      {{ news.summary|safe }}
+    </section>
+    <a href="{% url 'user_news:detail' news.slug %}" class="read-more">Read more</a>
+  </article>
+</div>
+{% endfor %}
+</div>
