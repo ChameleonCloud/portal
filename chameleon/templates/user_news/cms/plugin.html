@@ -3,10 +3,10 @@
 <div class="col-sm-6">
   <article class="block news-item">
     <header class="post-header">
-      <h2>
+      <h2 title="{{ news.title }}">
         <a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a>
-        <small>| {{ news.created|date:"F d, o" }}</small>
       </h2>
+      <div class="meta">{{ news.created|date:"F d, o" }}</div>
     </header>
     <section class="news-item-summary post-content">
       {{ news.summary|safe }}

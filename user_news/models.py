@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
+from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
-from cms.models.pluginmodel import CMSPlugin
 
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
@@ -22,8 +22,8 @@ class News(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
-    summary = models.TextField(max_length=600)
-    body = models.TextField()
+    summary = RichTextField(max_length=600)
+    body = RichTextField()
     tags = models.ManyToManyField(NewsTag, blank=True)
 
     def __unicode__(self):
@@ -63,6 +63,3 @@ class Outage(News):
 
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage)
-
-class UserNewsPluginModel(CMSPlugin):
-    limit = models.IntegerField(default=5)

@@ -1,7 +1,8 @@
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
 from django.utils.translation import ugettext_lazy as _
-from user_news.models import UserNewsPluginModel, News
+from user_news.cms_models import UserNewsPluginModel
+from user_news.models import News
 
 @plugin_pool.register_plugin
 class UserNewsPlugin(CMSPluginBase):

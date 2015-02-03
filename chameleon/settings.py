@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     ##
     # contrib
     #
+    'ckeditor',
     'pipeline',
     'captcha',
     'bootstrap3',
@@ -272,6 +273,21 @@ MIGRATION_MODULES = {
     'djangocms_teaser': 'djangocms_teaser.migrations_django',
     'djangocms_video': 'djangocms_video.migrations_django'
 }
+
+#####
+#
+# CKEditor Config
+#
+#####
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+# CKEDITOR_CONFIGS = {
+#     'default': {
+#         'toolbar': 'full',
+#         'height': 300,
+#         'width': 300,
+#     },
+# }
 
 #####
 #

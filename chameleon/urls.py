@@ -8,36 +8,28 @@ from django.conf import settings
 
 import chameleon.views
 
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns('',
 
+    # admin urls
     url(r'^admin/', include(admin.site.urls)),
 
-    # url(r'^$', 'chameleon.views.home', name='home'),
+    # contrib urls
+    url(r'^ckeditor/', include('ckeditor.urls')),
+    url(r'^captcha/', include('captcha.urls')),
+    url(r'^terms/', include('termsandconditions.urls')),
+    url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': {'cmspages': CMSSitemap}}),
 
-    # url(r'^newsletter/$', 'chameleon.views.newsletter', name='newsletter'),
-
+    # custom urls
     url(r'^login/', 'django.contrib.auth.views.login', name='login'),
     url(r'^logout/', 'django.contrib.auth.views.logout', { 'next_page': '/' }, name='logout'),
     url(r'^register/', RedirectView.as_view(url=reverse_lazy('register'))),
     url(r'^email-confirmation', 'tas.views.email_confirmation'),
     url(r'^password-reset', 'tas.views.password_reset'),
-
-    url(r'^captcha/', include('captcha.urls')),
-    url(r'^terms/', include('termsandconditions.urls')),
-    url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': {'cmspages': CMSSitemap}}),
-
     url(r'^user/', include('tas.urls')),
     url(r'^user/projects/', include('projects.urls')),
     url(r'^help/', include('djangoRT.urls')),
 
-    # url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
-    # url(r'^docs/', include('documentation.urls')),
-
-    # pass any other urls to github_content
-    # url(r'^', include( 'github_content.urls')),
-
-    # CMS
+    # cms urls
     url(r'^', include('cms.urls')),
 )
 
