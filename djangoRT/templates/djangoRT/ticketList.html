@@ -5,7 +5,7 @@
 {% block content %}
 <h2>My Tickets</h2>
 
-<a class="btn btn-primary" href="{% url 'djangoRT.views.ticketcreate' %}">
+<a class="btn btn-primary" href="{% url 'djangoRT:ticketcreate' %}">
   <i class="fa fa-plus-circle"></i>
   Create a new ticket
 </a>
@@ -35,19 +35,19 @@
 
 <div class="open tickets none">
   {% for ticket in open_tickets %}
-    {% include "ticket.html" %}
+    {% include "djangoRT/ticket.html" %}
   {% endfor %}
 </div>
 
 <div class="new tickets none">
   {% for ticket in new_tickets %}
-    {% include "ticket.html" %}
+    {% include "djangoRT/ticket.html" %}
   {% endfor %}
 </div>
 
 <div class="response tickets none">
   {% for ticket in response_tickets %}
-    {% include "ticket.html" %}
+    {% include "djangoRT/ticket.html" %}
   {% endfor %}
 </div>
 
@@ -58,7 +58,7 @@
 <h3>Resolved Tickets</h3>
 <div class="resolved-tickets">
   {% for ticket in resolved_tickets %}
-    {% include "ticket.html" %}
+    {% include "djangoRT/ticket.html" %}
   {% endfor %}
 </div>
 

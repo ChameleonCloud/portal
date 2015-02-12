@@ -1,4 +1,4 @@
-<a class="btn btn-default btn-sm" href="{% url 'djangoRT.views.ticketreply' ticket.id %}">
+<a class="btn btn-default btn-sm" href="{% url 'djangoRT:ticketreply' ticket.id %}">
   <i class="fa fa-reply"></i>
   {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
     Reopen to this ticket

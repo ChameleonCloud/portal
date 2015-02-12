@@ -3,7 +3,7 @@
 {% block title %}Create a Ticket{% endblock %}
 
 {% block content %}
-{% include "navigation.html" %}
+{% include "djangoRT/navigation.html" %}
 <h1>Submit a new ticket</h1>
 <p><i>Fields marked with <label class="required"></label> are required.</i></p>
 <form action="" method="POST">
@@ -12,6 +12,6 @@
 	{% bootstrap_form form %}
 
 	<button type="submit" class="btn btn-success">Create Ticket</button>
-	<a href="{% url 'djangoRT.views.mytickets' %}" class="btn btn-default">Cancel</a>
+	<a href="{% url 'djangoRT:mytickets' %}" class="btn btn-default">Cancel</a>
 </form>
 {% endblock %}

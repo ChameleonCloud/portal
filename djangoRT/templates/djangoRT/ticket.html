@@ -17,12 +17,12 @@
 		</span>
   </div>
 	<div class="col-sm-4">
-    <a href="{% url 'djangoRT.views.ticketdetail' ticket.id %}"> #{{ ticket.id }} : {{ ticket.Subject }}</a>
+    <a href="{% url 'djangoRT:ticketdetail' ticket.id %}"> #{{ ticket.id }} : {{ ticket.Subject }}</a>
   </div>
   <div class="col-sm-3">
     {{ticket.LastUpdated|date:"F j Y"}}
   </div>
   <div class="col-sm-3">
-    {% include "reply.html" %}
+    {% include "djangoRT/reply.html" %}
   </div>
 </div>

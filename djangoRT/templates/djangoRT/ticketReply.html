@@ -4,7 +4,7 @@
 {% block content %}
 
 {% if not hasAccess %}
-	{% include "access_denied.html" %}
+	{% include "djangoRT/access_denied.html" %}
 {% else %}
 
 <h2>
@@ -34,7 +34,7 @@
 				Reply
 			{% endif %}
 		</button>
-		<a href="{% url 'djangoRT.views.ticketdetail' ticket_id %}" class="btn btn-default">Cancel</a>
+		<a href="{% url 'djangoRT:ticketdetail' ticket_id %}" class="btn btn-default">Cancel</a>
 </form>
 
 {% endif %}

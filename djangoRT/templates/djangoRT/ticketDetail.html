@@ -5,13 +5,13 @@
 {% block content %}
 
 {% if not hasAccess %}
-  {% include "access_denied.html" %}
-  {% include "navigation.html" %}
+  {% include "djangoRT/access_denied.html" %}
+  {% include "djangoRT/navigation.html" %}
 {% else %}
 
   <h2>Ticket #{{ ticket_id }} : {{ ticket.Subject }} </h2>
 
-	{% include "reply.html" %}
+	{% include "djangoRT/reply.html" %}
 
 	<div class="row">
 		<div class="col-md-9">
@@ -37,7 +37,7 @@
 		</div>
 	</div>
 
-  {% include "reply.html" %}
+  {% include "djangoRT/reply.html" %}
 
 {% endif %}
 {% endblock %}
