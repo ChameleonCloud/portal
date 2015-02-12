@@ -13,14 +13,6 @@ import logging
 import json
 
 @login_required
-def dashboard( request ):
-    actions = []
-    actions.append( { 'name': 'Manage your Projects', 'url': reverse( 'user_projects' ) } )
-    actions.append( { 'name': 'Help Desk Tickets', 'url': reverse( 'mytickets' ) } )
-    actions.append( { 'name': 'Manage Your Account', 'url': reverse( 'profile' ) } )
-    return render( request, 'tas/dashboard.html', { 'actions': actions })
-
-@login_required
 def profile( request ):
     context = {}
 
@@ -58,7 +50,7 @@ def profile_edit( request ):
         data[ 'citizenshipId' ] = int( request.POST[ 'citizenshipId' ] )
         tas.save_user( data[ 'id' ], data )
         messages.success( request, 'Your profile has been updated!' )
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     try:
         resp = tas.get_user( username=request.user )
@@ -68,7 +60,7 @@ def profile_edit( request ):
         # raise Exception('error loading profile')
 
     if context['profile']['source'] != 'Chameleon':
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     try:
         inst = tas.institutions()
@@ -94,14 +86,14 @@ def profile_edit( request ):
 
 def password_reset( request ):
     if request.user is not None and request.user.is_authenticated():
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     if request.POST:
         if 'code' in request.GET:
             form = PasswordResetConfirmForm( request.POST )
             if _process_password_reset_confirm( request, form ):
                 messages.success( request, 'Your password has been reset! You can now log in using your new password' )
-                return HttpResponseRedirect( reverse( 'profile' ) )
+                return HttpResponseRedirect( reverse( 'tas:profile' ) )
         else:
             form = PasswordResetRequestForm( request.POST )
             if _process_password_reset_request( request, form ):
@@ -172,7 +164,7 @@ def email_confirmation( request ):
                 user = tas.get_user( username=context['username'] )
                 tas.verify_user( user['id'], context['code'] )
                 messages.success( request, 'Congratulations, your email has been verified! Please log in now.' )
-                return HttpResponseRedirect( reverse( 'profile' ) )
+                return HttpResponseRedirect( reverse( 'tas:profile' ) )
             except Exception as e:
                 if e[0] == 'User not found':
                     messages.error( request, e[1] )
@@ -196,7 +188,7 @@ def email_confirmation( request ):
 
 def register( request ):
     if request.user is not None and request.user.is_authenticated():
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     tas = TASClient()
 
