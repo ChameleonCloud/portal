@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
+from django.contrib import messages
 
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
@@ -63,3 +64,26 @@ class Outage(News):
 
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage)
+
+"""
+This class represents a notification which should be displayed to users using
+the django.contrib.messages framework. Messages can be created and scheduled
+for display.
+"""
+class Notification(models.Model):
+    NOTIFICATION_LEVELS = (
+        (messages.INFO, 'Informational'),
+        (messages.SUCCESS, 'Success'),
+        (messages.WARNING, 'Warning'),
+        (messages.ERROR, 'Error'),
+    )
+
+    def __unicode__(self):
+        return self.title
+
+    level = models.IntegerField(choices=NOTIFICATION_LEVELS)
+    title = models.CharField(max_length=80, blank=True)
+    message = models.TextField()
+    schedule_on = models.DateTimeField('scheduled display start', blank=True)
+    schedule_off = models.DateTimeField('scheduled display end', blank=True)
+    limit_pages = models.TextField('Limit display only to these page paths (one per line)', blank=True)
