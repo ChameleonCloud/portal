@@ -87,14 +87,12 @@ INSTALLED_APPS = (
     ##
     # custom
     #
-    # 'site_menu',
+    'chameleon_cms_integrations',
     'util',
     'tas',
-    'documentation',
     'djangoRT',
     'projects',
     'user_news',
-    'github_content',
 )
 
 MIDDLEWARE_CLASSES = (
