@@ -20,7 +20,7 @@
       </h4>
       <p class="abstract">{{ project.abstract }}</p>
       {% if project.is_pi %}
-        <a href="{% url 'projects.views.fg_project_migrate' project.chargeCode %}" class="btn btn-primary">
+        <a href="{% url 'projects:fg_project_migrate' project.chargeCode %}" class="btn btn-primary">
           Migrate this project
         </a>
       {% else %}
@@ -43,7 +43,7 @@
     account email address with the email that was registered with
     FutureGrid as of October 1, 2014. If you believe you have
     FutureGrid projects and you want to migrate them to Chameleon,
-    please open a <a href="{% url 'djangoRT.views.ticketcreate' %}">
+    please open a <a href="{% url 'djangoRT:ticketcreate' %}">
     Help Desk ticket</a>.
   </p>
 {% endif %}

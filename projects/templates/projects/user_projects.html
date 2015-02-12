@@ -5,7 +5,7 @@
 {% block content %}
 
 {% if is_pi_eligible %}
-<a href="{% url 'projects.views.create_project' %}" class="btn btn-info pull-right">
+<a href="{% url 'projects:create_project' %}" class="btn btn-info pull-right">
   <i class="fa fa-plus-circle"></i> Create a Project
 </a>
 {% endif %}
@@ -17,7 +17,7 @@
 <h4>
   {{ p.title }} |
   <small>{{ p.chargeCode }}</small>
-  &nbsp;&nbsp;<a href="{% url 'view_project' p.id %}" class="btn btn-default">View Project</a>
+  &nbsp;&nbsp;<a href="{% url 'projects:view_project' p.id %}" class="btn btn-default">View Project</a>
 </h4>
 
 
@@ -42,12 +42,12 @@
     <h4>FutureGrid@Chameleon</h4>
     <p>
       At this time, Chameleon is supporting
-      <a href="{% url 'documentation.views.display_doc' 'futuregrid' %}">FutureGrid@Chameleon</a>.
+      <a href="{% url 'documentation:display_doc' 'futuregrid' %}">FutureGrid@Chameleon</a>.
       If you are a former FutureGrid User, you can migrate your project to
       Chameleon.
     </p>
     <p>
-      <a href="{% url 'projects.views.lookup_fg_projects' %}" class="btn btn-info">
+      <a href="{% url 'projects:lookup_fg_projects' %}" class="btn btn-info">
         <i class="fa fa-plus-circle"></i>
         Migrate a FutureGrid Project
       </a>
@@ -59,7 +59,7 @@
       <span class="label label-default">New!</span> PI eligible users can now create new Chameleon projects!
     </p>
     <p>
-      <a href="{% url 'projects.views.create_project' %}" class="btn btn-primary">
+      <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
         <i class="fa fa-plus-circle"></i>
         Create a New Project
       </a>

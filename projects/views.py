@@ -32,7 +32,7 @@ def user_projects( request ):
 
     context['projects'] = ch_projects
 
-    return render( request, 'user_projects.html', context )
+    return render( request, 'projects/user_projects.html', context )
 
 @login_required
 def view_project( request, project_id ):
@@ -80,7 +80,7 @@ def view_project( request, project_id ):
     else:
         fg_users = None
 
-    return render( request, 'view_project.html', {
+    return render( request, 'projects/view_project.html', {
         'project': project,
         'users': users,
         'is_pi': request.user.username == project['pi']['username'],
@@ -133,13 +133,13 @@ def create_project( request ):
     else:
         form = ProjectCreateForm()
 
-    return render( request, 'create_project.html', { 'form': form } )
+    return render( request, 'projects/create_project.html', { 'form': form } )
 
 @login_required
 def edit_project( request ):
     context = {}
 
-    return render( request, 'edit_project.html', context )
+    return render( request, 'projects/edit_project.html', context )
 
 @login_required
 def lookup_fg_projects( request ):
@@ -150,7 +150,7 @@ def lookup_fg_projects( request ):
     projects = tas.projects_for_user( request.user )
     fg_projects = [p for p in fg_projects if not any( q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode ) ]
 
-    return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
+    return render( request, 'projects/lookup_fg_project.html', { 'fg_projects': fg_projects } )
 
 @login_required
 @terms_required('project-terms')
@@ -207,7 +207,7 @@ def fg_project_migrate( request, project_id ):
         } )
 
     form.fields['typeId'].widget = forms.HiddenInput()
-    return render( request, 'fg_project_migrate.html', { 'project': project, 'form': form } )
+    return render( request, 'projects/fg_project_migrate.html', { 'project': project, 'form': form } )
 
 @login_required
 def fg_add_user( request, project_id ):

@@ -80,7 +80,7 @@
   </div>
 
   {% if fg_migration and is_pi %}
-  <input type="hidden" name="fg_add_user_url" value="{% url 'projects.views.fg_add_user' project.id %}">
+  <input type="hidden" name="fg_add_user_url" value="{% url 'projects:fg_add_user' project.id %}">
   <div class="col-md-6">
     <div class="well">
       <h4>Add/Invite FutureGrid Users</h4>
