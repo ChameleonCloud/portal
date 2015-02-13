@@ -275,7 +275,7 @@ def register( request ):
                         errors['username'] = message
                     elif re.search( 'DuplicateEmailException', e.args[1] ):
                         message = 'This email is already registered. If you already have an account with TACC, please log in using those credentials.'
-                        messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas.views.password_reset') ) )
+                        messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas:password_reset') ) )
                         errors['email'] = message
                     elif re.search( 'PasswordInvalidException', e.args[1] ):
                         message = 'The password you provided did not meet the complexity requirements.'

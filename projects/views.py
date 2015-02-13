@@ -97,7 +97,7 @@ def create_project( request ):
     user = tas.get_user( username=request.user )
     if user['piEligibility'] != 'Eligible':
         messages.error( request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please submit a help desk ticket!' )
-        return HttpResponseRedirect( reverse( 'user_projects' ) )
+        return HttpResponseRedirect( reverse( 'projects:user_projects' ) )
 
     if request.POST:
         form = ProjectCreateForm( request.POST )
@@ -125,7 +125,7 @@ def create_project( request ):
             try:
                 created_project = tas.create_project( project )
                 messages.success( request, 'Your project has been created!' )
-                return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+                return HttpResponseRedirect( reverse( 'projects:view_project', args=[ created_project['id'] ] ) )
             except:
                 logger.exception( 'Error creating project' )
                 form.add_error('__all__', 'An unexpected error occurred. Please try again')
@@ -186,7 +186,7 @@ def fg_project_migrate( request, project_id ):
 
             created_project = tas.create_project( project )
             messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'] )
-            return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+            return HttpResponseRedirect( reverse( 'projects:view_project', args=[ created_project['id'] ] ) )
         except Exception as e:
             logger.exception( 'Error migrating project' )
             if len( e.args ) > 1:
