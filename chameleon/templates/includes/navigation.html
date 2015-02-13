@@ -2,15 +2,16 @@
 
 {% for child in children %}
 <li class="{% if child.ancestor or child.selected or request.get_full_path == child.url %}active{% endif %} {% if child.children %}dropdown{% endif %}">
-    {% if child.children %}<a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ child.get_menu_title | safe }} <span class="caret"></span></a>
-    <ul class="dropdown-menu">
+    {% if child.children %}
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ child.get_menu_title | safe }} <span class="caret"></span></a>
+      <ul class="dropdown-menu">
+        {% if preserve_parent %}
+          <li><a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a></li>
+        {% endif %}
         {% show_menu from_level to_level extra_inactive extra_active template "" "" child %}
-    </ul>
+      </ul>
     {% else %}
-    <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
+      <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
     {% endif %}
 </li>
-
-{% if class and forloop.last and not forloop.parentloop %}
-{% endif %}
 {% endfor %}
