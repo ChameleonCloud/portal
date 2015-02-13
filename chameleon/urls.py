@@ -22,7 +22,7 @@ urlpatterns = patterns('',
     # custom urls
     url(r'^login/', 'django.contrib.auth.views.login', name='login'),
     url(r'^logout/', 'django.contrib.auth.views.logout', { 'next_page': '/' }, name='logout'),
-    url(r'^register/', RedirectView.as_view(url=reverse_lazy('register'))),
+    url(r'^register/', RedirectView.as_view(url=reverse_lazy('tas:register'))),
     url(r'^email-confirmation/', 'tas:email_confirmation'),
     url(r'^password-reset/', 'tas:password_reset'),
     url(r'^user/', include('tas.urls', namespace='tas')),
