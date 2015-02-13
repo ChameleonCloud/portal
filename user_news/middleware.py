@@ -13,14 +13,9 @@ class UserNewsNotificationMiddleware:
                 display = True
 
             if display:
-                if notif.title:
-                    message = '<h4>{0}</h4>{1}'.format(notif.title.encode('utf-8'), notif.message.encode('utf-8'))
-                else:
-                    message = notif.message
-
                 messages.add_message(
                     request,
                     notif.level,
-                    message
+                    notif.display()
                 )
         return None

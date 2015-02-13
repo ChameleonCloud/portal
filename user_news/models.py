@@ -3,6 +3,7 @@ from django.db import models
 from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
 from django.contrib import messages
+import re
 
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
@@ -78,12 +79,18 @@ class Notification(models.Model):
         (messages.ERROR, 'Error'),
     )
 
-    def __unicode__(self):
-        return self.title
-
     level = models.IntegerField(choices=NOTIFICATION_LEVELS)
     title = models.CharField(max_length=80, blank=True)
     message = models.TextField()
     schedule_on = models.DateTimeField('scheduled display start', blank=True)
     schedule_off = models.DateTimeField('scheduled display end', blank=True)
     limit_pages = models.TextField('Limit display only to these page paths (one per line)', blank=True)
+
+    def __unicode__(self):
+        if self.title:
+            return self.title
+        else:
+            return self.message
+
+    def display(self):
+        return re.sub(r'\s+', ' ', u'<h4>{0}</h4>{1}'.format(self.title, self.message))
