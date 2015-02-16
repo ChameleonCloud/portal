@@ -296,7 +296,7 @@ CKEDITOR_IMAGE_BACKEND = 'pillow'
 PIPELINE_COMPILERS = (
     'pipeline.compilers.sass.SASSCompiler',
 )
-PIPELINE_SASS_ARGUMENTS = '--compass --style compressed'
+PIPELINE_SASS_ARGUMENTS = '--update --compass --style compressed'
 PIPELINE_CSS_COMPRESSOR = None
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 
