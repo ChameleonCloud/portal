@@ -1,6 +1,6 @@
 db.sqlite3
 .sass-cache/
-
+run-script.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
