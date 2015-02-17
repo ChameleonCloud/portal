@@ -33,6 +33,7 @@ def ticketcreate(request):
     data = {}
     if request.user.is_authenticated():
         data = { 'email' : request.user.email, 'first_name' : request.user.first_name, 'last_name' : request.user.last_name}
+	header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
     else:
         return HttpResponseRedirect( reverse( 'djangoRT.views.ticketcreateguest'), )
 
@@ -41,7 +42,7 @@ def ticketcreate(request):
 
         if form.is_valid():
             ticket = rtModels.Ticket(subject = form.cleaned_data['subject'],
-                    problem_description = form.cleaned_data['problem_description'],
+                    problem_description = header + form.cleaned_data['problem_description'],
                     requestor = form.cleaned_data['email'],
                     cc = form.cleaned_data['cc'])
             ticket_id = rt.createTicket(ticket)
