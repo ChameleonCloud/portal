@@ -124,3 +124,8 @@ def ticketreply(request, ticketId):
     else:
         form = forms.ReplyForm(initial=data)
     return render(request, 'ticketReply.html', { 'ticket_id' : ticketId , 'ticket' : ticket, 'form' : form, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
+
+@login_required
+def ticketclose(request, ticketId):
+    	rtUtil.DjangoRt().closeTicket(ticketId)
+	return HttpResponseRedirect(reverse( 'djangoRT.views.ticketdetail', args=[ ticketId ] ) )

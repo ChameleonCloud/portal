@@ -67,3 +67,8 @@ class DjangoRt:
 				return True
 
 		return False
+
+	# Close the ticket
+	def closeTicket(self, ticket_id):
+		if ticket_id:
+			return self.tracker.edit_ticket(ticket_id, Status="resolved")
