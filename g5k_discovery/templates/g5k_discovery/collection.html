@@ -1,0 +1,9 @@
+<h1>{{ parent_item.uid }} <small>({{ parent_item.type }})</small></h1>
+
+<div class="g5k-collection">
+  {% for item in items %}
+  <div class="g5k-item">
+    {% include 'g5k_discovery/item.html' %}
+  </div>
+  {% endfor %}
+</div>

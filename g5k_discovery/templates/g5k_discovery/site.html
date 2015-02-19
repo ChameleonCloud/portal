@@ -1,0 +1,47 @@
+<dl>
+  <dt>Name</dt>
+  <dd>{{ item.name }}</dd>
+
+  <dt>Location</dt>
+  <dd>
+    {{ item.location }}
+    {% if item.latitude and item.longitude %}
+      [<a href="https://www.google.com/maps/@{{ item.latitude }},{{ item.longitude}},4z">map</a>]
+    {% endif %}
+  </dd>
+
+  {% if item.email_contact or item.user_support_contact or item.security_contact or item.sys_admin_contact %}
+    <dt>Contacts</dt>
+    <dd>
+      <table>
+        <tbody>
+          {% if item.email_contact %}
+            <tr>
+              <td>Email</td>
+              <td>{{ item.email_contact }}</td>
+            </tr>
+          {% endif %}
+          {% if item.user_support_contact %}
+            <tr>
+              <td>User Support</td>
+              <td>{{ item.user_support_contact }}</td>
+            </tr>
+          {% endif %}
+          {% if item.security_contact %}
+            <tr>
+              <td>Security</td>
+              <td>{{ item.security_contact }}</td>
+            </tr>
+          {% endif %}
+          {% if item.sys_admin_contact %}
+            <tr>
+              <td>SysAdmin</td>
+              <td>{{ item.sys_admin_contact }}</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </dd>
+  {% endif %}
+
+</dl>

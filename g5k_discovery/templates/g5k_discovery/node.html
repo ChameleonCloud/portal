@@ -1,0 +1,50 @@
+<dl>
+  <dt>architecture</dt>
+  <dd>
+    {% for k, v in item.architecture.items %}
+    {{ k }}: {{ v }}<br>
+    {% endfor %}
+  </dd>
+  <dt>main_memory</dt>
+  <dd>
+    {% for k, v in item.main_memory.items %}
+    {{ k }}: {{ v }}<br>
+    {% endfor %}
+  </dd>
+  <dt>network_adapters</dt>
+  <dd>
+    <ol>
+      {% for na in item.network_adapters %}
+      <li>
+        {% for k, v in na.items %}
+        {{ k }}: {{ v }}<br>
+        {% endfor %}
+      </li>
+      {% endfor %}
+    </ol>
+  </dd>
+  <dt>operating_system</dt>
+  <dd>
+    {% for k, v in item.operating_system.items %}
+    {{ k }}: {{ v }}<br>
+    {% endfor %}
+  </dd>
+  <dt>processor</dt>
+  <dd>
+    {% for k, v in item.processor.items %}
+    {{ k }}: {{ v }}<br>
+    {% endfor %}
+  </dd>
+  <dt>storage_devices</dt>
+  <dd>
+    <ol>
+      {% for sd in item.storage_devices %}
+      <li>
+        {% for k, v in sd.items %}
+        {{ k }}: {{ v }}<br>
+        {% endfor %}
+      </li>
+      {% endfor %}
+    </ol>
+  </dd>
+</dl>

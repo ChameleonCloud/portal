@@ -1,0 +1,13 @@
+<dl>
+  <dt>Model</dt>
+  <dd>{{ item.model }}</dd>
+
+  <dt>Misc</dt>
+  <dd>{{ item.misc }}</dd>
+
+  {% if item.date_of_arrival %}
+    <dt>Date of arrival</dt>
+    <dd>{{ item.date_of_arrival }}</dd>
+  {% endif %}
+
+</dl>

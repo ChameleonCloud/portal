@@ -1,0 +1,16 @@
+<h1>{{ item.uid }} <small>({{ item.type }})</small></h1>
+
+{% if item.type == 'grid' %}
+  {% include 'g5k_discovery/grid.html' %}
+{% elif item.type == 'site' %}
+  {% include 'g5k_discovery/site.html' %}
+{% elif item.type == 'environment' %}
+  {% include 'g5k_discovery/environment.html' %}
+{% elif item.type == 'cluster' %}
+  {% include 'g5k_discovery/cluster.html' %}
+{% elif item.type == 'node' %}
+  {% include 'g5k_discovery/node.html' %}
+{% endif %}
+
+<h3>Links</h3>
+{% include 'g5k_discovery/links.html' with links=item.links %}
