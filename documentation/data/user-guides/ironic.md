@@ -58,10 +58,10 @@ Configure your cloud.cfg file & make any other changes you like. Here is a link 
     vi mnt/etc/cloud/cloud.cfg
     guestunmount mnt
 
-Note we re-use the MY_VMLINUZ_UUID & INITRD_UUID from the previous section.
+Note we re-use the VMLINUZ_UUID & INITRD_UUID from the previous section.
 
     glance image-delete CC-CentOS7
-    glance image-create --name CC-CentOS7 --is-public True --disk-format qcow2 --container-format bare --property kernel_id=$MY_VMLINUZ_UUID --property ramdisk_id=$MY_INITRD_UUID < CC-CentOS7.custom.qcow2
+    glance image-create --name CC-CentOS7 --is-public True --disk-format qcow2 --container-format bare --property kernel_id=$VMLINUZ_UUID --property ramdisk_id=$INITRD_UUID < CC-CentOS7.custom.qcow2
 
 ## Booting A Node
 
