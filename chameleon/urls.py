@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
     url(r'^user/projects/', include('projects.urls', namespace='projects')),
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
+    url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
 
     # cms urls
     url(r'^', include('cms.urls')),
