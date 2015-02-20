@@ -67,5 +67,5 @@ Note we re-use the VMLINUZ_UUID & INITRD_UUID from the previous section.
 
 You should now be able to boot a node with standard nova commands, for example:
 
-    nova boot --flavor my-baremetal-flavor --image CC-CentOS7 --key-name default --nic net-id=d4e6c5e0-0477-4efd-bd2e-a25ccc960de7 my-centos-image
+    nova boot --flavor my-baremetal-flavor --image CC-CentOS7 --key-name default --nic net-id=d4e6c5e0-0477-4efd-bd2e-a25ccc960de7 my-centos-instance
 
