@@ -1,5 +1,5 @@
 ---
-title: Openstack LBaaS User Guide
+title: OpenStack LBaaS User Guide
 ---
 
 # OpenStack Load Balancer as a Service User Guide

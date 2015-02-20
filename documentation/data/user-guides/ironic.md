@@ -6,7 +6,7 @@ title: Ironic User Guide
 
 ## Overview
 
-Ironic is bare metal provisioning system that is integrated into the Openstack cloud platform.
+Ironic is bare metal provisioning system that is integrated into the OpenStack cloud platform.
 
 ## Chameleon Default Environment 
 
@@ -16,14 +16,14 @@ We provide an initial CentOS 7 image (called CC-CentOS7 in Nova/Glance). It has 
 * Auto-login from the console.
 * Standard development tools such as make, gcc, gfortran, etc.
 * A few config management apps such as Puppet, Ansible, etc.
-* The EPEL & Openstack-Juno yum repositories.
+* The EPEL & OpenStack-Juno yum repositories.
 * A *ccadmin* user for Chameleon administrative staff access. Please do not disable this account; it allows us to login to your instance for troubleshooting and security purposes.
  
 ## Images
 
 ### Creating an Image
 
-Building images is slightly different than for normal Openstack systems.
+Building images is slightly different than for normal OpenStack systems.
 
 Here we will build a custom CentOS 7 image. Run these commands as root.
 
