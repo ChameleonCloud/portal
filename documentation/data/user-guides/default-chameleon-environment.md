@@ -6,7 +6,7 @@ The default image is called CC-CentOS7.
 
 ## Quickstart
 
-First start up an instance on the Chameleon Alamo cloud. See instructions here: [alamo-user-guide.md].
+First start up an instance on the Chameleon Alamo cloud. See instructions here: [Alamo User Guide](alamo-user-guide.md).
 
 Login to that instance and create an openrc file for your Ironic cloud connection. It should look something like:
 
@@ -37,7 +37,7 @@ And boot an instance on bare metal:
 
 ## Example Benchmark Operation
 
-Create an instance per the [User Guide](alamo-user-guide.md).
+Create an instance per the Quickstart section (above).
 
 SSH into the instance.
 
@@ -48,23 +48,30 @@ Install sysbench:
 Determine how many CPUs the node has:
     
     # cat /proc/cpuinfo  | grep ^processor | wc -l
+    8
     
 ### CPU Test
 
 Do a cpu test, using up to the number of CPUs available. Adjust the *--cpu-max-prime* number if the test runs too short or too long.
     
     # sysbench --test=cpu --cpu-max-prime=20000 --num-threads=8 run
+    ...
     
 ### IO Test
 
 Make sure you have enough disk space free. Then run an IO test.
 
-    # df / 
+    # df -h /
+    Filesystem      Size  Used Avail Use% Mounted on
+    /dev/sda1       438G  103G  318G  25% /
     # sysbench --test=fileio --file-total-size=100G --num-threads=8 prepare
+    ...
     # sysbench --test=fileio --file-total-size=100G --file-test-mode=rndrw --init-rng=on --max-time=300 --max-requests=0 run
+    ...
 
 After doing your tests, remove the test file:
 
     # sysbench --test=fileio --file-total-size=150G cleanup
+    ...
 
 

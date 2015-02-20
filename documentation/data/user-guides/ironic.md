@@ -53,7 +53,7 @@ Save id as $INITRD_UUID.
     mkdir mnt
     guestmount --rw -a CC-CentOS7.custom.qcow2 -i mnt
 
-Configure your cloud.cfg file & make any other changes you like. Here is a link to the cloud-init documentation:[http://cloudinit.readthedocs.org/en/latest/index.html]
+Configure your cloud.cfg file & make any other changes you like. Here is a link to the cloud-init documentation: (http://cloudinit.readthedocs.org/en/latest/index.html)
 
     vi mnt/etc/cloud/cloud.cfg
     guestunmount mnt
