@@ -9,4 +9,5 @@ urlpatterns = patterns('',
 		url(r'^ticket/reply/(?P<ticketId>\d+)/$', views.ticketreply, name='reply'),
 		url(r'^ticket/close/(?P<ticketId>\d+)/$', views.ticketclose, name='close'),
 		url(r'^ticket/new/guest$', views.ticketcreateguest, name='createguest'),
+        url(r'^ticket/attachment/(?P<ticketId>\d+)/(?P<attachmentId>\d+)/$', views.ticketattachment, name='attachment'),
 )

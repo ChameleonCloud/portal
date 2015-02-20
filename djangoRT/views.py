@@ -129,3 +129,9 @@ def ticketreply(request, ticketId):
 def ticketclose(request, ticketId):
     	rtUtil.DjangoRt().closeTicket(ticketId)
 	return HttpResponseRedirect(reverse( 'djangoRT.views.ticketdetail', args=[ ticketId ] ) )
+
+@login_required
+def ticketattachment(request, ticketId, attachmentId):
+    title, attachment = rtUtil.DjangoRt().getAttachment(ticketId, attachmentId)
+    return render(request, 'attachment.html', {'attachment' : attachment, 'ticketId' : ticketId, 'title' : title});
+
