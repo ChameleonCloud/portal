@@ -8,16 +8,18 @@ The default image is called CC-CentOS7.
 
 First start up an instance on the Chameleon Alamo cloud. See instructions here: [Alamo User Guide](alamo-user-guide.md).
 
-Login to that instance and create an openrc file for your Ironic cloud connection. It should look something like:
+Login to that instance and create an openrc file using your username & tenant. It should look something like this:
 
-    export OS_TENANT_NAME=mpackard_studies
-    export OS_USERNAME=mpackard
     export OS_AUTH_URL=http://ironic.chameleon.tacc.utexas.edu:5000/v2.0
-    export OS_NO_CACHE=1
-    export OS_PASSWORD="abcdwxyz"
-    export OS_CACERT=/etc/pki/tls/certs/ca-bundle.crt
+    export OS_TENANT_NAME="mpackard_studies"
+    export OS_USERNAME="mpackard"
+    echo "Please enter your OpenStack Password: "
+    read -sr OS_PASSWORD_INPUT
+    export OS_PASSWORD=$OS_PASSWORD_INPUT
+    export OS_REGION_NAME="regionOne"
+    if [ -z "$OS_REGION_NAME" ]; then unset OS_REGION_NAME; fi
 
-Source that file; you should now be able to run *nova*, *glance*, and *neutron* commands:
+Source that file and enter your password when prompted. You should now be able to run *nova*, *glance*, and *neutron* commands:
 
     # nova list 
     | d79c9e97-607e-448d-b569-f71cddf5390e | CC-CentOS7-46 | ACTIVE | -          | Running     | sharednet1=10.12.0.52, 129.114.34.12 |
