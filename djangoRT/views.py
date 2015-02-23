@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from djangoRT import rtUtil, forms, rtModels
 from django.contrib.auth.decorators import login_required
@@ -9,20 +10,13 @@ import mimetypes
 @login_required
 def mytickets(request):
     rt = rtUtil.DjangoRt()
-    open_tickets = rt.getUserTickets(request.user.email, status="OPEN")
-    new_tickets = rt.getUserTickets(request.user.email, status="NEW")
-    response_tickets = rt.getUserTickets(request.user.email, status="RESPONSE REQUIRED")
-
-    resolved_tickets = []
-    resolved_tickets = rt.getUserTickets(request.user.email, status="RESOLVED")
-    resolved_tickets.extend(rt.getUserTickets(request.user.email, status="CLOSED"))
-    return render(request, 'ticketList.html', { 'open_tickets' : open_tickets, 'new_tickets' : new_tickets, 'response_tickets' : response_tickets, 'resolved_tickets' : resolved_tickets })
+    show_resolved = 'show_resolved' in request.GET
+    tickets = rt.getUserTickets(request.user.email, show_resolved=show_resolved)
+    return render(request, 'ticketList.html', { 'tickets': tickets, 'show_resolved': show_resolved })
 
 @login_required
 def ticketdetail(request, ticketId):
     rt = rtUtil.DjangoRt()
-
-
     ticket = rt.getTicket(ticketId)
     ticket_history = rt.getTicketHistory(ticketId)
     return render(request, 'ticketDetail.html', { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
@@ -33,7 +27,7 @@ def ticketcreate(request):
     data = {}
     if request.user.is_authenticated():
         data = { 'email' : request.user.email, 'first_name' : request.user.first_name, 'last_name' : request.user.last_name}
-	header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
+        header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
     else:
         return HttpResponseRedirect( reverse( 'djangoRT.views.ticketcreateguest'), )
 
@@ -127,10 +121,15 @@ def ticketreply(request, ticketId):
 
 @login_required
 def ticketclose(request, ticketId):
-    	rtUtil.DjangoRt().closeTicket(ticketId)
-	return HttpResponseRedirect(reverse( 'djangoRT.views.ticketdetail', args=[ ticketId ] ) )
+    rtUtil.DjangoRt().closeTicket(ticketId)
+    return HttpResponseRedirect(reverse( 'djangoRT.views.ticketdetail', args=[ ticketId ] ) )
 
 @login_required
 def ticketattachment(request, ticketId, attachmentId):
     title, attachment = rtUtil.DjangoRt().getAttachment(ticketId, attachmentId)
-    return render(request, 'attachment.html', {'attachment' : attachment, 'ticketId' : ticketId, 'title' : title});
+    if attachment['Headers']['Content-Disposition'] == 'inline':
+        return render(request, 'attachment.html', {'attachment' : attachment['Content'], 'ticketId' : ticketId, 'title' : title});
+    else:
+        response = HttpResponse(attachment['Content'], content_type=attachment['Headers']['Content-Type'])
+        response['Content-Disposition'] = attachment['Headers']['Content-Disposition'];
+        return response;
