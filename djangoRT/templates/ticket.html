@@ -1,19 +1,8 @@
-<div class="ticket {{ticket.id}} row" style="border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 3px;">
+{% load i18n %}
+<div class="ticket {{ticket.id}} {{ticket.Status}} row" style="border-bottom: 1px solid #eee; padding-bottom: 3px; margin-bottom: 3px;">
   <div class="col-sm-2">
 		<span class="label label-info">
-	    {% if ticket.Status == 'new' %}
-	      <i class="fa fa-star-o"></i>
-	    {% endif %}
-	    {% if ticket.Status == 'open' %}
-	      <i class="fa fa-envelope-o"></i>
-	    {% endif %}
-	    {% if ticket.Status == 'response required' %}
-	      <i class="fa fa-exclamation"></i>
-	    {% endif %}
-	    {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
-	      <i class="fa fa-check"></i>
-	    {% endif %}
-	    {{ticket.Status}}
+	    {% trans ticket.Status %}
 		</span>
   </div>
 	<div class="col-sm-4">

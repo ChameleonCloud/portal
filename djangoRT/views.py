@@ -134,4 +134,3 @@ def ticketclose(request, ticketId):
 def ticketattachment(request, ticketId, attachmentId):
     title, attachment = rtUtil.DjangoRt().getAttachment(ticketId, attachmentId)
     return render(request, 'attachment.html', {'attachment' : attachment, 'ticketId' : ticketId, 'title' : title});
-

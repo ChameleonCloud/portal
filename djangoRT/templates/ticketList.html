@@ -29,6 +29,16 @@
   </div>
 </div>
 
+<div class="tickets">
+  {% for ticket in tickets %}
+    {% include "djangoRT/ticket.html" %}
+  {% empty %}
+    <div class="jumbotron">
+      <p>No tickets to display.</p>
+    </div>
+  {% endfor %}
+</div>
+
 <div class="none tickets empty">
   No tickets to display.
 </div>
