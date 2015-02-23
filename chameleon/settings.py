@@ -43,6 +43,8 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
+    'pagedown',
+    'cmsplugin_pagedown',
 
     ##
     # core apps
