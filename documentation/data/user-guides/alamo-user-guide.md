@@ -109,6 +109,10 @@ through an existing instance that both a public and private IP.
 root access, SSH into the instance as user 'cc' and then use the *sudo* command
 to become root.**
 
+We have enabled auto-login for the cc user on the console of our supported images. This should aid in debugging if you are unable to reach the instane via ssh for some reason.
+
+![Instances Overview](/static/documentation/images/openstack_alamo_console.png)
+{: .thumbnail}
 
 ## Snapshots
 
