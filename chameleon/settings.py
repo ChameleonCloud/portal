@@ -28,6 +28,7 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    'chameleon.local',
     'chameleoncloud.org',
     'www.chameleoncloud.org',
     'www.tacc.chameleoncloud.org',
@@ -71,6 +72,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 )
 
 ROOT_URLCONF = 'chameleon.urls'
@@ -114,13 +116,9 @@ DATABASES['futuregrid'] = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -135,6 +133,10 @@ STATIC_ROOT = '/var/www/chameleoncloud.org/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
     '/var/www/static/',
+)
+
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
 )
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR,'chameleon','templates')]

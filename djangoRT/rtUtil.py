@@ -19,12 +19,17 @@ class DjangoRt:
         self.tracker = rt.Rt(self.rtHost, self.rtUn, self.rtPw, basic_auth=(self.rtUn, self.rtPw))
         self.tracker.login()
 
-    def getUserTickets(self, userEmail, status="ALL"):
-        if not status == "ALL":
-            ticket_list = self.tracker.search(Queue=rt.ALL_QUEUES, Requestors__exact=userEmail, Status__exact=status,
-                                              order='-LastUpdated')
+    def getUserTickets(self, userEmail, show_resolved=False):
+        if show_resolved:
+            query = 'Requestor="%s"' % userEmail
         else:
-            ticket_list = self.tracker.search(Queue=rt.ALL_QUEUES, Requestors__exact=userEmail, order='-LastUpdated')
+            query = 'Requestor="%s" AND Status!="resolved" AND Status!="closed"' % userEmail
+
+        ticket_list = self.tracker.search(
+            Queue=rt.ALL_QUEUES,
+            raw_query=query,
+            order='-LastUpdated'
+        )
 
         for ticket in ticket_list:
             ticket['id'] = ticket['id'].replace('ticket/', '')
@@ -62,7 +67,7 @@ class DjangoRt:
         attachment_name = self.tracker.get_attachment(ticketId, attachmentId).get("Filename")
         if attachment_name == '':
             attachment_name = 'untitled'
-        return attachment_name, self.tracker.get_attachment_content(ticketId, attachmentId)
+        return attachment_name, self.tracker.get_attachment(ticketId, attachmentId)
 
     # Checks if the current user is a requestor or CC on the ticket
     # Also doesn't crap out if the user isn't logged in even though

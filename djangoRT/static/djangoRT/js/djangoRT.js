@@ -1,48 +1,34 @@
 (function($) {
-	function showHideTickets(show) {
-		if (show === 'all') {
-			$('.tickets').addClass('all');
-			$('.tickets').removeClass('none');
-		} else {
-			$('.tickets').addClass('none');
-			$('.tickets').removeClass('all');
-			$('.tickets.' + show).removeClass('none');
-		}
 
-		if ($('.tickets.' + show + ' .ticket').length == 0) {
-			$('.empty').removeClass('none');		
-		} else {
-			$('.empty').addClass('none');
-		}
+  $.expr[":"].containsNoCase = $.expr.createPseudo(function(arg) {
+    return function(elem) {
+      return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+    };
+  });
 
-	}
+  $(document).ready(function() {
 
-	$(document).ready(function() {
-		showHideTickets($('#select option:selected').val());
+    $(".search").on('keyup', function() {
+      var searchTerms = $(this).val();
+      if (searchTerms != "") {
+        $(".ticket").filter(function() {
+          return !$(this).is(":containsNoCase('" + searchTerms +
+            "')");
+        }).addClass("none");
 
-		$('#select').on('change', function() {
-			showHideTickets($('#select option:selected').val());
-		});
+        $(".ticket").filter(function() {
+          return $(this).is(":containsNoCase('" + searchTerms +
+            "')");
+        }).removeClass("none");
+      } else {
+        $(".ticket").removeClass("none");
+      }
+    });
 
-		$(".search").keyup( function() {
-			var searchTerms = $(this).val();
-			if (searchTerms != "") {
-				$(".ticket").filter( function() {
-					return !$(this).is(":contains('" + searchTerms + "')");
-				}).addClass("none");
+    $('.errorlist').each(function() {
+      $(this).addClass('none');
+      $(this).next('p').addClass('required');
+    });
 
-				$(".ticket").filter( function() {
-					return $(this).is(":contains('" + searchTerms + "')");
-				}).removeClass("none");
-			} else {
-				$(".ticket").removeClass("none");
-			}
-		});
-
-		$('.errorlist').each(function() {
-			$(this).addClass('none');
-			$(this).next('p').addClass('required');
-		});
-
-	});
+  });
 })(jQuery);

@@ -4,37 +4,37 @@
 {% block content %}
 
 {% if not hasAccess %}
-	{% include "access_denied.html" %}
+  {% include "access_denied.html" %}
 {% else %}
 
 <h2>
-	{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
-		Reopen
-	{% else %}
-		Reply to
-	{% endif %}
-	#{{ ticket_id }} : {{ ticket.Subject }}
+  {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+    Reopen
+  {% else %}
+    Reply to
+  {% endif %}
+  #{{ ticket_id }} : {{ ticket.Subject }}
 </h2>
 
 <div class='reply_description'>
 {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
-	Please provide a message to explain why you are reopening this ticket.
+  Please provide a message to explain why you are reopening this ticket.
 {% endif %}
 </div>
 
 <form method="POST" enctype="multipart/form-data">
-	{% csrf_token %}
+  {% csrf_token %}
 
-	{% bootstrap_form form %}
+  {% bootstrap_form form %}
 
-		<button class="btn btn-success" type="submit">
-			{% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
-				Reopen
-			{% else %}
-				Reply
-			{% endif %}
-		</button>
-		<a href="{% url 'djangoRT.views.ticketdetail' ticket_id %}" class="btn btn-default">Cancel</a>
+    <button class="btn btn-success" type="submit">
+      {% if ticket.Status == 'resolved' or ticket.Status == 'closed' %}
+        Reopen
+      {% else %}
+        Reply
+      {% endif %}
+    </button>
+    <a href="{% url 'djangoRT.views.ticketdetail' ticket_id %}" class="btn btn-default">Cancel</a>
 </form>
 
 {% endif %}

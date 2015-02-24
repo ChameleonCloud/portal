@@ -2,6 +2,9 @@ FROM mrhanlon/python-nginx:latest
 
 MAINTAINER Matthew R Hanlon <mrhanlon@tacc.utexas.edu>
 
+# gettext for i18n
+RUN apt-get install -y gettext
+
 # kramdown for parsing static site content
 RUN gem install kramdown
 
@@ -29,6 +32,9 @@ WORKDIR /project
 
 # database migrations, if necessary
 RUN python manage.py migrate
+
+# translation messages, if necessary
+RUN python manage.py compilemessages
 
 # setup static assets
 RUN mkdir -p /var/www/static && mkdir -p /var/www/chameleoncloud.org/static && python manage.py collectstatic --noinput

@@ -11,34 +11,35 @@
 
   <h2>Ticket #{{ ticket_id }} : {{ ticket.Subject }} </h2>
 
-	{% include "reply.html" %}
+  {% include "reply.html" %}
 
-	<div class="row">
-		<div class="col-md-9">
-		  {% for history in ticket_history %}
+  <div class="row">
+    <div class="col-md-9">
+      {% for history in ticket_history %}
 
-		    {% if history.Type == "Correspond" or history.Type == "Create" %}
-					<h4>
-						<i class="fa fa-{% if history.Type == "Correspond" %}comment{% elif history.Type == 'Create' %}plus-circle{% endif %}"></i>
-						{{history.Created|date:"M j Y P"}}
-						<small>{{history.Description}}</small>
-					</h4>
+        {% if history.Type == "Correspond" or history.Type == "Create" %}
+          <h4>
+            <i class="fa fa-{% if history.Type == "Correspond" %}comment{% elif history.Type == 'Create' %}plus-circle{% endif %}"></i>
+            {{history.Created|date:"M j Y P"}}
+            <small>{{history.Description}}</small>
+          </h4>
 
-					<pre>{{ history.Content }}</pre>
-                    <b>Attachments:</b>
-                    {% for attachment_id, title in history.Attachments %}
-                        <a href="{% url 'djangoRT.views.ticketattachment' ticket_id attachment_id %}">{{ title }}</a> <br />
-                    {% endfor %}
-		    {% elif history.Type == "Status" %}
-			    <blockquote>
-						<i class="fa fa-bell"></i>
-						{{history.Description }}<br>
-			      {{history.Created|date:"M j Y P"}}
-					</blockquote>
-		    {% endif %}
-		  {% endfor %}
-		</div>
-	</div>
+          <pre>{{ history.Content }}</pre>
+
+          <b>Attachments:</b>
+          {% for attachment_id, title in history.Attachments %}
+            <a href="{% url 'djangoRT.views.ticketattachment' ticket_id attachment_id %}">{{ title }}</a> <br />
+          {% endfor %}
+        {% elif history.Type == "Status" %}
+          <blockquote>
+            <i class="fa fa-bell"></i>
+            {{history.Description }}<br>
+            {{history.Created|date:"M j Y P"}}
+          </blockquote>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
 
   {% include "reply.html" %}
 
