@@ -29,6 +29,7 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    'chameleon.local',
     'chameleoncloud.org',
     'www.chameleoncloud.org',
     'www.tacc.chameleoncloud.org',
@@ -107,6 +108,7 @@ MIDDLEWARE_CLASSES = (
     'user_news.middleware.UserNewsNotificationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
     'cms.middleware.toolbar.ToolbarMiddleware',
@@ -158,10 +160,6 @@ LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'UTC'
 
-USE_I18N = True
-
-USE_L10N = True
-
 USE_TZ = True
 
 SITE_ID = 1
@@ -180,8 +178,13 @@ STATICFILES_DIRS = (
     '/var/www/static/',
 )
 
+
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,'chameleon','templates'),
+)
+
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
 )
 
 AUTHENTICATION_BACKENDS = (

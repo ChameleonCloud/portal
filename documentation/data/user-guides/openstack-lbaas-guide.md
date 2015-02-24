@@ -15,7 +15,7 @@ instances. This service uses [HAProxy](http://www.haproxy.org/) as the load bala
 ## Configure Instances
 
 To begin, we will create and configure three instances that will serve web traffic.  Please see the [Alamo
-User Guide](alamo-user-guide) for additional information on how to create and configure instances.
+User Guide](../alamo-user-guide) for additional information on how to create and configure instances.
 
 First, create a security group that allows SSH and HTTP traffic. Second, create three instances from the
 CentOS-7 image. We'll call these instances server-1, server-2, and server-3. Third, assign a public floating
