@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 import os
 import django
+gettext = lambda s: s
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -37,28 +38,63 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = (
+    ##
+    # django-cms prereqs
+    #
+    'djangocms_admin_style',
+    'djangocms_text_ckeditor',
+    'pagedown',
+    'cmsplugin_pagedown',
+
+    ##
+    # core apps
+    #
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    ##
+    # django-cms
+    #
+    'cms',
+    'mptt',
+    'menus',
+    'sekizai',
+    'djangocms_style',
+    'djangocms_column',
+    'djangocms_file',
+    'djangocms_flash',
+    'djangocms_googlemap',
+    'djangocms_inherit',
+    'djangocms_link',
+    'djangocms_picture',
+    'djangocms_teaser',
+    'djangocms_video',
+    'reversion',
+
+    ##
     # contrib
+    #
+    'ckeditor',
     'pipeline',
-    'menu',
     'captcha',
     'bootstrap3',
     'termsandconditions',
 
+    ##
     # custom
-    'site_menu',
+    #
+    'chameleon_cms_integrations',
     'util',
     'tas',
-    'documentation',
     'djangoRT',
     'projects',
-    'github_content',
+    'user_news',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -68,8 +104,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'termsandconditions.middleware.TermsAndConditionsRedirectMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'user_news.middleware.UserNewsNotificationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'cms.middleware.user.CurrentUserMiddleware',
+    'cms.middleware.page.CurrentPageMiddleware',
+    'cms.middleware.toolbar.ToolbarMiddleware',
+    'cms.middleware.language.LanguageCookieMiddleware',
 )
 
 ROOT_URLCONF = 'chameleon.urls'
@@ -113,7 +154,7 @@ DATABASES['futuregrid'] = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'UTC'
 
@@ -123,20 +164,25 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = 1
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
+STATIC_ROOT = '/var/www/chameleoncloud.org/static/'
 STATIC_URL = '/static/'
 
-STATIC_ROOT = '/var/www/chameleoncloud.org/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
     '/var/www/static/',
 )
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR,'chameleon','templates')]
+TEMPLATE_DIRS = (
+    os.path.join(BASE_DIR,'chameleon','templates'),
+)
 
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
@@ -194,13 +240,65 @@ LOGGING = {
 
 #####
 #
+# CMS Config
+#
+#####
+CMS_TOOLBAR_URL__EDIT_ON = 'tk5VAFwlx9IKSoczFi3XlNv4xbGeNn8pzAlCu9555gi2238lu36PAj8jQgtch3U'
+
+CMS_TEMPLATES = (
+    ## Customize this
+    ('cms_page.html', 'Default Page'),
+    ('cms_custom_page.html', 'Advanced Page'),
+)
+
+CMS_PERMISSION = True
+
+CMS_PLACEHOLDER_CONF = {}
+
+LANGUAGES = [
+    ('en', 'English'),
+]
+
+MIGRATION_MODULES = {
+    'cms': 'cms.migrations_django',
+    'menus': 'menus.migrations_django',
+    'djangocms_text_ckeditor': 'djangocms_text_ckeditor.migrations_django',
+    'djangocms_column': 'djangocms_column.migrations_django',
+    'djangocms_flash': 'djangocms_flash.migrations_django',
+    'djangocms_googlemap': 'djangocms_googlemap.migrations_django',
+    'djangocms_inherit': 'djangocms_inherit.migrations_django',
+    'djangocms_style': 'djangocms_style.migrations_django',
+    'djangocms_file': 'djangocms_file.migrations_django',
+    'djangocms_link': 'djangocms_link.migrations_django',
+    'djangocms_picture': 'djangocms_picture.migrations_django',
+    'djangocms_teaser': 'djangocms_teaser.migrations_django',
+    'djangocms_video': 'djangocms_video.migrations_django'
+}
+
+#####
+#
+# CKEditor Config
+#
+#####
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+# CKEDITOR_CONFIGS = {
+#     'default': {
+#         'toolbar': 'full',
+#         'height': 300,
+#         'width': 300,
+#     },
+# }
+
+#####
+#
 # Pipeline config
 #
 #####
 PIPELINE_COMPILERS = (
     'pipeline.compilers.sass.SASSCompiler',
 )
-PIPELINE_SASS_ARGUMENTS = '--compass --style compressed'
+PIPELINE_SASS_ARGUMENTS = '--update --compass --style compressed'
 PIPELINE_CSS_COMPRESSOR = None
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 
@@ -231,8 +329,12 @@ STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
 
 TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
 
-# include request for django-simple-menu
-TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'django.core.context_processors.request',
+    'chameleon.context_processors.google_analytics',
+    'sekizai.context_processors.sekizai',
+    'cms.context_processors.cms_settings',
+)
 
 #####
 #
@@ -240,7 +342,6 @@ TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',)
 #
 #####
 GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get( 'GOOGLE_ANALYTICS_PROPERTY_ID' )
-TEMPLATE_CONTEXT_PROCESSORS += ( 'chameleon.context_processors.google_analytics', )
 
 #####
 #

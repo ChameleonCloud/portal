@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ValidationError
 from pytas.pytas import client as TASClient
 import logging
 import re
 
-class TASBackend(object):
+class TASBackend(ModelBackend):
 
     def __init__(self):
         self.tas = TASClient()
@@ -51,11 +52,3 @@ class TASBackend(object):
                 )
 
         return user
-
-    # Required for your backend to work properly - unchanged in most scenarios
-    def get_user(self, user_id):
-        UserModel = get_user_model()
-        try:
-            return UserModel.objects.get(pk=user_id)
-        except UserModel.DoesNotExist:
-            return None

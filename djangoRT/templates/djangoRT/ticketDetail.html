@@ -1,0 +1,39 @@
+{% extends "layout/user.html" %}
+
+{% block title %}Ticket #{{ ticket_id }}{% endblock %}
+
+{% block content %}
+
+{% if not hasAccess %}
+  {% include "djangoRT/access_denied.html" %}
+  {% include "djangoRT/navigation.html" %}
+{% else %}
+  <h2>Ticket #{{ ticket_id }} : {{ ticket.Subject }} </h2>
+  {% include "djangoRT/reply.html" %}
+  <div class="row">
+    <div class="col-md-9">
+      {% for history in ticket_history %}
+        {% if history.Type == "Correspond" or history.Type == "Create" %}
+          <h4>
+            <i class="fa fa-{% if history.Type == "Correspond" %}comment{% elif history.Type == 'Create' %}plus-circle{% endif %}"></i>
+            {{history.Created|date:"M j Y P"}}
+            <small>{{history.Description}}</small>
+          </h4>
+          <pre>{{ history.Content }}</pre>
+          <b>Attachments:</b>
+          {% for attachment_id, title in history.Attachments %}
+            <a href="{% url 'djangoRT:ticketattachment' ticket_id attachment_id %}">{{ title }}</a> <br />
+          {% endfor %}
+        {% elif history.Type == "Status" %}
+          <blockquote>
+            <i class="fa fa-bell"></i>
+            {{history.Description }}<br>
+            {{history.Created|date:"M j Y P"}}
+          </blockquote>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% include "djangoRT/reply.html" %}
+{% endif %}
+{% endblock %}

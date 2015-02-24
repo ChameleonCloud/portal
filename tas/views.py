@@ -27,7 +27,7 @@ def profile( request ):
     if context['profile']['source'] != 'Chameleon':
         messages.info( request, 'Your account was created outside of the Chameleon Portal. Please visit the <a target="_blank" href="https://portal.tacc.utexas.edu">TACC User Portal</a> to edit your profile.' )
 
-    return render(request, 'profile.html', context)
+    return render(request, 'tas/profile.html', context)
 
 @login_required
 def profile_edit( request ):
@@ -50,7 +50,7 @@ def profile_edit( request ):
         data[ 'citizenshipId' ] = int( request.POST[ 'citizenshipId' ] )
         tas.save_user( data[ 'id' ], data )
         messages.success( request, 'Your profile has been updated!' )
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     try:
         resp = tas.get_user( username=request.user )
@@ -60,7 +60,7 @@ def profile_edit( request ):
         # raise Exception('error loading profile')
 
     if context['profile']['source'] != 'Chameleon':
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     try:
         inst = tas.institutions()
@@ -82,18 +82,18 @@ def profile_edit( request ):
         logger.exception('Error loading countries')
         context['countries'] = False
 
-    return render(request, 'profile_edit.html', context)
+    return render(request, 'tas/profile_edit.html', context)
 
 def password_reset( request ):
     if request.user is not None and request.user.is_authenticated():
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     if request.POST:
         if 'code' in request.GET:
             form = PasswordResetConfirmForm( request.POST )
             if _process_password_reset_confirm( request, form ):
                 messages.success( request, 'Your password has been reset! You can now log in using your new password' )
-                return HttpResponseRedirect( reverse( 'profile' ) )
+                return HttpResponseRedirect( reverse( 'tas:profile' ) )
         else:
             form = PasswordResetRequestForm( request.POST )
             if _process_password_reset_request( request, form ):
@@ -110,7 +110,7 @@ def password_reset( request ):
     else:
         message = 'Enter your Chameleon username to request a password reset. If your account is found, you will receive an email at the registered email address with instructions to complete the password reset.'
 
-    return render(request, 'password_reset.html', { 'message': message, 'form': form })
+    return render(request, 'tas/password_reset.html', { 'message': message, 'form': form })
 
 def _process_password_reset_request( request, form ):
     if form.is_valid():
@@ -164,7 +164,7 @@ def email_confirmation( request ):
                 user = tas.get_user( username=context['username'] )
                 tas.verify_user( user['id'], context['code'] )
                 messages.success( request, 'Congratulations, your email has been verified! Please log in now.' )
-                return HttpResponseRedirect( reverse( 'profile' ) )
+                return HttpResponseRedirect( reverse( 'tas:profile' ) )
             except Exception as e:
                 if e[0] == 'User not found':
                     messages.error( request, e[1] )
@@ -184,11 +184,11 @@ def email_confirmation( request ):
     elif 'code' in request.GET:
         context['code'] = request.GET['code']
 
-    return render( request, 'email_confirmation.html', context )
+    return render( request, 'tas/email_confirmation.html', context )
 
 def register( request ):
     if request.user is not None and request.user.is_authenticated():
-        return HttpResponseRedirect( reverse( 'profile' ) )
+        return HttpResponseRedirect( reverse( 'tas:profile' ) )
 
     tas = TASClient()
 
@@ -275,7 +275,7 @@ def register( request ):
                         errors['username'] = message
                     elif re.search( 'DuplicateEmailException', e.args[1] ):
                         message = 'This email is already registered. If you already have an account with TACC, please log in using those credentials.'
-                        messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas.views.password_reset') ) )
+                        messages.error( request, message + ' <a href="{0}">Did you forget your password?</a>'.format( reverse('tas:password_reset') ) )
                         errors['email'] = message
                     elif re.search( 'PasswordInvalidException', e.args[1] ):
                         message = 'The password you provided did not meet the complexity requirements.'
@@ -296,7 +296,7 @@ def register( request ):
 
     try:
         inst = tas.institutions()
-        
+
         # remove "n/a" from list
         inst = [i for i in inst if i['id'] is not 175]
 
@@ -318,4 +318,4 @@ def register( request ):
         logger.error( 'Error loading countries', e )
         context['countries'] = False
 
-    return render(request, 'register.html', context)
+    return render(request, 'tas/register.html', context)
