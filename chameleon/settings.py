@@ -28,6 +28,7 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    'chameleon.local',
     'chameleoncloud.org',
     'www.chameleoncloud.org',
     'www.tacc.chameleoncloud.org',
