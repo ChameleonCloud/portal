@@ -44,8 +44,6 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
-    'pagedown',
-    'cmsplugin_pagedown',
 
     ##
     # core apps
@@ -76,6 +74,8 @@ INSTALLED_APPS = (
     'djangocms_picture',
     'djangocms_teaser',
     'djangocms_video',
+    'cmsplugin_pagedown',
+    'pagedown',
     'reversion',
 
     ##
@@ -275,7 +275,8 @@ MIGRATION_MODULES = {
     'djangocms_link': 'djangocms_link.migrations_django',
     'djangocms_picture': 'djangocms_picture.migrations_django',
     'djangocms_teaser': 'djangocms_teaser.migrations_django',
-    'djangocms_video': 'djangocms_video.migrations_django'
+    'djangocms_video': 'djangocms_video.migrations_django',
+    'cmsplugin_pagedown': 'cmsplugin_pagedown.migrations_django',
 }
 
 #####
