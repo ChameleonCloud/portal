@@ -9,7 +9,7 @@ import ckeditor.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cms', '0003_auto_20140926_2347'),
+        ('cms', '__first__'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -51,6 +51,21 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Tag',
                 'verbose_name_plural': 'Tags',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Notification',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('level', models.IntegerField(choices=[(20, b'Informational'), (25, b'Success'), (30, b'Warning'), (40, b'Error')])),
+                ('title', models.CharField(max_length=80, blank=True)),
+                ('message', models.TextField()),
+                ('schedule_on', models.DateTimeField(verbose_name=b'scheduled display start', blank=True)),
+                ('schedule_off', models.DateTimeField(verbose_name=b'scheduled display end', blank=True)),
+                ('limit_pages', models.TextField(verbose_name=b'Limit display only to these page paths (one per line)', blank=True)),
+            ],
+            options={
             },
             bases=(models.Model,),
         ),
