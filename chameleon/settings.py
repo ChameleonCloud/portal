@@ -74,8 +74,6 @@ INSTALLED_APPS = (
     'djangocms_picture',
     'djangocms_teaser',
     'djangocms_video',
-    'cmsplugin_pagedown',
-    'pagedown',
     'reversion',
 
     ##
@@ -276,7 +274,6 @@ MIGRATION_MODULES = {
     'djangocms_picture': 'djangocms_picture.migrations_django',
     'djangocms_teaser': 'djangocms_teaser.migrations_django',
     'djangocms_video': 'djangocms_video.migrations_django',
-    'cmsplugin_pagedown': 'cmsplugin_pagedown.migrations_django',
 }
 
 #####
@@ -286,13 +283,18 @@ MIGRATION_MODULES = {
 #####
 CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_IMAGE_BACKEND = 'pillow'
-# CKEDITOR_CONFIGS = {
-#     'default': {
-#         'toolbar': 'full',
-#         'height': 300,
-#         'width': 300,
-#     },
-# }
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Chameleon',
+        'toolbar_Chameleon': [
+            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Table', 'HorizontalRule'],
+            ['BulletedList', 'NumberedList'], ['Source'],
+        ],
+    },
+
+}
 
 #####
 #

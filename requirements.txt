@@ -1,4 +1,4 @@
-django-cms==3.0.9
+django-cms>=3.0
 Django>=1.7
 
 django-mptt==0.6.1
@@ -17,8 +17,6 @@ djangocms-style
 djangocms-teaser
 djangocms-text-ckeditor
 djangocms-video
--e git+https://github.com/mrhanlon/cmsplugin-pagedown.git@b198e74d46ef8bfcee0dbc3410ccdb778b645d1f#egg=cmsplugin_pagedown-master
-markdown
 html5lib==0.999
 six==1.9.0
 
@@ -42,4 +40,3 @@ pytz
 
 # these modules aren't in PIP
 #pytas
-#python-rt

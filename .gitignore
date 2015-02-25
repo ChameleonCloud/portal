@@ -1,5 +1,6 @@
 db.sqlite3
 .sass-cache/
+media
 media/
 run-script.sh
 
