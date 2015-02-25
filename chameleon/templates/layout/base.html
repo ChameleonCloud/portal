@@ -1,22 +1,23 @@
-{% load staticfiles %}
-{% load compressed %}
-{% load menu %}{% generate_menu %}
+{% load cms_tags staticfiles sekizai_tags menu_tags compressed %}
 <!DOCTYPE html>
 <html>
   <head>
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <title>{% block title %}{% endblock %} | Chameleon Cloud</title>
+      <title>{% block title %}{% page_attribute "page_title" %}{% endblock %} | Chameleon Cloud</title>
       <meta name="viewport" content="width=device-width">
       <meta name="description" content="{{ site.description }}">
       <link rel="icon" href="{% static "images/favicon.ico" %}">
       <link rel="canonical" href="{{request.get_full_path}}">
 
       <!-- Custom CSS -->
-      <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
       {% compressed_css 'main' %}
+      {% render_block "css" %}
+      <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
   </head>
   <body>
+    {% cms_toolbar %}
+
     {% include "includes/header.html" %}
 
     {% block page_top %}{% endblock %}
@@ -27,6 +28,7 @@
 
     {% include "includes/footer.html" %}
     {% include "includes/scripts.html" %}
+    {% render_block "js" %}
     {% block scripts %}{% endblock %}
     {% include "includes/ga.html" %}
   </body>

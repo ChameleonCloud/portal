@@ -32,7 +32,7 @@ def user_projects( request ):
 
     context['projects'] = ch_projects
 
-    return render( request, 'user_projects.html', context )
+    return render( request, 'projects/user_projects.html', context )
 
 @login_required
 def view_project( request, project_id ):
@@ -80,7 +80,7 @@ def view_project( request, project_id ):
     else:
         fg_users = None
 
-    return render( request, 'view_project.html', {
+    return render( request, 'projects/view_project.html', {
         'project': project,
         'users': users,
         'is_pi': request.user.username == project['pi']['username'],
@@ -97,7 +97,7 @@ def create_project( request ):
     user = tas.get_user( username=request.user )
     if user['piEligibility'] != 'Eligible':
         messages.error( request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please submit a help desk ticket!' )
-        return HttpResponseRedirect( reverse( 'user_projects' ) )
+        return HttpResponseRedirect( reverse( 'projects:user_projects' ) )
 
     if request.POST:
         form = ProjectCreateForm( request.POST )
@@ -125,7 +125,7 @@ def create_project( request ):
             try:
                 created_project = tas.create_project( project )
                 messages.success( request, 'Your project has been created!' )
-                return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+                return HttpResponseRedirect( reverse( 'projects:view_project', args=[ created_project['id'] ] ) )
             except:
                 logger.exception( 'Error creating project' )
                 form.add_error('__all__', 'An unexpected error occurred. Please try again')
@@ -133,13 +133,13 @@ def create_project( request ):
     else:
         form = ProjectCreateForm()
 
-    return render( request, 'create_project.html', { 'form': form } )
+    return render( request, 'projects/create_project.html', { 'form': form } )
 
 @login_required
 def edit_project( request ):
     context = {}
 
-    return render( request, 'edit_project.html', context )
+    return render( request, 'projects/edit_project.html', context )
 
 @login_required
 def lookup_fg_projects( request ):
@@ -150,7 +150,7 @@ def lookup_fg_projects( request ):
     projects = tas.projects_for_user( request.user )
     fg_projects = [p for p in fg_projects if not any( q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode ) ]
 
-    return render( request, 'lookup_fg_project.html', { 'fg_projects': fg_projects } )
+    return render( request, 'projects/lookup_fg_project.html', { 'fg_projects': fg_projects } )
 
 @login_required
 @terms_required('project-terms')
@@ -186,7 +186,7 @@ def fg_project_migrate( request, project_id ):
 
             created_project = tas.create_project( project )
             messages.success( request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'] )
-            return HttpResponseRedirect( reverse( 'view_project', args=[ created_project['id'] ] ) )
+            return HttpResponseRedirect( reverse( 'projects:view_project', args=[ created_project['id'] ] ) )
         except Exception as e:
             logger.exception( 'Error migrating project' )
             if len( e.args ) > 1:
@@ -207,7 +207,7 @@ def fg_project_migrate( request, project_id ):
         } )
 
     form.fields['typeId'].widget = forms.HiddenInput()
-    return render( request, 'fg_project_migrate.html', { 'project': project, 'form': form } )
+    return render( request, 'projects/fg_project_migrate.html', { 'project': project, 'form': form } )
 
 @login_required
 def fg_add_user( request, project_id ):

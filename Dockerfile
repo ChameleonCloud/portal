@@ -17,7 +17,7 @@ COPY docker-conf /setup/docker-conf
 RUN pip install -r /setup/requirements.txt
 
 # install non-pip dependencies
-RUN cd /setup/deps/pytas && python setup.py install && cd ../python-rt && python setup.py install
+RUN cd /setup/deps/pytas && python setup.py install
 
 # configure nginx, uwsgi, supervisord
 RUN \

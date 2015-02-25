@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load staticfiles i18n menu_tags cache %}
 
 <header class="site-header">
   <div class="container">
@@ -18,48 +18,14 @@
       <div class="collapse navbar-collapse" id="main-nav">
         <ul class="nav navbar-nav">
           <li><a href="/"><i class="fa fa-home"></i><span class="sr-only">Home</span></a></li>
-          {% for item in menus.main %}
-            {% if item.children %}
-              <li class="dropdown {% if item.selected %}active{% endif %}">
-                <a href="{{ item.url }}" data-toggle="dropdown">
-                  {{ item.title }} <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  {% for child_item in item.children %}
-                    <li><a href="{{ child_item.url }}">{{ child_item.title }}</a></li>
-                  {% endfor %}
-                </ul>
-              </li>
-            {% else %}
-              <li {% if item.selected %}class="active"{% endif %}>
-                <a href="{{ item.url }}">{{ item.title }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
+          {% with preserve_parent=True %}
+            {% show_menu_below_id "main_menu" 0 1 100 100 "includes/navigation.html" %}
+          {% endwith %}
         </ul>
         <ul class="nav navbar-nav navbar-right navbar-user">
-          {% for item in menus.user %}
-            {% if item.children %}
-              <li class="dropdown {% if item.selected %}active{% endif %}">
-                <a href="{{ item.url }}" data-toggle="dropdown">
-                  <i class="fa fa-user hidden-xs hidden-md hidden-lg"></i>
-                  <span class="hidden-sm">{{ item.title }}</span>
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  {% for child_item in item.children %}
-                    <li class="{% if child_item.selected %}active{% endif %}">
-                      <a href="{{ child_item.url }}">{{ child_item.title }}</a>
-                    </li>
-                  {% endfor %}
-                </ul>
-              </li>
-            {% else %}
-              <li {% if item.selected %}class="active"{% endif %}>
-                <a href="{{ item.url }}">{{ item.title }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
+          {% with preserve_parent=False %}
+            {% show_menu_below_id "user_menu" 0 1 100 100 "includes/navigation.html"%}
+          {% endwith %}
         </ul>
       </div>
     </nav>

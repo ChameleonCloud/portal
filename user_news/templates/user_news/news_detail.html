@@ -1,0 +1,11 @@
+<h1>{{ news.title }}</h1>
+<article class="news-item">
+  <header>
+    <div class="meta">
+      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  <section class="news-item-summary">
+    {{ news.body|safe }}
+  </section>
+</article>

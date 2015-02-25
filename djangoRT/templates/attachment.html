@@ -1,9 +1,0 @@
-{% extends "layout/user.html" %}
-
-{% block title %}Ticket #{{ ticket_id }}{% endblock %}
-
-{% block content %}
-    <h2>Attachment : {{ title }} </h2>
-    <pre>{{ attachment }}</pre>
-    <a href="{% url 'djangoRT.views.ticketdetail' ticketId %}"><i class="fa fa-reply"></i> Back to ticket</a>
-{% endblock %}

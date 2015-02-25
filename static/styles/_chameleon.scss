@@ -1,3 +1,5 @@
+@import 'compass/css3';
+
 h1, h2, h3 {
   font-weight: 400;
   border-bottom: 3px solid;
@@ -176,39 +178,52 @@ article {
     position: relative;
     border-color: $brand-success;
     border-style: solid;
-    border-width: 2px;
+    border-width: 1px;
+    background-color: white;
     padding: 0 0.75em;
     margin-bottom: 0.5em;
-    min-height: 170px;
+    min-height: 180px;
 
     h2 {
+      position: relative;
       font-size: 1.25em;
       text-transform: uppercase;
       color: $brand-success;
     }
 
-    .excerpt {
-      height: 4.5em;
-      margin-bottom: 0.25em;
+    .post-content {
+      height: 6em;
       overflow: hidden;
       text-overflow: ellipsis;
+      position: relative;
+
+      img {
+        max-height: 5.5em;
+      }
     }
 
     .read-more {
-      text-transform: uppercase;
-      padding: 1px 3px;
-      color: #fff;
-      background-color: $brand-success;
-      border: 0;
       position: absolute;
       bottom: 0;
-      right: 0;
+      left: 0;
+      width: 100%;
+      text-align: right;
+      @include background-image(linear-gradient(to bottom, rgba(255,255,255,0.2), white));
     }
   }
 }
 
 .article-list article {
   border-bottom: 2px solid $brand-success;
+}
+
+.read-more-link {
+  display: inline-block;
+  text-transform: uppercase;
+  padding: 1px 3px;
+  color: #fff;
+  background-color: $brand-success;
+  border: 0;
 }
 
 .messages {

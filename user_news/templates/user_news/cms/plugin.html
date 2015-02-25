@@ -1,0 +1,16 @@
+{% for news in news_list %}
+<article class="news-item">
+  <header>
+    <h3><a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a></h3>
+    <div class="meta">
+      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  <section class="news-item-summary">
+    {{ news.summary|safe }}
+  </section>
+  <div class="read-more">
+    <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+  </div>
+</article>
+{% endfor %}

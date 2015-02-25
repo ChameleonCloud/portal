@@ -1,5 +1,7 @@
 db.sqlite3
 .sass-cache/
+media
+media/
 run-script.sh
 
 # Byte-compiled / optimized / DLL files
