@@ -9,6 +9,8 @@
   <section class="news-item-summary">
     {{ news.summary|safe }}
   </section>
-  <a href="{% url 'user_news:detail' news.slug %}" class="read-more">Read more</a>
+  <div class="read-more">
+    <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+  </div>
 </article>
 {% endfor %}

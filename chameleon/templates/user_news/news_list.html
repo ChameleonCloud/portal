@@ -3,6 +3,7 @@
 {% block content %}
 <h1>Latest News</h1>
 
+<div class="article-list">
 {% for news in news_list %}
 <article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">
   <header>
@@ -14,27 +15,39 @@
   <section class="news-item-summary">
     {{ news.summary|safe }}
   </section>
-  <a href="{% url 'user_news:detail' news.slug %}" class="read-more">Read more</a>
+  <div class="read-more">
+    <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+  </div>
 </article>
 {% empty %}
   <div class="jumbotron">
     <p>No news to display!</p>
   </div>
 {% endfor %}
+</div>
 
 {% if is_paginated %}
-<div class="pagination">
-  <span class="page-links">
+<nav class="text-center">
+<ul class="pagination">
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+      <li>
+        <a href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+      </li>
     {% endif %}
-    <span class="page-current">
-      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-    </span>
+    {% with ''|center:page_obj.paginator.num_pages as range %}
+    {% for _ in range %}
+      <li{% if forloop.counter == page_obj.number %} class="active"{% endif %}>
+        <a href="?page={{ forloop.counter }}">{{ forloop.counter }}</a>
+      </li>
+    {% endfor %}
+    {% endwith %}
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}">next</a>
+      <li>
+        <a href="?page={{ page_obj.next_page_number }}">Next &rarr;</a>
+      </li>
     {% endif %}
   </span>
-</div>
+</ul>
+</nav>
 {% endif %}
 {% endblock %}
