@@ -1,47 +1,21 @@
-<dl>
-  <dt>Name</dt>
-  <dd>{{ item.name }}</dd>
+{% load staticfiles %}
 
-  <dt>Location</dt>
-  <dd>
-    {{ item.location }}
-    {% if item.latitude and item.longitude %}
-      [<a href="https://www.google.com/maps/@{{ item.latitude }},{{ item.longitude}},4z">map</a>]
-    {% endif %}
-  </dd>
-
-  {% if item.email_contact or item.user_support_contact or item.security_contact or item.sys_admin_contact %}
-    <dt>Contacts</dt>
-    <dd>
-      <table>
-        <tbody>
-          {% if item.email_contact %}
-            <tr>
-              <td>Email</td>
-              <td>{{ item.email_contact }}</td>
-            </tr>
-          {% endif %}
-          {% if item.user_support_contact %}
-            <tr>
-              <td>User Support</td>
-              <td>{{ item.user_support_contact }}</td>
-            </tr>
-          {% endif %}
-          {% if item.security_contact %}
-            <tr>
-              <td>Security</td>
-              <td>{{ item.security_contact }}</td>
-            </tr>
-          {% endif %}
-          {% if item.sys_admin_contact %}
-            <tr>
-              <td>SysAdmin</td>
-              <td>{{ item.sys_admin_contact }}</td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </dd>
-  {% endif %}
-
-</dl>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap.css" %}">
+</head>
+<body ng-app="{% block ng_app %}example.app.static{% endblock %}">
+<div class="content" ng-controller="{% block ng_controller %}AppController{% endblock %}">{% block content %}
+    <div class="panel" ng-repeat="post in posts">
+        <div class="panel-heading clearfix">
+            <h3 class="panel-title">[[post.title]]</h3>
+            <author class="pull-right">[[post.author.username]]</author>
+        </div>
+        <p class="well">[[post.body]]</p>
+    </div>
+{% endblock %}</div>
+<script src="{% static "underscore/underscore.js" %}"></script>
+<script src="{% static "angular/angular.js" %}"></script>
+<script src="{% static "scripts/app.js" %}"></script>
+</body>
+</html>

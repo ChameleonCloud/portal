@@ -93,6 +93,7 @@ INSTALLED_APPS = (
     'djangoRT',
     'projects',
     'user_news',
+    'djangular',
     'g5k_discovery',
 )
 
