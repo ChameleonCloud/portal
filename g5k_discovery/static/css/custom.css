@@ -1,3 +1,23 @@
-.discovery-app .inner-check {
-    margin-left:30px;
+.discovery-app .node-header {
+    background-color:#EFEFF2;
+    font-size:1.1em;
 }
+
+.discovery-app .node-sub-header {
+    background-color:#EFEFF2;
+}
+
+.discovery-app table {
+    font-size:0.9em;
+}
+
+.discovery-app .header-line {
+    border-bottom:2px solid #EFEFF2;
+    margin-top:10px;
+}
+
+.discovery-app .network-adapters {
+     cursor: pointer;
+    cursor: hand;
+}
+

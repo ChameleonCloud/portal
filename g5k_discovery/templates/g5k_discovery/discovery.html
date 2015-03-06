@@ -8,9 +8,8 @@
 {% endblock css %}
 </head>
 {% block content %}
-    <body ng-app="discoveryApp" class="discovery-app">
+    <body ng-app="discoveryApp" class="discovery-app" ng-cloak>
     <div class="content" ng-controller="AppController">
-
         <div ng-if="loading" class="well">
             <h4>
                 <i class="icon icon-spinner icon-spin"></i> Loading ...
@@ -18,120 +17,357 @@
         </div>
 
         <div ng-if="! loading">
+        <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
+        <div ng-if="! loadingError">
             <div class="col col-sm-8">
+              <div class="col-sm-offset-1">
               <h3 class="title">Nodes</h3>
                <div><strong>[[selectednodes.length]]</strong> nodes<span ng-if="selectednodes.length != allnodes.length"> filtered from [[allnodes.length]] originally.(<a href="javascript:" ng-click="resetFilters()">Reset all Filters</a>)</span></div>
-              <div class="panel" ng-repeat="node in selectednodes">
-                <div class="panel-heading clearfix">
-                  <h4 class="panel-title well">[[node.uid]]</h4>
-                </div>
-                <div>[[node.version]]</div>
               </div>
+                  <br/>
+                <div ng-repeat="node in selectednodes">
+                  <div class="col col-sm-1">[[$index+1]].&nbsp</div>
+                  <div class="col col-sm-11">
+                      <div  class="node-header"><strong>[[node.uid]]</strong></div>
+                      <br/>
+                      <div class="clearfix">
+                          <div class="node-sub-header">Processor</div>
+                           <div>
+                            <div class="col col-sm-4">Vendor:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.vendor">[[node.processor.vendor]]</span>
+                                <span ng-if="!node.processor.vendor">n/a</span>
+                            </div>
+                          </div>
+
+                           <div>
+                            <div class="col col-sm-4">Model:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.model">[[node.processor.model]]</span>
+                                <span ng-if="!node.processor.model">n/a</span>
+                            </div>
+                          </div>
+
+                           <div>
+                            <div class="col col-sm-4">Version:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.version">[[node.processor.version]]</span>
+                                <span ng-if="!node.processor.version">n/a</span>
+                            </div>
+                          </div>
+
+                           <div>
+                            <div class="col col-sm-4">Clock Speed:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.clock_speed">[[node.processor.clock_speed/(1000000000) | number:2]]&nbsp;GHz</span>
+                                <span ng-if="!node.processor.clock_speed">n/a</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div class="col col-sm-4">Instruction Set:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.instruction_set">[[node.processor.instruction_set]]</span>
+                                <span ng-if="!node.processor.instruction_set">n/a</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div class="col col-sm-4">Description:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.other_description">[[node.processor.other_description]]</span>
+                                <span ng-if="!node.processor.other_description">n/a</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div class="col col-sm-4">Cache L1:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.cache_l1">[[node.processor.cache_l1/(1024) | number:0]]&nbsp;KB</span>
+                                <span ng-if="!node.processor.cache_l1">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Cache L2:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.cache_l2">[[node.processor.cache_l2/(1024) | number:0]]&nbsp;KB</span>
+                                <span ng-if="!node.processor.cache_l2">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Cache L1d:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.cache_l1d">[[node.processor.cache_l1d/(1024) | number:0]]&nbsp;KB</span>
+                                <span ng-if="!node.processor.cache_l1d">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Cache L1i:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.processor.cache_l1i">[[node.processor.cache_l1i/(1024) | number:0]]&nbsp;KB</span>
+                                <span ng-if="!node.processor.cache_l1i">n/a</span>
+                            </div>
+                          </div>
+
+                      </div>
+                      <br/>
+                       <div class="clearfix">
+                          <div class="node-sub-header">Architecture</div>
+                           <div>
+                            <div class="col col-sm-4">SMP Size:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.architecture.smp_size">[[node.architecture.smp_size]]</span>
+                                <span ng-if="!node.architecture.smp_size">n/a</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div class="col col-sm-4">SMT Size:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.architecture.smp_size">[[node.architecture.smp_size]]</span>
+                                <span ng-if="!node.architecture.smp_size">n/a</span>
+                            </div>
+                          </div>
+
+                            <div>
+                            <div class="col col-sm-4">Platform Type:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.architecture.platform_type">[[node.architecture.platform_type]]</span>
+                                <span ng-if="!node.architecture.platform_type">n/a</span>
+                            </div>
+                          </div>
+                      </div>
+                      <br/>
+                      <div class="storage-devices clearfix">
+                          <div class="node-sub-header">Storage Devices</div>
+                          
+                          <div>
+                            <div class="col col-sm-4">Interface:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.storage_devices[0].interface">[[node.storage_devices[0].interface]]</span>
+                                <span ng-if="!node.storage_devices[0].interface">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Driver:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.storage_devices[0].driver">[[node.storage_devices[0].driver]]</span>
+                                <span ng-if="!node.storage_devices[0].driver">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Size:</div>
+                              <div class="col col-sm-8">
+                                <span ng-if="node.storage_devices[0].size">[[node.storage_devices[0].size/(1024*1024*1024) | number:0]]&nbsp;GB</span>
+                                <span ng-if="!node.storage_devices[0].size">n/a</span>
+                            </div>
+                          </div>
+                      </div>
+                      <br/>
+                      <div class="network-adapters clearfix">
+                          <div class="node-sub-header" ng-click="showNetAdap = !showNetAdap">
+                              <span>Network Adapters&nbsp;&nbsp;</span>
+                              <span class="glyphicon glyphicon-chevron-down" ng-show="!showNetAdap" style="float:right"></span>
+                              <span class="glyphicon glyphicon-chevron-up" ng-show="showNetAdap" style="float:right"></span>
+                          </div>
+                          <div ng-show="showNetAdap && (!node.network_adapters ||node.network_adapters.length == 0)"><br/><div class="alert alert-warning">Information not available.</div></div>
+                          <div  ng-repeat="net_adap in node.network_adapters" class="clearfix" ng-show="showNetAdap">
+                          <div class="header-line">Network Adapter [[$index+1]]</div>
+                         
+                          <div>
+                            <div class="col col-sm-4">Interface:</div>
+                              <div class="col col-sm-8">
+                                <span ng-if="net_adap.interface">[[net_adap.interface]]</span>
+                                <span ng-if="!net_adap.interface">n/a</span>
+                            </div>
+
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Vendor:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="net_adap.vendor">[[net_adap.vendor]]</span>
+                                <span ng-if="!net_adap.vendor">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Rate:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="net_adap.rate">[[net_adap.rate]]</span>
+                                <span ng-if="!net_adap.rate">n/a</span>
+                            </div>
+                          </div>
+                              <div>
+                            <div class="col col-sm-4">Version:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="net_adap.version">[[net_adap.version]]</span>
+                                <span ng-if="!net_adap.version">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Enabled:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="net_adap.enabled">[[net_adap.enabled]]</span>
+                                <span ng-if="!net_adap.enabled">n/a</span>
+                            </div>
+                          </div>
+                          </div>
+                      </div>
+                      <br/>
+                       <div class="clearfix">
+                          <div class="node-sub-header">Operating System</div>
+                           <div>
+                            <div class="col col-sm-4">Name:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.operating_system.name">[[node.operating_system.name]]</span>
+                                <span ng-if="!node.operating_system.name">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Release:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.operating_system.release">[[node.operating_system.release]]</span>
+                                <span ng-if="!node.operating_system.release">n/a</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div class="col col-sm-4">Version:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.operating_system.version">[[node.operating_system.version]]</span>
+                                <span ng-if="!node.operating_system.version">n/a</span>
+                            </div>
+                          </div>
+                      </div>
+                      <br/>
+                      <div class="clearfix">
+                          <div class="node-sub-header">Memory</div>
+                           <div>
+                            <div class="col col-sm-4">Virtual Size:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.main_memory.virtual_size">[[node.main_memory.virtual_size]]</span>
+                                <span ng-if="!node.main_memory.virtual_size">n/a</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div class="col col-sm-4">RAM Size:</div>
+                            <div class="col col-sm-8">
+                                <span ng-if="node.main_memory.ram_size">[[node.main_memory.ram_size/(1024*1024) | number:0]]&nbsp;MB</span>
+                                <span ng-if="!node.main_memory.ram_size">n/a</span>
+                            </div>
+                          </div>
+                      </div>
+                      <br/>
+                </div>
+                  <br/>
+              </div>
+
             </div>
             <div class="col col-sm-4">
                 <h4>Facets</h4>
                 <div><strong>Search</strong></div>
                 <div><input type="text"></div>
                 </br>
+
                 <div><strong>Site</strong></div>
-                <div ng-repeat="site in filtered_sites">
+                <div ng-repeat="site in filteredSites">
                 <div><input type="checkbox" name="key" ng-model="filter.selectedSites[site.uid]" ng-change="applySiteFilter(site.uid)"> [[site.name]] ([[site.node_count]])</div>
                 </div>
                 </br>
 
                 <div><strong>Cluster</strong></div>
 
-                      <div ng-repeat="site in filtered_sites track by site.uid">
-                        <div ng-repeat="cluster in site.clusters track by cluster.uid">
+                      <div ng-repeat="site in filteredSites track by site.uid">
+                        <div ng-repeat="cluster in site.clusters track by cluster.uid" ng-show="cluster.node_count>0">
                         <div><input type="checkbox" name="key" ng-model="filter.selectedClusters[cluster.uid]" ng-change="applyClusterFilter(site.uid, cluster.uid)"> [[cluster.uid]] ([[cluster.node_count]])</div>
                         </div>
                       </div>
                 </br>
+
                 <div><strong>Virtual Support</strong></div>
-                <div><input type="checkbox" name="vehicle" ng-model="filter.hasVirtualSupport" ng-change="applyFilter()"> Test</div>
+                <div><input type="checkbox" name="vehicle" ng-model="filter.hasVirtualSupport" ng-change="preApplyOtherFilters('virtual_support')"> Test</div>
                 </br>
                 <div><strong>Besteffort Support</strong></div>
-                <div><input type="checkbox" name="vehicle" ng-model="filter.hasBestEffortSupport" ng-change="applyFilter()"> Test</div>
+                <div><input type="checkbox" name="vehicle" ng-model="filter.hasBestEffortSupport" ng-change="preApplyOtherFilters('best_effort_support')"> Test</div>
                 </br>
                 <div><strong>Deploy Support</strong></div>
-                <div><input type="checkbox" name="vehicle" ng-model="filter.hasDeploySupport" ng-change="applyFilter()"> Test</div>
+                <div><input type="checkbox" name="vehicle" ng-model="filter.hasDeploySupport" ng-change="preApplyOtherFilters('deploy_support')"> Test</div>
                 </br>
                 <div><strong>Network adapter interface #1</strong></div>
                 <div ng-repeat="(key, value) in net_adap_inf_1">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]" ng-change="preApplyOtherFilters()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]" ng-change="preApplyOtherFilters('net_adap_inf_1')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Network adapter interface #2</strong></div>
                 <div ng-repeat="(key, value) in net_adap_inf_2">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]" ng-change="preApplyOtherFilters('net_adap_inf_2')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Network adapter interface #3</strong></div>
                 <div ng-repeat="(key, value) in net_adap_inf_3">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap3[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap3[key]" ng-change="preApplyOtherFilters('net_adap_inf_3')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Main storage device interface</strong></div>
                 <div ng-repeat="(key, value) in storage_dev_inf">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf[key]" ng-change="preApplyOtherFilters('storage_dev_inf')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Main storage device size(GB)</strong></div>
                 <div ng-repeat="(key, value) in storage_dev_size">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize[key]" ng-change="preApplyOtherFilters('storage_dev_size')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong># CPUs</strong></div>
                 <div ng-repeat="(key, value) in cpus">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCpus[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCpus[key]" ng-change="preApplyOtherFilters('cpus')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong># Cores</strong></div>
                 <div ng-repeat="(key, value) in cores">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCores[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCores[key]" ng-change="preApplyOtherFilters('cores')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>RAM (MiB)</strong></div>
                 <div ng-repeat="(key, value) in rams">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedRams[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedRams[key]" ng-change="preApplyOtherFilters('rams')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>CPU Clock Speed (GHz)</strong></div>
                 <div ng-repeat="(key, value) in clocks">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedClockSpeed[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedClockSpeed[key]" ng-change="preApplyOtherFilters('clocks')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Processor model</strong></div>
                 <div ng-repeat="(key, value) in processor_models">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]" ng-change="preApplyOtherFilters('processor_models')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Processor cache l1d (KiB)</strong></div>
                 <div ng-repeat="(key, value) in cache_l1d">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="preApplyOtherFilters('cache_l1d')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Processor cache l1i (KiB)</strong></div>
                 <div ng-repeat="(key, value) in cache_l1i">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="preApplyOtherFilters('cache_l1i')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Processor cache l1 (KiB)</strong></div>
                 <div ng-repeat="(key, value) in cache_l1">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]" ng-change="preApplyOtherFilters('cache_l1')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
                 <div><strong>Processor cache l2 (KiB)</strong></div>
                 <div ng-repeat="(key, value) in cache_l2">
-                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel12[key]" ng-change="applyFilter()"> [[key]] ([[value.count]])</div>
+                <div><input type="checkbox" name="key" ng-model="filter.selectedCachel2[key]" ng-change="preApplyOtherFilters('cache_l2')"> [[key]] ([[value.count]])</div>
                 </div>
                 </br>
             </div>
 
 
         </div>
+        </div>
     </div>
-
     </div>
     </body>
 {% endblock content %}
