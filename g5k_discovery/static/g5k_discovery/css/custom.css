@@ -1,0 +1,30 @@
+.discovery-app .node-header,
+.discovery-app .node-sub-header {
+  font-weight: bold;
+}
+
+.discovery-app .node-sub-header {
+  border-bottom: 1px solid #999;
+}
+
+.discovery-app .node {
+  margin-bottom: 2em;
+}
+
+.discovery-app .node section {
+  margin-bottom: 1em;
+}
+
+.discovery-app table {
+  font-size:0.9em;
+}
+
+.discovery-app .header-line {
+  border-bottom:2px solid #EFEFF2;
+  margin-top:10px;
+}
+
+.discovery-app .network-adapters {
+  cursor: pointer;
+  cursor: hand;
+}
