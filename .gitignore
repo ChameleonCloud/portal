@@ -3,6 +3,7 @@ db.sqlite3
 media
 media/
 run-script.sh
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
