@@ -2,71 +2,74 @@
  * Created by agauli on 2/26/15.
  */
 angular.module('discoveryApp')
-.controller('AppController', ['$scope', '$http', '_', '$q', function($scope, $http, _, $q) {
+.controller('AppController', ['$scope', '$http', '_', '$q', '$timeout', function($scope, $http, _, $q, $timeout) {
         $scope.selectednodes = $scope.allnodes  = [];
         $scope.loading = true;
         $scope.loadingError = false;
+        $scope.nodeStringMap = {};
+        $scope.map = {};
         //keeps the node count for each filter
         $scope.init_var = function(noResetFilter) {
+
             if(!noResetFilter || noResetFilter !== 'sites_nodecount'){
-                $scope.sites_nodecount = {};
+                $scope.map.sites_nodecount = {};
             }
             if(!noResetFilter || noResetFilter !== 'clusters_nodecount'){
-                $scope.clusters_nodecount = {};
+                $scope.map.clusters_nodecount = {};
             }
             if(!noResetFilter || noResetFilter !== 'virtual_support'){
-                $scope.virtual_support = {};
+                $scope.map.virtual_support = {};
             }
             if(!noResetFilter || noResetFilter !== 'virtual_support'){
-                $scope.virtual_support = {};
+                $scope.map.virtual_support = {};
             }
             if(!noResetFilter || noResetFilter !== 'best_effort_support'){
-               $scope.best_effort_support = {};
+               $scope.map.best_effort_support = {};
             }
             if(!noResetFilter || noResetFilter !== 'deploy_support'){
-                $scope.deploy_support = {};
+                $scope.map.deploy_support = {};
             }
             if(!noResetFilter || noResetFilter !== 'net_adap_inf_1'){
-               $scope.net_adap_inf_1 = {};
+               $scope.map.net_adap_inf_1 = {};
             }
             if(!noResetFilter || noResetFilter !== 'net_adap_inf_2'){
-               $scope.net_adap_inf_2 = {};
+               $scope.map.net_adap_inf_2 = {};
             }
             if(!noResetFilter || noResetFilter !== 'net_adap_inf_3'){
-               $scope.net_adap_inf_3 = {};
+               $scope.map.net_adap_inf_3 = {};
             }
             if(!noResetFilter || noResetFilter !== 'storage_dev_inf'){
-               $scope.storage_dev_inf = {};
+               $scope.map.storage_dev_inf = {};
             }
             if(!noResetFilter || noResetFilter !== 'storage_dev_size'){
-               $scope.storage_dev_size = {};
+               $scope.map.storage_dev_size = {};
             }
             if(!noResetFilter || noResetFilter !== 'cpus'){
-               $scope.cpus = {};
+               $scope.map.cpus = {};
             }
              if(!noResetFilter || noResetFilter !== 'cores'){
-               $scope.cores = {};
+               $scope.map.cores = {};
             }
              if(!noResetFilter || noResetFilter !== 'rams'){
-               $scope.rams = {};
+               $scope.map.rams = {};
             }
              if(!noResetFilter || noResetFilter !== 'clocks'){
-               $scope.clocks = {};
+               $scope.map.clocks = {};
             }
             if(!noResetFilter || noResetFilter !== 'processor_models'){
-               $scope.processor_models = {};
+               $scope.map.processor_models = {};
             }
             if(!noResetFilter || noResetFilter !== 'cache_l1d'){
-               $scope.cache_l1d = {};
+               $scope.map.cache_l1d = {};
             }
             if(!noResetFilter || noResetFilter !== 'cache_l1i'){
-               $scope.cache_l1i = {};
+               $scope.map.cache_l1i = {};
             }
             if(!noResetFilter || noResetFilter !== 'cache_l1'){
-               $scope.cache_l1 = {};
+               $scope.map.cache_l1 = {};
             }
             if(!noResetFilter || noResetFilter !== 'cache_l2'){
-               $scope.cache_l2 = {};
+               $scope.map.cache_l2 = {};
             }
         }
         $scope.init_var();
@@ -76,6 +79,7 @@ angular.module('discoveryApp')
             selectedSites : {},
             selectedClusters : {},
             selectedSitesClusters : {},
+            search : '',
             hasVirtualSupport : undefined,
             hasBestEffortSupport: undefined,
             hasDeploySupport: undefined,
@@ -99,16 +103,31 @@ angular.module('discoveryApp')
         }
         $scope.resetFilters();
 
+        $scope.resetUI = function(){
+            $scope.resetFilters();
+            $scope.map = angular.copy($scope.mapOrg);
+        }
+
+        var searchTimeout = null;
+        $scope.search = function(){
+        if (searchTimeout) {
+            $timeout.cancel(searchTimeout);
+        }
+        searchTimeout = $timeout(function() {
+            $scope.preApplyOtherFilters();
+        }, 500); // delay 250 ms
+
+        }
         $scope.processNode = function(node, isFirstTimeOnly, noResetFilter){
 
             if(!noResetFilter || noResetFilter !== 'storage_dev_inf') {
                 try {
                     var storage_interface = node.storage_devices[0].interface;
-                    if (!$scope.storage_dev_inf.hasOwnProperty(storage_interface)) {
-                        $scope.storage_dev_inf[storage_interface] = {count: 1};
+                    if (!$scope.map.storage_dev_inf.hasOwnProperty(storage_interface)) {
+                        $scope.map.storage_dev_inf[storage_interface] = {count: 1};
                     }
                     else {
-                        $scope.storage_dev_inf[storage_interface].count = $scope.storage_dev_inf[storage_interface].count + 1;
+                        $scope.map.storage_dev_inf[storage_interface].count = $scope.map.storage_dev_inf[storage_interface].count + 1;
                     }
                 }
                 catch (err) {
@@ -120,11 +139,11 @@ angular.module('discoveryApp')
                try {
                    var storage_size = node.storage_devices[0].size;
                    storage_size = Math.round(storage_size / (1024 * 1024 * 1024));
-                   if (!$scope.storage_dev_size.hasOwnProperty(storage_size)) {
-                       $scope.storage_dev_size[storage_size] = {count: 1};
+                   if (!$scope.map.storage_dev_size.hasOwnProperty(storage_size)) {
+                       $scope.map.storage_dev_size[storage_size] = {count: 1};
                    }
                    else {
-                       $scope.storage_dev_size[storage_size].count = $scope.storage_dev_size[storage_size].count + 1;
+                       $scope.map.storage_dev_size[storage_size].count = $scope.map.storage_dev_size[storage_size].count + 1;
                    }
                }
                catch (err) {
@@ -135,11 +154,11 @@ angular.module('discoveryApp')
              if(!noResetFilter || noResetFilter !== 'net_adap_inf_1') {
                  try {
                      var net_adap = node.network_adapters[0].interface;
-                     if (!$scope.net_adap_inf_1.hasOwnProperty(net_adap)) {
-                         $scope.net_adap_inf_1[net_adap] = {count: 1};
+                     if (!$scope.map.net_adap_inf_1.hasOwnProperty(net_adap)) {
+                         $scope.map.net_adap_inf_1[net_adap] = {count: 1};
                      }
                      else {
-                         $scope.net_adap_inf_1[net_adap].count = $scope.net_adap_inf_1[net_adap].count + 1;
+                         $scope.map.net_adap_inf_1[net_adap].count = $scope.map.net_adap_inf_1[net_adap].count + 1;
                      }
                  }
                  catch (err) {
@@ -149,11 +168,11 @@ angular.module('discoveryApp')
            if(!noResetFilter || noResetFilter !== 'net_adap_inf_2') {
                try {
                    var net_adap = node.network_adapters[1].interface;
-                   if (!$scope.net_adap_inf_2.hasOwnProperty(net_adap)) {
-                       $scope.net_adap_inf_2[net_adap] = {count: 1};
+                   if (!$scope.map.net_adap_inf_2.hasOwnProperty(net_adap)) {
+                       $scope.map.net_adap_inf_2[net_adap] = {count: 1};
                    }
                    else {
-                       $scope.net_adap_inf_2[net_adap].count = $scope.net_adap_inf_2[net_adap].count + 1;
+                       $scope.map.net_adap_inf_2[net_adap].count = $scope.map.net_adap_inf_2[net_adap].count + 1;
                    }
                }
                catch (err) {
@@ -163,11 +182,11 @@ angular.module('discoveryApp')
             if(!noResetFilter || noResetFilter !== 'net_adap_inf_3') {
                 try {
                     var net_adap = node.network_adapters[2].interface;
-                    if (!$scope.net_adap_inf_3.hasOwnProperty(net_adap)) {
-                        $scope.net_adap_inf_3[net_adap] = {count: 1};
+                    if (!$scope.map.net_adap_inf_3.hasOwnProperty(net_adap)) {
+                        $scope.map.net_adap_inf_3[net_adap] = {count: 1};
                     }
                     else {
-                        $scope.net_adap_inf_3[net_adap].count = $scope.net_adap_inf_3[net_adap].count + 1;
+                        $scope.map.net_adap_inf_3[net_adap].count = $scope.map.net_adap_inf_3[net_adap].count + 1;
                     }
                 }
                 catch (err) {
@@ -178,11 +197,11 @@ angular.module('discoveryApp')
             if(!noResetFilter || noResetFilter !== 'cpus') {
                 try {
                     var cpu = node.architecture.smp_size;
-                    if (!$scope.cpus.hasOwnProperty(cpu)) {
-                        $scope.cpus[cpu] = {count: 1};
+                    if (!$scope.map.cpus.hasOwnProperty(cpu)) {
+                        $scope.map.cpus[cpu] = {count: 1};
                     }
                     else {
-                        $scope.cpus[cpu].count = $scope.cpus[cpu].count + 1;
+                        $scope.map.cpus[cpu].count = $scope.map.cpus[cpu].count + 1;
                     }
                 }
                 catch (err) {
@@ -193,11 +212,11 @@ angular.module('discoveryApp')
             if(!noResetFilter || noResetFilter !== 'cores') {
                 try {
                     var core = node.architecture.smt_size;
-                    if (!$scope.cores.hasOwnProperty(core)) {
-                        $scope.cores[core] = {count: 1};
+                    if (!$scope.map.cores.hasOwnProperty(core)) {
+                        $scope.map.cores[core] = {count: 1};
                     }
                     else {
-                        $scope.cores[core].count = $scope.cores[core].count + 1;
+                        $scope.map.cores[core].count = $scope.map.cores[core].count + 1;
                     }
                 }
                 catch (err) {
@@ -209,11 +228,11 @@ angular.module('discoveryApp')
                 try {
                     var ram = Math.round(node.main_memory.ram_size / (1024 * 1024));
 
-                    if (!$scope.rams.hasOwnProperty(ram)) {
-                        $scope.rams[ram] = {count: 1};
+                    if (!$scope.map.rams.hasOwnProperty(ram)) {
+                        $scope.map.rams[ram] = {count: 1};
                     }
                     else {
-                        $scope.rams[ram].count = $scope.rams[ram].count + 1;
+                        $scope.map.rams[ram].count = $scope.map.rams[ram].count + 1;
                     }
                 }
                 catch (err) {
@@ -225,11 +244,11 @@ angular.module('discoveryApp')
                 try {
                     var clock = node.processor.clock_speed / (1000000000).toFixed(2);
 
-                    if (!$scope.clocks.hasOwnProperty(clock)) {
-                        $scope.clocks[clock] = {count: 1};
+                    if (!$scope.map.clocks.hasOwnProperty(clock)) {
+                        $scope.map.clocks[clock] = {count: 1};
                     }
                     else {
-                        $scope.clocks[clock].count = $scope.clocks[clock].count + 1;
+                        $scope.map.clocks[clock].count = $scope.map.clocks[clock].count + 1;
                     }
                 }
                 catch (err) {
@@ -241,11 +260,11 @@ angular.module('discoveryApp')
                 try {
                     var processor_model = node.processor.model;
 
-                    if (!$scope.processor_models.hasOwnProperty(processor_model)) {
-                        $scope.processor_models[processor_model] = {count: 1};
+                    if (!$scope.map.processor_models.hasOwnProperty(processor_model)) {
+                        $scope.map.processor_models[processor_model] = {count: 1};
                     }
                     else {
-                        $scope.processor_models[processor_model].count = $scope.processor_models[processor_model].count + 1;
+                        $scope.map.processor_models[processor_model].count = $scope.map.processor_models[processor_model].count + 1;
                     }
                 }
                 catch (err) {
@@ -260,11 +279,11 @@ angular.module('discoveryApp')
                         cache = Math.round(cache / 1000);
                     }
 
-                    if (!$scope.cache_l1.hasOwnProperty(cache)) {
-                        $scope.cache_l1[cache] = {count: 1};
+                    if (!$scope.map.cache_l1.hasOwnProperty(cache)) {
+                        $scope.map.cache_l1[cache] = {count: 1};
                     }
                     else {
-                        $scope.cache_l1[cache].count = $scope.cache_l1[cache].count + 1;
+                        $scope.map.cache_l1[cache].count = $scope.map.cache_l1[cache].count + 1;
                     }
                 }
                 catch (err) {
@@ -278,11 +297,11 @@ angular.module('discoveryApp')
                     if (cache) {
                         cache = Math.round(cache / 1000);
                     }
-                    if (!$scope.cache_l2.hasOwnProperty(cache)) {
-                        $scope.cache_l2[cache] = {count: 1};
+                    if (!$scope.map.cache_l2.hasOwnProperty(cache)) {
+                        $scope.map.cache_l2[cache] = {count: 1};
                     }
                     else {
-                        $scope.cache_l2[cache].count = $scope.cache_l2[cache].count + 1;
+                        $scope.map.cache_l2[cache].count = $scope.map.cache_l2[cache].count + 1;
                     }
                 }
                 catch (err) {
@@ -296,11 +315,11 @@ angular.module('discoveryApp')
                     if (cache) {
                         cache = Math.round(cache / 1000);
                     }
-                    if (!$scope.cache_l1d.hasOwnProperty(cache)) {
-                        $scope.cache_l1d[cache] = {count: 1};
+                    if (!$scope.map.cache_l1d.hasOwnProperty(cache)) {
+                        $scope.map.cache_l1d[cache] = {count: 1};
                     }
                     else {
-                        $scope.cache_l1d[cache].count = $scope.cache_l1d[cache].count + 1;
+                        $scope.map.cache_l1d[cache].count = $scope.map.cache_l1d[cache].count + 1;
                     }
                 }
                 catch (err) {
@@ -314,11 +333,11 @@ angular.module('discoveryApp')
                     if (cache) {
                         cache = Math.round(cache / 1000);
                     }
-                    if (!$scope.cache_l1i.hasOwnProperty(cache)) {
-                        $scope.cache_l1i[cache] = {count: 1};
+                    if (!$scope.map.cache_l1i.hasOwnProperty(cache)) {
+                        $scope.map.cache_l1i[cache] = {count: 1};
                     }
                     else {
-                        $scope.cache_l1i[cache].count = $scope.cache_l1i[cache].count + 1;
+                        $scope.map.cache_l1i[cache].count = $scope.map.cache_l1i[cache].count + 1;
                     }
                 }
                 catch (err) {
@@ -326,6 +345,8 @@ angular.module('discoveryApp')
                 }
             }
             if(isFirstTimeOnly) {
+
+                $scope.nodeStringMap[node.uid] = JSON.stringify(node);
                 try {
                     var link = node.links[0].href;
                     if (link) {
@@ -404,6 +425,11 @@ angular.module('discoveryApp')
              }
              if($scope.filter.hasDeploySupport !== node.hasDeploySupport){
                  //pass = false;
+             }
+
+             var nodeString = $scope.nodeStringMap[node.uid];
+             if(nodeString && nodeString.indexOf($scope.filter.search) < 0){
+                pass = false;
              }
 
              if(!_.isEmpty($scope.filter.selectedNetAdap1)){
@@ -569,8 +595,7 @@ angular.module('discoveryApp')
                      }
                  }
                  try{
-                 console.log('selectedClockSpeed',selectedClockSpeed);
-                 console.log('node.processor.clock_speed / (1000000000).toFixed(2).toString()', (node.processor.clock_speed / (1000000000).toFixed(2)).toString());
+
                  if(selectedClockSpeed.length !==0 && !_.contains(selectedClockSpeed, (node.processor.clock_speed / (1000000000).toFixed(2)).toString())){
                      pass = false;
                  }
@@ -714,10 +739,6 @@ angular.module('discoveryApp')
                 });
             }
             console.log('filter',$scope.filter);
-            console.log('sites',$scope.filter.selectedSites);
-            console.log('clusters',$scope.filter.selectedClusters);
-            console.log('site cluster',$scope.filter.selectedSitesClusters);
-
             $scope.init_var(noResetFilter);
             _.each($scope.selectednodes, function(node){
                 $scope.processNode(node, isFirstTimeOnly, noResetFilter);
@@ -834,7 +855,7 @@ angular.module('discoveryApp')
 
         //Step I: Fetch sites
         var promises = [];
-        var promise_sites = $http({method: 'GET', url: 'sites.json', cache: 'true'})
+        var promise_sites = $http({method: 'GET', url: 'sites.json', cache: 'false'})
             .then(function(response){
                 $scope.sites = response.data.items;
                 //initially make all selected
@@ -848,7 +869,7 @@ angular.module('discoveryApp')
                         cluster_link_href = (cluster_link.href.substring(1))+'.json';
 
                         //Step II: Fetch Clusters
-                        var promise_clusters = $http({method: 'GET', url: cluster_link_href, cache: 'true'})
+                        var promise_clusters = $http({method: 'GET', url: cluster_link_href, cache: 'false'})
                             .then(function(response){
                                 site.clusters = response.data.items;
                                 var filtered_site = _.findWhere($scope.filteredSites,{uid:site.uid});
@@ -859,9 +880,11 @@ angular.module('discoveryApp')
                                     node_link = _.findWhere(links,{rel:'nodes'});
                                     nodes_link_href = (node_link.href.substring(1))+'.json';
                                     //Step III: Fetch Nodes
-                                    var promise_nodes = $http({method: 'GET', url: nodes_link_href, cache: 'true'})
+                                    var promise_nodes = $http({method: 'GET', url: nodes_link_href, cache: 'false'})
                                         .then(function(response){
-                                            checkIfAllResolved();
+                                            if((parentIndex == $scope.sites.length-1) && (index == site.clusters.length-1)){
+                                              checkIfAllResolved();
+                                            }
                                             $scope.nodes = response.data.items;
                                             _.each($scope.nodes, function(node){
                                                 var isFirstTimeOnly = true;
@@ -908,10 +931,13 @@ angular.module('discoveryApp')
        $q.all(promises).then(function () {
                console.log('Inside $q success');
                $scope.loading = false;
+                //save the map backup when all counting is probably done.
+               $scope.mapOrg = angular.copy($scope.map);
            },
            function (error) {
                console.log('Inside $q failure');
                $scope.loading = false;
            });
+   return true;
    }
 }]);

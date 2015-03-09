@@ -1,5 +1,0 @@
-<ul class="g5k-links">
-  {% for link in links %}
-  <li><a data-type="{{ link.type }}" href="{% url 'g5k_discovery:discovery' link.href|slice:"1:" %}">{{link.rel}}</a></li>
-  {% endfor %}
-</ul>
