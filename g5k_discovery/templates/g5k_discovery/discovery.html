@@ -1,0 +1,191 @@
+{% load staticfiles %}
+
+<html>
+<head>
+    {% block css %}
+        <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "css/custom.css" %}">
+    {% endblock css %}
+</head>
+{% block content %}
+    <body ng-app="discoveryApp" class="discovery-app" ng-cloak>
+    <div class="content" ng-controller="AppController">
+    <div ng-if="loading" class="well">
+        <h4>
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-spin"></span> Loading...
+        </h4>
+    </div>
+
+    <div ng-if="! loading">
+    <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
+    <div ng-if="! loadingError">
+    <div class="col col-sm-8">
+    <div class="col-sm-offset-1">
+        <h3 class="title">Nodes</h3>
+
+        <div><strong>[[selectednodes.length]]</strong> nodes<span ng-if="selectednodes.length != allnodes.length"> filtered from [[allnodes.length]] originally.(<a
+                href="javascript:" ng-click="resetUI()">Reset all Filters</a>)</span></div>
+    </div>
+    <br/>
+
+    <div ng-include="'template/node.html/'" scope="AppController"></div>
+    </div>
+    <div class="col col-sm-4">
+        <h4>Facets</h4>
+
+        <div><strong>Search</strong></div>
+        <div><input type="text" name="searchKey" ng-model="filter.search" ng-change="search()"></div>
+
+        </br>
+
+        <div><strong>Site</strong></div>
+        <div ng-repeat="site in filteredSites">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedSites[site.uid]"
+                        ng-change="applySiteFilter(site.uid)"> [[site.name]] ([[site.node_count]])
+            </div>
+        </div>
+        </br>
+
+        <div><strong>Cluster</strong></div>
+
+        <div ng-repeat="site in filteredSites track by site.uid">
+            <div ng-repeat="cluster in site.clusters track by cluster.uid" ng-show="cluster.node_count>0">
+                <div><input type="checkbox" name="key" ng-model="filter.selectedClusters[cluster.uid]"
+                            ng-change="applyClusterFilter(site.uid, cluster.uid)"> [[cluster.uid]]
+                    ([[cluster.node_count]])
+                </div>
+            </div>
+        </div>
+        </br>
+
+        <div><strong>Virtual Support</strong></div>
+        <div><input type="checkbox" name="test" ng-model="filter.hasVirtualSupport"
+                    ng-change="preApplyOtherFilters('virtual_support')"> Test
+        </div>
+        </br>
+        <div><strong>Besteffort Support</strong></div>
+        <div><input type="checkbox" name="test" ng-model="filter.hasBestEffortSupport"
+                    ng-change="preApplyOtherFilters('best_effort_support')"> Test
+        </div>
+        </br>
+        <div><strong>Deploy Support</strong></div>
+        <div><input type="checkbox" name="test" ng-model="filter.hasDeploySupport"
+                    ng-change="preApplyOtherFilters('deploy_support')"> Test
+        </div>
+        </br>
+        <div><strong>Network adapter interface #1</strong></div>
+        <div ng-repeat="(key, value) in map.net_adap_inf_1">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]"
+                        ng-change="preApplyOtherFilters('net_adap_inf_1')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Network adapter interface #2</strong></div>
+        <div ng-repeat="(key, value) in map.net_adap_inf_2">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]"
+                        ng-change="preApplyOtherFilters('net_adap_inf_2')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Network adapter interface #3</strong></div>
+        <div ng-repeat="(key, value) in map.net_adap_inf_3">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedNetAdap3[key]"
+                        ng-change="preApplyOtherFilters('net_adap_inf_3')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Main storage device interface</strong></div>
+        <div ng-repeat="(key, value) in map.storage_dev_inf">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf[key]"
+                        ng-change="preApplyOtherFilters('storage_dev_inf')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Main storage device size(GB)</strong></div>
+        <div ng-repeat="(key, value) in map.storage_dev_size">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize[key]"
+                        ng-change="preApplyOtherFilters('storage_dev_size')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong># CPUs</strong></div>
+        <div ng-repeat="(key, value) in map.cpus">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCpus[key]"
+                        ng-change="preApplyOtherFilters('cpus')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong># Cores</strong></div>
+        <div ng-repeat="(key, value) in map.cores">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCores[key]"
+                        ng-change="preApplyOtherFilters('cores')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>RAM (MiB)</strong></div>
+        <div ng-repeat="(key, value) in map.rams">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedRams[key]"
+                        ng-change="preApplyOtherFilters('rams')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>CPU Clock Speed (GHz)</strong></div>
+        <div ng-repeat="(key, value) in map.clocks">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedClockSpeed[key]"
+                        ng-change="preApplyOtherFilters('clocks')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Processor model</strong></div>
+        <div ng-repeat="(key, value) in map.processor_models">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]"
+                        ng-change="preApplyOtherFilters('processor_models')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Processor cache l1d (KiB)</strong></div>
+        <div ng-repeat="(key, value) in map.cache_l1d">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]"
+                        ng-change="preApplyOtherFilters('cache_l1d')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Processor cache l1i (KiB)</strong></div>
+        <div ng-repeat="(key, value) in map.cache_l1i">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]"
+                        ng-change="preApplyOtherFilters('cache_l1i')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Processor cache l1 (KiB)</strong></div>
+        <div ng-repeat="(key, value) in map.cache_l1">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]"
+                        ng-change="preApplyOtherFilters('cache_l1')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+        <div><strong>Processor cache l2 (KiB)</strong></div>
+        <div ng-repeat="(key, value) in map.cache_l2">
+            <div><input type="checkbox" name="key" ng-model="filter.selectedCachel2[key]"
+                        ng-change="preApplyOtherFilters('cache_l2')"> [[key]] ([[value.count]])
+            </div>
+        </div>
+        </br>
+    </div>
+
+
+    </div>
+    </div>
+    </div>
+    </div>
+    </body>
+{% endblock content %}
+{% block js %}
+    <script src="{% static "underscore/underscore.js" %}"></script>
+    <script src="{% static "angular/angular.js" %}"></script>
+    <script src="{% static 'djangular/js/django-angular.min.js' %}"></script>
+    <script src="{% static "scripts/app.js" %}"></script>
+    <script src="{% static "scripts/controller.js" %}"></script>
+{% endblock js %}
+
+</html>
