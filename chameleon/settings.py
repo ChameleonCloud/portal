@@ -95,6 +95,8 @@ INSTALLED_APPS = (
     'djangoRT',
     'projects',
     'user_news',
+    'djangular',
+    'g5k_discovery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -381,3 +383,10 @@ ACCEPT_TERMS_PATH = '/terms/accept/'
 TERMS_EXCLUDE_URL_PREFIX_LIST = {'/admin', '/terms'}
 TERMS_EXCLUDE_URL_LIST = {'/', '/termsrequired/', '/logout/', '/securetoo/'}
 MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
+
+#####
+#
+# Grid'5000 API
+#
+#####
+G5K_API_ROOT = os.environ.get('G5K_DISCOVERY_API_ROOT')
