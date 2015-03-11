@@ -4,6 +4,7 @@ media
 media/
 run-script.sh
 .idea
+.chameleon_env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

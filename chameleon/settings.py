@@ -388,4 +388,4 @@ MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site
 # Grid'5000 API
 #
 #####
-G5K_API_ROOT = os.environ.get('G5K_DISCOVERY_API_ROOT')
+G5K_API_ROOT = 'referenceapi:8000'

@@ -1,0 +1,35 @@
+###
+# Chameleon Environment Variables
+#
+# This file is used by docker-compose to set and pass
+# environment variables into the container(s) that make
+# up the chameleon portal deployment.
+#
+# Make a copy of this file called '.chameleon_env' and
+# fill in the appropriate values below.
+###
+
+TAS_URL=
+TAS_CLIENT_KEY=
+TAS_CLIENT_SECRET=
+
+RT_HOST=
+RT_USERNAME=
+RT_PASSWORD=
+RT_DEFAULT_QUEUE=
+
+DB_NAME=
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+
+FG_DB_NAME=
+FG_DB_HOST=
+FG_DB_PORT=
+FG_DB_USER=
+FG_DB_PASSWORD=
+
+DJANGO_ENV=Production
+
+GA_PROP_ID=
