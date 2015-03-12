@@ -34,30 +34,63 @@ def profile_edit( request ):
     context = {}
 
     tas = TASClient()
+    is_valid = True
 
     if request.method == 'POST':
         data = tas.get_user( username=request.user )
-        data[ 'firstName' ] = request.POST[ 'firstName' ]
-        data[ 'lastName' ] = request.POST[ 'lastName' ]
-        data[ 'email' ] = request.POST[ 'email' ]
-        data[ 'institutionId' ] = int( request.POST[ 'institutionId' ] )
+
+        form_data = {
+            'firstName': request.POST['firstName'],
+            'lastName': request.POST['lastName'],
+            'email': request.POST['email'],
+            'institutionId': request.POST['institutionId'],
+            'departmentId': request.POST['departmentId'],
+            'countryId': request.POST['countryId'],
+            'citizenshipId': request.POST['citizenshipId'],
+        }
+
+        data[ 'firstName' ] = form_data['firstName']
+        data[ 'lastName' ] = form_data['lastName']
+        data[ 'email' ] = form_data['email']
+
         try:
-            data[ 'departmentId' ] = int( request.POST[ 'departmentId' ] )
+            data[ 'institutionId' ] = int( form_data['institutionId'] )
+        except:
+            messages.error(request, 'Please select an institution.')
+            is_valid = False
+
+        try:
+            data[ 'departmentId' ] = int( form_data['departmentId'] )
         except:
             data[ 'departmentId' ] = None
 
-        data[ 'countryId' ] = int( request.POST[ 'countryId' ] )
-        data[ 'citizenshipId' ] = int( request.POST[ 'citizenshipId' ] )
-        tas.save_user( data[ 'id' ], data )
-        messages.success( request, 'Your profile has been updated!' )
-        return HttpResponseRedirect( reverse( 'tas:profile' ) )
+        try:
+            data[ 'countryId' ] = int( form_data['countryId'] )
+        except:
+            messages.error(request, 'Please select your country of residence.')
+            is_valid = False
 
-    try:
-        resp = tas.get_user( username=request.user )
-        context['profile'] = resp
-    except:
-        context['profile'] = False
-        # raise Exception('error loading profile')
+        try:
+            data[ 'citizenshipId' ] = int( form_data['citizenshipId'] )
+        except:
+            messages.error(request, 'Please select your country of Citizenship.')
+            is_valid = False
+
+        if is_valid:
+            tas.save_user( data[ 'id' ], data )
+            messages.success( request, 'Your profile has been updated!' )
+            return HttpResponseRedirect( reverse( 'tas:profile' ) )
+        else:
+            context['profile'] = data
+            context['profile']['source'] = 'Chameleon'
+
+    else:
+        try:
+            resp = tas.get_user( username=request.user )
+            context['profile'] = resp
+        except:
+            context['profile'] = False
+            # raise Exception('error loading profile')
 
     if context['profile']['source'] != 'Chameleon':
         return HttpResponseRedirect( reverse( 'tas:profile' ) )
