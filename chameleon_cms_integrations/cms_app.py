@@ -19,3 +19,9 @@ class TASApphook(CMSApp):
     name = _('TAS Apphook')
     urls = ['tas.urls']
     app_name = 'tas'
+
+@apphook_pool.register
+class ResourceDiscoveryApphook(CMSApp):
+    name = _('Resource Discovery Apphook')
+    urls = ['g5k_discovery.urls']
+    app_name = 'g5k_discovery'

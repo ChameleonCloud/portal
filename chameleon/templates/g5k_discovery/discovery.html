@@ -63,33 +63,33 @@
             </li>
             <li class="list-group-item">
               <h5 class="list-group-item-heading">Virtual Support</h5>
-              <div class="checkbox">
+              <div ng-repeat="(key, value) in map.virtual_support" class="checkbox">
                 <label>
-                  <input type="checkbox" name="test" ng-model="filter.hasVirtualSupport" ng-change="preApplyOtherFilters('virtual_support')">
-                  Test
+                  <input type="checkbox" name="key" ng-model="filter.selectedVirtualSupport[key]" ng-change="preApplyOtherFilters('virtual_support')">
+                  [[key]] ([[value.count]])
                 </label>
               </div>
             </li>
             <li class="list-group-item">
               <h5 class="list-group-item-heading">Besteffort Support</h5>
-              <div class="checkbox">
+              <div ng-repeat="(key, value) in map.best_effort_support" class="checkbox">
                 <label>
-                  <input type="checkbox" name="test" ng-model="filter.hasBestEffortSupport" ng-change="preApplyOtherFilters('best_effort_support')">
-                  Test
+                  <input type="checkbox" name="key" ng-model="filter.selectedBestEffortSupport[key]" ng-change="preApplyOtherFilters('best_effort_support')">
+                  [[key]] ([[value.count]])
                 </label>
               </div>
             </li>
             <li class="list-group-item">
               <h5 class="list-group-item-heading">Deploy Support</h5>
-              <div class="checkbox">
+              <div ng-repeat="(key, value) in map.deploy_support" class="checkbox">
                 <label>
-                  <input type="checkbox" name="test" ng-model="filter.hasDeploySupport" ng-change="preApplyOtherFilters('deploy_support')">
-                  Test
+                  <input type="checkbox" name="key" ng-model="filter.selectedDeploySupport[key]" ng-change="preApplyOtherFilters('deploy_support')">
+                  [[key]] ([[value.count]])
                 </label>
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Network adapter interface #1</h5>
+              <h5 class="list-group-item-heading">Network Adapter Interface #1</h5>
               <div ng-repeat="(key, value) in map.net_adap_inf_1" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]" ng-change="preApplyOtherFilters('net_adap_inf_1')">
@@ -98,7 +98,7 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Network adapter interface #2</h5>
+              <h5 class="list-group-item-heading">Network Adapter Interface #2</h5>
               <div ng-repeat="(key, value) in map.net_adap_inf_2" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]" ng-change="preApplyOtherFilters('net_adap_inf_2')">
@@ -116,7 +116,7 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Main storage device interface</h5>
+              <h5 class="list-group-item-heading">Main Storage Device Interface</h5>
               <div ng-repeat="(key, value) in map.storage_dev_inf" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf[key]" ng-change="preApplyOtherFilters('storage_dev_inf')">
@@ -125,7 +125,7 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Main storage device size(GB)</h5>
+              <h5 class="list-group-item-heading">Main Storage Device Size(GB)</h5>
               <div ng-repeat="(key, value) in map.storage_dev_size" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize[key]" ng-change="preApplyOtherFilters('storage_dev_size')">
@@ -170,7 +170,7 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor model</h5>
+              <h5 class="list-group-item-heading">Processor Model</h5>
               <div ng-repeat="(key, value) in map.processor_models" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]" ng-change="preApplyOtherFilters('processor_models')">
@@ -179,25 +179,7 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor cache l1d (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l1d" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="preApplyOtherFilters('cache_l1d')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor cache l1i (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l1i" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="preApplyOtherFilters('cache_l1i')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor cache l1 (KiB)</h5>
+              <h5 class="list-group-item-heading">Processor Cache L1 (KiB)</h5>
               <div ng-repeat="(key, value) in map.cache_l1" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]" ng-change="preApplyOtherFilters('cache_l1')">
@@ -206,7 +188,25 @@
               </div>
             </li>
             <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor cache l2 (KiB)</h5>
+              <h5 class="list-group-item-heading">Processor Cache L1d (KiB)</h5>
+              <div ng-repeat="(key, value) in map.cache_l1d" class="checkbox">
+                <label>
+                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="preApplyOtherFilters('cache_l1d')">
+                  [[key]] ([[value.count]])
+                </label>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <h5 class="list-group-item-heading">Processor Cache L1i (KiB)</h5>
+              <div ng-repeat="(key, value) in map.cache_l1i" class="checkbox">
+                <label>
+                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="preApplyOtherFilters('cache_l1i')">
+                  [[key]] ([[value.count]])
+                </label>
+              </div>
+            </li>
+            <li class="list-group-item">
+              <h5 class="list-group-item-heading">Processor Cache L2 (KiB)</h5>
               <div ng-repeat="(key, value) in map.cache_l2" class="checkbox">
                 <label>
                   <input type="checkbox" name="key" ng-model="filter.selectedCachel2[key]" ng-change="preApplyOtherFilters('cache_l2')">
@@ -214,10 +214,17 @@
                 </label>
               </div>
             </li>
+              <li class="list-group-item">
+              <h5 class="list-group-item-heading">Processor Cache L3 (KiB)</h5>
+              <div ng-repeat="(key, value) in map.cache_l3" class="checkbox">
+                <label>
+                  <input type="checkbox" name="key" ng-model="filter.selectedCachel3[key]" ng-change="preApplyOtherFilters('cache_l3')">
+                  [[key]] ([[value.count]])
+                </label>
+              </div>
+            </li>
           </ul>
         </div>
-
-
       </div>
     </div>
   </div>
