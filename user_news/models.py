@@ -36,7 +36,8 @@ class News(models.Model):
         verbose_name_plural = 'News'
 
     def save(self):
-        self.slug = slugify(self.title)
+        if not self.slug:
+            self.slug = slugify(self.title)
         super(News,self).save()
 
 """
