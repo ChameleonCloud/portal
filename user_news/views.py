@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView, DetailView
+from django.views.generic.base import RedirectView
 from user_news.models import News, Event, Outage, OutageUpdate
 from cms.cms_toolbar import ADMIN_MENU_IDENTIFIER
 
@@ -26,3 +27,9 @@ class UserNewsDetailView(DetailView):
             user_news_menu.add_break(position=1)
 
         return context;
+
+class UserNewsRedirectView(RedirectView):
+    permanent = True
+
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse('user_news:detail', args=[kwargs['slug']])
