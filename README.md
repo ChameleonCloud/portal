@@ -98,22 +98,4 @@ docker run \
 
 ## Release History
 
-### v1.1.2
-
-- Fix new institution creation when not listed
-
-### v1.1.1
-
-- Fixed documentation errors
-
-### v1.1.0
-
-- Added PI eligibility at registration and new project creation
-
-### v1.0.1
-
-- Improve workflow for FG project migration
-
-### v1.0.0
-
-- Initial release
+See the [Changelog](CHANGELOG.md).
