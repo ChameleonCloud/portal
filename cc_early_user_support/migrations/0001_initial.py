@@ -13,19 +13,44 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='EarlyUserRequest',
+            name='EarlyUserParticipant',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('justification', models.TextField()),
-                ('request_status', models.CharField(default=b'REQ', max_length=3, choices=[(b'REQ', b'Requested'), (b'APP', b'Approved'), (b'DEN', b'Denied')])),
+                ('participant_status', models.IntegerField(default=0, choices=[(0, b'Requested'), (1, b'Approved'), (2, b'Denied')])),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': 'Early User Request',
-                'verbose_name_plural': 'Early User Requests',
+                'verbose_name': 'Early User Participant',
+                'verbose_name_plural': 'Early User Participants',
             },
             bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EarlyUserProgram',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255)),
+                ('description', models.TextField()),
+                ('state', models.IntegerField(default=0, choices=[(0, b'Open'), (1, b'Active'), (2, b'Closed')])),
+            ],
+            options={
+                'verbose_name': 'Early User Program',
+                'verbose_name_plural': 'Early User Programs',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='earlyuserparticipant',
+            name='program',
+            field=models.ForeignKey(to='cc_early_user_support.EarlyUserProgram'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='earlyuserparticipant',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
         ),
     ]

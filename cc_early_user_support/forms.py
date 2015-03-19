@@ -1,13 +1,22 @@
 from django import forms
 from . import models
 
-class EarlyUserRequestForm(forms.ModelForm):
+class EarlyUserParticipantForm(forms.ModelForm):
 
     class Meta:
-        model = models.EarlyUserRequest
+        model = models.EarlyUserParticipant
         fields = ['justification']
 
-class EarlyUserRequestAdminForm(forms.ModelForm):
+
+class EarlyUserProgramAdminForm(forms.ModelForm):
 
     class Meta:
-        model = models.EarlyUserRequest
+        model = models.EarlyUserProgram
+        fields = ['name', 'description', 'state']
+
+
+class EarlyUserParticipantAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.EarlyUserParticipant
+        fields = ['user', 'program', 'justification', 'participant_status']
