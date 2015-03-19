@@ -15,7 +15,7 @@
     <h4>{{ p.name }}
       <small>{{ p.state_name }}</small>
     </h4>
-    <p>{{ p.description }}</p>
+    <p>{{ p.description|safe }}</p>
     <p>
       <a href="{% url 'cc_early_user_support:program' p.id %}" class="btn btn-default">View</a>
       {% if p.is_open %}
