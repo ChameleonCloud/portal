@@ -97,6 +97,7 @@ INSTALLED_APPS = (
     'user_news',
     'djangular',
     'g5k_discovery',
+    'cc_early_user_support',
 )
 
 MIDDLEWARE_CLASSES = (

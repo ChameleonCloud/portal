@@ -30,6 +30,7 @@ urlpatterns = patterns('',
     url(r'^user/projects/', include('projects.urls', namespace='projects')),
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
+    url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
 
     # cms urls
     url(r'^', include('cms.urls')),
