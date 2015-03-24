@@ -14,12 +14,12 @@ class UserMenu(CMSAttachMenu):
         root_id = menu_id
 
         # root node
-        greeting = 'Hello, {0}'.format(request.user.get_full_name() or request.user) if request.user.is_authenticated() else 'Log in'
+        greeting = 'Hello, {0}'.format(request.user.get_full_name() or request.user) if request.user.is_authenticated() else 'Users'
         title = '<i class="fa fa-user hidden-xs hidden-md hidden-lg"></i><span class="hidden-sm">{0}</span>'
         n = NavigationNode(title.format(greeting), "/user/", menu_id)
         nodes.append(n)
 
-        # anonymous menus
+        # drop down
         menu_id += 1
         n = NavigationNode(_('Log in'), "/login/", menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
@@ -28,11 +28,6 @@ class UserMenu(CMSAttachMenu):
         n = NavigationNode(_('Register'), "/register/", menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
 
-        menu_id += 1
-        n = NavigationNode(_('Help'), "/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
-        nodes.append(n)
-
-        # authenticated menus
         menu_id += 1
         dashboard_id = menu_id
         n = NavigationNode(_('Dashboard'), "/user/dashboard/", menu_id, root_id, attr={'visible_for_anonymous':False})
@@ -43,8 +38,17 @@ class UserMenu(CMSAttachMenu):
         nodes.append(n)
 
         menu_id += 1
+        n = NavigationNode(_('Early User Program'), "/user/early-user-program/", menu_id, root_id)
+        nodes.append(n)
+
+        menu_id += 1
+        n = NavigationNode(_('Help'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        nodes.append(n)
+
+        menu_id += 1
         n = NavigationNode(_('Log out'), "/logout/", menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
+
 
         # user section dashboard sub-menu
         menu_id += 1
