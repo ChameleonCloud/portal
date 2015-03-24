@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from . import forms, models
@@ -24,6 +25,7 @@ def view_program(request, id):
 
     return render(request, 'cc_early_user_support/view_program.html', {'program': program, 'participant': participant})
 
+@login_required
 def request_to_participate(request, id):
     program = models.EarlyUserProgram.objects.get(id=id)
 

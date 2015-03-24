@@ -18,7 +18,7 @@
     <p>{{ p.description|safe }}</p>
     <p>
       <a href="{% url 'cc_early_user_support:program' p.id %}" class="btn btn-default">View</a>
-      {% if p.is_open %}
+      {% if p.is_open and user.is_authenticated %}
         <a href="{% url 'cc_early_user_support:participate' p.id %}" class="btn btn-info">Request to Participate</a>
       {% endif %}
     </p>
