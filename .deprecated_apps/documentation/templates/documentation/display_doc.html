@@ -1,6 +1,0 @@
-{% extends "layout/default.html" %}
-{% load kramdown_tags %}
-{% block title %}{{ meta.title }}{% endblock %}
-{% block content %}
-  {{ content | kramdown }}
-{% endblock %}
