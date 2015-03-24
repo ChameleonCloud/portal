@@ -9,7 +9,8 @@ from datetime import datetime
 def index(request):
     programs = models.EarlyUserProgram.objects.exclude(state=models.PROGRAM_STATE__CLOSED)
 
-    # check if user has requested to participate
+    if len(programs) == 1:
+        return HttpResponseRedirect(reverse('cc_early_user_support:program', args=(programs[0].id,)))
 
     return render(request, 'cc_early_user_support/index.html', {'programs': programs})
 
