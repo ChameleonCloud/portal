@@ -115,7 +115,7 @@
                             </div>
                         </li>
                         <li class="list-group-item">
-                            <h5 class="list-group-item-heading">Storage device #1 size(GB)</h5>
+                            <h5 class="list-group-item-heading">Storage device #1 size (GiB)</h5>
                             <div ng-repeat="(key, value) in map.storage_dev_size_1" class="checkbox">
                                 <label>
                                     <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize1[key]" ng-change="preApplyOtherFilters('storage_dev_size_1')"> [[key]] ([[value.count]])
@@ -123,7 +123,7 @@
                             </div>
                         </li>
                         <li class="list-group-item">
-                            <h5 class="list-group-item-heading">Storage device #2 size(GB)</h5>
+                            <h5 class="list-group-item-heading">Storage device #2 size (GiB)</h5>
                             <div ng-repeat="(key, value) in map.storage_dev_size_2" class="checkbox">
                                 <label>
                                     <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize2[key]" ng-change="preApplyOtherFilters('storage_dev_size_2')"> [[key]] ([[value.count]])
