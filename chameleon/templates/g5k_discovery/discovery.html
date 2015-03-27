@@ -1,236 +1,222 @@
-{% extends 'layout/default.html' %}
-{% load sekizai_tags staticfiles %}
-{% block title %}Resource Discovery{% endblock %}
-{% block styles %}
-<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/custom.css' %}">
-{% endblock %}
-{% block content %}
-<div ng-app="discoveryApp" class="discovery-app" ng-cloak>
-  <div class="content" ng-controller="AppController">
-    <div ng-if="loading" class="well">
-      <h4><span class="fa fa-refresh fa-spin"></span> Loading...</h4>
-    </div>
+{% extends 'layout/default.html' %} {% load sekizai_tags staticfiles %} {% block title %}Resource Discovery{% endblock %} {% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/custom.css' %}"> {% endblock %} {% block content %}
 
-    <div ng-if="! loading">
-      <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
-      <div ng-if="! loadingError">
-        <div class="col col-sm-8">
-          <div>
-            <h3 class="title">Nodes</h3>
-            <div>
-              <strong>[[selectednodes.length]] nodes</strong>
-              <span ng-if="selectednodes.length != allnodes.length">
+<body ng-app="discoveryApp" class="discovery-app" ng-cloak>
+    <div class="content" ng-controller="AppController">
+        <div ng-if="loading" class="well">
+            <h4><span class="fa fa-refresh fa-spin"></span> Loading...</h4>
+        </div>
+        <div ng-if="! loading">
+            <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
+            <div ng-if="! loadingError">
+                <div class="col col-sm-8">
+                    <div>
+                        <h3 class="title">Nodes</h3>
+                        <div>
+                            <strong>[[selectednodes.length]] nodes</strong>
+                            <span ng-if="selectednodes.length != allnodes.length">
                 filtered from [[allnodes.length]] originally.
                 (<a href="#" ng-click="resetUI()">Reset all Filters</a>)
               </span>
-            </div>
-          </div>
-          <br/>
-
-          <div ng-include="'template/node.html/'" scope="AppController"></div>
-        </div>
-        <div class="col col-sm-4">
-          <h4>Facets</h4>
-
-          <ul class="list-group">
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Search</h5>
-              <div>
-                <input type="text" class="form-control" name="searchKey" ng-model="filter.search" ng-change="search()">
-              </div>
-            </li>
-            <li class="list-group-item">
-
-              <h5 class="list-group-item-heading">Site</h5>
-              <div ng-repeat="site in filteredSites" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedSites[site.uid]" ng-change="applySiteFilter(site.uid)">
-                  [[site.name]] ([[site.node_count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Cluster</h5>
-
-              <div ng-repeat="site in filteredSites track by site.uid">
-                <div ng-repeat="cluster in site.clusters track by cluster.uid" ng-show="cluster.node_count>0" class="checkbox">
-                  <label>
-                    <input type="checkbox" name="key" ng-model="filter.selectedClusters[cluster.uid]" ng-change="applyClusterFilter(site.uid, cluster.uid)">
-                    [[cluster.uid]] ([[cluster.node_count]])
-                  </label>
+                        </div>
+                    </div>
+                    <br/>
+                    <div ng-include="'template/node.html/'" scope="AppController"></div>
                 </div>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Virtual Support</h5>
-              <div ng-repeat="(key, value) in map.virtual_support" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedVirtualSupport[key]" ng-change="preApplyOtherFilters('virtual_support')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Besteffort Support</h5>
-              <div ng-repeat="(key, value) in map.best_effort_support" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedBestEffortSupport[key]" ng-change="preApplyOtherFilters('best_effort_support')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Deploy Support</h5>
-              <div ng-repeat="(key, value) in map.deploy_support" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedDeploySupport[key]" ng-change="preApplyOtherFilters('deploy_support')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Network Adapter Interface #1</h5>
-              <div ng-repeat="(key, value) in map.net_adap_inf_1" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]" ng-change="preApplyOtherFilters('net_adap_inf_1')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Network Adapter Interface #2</h5>
-              <div ng-repeat="(key, value) in map.net_adap_inf_2" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]" ng-change="preApplyOtherFilters('net_adap_inf_2')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Network adapter interface #3</h5>
-              <div ng-repeat="(key, value) in map.net_adap_inf_3" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedNetAdap3[key]" ng-change="preApplyOtherFilters('net_adap_inf_3')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Main Storage Device Interface</h5>
-              <div ng-repeat="(key, value) in map.storage_dev_inf" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf[key]" ng-change="preApplyOtherFilters('storage_dev_inf')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Main Storage Device Size(GB)</h5>
-              <div ng-repeat="(key, value) in map.storage_dev_size" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize[key]" ng-change="preApplyOtherFilters('storage_dev_size')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading"># CPUs</h5>
-              <div ng-repeat="(key, value) in map.cpus" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCpus[key]" ng-change="preApplyOtherFilters('cpus')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading"># Cores</h5>
-              <div ng-repeat="(key, value) in map.cores" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCores[key]" ng-change="preApplyOtherFilters('cores')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">RAM (MiB)</h5>
-              <div ng-repeat="(key, value) in map.rams" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedRams[key]" ng-change="preApplyOtherFilters('rams')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">CPU Clock Speed (GHz)</h5>
-              <div ng-repeat="(key, value) in map.clocks" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedClockSpeed[key]" ng-change="preApplyOtherFilters('clocks')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Model</h5>
-              <div ng-repeat="(key, value) in map.processor_models" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]" ng-change="preApplyOtherFilters('processor_models')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Cache L1 (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l1" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]" ng-change="preApplyOtherFilters('cache_l1')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Cache L1d (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l1d" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="preApplyOtherFilters('cache_l1d')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Cache L1i (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l1i" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="preApplyOtherFilters('cache_l1i')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-            <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Cache L2 (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l2" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel2[key]" ng-change="preApplyOtherFilters('cache_l2')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-              <li class="list-group-item">
-              <h5 class="list-group-item-heading">Processor Cache L3 (KiB)</h5>
-              <div ng-repeat="(key, value) in map.cache_l3" class="checkbox">
-                <label>
-                  <input type="checkbox" name="key" ng-model="filter.selectedCachel3[key]" ng-change="preApplyOtherFilters('cache_l3')">
-                  [[key]] ([[value.count]])
-                </label>
-              </div>
-            </li>
-          </ul>
+                <div class="col col-sm-4">
+                    <h4>Facets</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Search</h5>
+                            <div>
+                                <input type="text" class="form-control" name="searchKey" ng-model="filter.search" ng-change="search()">
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Site</h5>
+                            <div ng-repeat="site in filteredSites" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedSites[site.uid]" ng-change="applySiteFilter(site.uid)"> [[site.name]] ([[site.node_count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Cluster</h5>
+                            <div ng-repeat="site in filteredSites track by site.uid">
+                                <div ng-repeat="cluster in site.clusters track by cluster.uid" ng-show="cluster.node_count>0" class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="key" ng-model="filter.selectedClusters[cluster.uid]" ng-change="applyClusterFilter(site.uid, cluster.uid)"> [[cluster.uid]] ([[cluster.node_count]])
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Virtual Support</h5>
+                            <div ng-repeat="(key, value) in map.virtual_support" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedVirtualSupport[key]" ng-change="preApplyOtherFilters('virtual_support')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Besteffort Support</h5>
+                            <div ng-repeat="(key, value) in map.best_effort_support" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedBestEffortSupport[key]" ng-change="preApplyOtherFilters('best_effort_support')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Deploy Support</h5>
+                            <div ng-repeat="(key, value) in map.deploy_support" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedDeploySupport[key]" ng-change="preApplyOtherFilters('deploy_support')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Network adapter interface #1</h5>
+                            <div ng-repeat="(key, value) in map.net_adap_inf_1" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedNetAdap1[key]" ng-change="preApplyOtherFilters('net_adap_inf_1')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Network adapter interface #2</h5>
+                            <div ng-repeat="(key, value) in map.net_adap_inf_2" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedNetAdap2[key]" ng-change="preApplyOtherFilters('net_adap_inf_2')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Network adapter interface #3</h5>
+                            <div ng-repeat="(key, value) in map.net_adap_inf_3" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedNetAdap3[key]" ng-change="preApplyOtherFilters('net_adap_inf_3')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Storage device  #1 interface</h5>
+                            <div ng-repeat="(key, value) in map.storage_dev_inf_1" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf1[key]" ng-change="preApplyOtherFilters('storage_dev_inf_1')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Storage device #2 interface</h5>
+                            <div ng-repeat="(key, value) in map.storage_dev_inf_2" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedStorageDevInf2[key]" ng-change="preApplyOtherFilters('storage_dev_inf_2')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Storage device #1 size(GB)</h5>
+                            <div ng-repeat="(key, value) in map.storage_dev_size_1" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize1[key]" ng-change="preApplyOtherFilters('storage_dev_size_1')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Storage device #2 size(GB)</h5>
+                            <div ng-repeat="(key, value) in map.storage_dev_size_2" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedStorageDevSize2[key]" ng-change="preApplyOtherFilters('storage_dev_size_2')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading"># CPUs</h5>
+                            <div ng-repeat="(key, value) in map.cpus" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCpus[key]" ng-change="preApplyOtherFilters('cpus')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading"># Cores</h5>
+                            <div ng-repeat="(key, value) in map.cores" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCores[key]" ng-change="preApplyOtherFilters('cores')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">RAM (MiB)</h5>
+                            <div ng-repeat="(key, value) in map.rams" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedRams[key]" ng-change="preApplyOtherFilters('rams')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">CPU Clock Speed (GHz)</h5>
+                            <div ng-repeat="(key, value) in map.clocks" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedClockSpeed[key]" ng-change="preApplyOtherFilters('clocks')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor model</h5>
+                            <div ng-repeat="(key, value) in map.processor_models" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedProcessorModels[key]" ng-change="preApplyOtherFilters('processor_models')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor cache L1 (KiB)</h5>
+                            <div ng-repeat="(key, value) in map.cache_l1" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCachel1[key]" ng-change="preApplyOtherFilters('cache_l1')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor cache l1d (KiB)</h5>
+                            <div ng-repeat="(key, value) in map.cache_l1d" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCachel1d[key]" ng-change="preApplyOtherFilters('cache_l1d')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor cache L1i (KiB)</h5>
+                            <div ng-repeat="(key, value) in map.cache_l1i" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCachel1i[key]" ng-change="preApplyOtherFilters('cache_l1i')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor cache L2 (KiB)</h5>
+                            <div ng-repeat="(key, value) in map.cache_l2" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCachel2[key]" ng-change="preApplyOtherFilters('cache_l2')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <h5 class="list-group-item-heading">Processor cache L3 (KiB)</h5>
+                            <div ng-repeat="(key, value) in map.cache_l3" class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="key" ng-model="filter.selectedCachel3[key]" ng-change="preApplyOtherFilters('cache_l3')"> [[key]] ([[value.count]])
+                                </label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-</div>
-{% endblock content %}
-{% block scripts %}
+</body>
+{% endblock content %} {% block scripts %}
 <script src="{% static 'g5k_discovery/underscore/underscore.js' %}"></script>
 <script src="{% static 'g5k_discovery/angular/angular.js' %}"></script>
 <script src="{% static 'djangular/js/django-angular.min.js' %}"></script>
