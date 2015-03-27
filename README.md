@@ -45,55 +45,55 @@ MySQL database connection:
 
 ## Running the portal
 
-User the docker container! See the `Dockerfile`
+~~Use the docker container! See the `Dockerfile`~~ Use [Docker Compose](https://docs.docker.com/compose/)! The portal now uses the [reference-api](https://github.com/ChameleonCloud/reference-api) container for Resource Discovery. See [docker-compose.yml](docker-compose.yml) and [the reference-api repository](https://github.com/ChameleonCloud/reference-api).
 
 #### Development
 
-Running the portal with local code:
+The docker-compose.yml included in this repo is setup for running the composition locally. First, [clone the reference-api repository](https://github.com/ChameleonCloud/reference-api) and build that image:
 
 ```bash
-docker run \
-    -e "TAS_URL=$TAS_URL" \
-    -e "TAS_CLIENT_KEY=$TAS_CLIENT_KEY" \
-    -e "TAS_CLIENT_SECRET=$TAS_CLIENT_SECRET" \
-    -e "RT_HOST=$RT_HOST" \
-    -e "RT_USERNAME=$RT_USERNAME" \
-    -e "RT_PASSWORD=$RT_PASSWORD" \
-    -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
-    -v $(pwd):/project \
-    -d -p ::8888 chameleon/portal python manage.py runserver 0.0.0.0:8888
+git clone git@github.com:ChameleonCloude/reference-api.git
+cd reference-api
+docker build -t referenceapi .
 ```
 
-You can specify database ENV variables to connect to a MySQL backend
-(see production options below), otherwise it will just use the default
-SQLite db.
+Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameloen_env` and configure the variables as necessary.
+
+Finally, from this repository run:
+
+```bash
+docker-compose up
+```
 
 #### Production
 
-Runs the code in the container
+There are a few additional requirements for running the composition in production. We want to run Django with uWSGI and Nginx in production (not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!) so the ports and command are different. We also need to mount in SSL certificates and log file directories.
 
-**SSL certificates** are expected by nginx to be in
-`/etc/ssl/chameleoncloud.org`. This should be mounted into the
-container from the host. It looks for `bundle.crt` and `site.key`.
+The Production `docker-compose.yml` would look more like the following:
 
-```bash
-docker run \
-    -e "TAS_URL=$TAS_URL" \
-    -e "TAS_CLIENT_KEY=$TAS_CLIENT_KEY" \
-    -e "TAS_CLIENT_SECRET=$TAS_CLIENT_SECRET" \
-    -e "RT_HOST=$RT_HOST" \
-    -e "RT_USERNAME=$RT_USERNAME" \
-    -e "RT_PASSWORD=$RT_PASSWORD" \
-    -e "RT_DEFAULT_QUEUE=$RT_DEFAULT_QUEUE" \
-    -e "DB_NAME=$DB_NAME" \
-    -e "DB_HOST=$DB_HOST" \
-    -e "DB_PORT=$DB-PORT" \
-    -e "DB_USER=$DB_USER" \
-    -e "DB_PASSWORD=$DB_PASSWORD" \
-    -e "DJANGO_ENV=Production" \
-    -v $(pwd)/certificates:/etc/ssl/chameleoncloud.org \
-    --name chameleon_portal \
-    -dP chameleon/portal
+```yaml
+portal:
+  image: mrhanlon/chameleon_portal:release
+  env_file:
+    - .chameleon_env
+  volumes:
+    - logs/nginx_access_chameleoncloud.log:/var/log/nginx/access_chameleoncloud.log
+    - logs/nginx_error_chameleoncloud.log:/var/log/nginx/error_chameleoncloud.log
+    - logs/django_chameleon_auth.log:/tmp/chameleon_auth.log
+    - logs/django_chameleon.log:/tmp/chameleon.log
+    - certs/certs0:/etc/ssl/chameleoncloud.org
+    - certs/certs1:/etc/ssl/www.chameleon.tacc.utexas.edu
+    - certs/certs2:/etc/ssl/api.chameleoncloud.org
+    - media:/project/media
+  ports:
+    - 80:80
+    - 443:443
+  links:
+    - referenceapi:referenceapi
+referenceapi:
+  image: referenceapi:latest
+  ports:
+    - 8000:8000
 ```
 
 ## Release History
