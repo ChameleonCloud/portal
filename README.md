@@ -49,10 +49,10 @@ MySQL database connection:
 
 #### Development
 
-The docker-compose.yml included in this repo is setup for running the composition locally. First, [clone the reference-api repository](https://github.com/ChameleonCloud/reference-api) and build that image:
+The docker-compose.yml included in this repo is setup for running the composition locally. First, clone the reference-api repository and build that image:
 
 ```bash
-git clone git@github.com:ChameleonCloude/reference-api.git
+git clone git@github.com:ChameleonCloude\/reference-api.git
 cd reference-api
 docker build -t referenceapi .
 ```
