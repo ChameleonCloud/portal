@@ -215,13 +215,13 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/chameleon.log',
+            'filename': '/var/log/django/chameleon.log',
             'formatter': 'verbose',
         },
         'auth': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/chameleon_auth.log',
+            'filename': '/var/log/django/chameleon_auth.log',
             'formatter': 'simple',
         },
     },
