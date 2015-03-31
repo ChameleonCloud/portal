@@ -1,432 +1,455 @@
 <ol>
-  <li ng-repeat="node in selectednodes" class="node">
-    <h4 class="node-header">[[node.uid]]</h4>
-    <section>
-      <div class="row">
-        <div class="col col-sm-4">Site:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.site">[[node.site]]</span>
-          <span ng-if="!node.site">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">Cluster:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.cluster">[[node.cluster]]</span>
-          <span ng-if="!node.cluster">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">UID:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.uid">[[node.uid]]</span>
-          <span ng-if="!node.uid">n/a</span>
-        </div>
-      </div>
-         <div class="row">
-        <div class="col col-sm-4">Version:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.version">[[node.version]]</span>
-          <span ng-if="!node.version">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">GPU:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.gpu.gpu">[[node.gpu.gpu]]</span>
-          <span ng-if="!node.gpu.gpu">n/a</span>
-        </div>
-      </div>
-    </section>
-   <section>
-      <h5 class="node-sub-header">Processor</h5>
-      <div class="row">
-        <div class="col col-sm-4">Vendor:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.vendor">[[node.processor.vendor]]</span>
-          <span ng-if="!node.processor.vendor">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Model:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.model">[[node.processor.model]]</span>
-          <span ng-if="!node.processor.model">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Version:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.version">[[node.processor.version]]</span>
-          <span ng-if="!node.processor.version">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Clock Speed:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.clock_speed">[[node.processor.clock_speed/(1000000000) | number:2]]&nbsp;GHz</span>
-          <span ng-if="!node.processor.clock_speed">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Instruction Set:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.instruction_set">[[node.processor.instruction_set]]</span>
-          <span ng-if="!node.processor.instruction_set">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Description:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.other_description">[[node.processor.other_description]]</span>
-          <span ng-if="!node.processor.other_description">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Cache L1:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.cache_l1">[[node.processor.cache_l1/(1024) | number:0]]&nbsp;KB</span>
-          <span ng-if="!node.processor.cache_l1">n/a</span>
-        </div>
-      </div>
-       <div class="row">
-        <div class="col col-sm-4">Cache L1d:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.cache_l1d">[[node.processor.cache_l1d/(1024) | number:0]]&nbsp;KB</span>
-          <span ng-if="!node.processor.cache_l1d">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Cache L1i:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.cache_l1i">[[node.processor.cache_l1i/(1024) | number:0]]&nbsp;KB</span>
-          <span ng-if="!node.processor.cache_l1i">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Cache L2:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.cache_l2">[[node.processor.cache_l2/(1024) | number:0]]&nbsp;KB</span>
-          <span ng-if="!node.processor.cache_l2">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Cache L3:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.processor.cache_l3">[[node.processor.cache_l3/(1024) | number:0]]&nbsp;KB</span>
-          <span ng-if="!node.processor.cache_l3">n/a</span>
-        </div>
-      </div>
-    </section>
-    <section>
-      <h5 class="node-sub-header">Architecture</h5>
-       <div class="row">
-        <div class="col col-sm-4">Platform Type:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.architecture.platform_type">[[node.architecture.platform_type]]</span>
-          <span ng-if="!node.architecture.platform_type">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">SMP Size:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.architecture.smp_size">[[node.architecture.smp_size]]</span>
-          <span ng-if="!node.architecture.smp_size">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">SMT Size:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.architecture.smp_size">[[node.architecture.smt_size]]</span>
-          <span ng-if="!node.architecture.smp_size">n/a</span>
-        </div>
-      </div>
-    </section>
-    <section>
-      <h5 class="node-sub-header">Memory</h5>
-      <div class="row">
-        <div class="col col-sm-4">RAM Size:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.main_memory.ram_size">[[node.main_memory.ram_size/(1024*1024) | number:0]]&nbsp;MB</span>
-          <span ng-if="!node.main_memory.ram_size">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Virtual Size:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.main_memory.virtual_size">[[node.main_memory.virtual_size]]</span>
-          <span ng-if="!node.main_memory.virtual_size">n/a</span>
-        </div>
-      </div>
-    </section>
-    <section class="storage-devices">
-      <h5 class="node-sub-header">Storage Devices</h5>
-
-      <div class="row">
-        <div class="col col-sm-4">Interface:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].interface">[[node.storage_devices[0].interface]]</span>
-          <span ng-if="!node.storage_devices[0].interface">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Vendor:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].vendor">[[node.storage_devices[0].vendor]]</span>
-          <span ng-if="!node.storage_devices[0].vendor">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Model:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].model">[[node.storage_devices[0].model]]</span>
-          <span ng-if="!node.storage_devices[0].model">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Device:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].device">[[node.storage_devices[0].device]]</span>
-          <span ng-if="!node.storage_devices[0].device">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Driver:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].driver">[[node.storage_devices[0].driver]]</span>
-          <span ng-if="!node.storage_devices[0].driver">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Size:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].size">[[node.storage_devices[0].size/(1024*1024*1024) | number:0]]&nbsp;GB</span>
-          <span ng-if="!node.storage_devices[0].size">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">Rev:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.storage_devices[0].rev">[[node.storage_devices[0].rev]]</span>
-          <span ng-if="!node.storage_devices[0].rev">n/a</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="network-adapters">
-      <h5 class="node-sub-header" ng-click="showNetAdap = !showNetAdap">
+    <li ng-repeat="node in selectednodes" class="node">
+        <h4 class="node-header">[[node.uid]]</h4>
+        <section>
+            <div class="row">
+                <div class="col col-sm-4">Site:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.site">[[node.site]]</span>
+                    <span ng-if="!node.site">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cluster:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.cluster">[[node.cluster]]</span>
+                    <span ng-if="!node.cluster">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">UID:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.uid">[[node.uid]]</span>
+                    <span ng-if="!node.uid">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Version:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.version">[[node.version]]</span>
+                    <span ng-if="!node.version">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">GPU:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.gpu.gpu || node.gpu.gpu == false">[[node.gpu.gpu]]</span>
+                    <span ng-if="!node.gpu.gpu && node.gpu.gpu != false">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Processor</h5>
+            <div class="row">
+                <div class="col col-sm-4">Vendor:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.vendor">[[node.processor.vendor]]</span>
+                    <span ng-if="!node.processor.vendor">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Model:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.model">[[node.processor.model]]</span>
+                    <span ng-if="!node.processor.model">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Version:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.version">[[node.processor.version]]</span>
+                    <span ng-if="!node.processor.version">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Clock Speed:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.clock_speed">[[node.processor.clock_speed/(1000000000) | number:2]]&nbsp;GHz</span>
+                    <span ng-if="!node.processor.clock_speed">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Instruction Set:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.instruction_set">[[node.processor.instruction_set]]</span>
+                    <span ng-if="!node.processor.instruction_set">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Description:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.other_description">[[node.processor.other_description]]</span>
+                    <span ng-if="!node.processor.other_description">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cache L1:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.cache_l1">[[node.processor.cache_l1/(1024) | number:0]]&nbsp;KB</span>
+                    <span ng-if="!node.processor.cache_l1">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cache L1d:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.cache_l1d">[[node.processor.cache_l1d/(1024) | number:0]]&nbsp;KB</span>
+                    <span ng-if="!node.processor.cache_l1d">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cache L1i:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.cache_l1i">[[node.processor.cache_l1i/(1024) | number:0]]&nbsp;KB</span>
+                    <span ng-if="!node.processor.cache_l1i">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cache L2:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.cache_l2">[[node.processor.cache_l2/(1024) | number:0]]&nbsp;KB</span>
+                    <span ng-if="!node.processor.cache_l2">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Cache L3:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.processor.cache_l3">[[node.processor.cache_l3/(1024) | number:0]]&nbsp;KB</span>
+                    <span ng-if="!node.processor.cache_l3">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Architecture</h5>
+            <div class="row">
+                <div class="col col-sm-4">Platform Type:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.architecture.platform_type">[[node.architecture.platform_type]]</span>
+                    <span ng-if="!node.architecture.platform_type">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">SMP Size:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.architecture.smp_size">[[node.architecture.smp_size]]</span>
+                    <span ng-if="!node.architecture.smp_size">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">SMT Size:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.architecture.smp_size">[[node.architecture.smt_size]]</span>
+                    <span ng-if="!node.architecture.smp_size">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Memory</h5>
+            <div class="row">
+                <div class="col col-sm-4">RAM Size:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.main_memory.ram_size">[[node.main_memory.ram_size/(1024*1024) | number:0]]&nbsp;MB</span>
+                    <span ng-if="!node.main_memory.ram_size">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Virtual Size:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.main_memory.virtual_size">[[node.main_memory.virtual_size]]</span>
+                    <span ng-if="!node.main_memory.virtual_size">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section class="storage-devices">
+            <h5 class="node-sub-header" ng-click="showStorageDev = !showStorageDev">
+            <span>Storage Devices&nbsp;&nbsp;</span>
+            <span class="fa fa-chevron-down" ng-show="!showStorageDev" style="float:right"></span>
+            <span class="fa fa-chevron-up" ng-show="showStorageDev" style="float:right"></span>
+            </h5>
+            <div ng-show="showStorageDev && (!node.storage_devices || node.storage_devices.length == 0)">
+                <br/>
+                <div class="alert alert-warning">Information not available.</div>
+            </div>
+            <div ng-show="showStorageDev">
+                <div ng-repeat="storage_device in node.storage_devices" class="clearfix">
+                    <div class="header-line">Storage Device [[$index+1]]</div>
+                    <div class="row">
+                        <div class="col col-sm-4">Interface:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.interface">[[storage_device.interface]]</span>
+                            <span ng-if="!storage_device.interface">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Vendor:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.vendor">[[storage_device.vendor]]</span>
+                            <span ng-if="!storage_devices.vendor">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Model:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.model">[[storage_device.model]]</span>
+                            <span ng-if="!storage_device.model">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Device:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.device">[[storage_device.device]]</span>
+                            <span ng-if="!storage_device.device">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Driver:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.driver">[[storage_device.driver]]</span>
+                            <span ng-if="!storage_device.driver">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Size:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.size">[[storage_device.size/(1024*1024*1024) | number:0]]&nbsp;GB</span>
+                            <span ng-if="!storage_device.size">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Rev:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="storage_device.rev">[[storage_device.rev]]</span>
+                            <span ng-if="!storage_device.rev">n/a</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="network-adapters">
+          <h5 class="node-sub-header" ng-click="showNetAdap = !showNetAdap">
             <span>Network Adapters&nbsp;&nbsp;</span>
             <span class="fa fa-chevron-down" ng-show="!showNetAdap" style="float:right"></span>
             <span class="fa fa-chevron-up" ng-show="showNetAdap" style="float:right"></span>
-        </h5>
-      <div ng-show="showNetAdap && (!node.network_adapters ||node.network_adapters.length == 0)">
-        <br/>
-
-        <div class="alert alert-warning">Information not available.</div>
-      </div>
-      <div ng-show="showNetAdap">
-        <div ng-repeat="net_adap in node.network_adapters" class="clearfix">
-          <div class="header-line">Network Adapter [[$index+1]]</div>
-          <div class="row">
-            <div class="col col-sm-4">Interface:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.interface">[[net_adap.interface]]</span>
-              <span ng-if="!net_adap.interface">n/a</span>
+          </h5>
+            <div ng-show="showNetAdap && (!node.network_adapters || node.network_adapters.length == 0)">
+                <br/>
+                <div class="alert alert-warning">Information not available.</div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Vendor:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.vendor">[[net_adap.vendor]]</span>
-              <span ng-if="!net_adap.vendor">n/a</span>
+            <div ng-show="showNetAdap">
+                <div ng-repeat="net_adap in node.network_adapters" class="clearfix">
+                    <div class="header-line">Network Adapter [[$index+1]]</div>
+                    <div class="row">
+                        <div class="col col-sm-4">Interface:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.interface">[[net_adap.interface]]</span>
+                            <span ng-if="!net_adap.interface">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Vendor:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.vendor">[[net_adap.vendor]]</span>
+                            <span ng-if="!net_adap.vendor">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Model:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.model">[[net_adap.model]]</span>
+                            <span ng-if="!net_adap.model">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Device:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.device">[[net_adap.device]]</span>
+                            <span ng-if="!net_adap.device">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Driver:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.driver">[[net_adap.driver]]</span>
+                            <span ng-if="!net_adap.driver">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">MAC Address:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.mac">[[net_adap.mac]]</span>
+                            <span ng-if="!net_adap.mac">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Rate:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.rate">[[net_adap.rate]]</span>
+                            <span ng-if="!net_adap.rate">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Version:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.version">[[net_adap.version]]</span>
+                            <span ng-if="!net_adap.version">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Enabled:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.enabled">[[net_adap.enabled]]</span>
+                            <span ng-if="!net_adap.enabled">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Bridged:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.bridged || net_adap.bridged == false">[[net_adap.bridged]]</span>
+                            <span ng-if="!net_adap.bridged && net_adap.bridged != false">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Mounted:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.mounted || net_adap.mounted == false">[[net_adap.mounted]]</span>
+                            <span ng-if="!net_adap.mounted && net_adap.mounted != false">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Management:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.management || net_adap.management == false">[[net_adap.management]]</span>
+                            <span ng-if="!net_adap.management && net_adap.management != false">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Switch:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.switch">[[net_adap.switch]]</span>
+                            <span ng-if="!net_adap.switch">n/a</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-sm-4">Switch Port:</div>
+                        <div class="col col-sm-8">
+                            <span ng-if="net_adap.switch_port">[[net_adap.switch_port]]</span>
+                            <span ng-if="!net_adap.switch_port">n/a</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Model:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.model">[[net_adap.model]]</span>
-              <span ng-if="!net_adap.model">n/a</span>
-            </div>
-          </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Operating System</h5>
             <div class="row">
-            <div class="col col-sm-4">Device:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.device">[[net_adap.device]]</span>
-              <span ng-if="!net_adap.device">n/a</span>
+                <div class="col col-sm-4">Name:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.operating_system.name">[[node.operating_system.name]]</span>
+                    <span ng-if="!node.operating_system.name">n/a</span>
+                </div>
             </div>
-          </div>
             <div class="row">
-            <div class="col col-sm-4">Driver:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.driver">[[net_adap.driver]]</span>
-              <span ng-if="!net_adap.driver">n/a</span>
+                <div class="col col-sm-4">Kernel:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.operating_system.kernel">[[node.operating_system.kernel]]</span>
+                    <span ng-if="!node.operating_system.kernel">n/a</span>
+                </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">MAC Address:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.mac">[[net_adap.mac]]</span>
-              <span ng-if="!net_adap.mac">n/a</span>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Rate:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.rate">[[net_adap.rate]]</span>
-              <span ng-if="!net_adap.rate">n/a</span>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Version:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.version">[[net_adap.version]]</span>
-              <span ng-if="!net_adap.version">n/a</span>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Enabled:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.enabled">[[net_adap.enabled]]</span>
-              <span ng-if="!net_adap.enabled">n/a</span>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col col-sm-4">Bridged:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.bridged">[[net_adap.bridged]]</span>
-              <span ng-if="!net_adap.bridged">n/a</span>
-            </div>
-          </div>
             <div class="row">
-            <div class="col col-sm-4">Mounted:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.mounted">[[net_adap.mounted]]</span>
-              <span ng-if="!net_adap.mounted">n/a</span>
+                <div class="col col-sm-4">Version:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.operating_system.version">[[node.operating_system.version]]</span>
+                    <span ng-if="!node.operating_system.version">n/a</span>
+                </div>
             </div>
-          </div>
             <div class="row">
-            <div class="col col-sm-4">Management:</div>
-            <div class="col col-sm-8">
-              <span ng-if="net_adap.management">[[net_adap.management]]</span>
-              <span ng-if="!net_adap.management">n/a</span>
+                <div class="col col-sm-4">Release:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.operating_system.release">[[node.operating_system.release]]</span>
+                    <span ng-if="!node.operating_system.release">n/a</span>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section>
-      <h5 class="node-sub-header">Operating System</h5>
-      <div class="row">
-        <div class="col col-sm-4">Name:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.operating_system.name">[[node.operating_system.name]]</span>
-          <span ng-if="!node.operating_system.name">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">Kernel:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.operating_system.kernel">[[node.operating_system.kernel]]</span>
-          <span ng-if="!node.operating_system.kernel">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">Version:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.operating_system.version">[[node.operating_system.version]]</span>
-          <span ng-if="!node.operating_system.version">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Release:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.operating_system.release">[[node.operating_system.release]]</span>
-          <span ng-if="!node.operating_system.release">n/a</span>
-        </div>
-      </div>
-    </section>
-    <section>
-      <h5 class="node-sub-header">BIOS</h5>
-      <div class="row">
-        <div class="col col-sm-4">Vendor:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.bios.vendor">[[node.bios.vendor]]</span>
-          <span ng-if="!node.bios.vendor">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Version:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.bios.version">[[node.bios.version]]</span>
-          <span ng-if="!node.bios.version">n/a</span>
-        </div>
-      </div>
-        <div class="row">
-        <div class="col col-sm-4">Release Date:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.bios.release_date">[[node.bios.release_date]]</span>
-          <span ng-if="!node.bios.release_date">n/a</span>
-        </div>
-      </div>
-    </section>
-    <section>
-      <h5 class="node-sub-header">Chassis</h5>
-        <div class="row">
-        <div class="col col-sm-4">Name:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.chassis.name">[[node.chassis.name]]</span>
-          <span ng-if="!node.chassis.name">n/a</span>
-        </div>
-      </div>
-       <div class="row">
-        <div class="col col-sm-4">Manufacturer:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.chassis.manufacturer">[[node.chassis.manufacturer]]</span>
-          <span ng-if="!node.chassis.manufacturer">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Serial:</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.chassis.serial">[[node.chassis.serial]]</span>
-          <span ng-if="!node.chassis.serial">n/a</span>
-        </div>
-      </div>
-    </section>
-   <section>
-        <h5 class="node-sub-header">Monitoring</h5>
-      <div class="row">
-        <div class="col col-sm-4">Wattmeter</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.monitoring.wattmeter">[[node.monitoring.wattmeter]]</span>
-          <span ng-if="!node.monitoring.wattmeter">n/a</span>
-        </div>
-      </div>
-    </section>
-  <section>
-      <h5 class="node-sub-header">Supported Job Types</h5>
-      <div class="row">
-        <div class="col col-sm-4">Virtual Support</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.supported_job_types.virtual">[[node.supported_job_types.virtual]]</span>
-          <span ng-if="!node.supported_job_types.virtual">n/a</span>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col col-sm-4">Besteffort Support</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.supported_job_types.besteffort">[[node.supported_job_types.besteffort]]</span>
-          <span ng-if="!node.supported_job_types.besteffort">n/a</span>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col col-sm-4">Deploy Support</div>
-        <div class="col col-sm-8">
-          <span ng-if="node.supported_job_types.deploy">[[node.supported_job_types.deploy]]</span>
-          <span ng-if="!node.supported_job_types.deploy">n/a</span>
-        </div>
-      </div>
-    </section>
-  </li>
+        </section>
+        <section>
+            <h5 class="node-sub-header">BIOS</h5>
+            <div class="row">
+                <div class="col col-sm-4">Vendor:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.bios.vendor">[[node.bios.vendor]]</span>
+                    <span ng-if="!node.bios.vendor">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Version:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.bios.version">[[node.bios.version]]</span>
+                    <span ng-if="!node.bios.version">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Release Date:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.bios.release_date">[[node.bios.release_date]]</span>
+                    <span ng-if="!node.bios.release_date">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Chassis</h5>
+            <div class="row">
+                <div class="col col-sm-4">Name:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.chassis.name">[[node.chassis.name]]</span>
+                    <span ng-if="!node.chassis.name">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Manufacturer:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.chassis.manufacturer">[[node.chassis.manufacturer]]</span>
+                    <span ng-if="!node.chassis.manufacturer">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Serial:</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.chassis.serial">[[node.chassis.serial]]</span>
+                    <span ng-if="!node.chassis.serial">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Monitoring</h5>
+            <div class="row">
+                <div class="col col-sm-4">Wattmeter</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.monitoring.wattmeter">[[node.monitoring.wattmeter]]</span>
+                    <span ng-if="!node.monitoring.wattmeter">n/a</span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h5 class="node-sub-header">Supported Job Types</h5>
+            <div class="row">
+                <div class="col col-sm-4">Virtual Support</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.supported_job_types.virtual">[[node.supported_job_types.virtual]]</span>
+                    <span ng-if="!node.supported_job_types.virtual">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Besteffort Support</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.supported_job_types.besteffort || node.supported_job_types.besteffort == false">[[node.supported_job_types.besteffort]]</span>
+                    <span ng-if="!node.supported_job_types.besteffort && node.supported_job_types.besteffort != false">n/a</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm-4">Deploy Support</div>
+                <div class="col col-sm-8">
+                    <span ng-if="node.supported_job_types.deploy || node.supported_job_types.deploy == false">[[node.supported_job_types.deploy]]</span>
+                    <span ng-if="!node.supported_job_types.deploy && node.supported_job_types.deploy != false">n/a</span>
+                </div>
+            </div>
+        </section>
+    </li>
 </ol>

@@ -35,11 +35,17 @@ angular.module('discoveryApp')
             if (!noResetFilter || noResetFilter !== 'net_adap_inf_3') {
                 $scope.map.net_adap_inf_3 = {};
             }
-            if (!noResetFilter || noResetFilter !== 'storage_dev_inf') {
-                $scope.map.storage_dev_inf = {};
+            if (!noResetFilter || noResetFilter !== 'storage_dev_inf_1') {
+                $scope.map.storage_dev_inf_1 = {};
             }
-            if (!noResetFilter || noResetFilter !== 'storage_dev_size') {
-                $scope.map.storage_dev_size = {};
+            if (!noResetFilter || noResetFilter !== 'storage_dev_inf_2') {
+                $scope.map.storage_dev_inf_2 = {};
+            }
+            if (!noResetFilter || noResetFilter !== 'storage_dev_size_1') {
+                $scope.map.storage_dev_size_1 = {};
+            }
+            if (!noResetFilter || noResetFilter !== 'storage_dev_size_2') {
+                $scope.map.storage_dev_size_2 = {};
             }
             if (!noResetFilter || noResetFilter !== 'cpus') {
                 $scope.map.cpus = {};
@@ -86,8 +92,10 @@ angular.module('discoveryApp')
                 selectedNetAdap1: {},
                 selectedNetAdap2: {},
                 selectedNetAdap3: {},
-                selectedStorageDevInf: {},
-                selectedStorageDevSize: {},
+                selectedStorageDevInf1: {},
+                selectedStorageDevInf2: {},
+                selectedStorageDevSize1: {},
+                selectedStorageDevSize2: {},
                 selectedCpus: {},
                 selectedCores: {},
                 selectedRams: {},
@@ -178,17 +186,17 @@ angular.module('discoveryApp')
                 }
             }
 
-            if (!noResetFilter || noResetFilter !== 'storage_dev_inf') {
+            if (!noResetFilter || noResetFilter !== 'storage_dev_inf_1') {
                 try {
                     var storage_interface = node.storage_devices[0].interface;
                     if (!storage_interface) {
                         storage_interface = 'unknown';
                     }
-                    if (!$scope.map.storage_dev_inf.hasOwnProperty(storage_interface)) {
-                        $scope.map.storage_dev_inf[storage_interface] = {count: 1};
+                    if (!$scope.map.storage_dev_inf_1.hasOwnProperty(storage_interface)) {
+                        $scope.map.storage_dev_inf_1[storage_interface] = {count: 1};
                     }
                     else {
-                        $scope.map.storage_dev_inf[storage_interface].count = $scope.map.storage_dev_inf[storage_interface].count + 1;
+                        $scope.map.storage_dev_inf_1[storage_interface].count = $scope.map.storage_dev_inf_1[storage_interface].count + 1;
                     }
                 }
                 catch (err) {
@@ -196,7 +204,25 @@ angular.module('discoveryApp')
                 }
             }
 
-            if (!noResetFilter || noResetFilter !== 'storage_dev_size') {
+            if (!noResetFilter || noResetFilter !== 'storage_dev_inf_2') {
+                try {
+                    var storage_interface = node.storage_devices[1].interface;
+                    if (!storage_interface) {
+                        storage_interface = 'unknown';
+                    }
+                    if (!$scope.map.storage_dev_inf_2.hasOwnProperty(storage_interface)) {
+                        $scope.map.storage_dev_inf_2[storage_interface] = {count: 1};
+                    }
+                    else {
+                        $scope.map.storage_dev_inf_2[storage_interface].count = $scope.map.storage_dev_inf_2[storage_interface].count + 1;
+                    }
+                }
+                catch (err) {
+                    //pass
+                }
+            }
+
+            if (!noResetFilter || noResetFilter !== 'storage_dev_size_1') {
                 try {
                     var storage_size = node.storage_devices[0].size;
                     if (!storage_size) {
@@ -206,11 +232,33 @@ angular.module('discoveryApp')
                         storage_size = Math.round(storage_size / (1024 * 1024 * 1024));
                     }
 
-                    if (!$scope.map.storage_dev_size.hasOwnProperty(storage_size)) {
-                        $scope.map.storage_dev_size[storage_size] = {count: 1};
+                    if (!$scope.map.storage_dev_size_1.hasOwnProperty(storage_size)) {
+                        $scope.map.storage_dev_size_1[storage_size] = {count: 1};
                     }
                     else {
-                        $scope.map.storage_dev_size[storage_size].count = $scope.map.storage_dev_size[storage_size].count + 1;
+                        $scope.map.storage_dev_size_1[storage_size].count = $scope.map.storage_dev_size_1[storage_size].count + 1;
+                    }
+                }
+                catch (err) {
+                    //pass
+                }
+            }
+
+             if (!noResetFilter || noResetFilter !== 'storage_dev_size_2') {
+                try {
+                    var storage_size = node.storage_devices[1].size;
+                    if (!storage_size) {
+                        storage_size = 'unknown';
+                    }
+                    else {
+                        storage_size = Math.round(storage_size / (1024 * 1024 * 1024));
+                    }
+
+                    if (!$scope.map.storage_dev_size_2.hasOwnProperty(storage_size)) {
+                        $scope.map.storage_dev_size_2[storage_size] = {count: 1};
+                    }
+                    else {
+                        $scope.map.storage_dev_size_2[storage_size].count = $scope.map.storage_dev_size_2[storage_size].count + 1;
                     }
                 }
                 catch (err) {
@@ -735,23 +783,23 @@ angular.module('discoveryApp')
                 }
             }
 
-            if (!_.isEmpty($scope.filter.selectedStorageDevInf)) {
-                var selectedStorageDevInf = [];
-                for (var key in $scope.filter.selectedStorageDevInf) {
-                    if ($scope.filter.selectedStorageDevInf[key] == true) {
-                        selectedStorageDevInf.push(key.toLowerCase());
+            if (!_.isEmpty($scope.filter.selectedStorageDevInf1)) {
+                var selectedStorageDevInf1 = [];
+                for (var key in $scope.filter.selectedStorageDevInf1) {
+                    if ($scope.filter.selectedStorageDevInf1[key] == true) {
+                        selectedStorageDevInf1.push(key.toLowerCase());
                     }
                 }
                 try {
 
                     if (typeof node.storage_devices[0] == undefined || !node.storage_devices[0].interface) {
 
-                        if (selectedStorageDevInf.length !== 0 && !_.contains(selectedStorageDevInf, 'unknown')) {
+                        if (selectedStorageDevInf1.length !== 0 && !_.contains(selectedStorageDevInf1, 'unknown')) {
                             pass = false;
                         }
                     }
                     else {
-                        if (selectedStorageDevInf.length !== 0 && !_.contains(selectedStorageDevInf, node.storage_devices[0].interface.toLowerCase())) {
+                        if (selectedStorageDevInf1.length !== 0 && !_.contains(selectedStorageDevInf1, node.storage_devices[0].interface.toLowerCase())) {
                             pass = false;
                         }
                     }
@@ -762,24 +810,51 @@ angular.module('discoveryApp')
                 }
             }
 
-            if (!_.isEmpty($scope.filter.selectedStorageDevSize)) {
-                var selectedStorageDevSize = [];
-                for (var key in $scope.filter.selectedStorageDevSize) {
-                    if ($scope.filter.selectedStorageDevSize[key] == true) {
-                        selectedStorageDevSize.push(key);
+            if (!_.isEmpty($scope.filter.selectedStorageDevInf2)) {
+                var selectedStorageDevInf2 = [];
+                for (var key in $scope.filter.selectedStorageDevInf2) {
+                    if ($scope.filter.selectedStorageDevInf2[key] == true) {
+                        selectedStorageDevInf2.push(key.toLowerCase());
+                    }
+                }
+                try {
+
+                    if (typeof node.storage_devices[1] == undefined || !node.storage_devices[1].interface) {
+
+                        if (selectedStorageDevInf2.length !== 0 && !_.contains(selectedStorageDevInf2, 'unknown')) {
+                            pass = false;
+                        }
+                    }
+                    else {
+                        if (selectedStorageDevInf2.length !== 0 && !_.contains(selectedStorageDevInf2, node.storage_devices[1].interface.toLowerCase())) {
+                            pass = false;
+                        }
+                    }
+                }
+                catch (err) {
+                    pass = false;
+                    //console.log('Missing node.storage_devices[1].interface in '+node.uid);
+                }
+            }
+
+            if (!_.isEmpty($scope.filter.selectedStorageDevSize1)) {
+                var selectedStorageDevSize1 = [];
+                for (var key in $scope.filter.selectedStorageDevSize1) {
+                    if ($scope.filter.selectedStorageDevSize1[key] == true) {
+                        selectedStorageDevSize1.push(key);
                     }
                 }
                 try {
 
                     if (typeof node.storage_devices[0] == undefined || !node.storage_devices[0].size) {
 
-                        if (selectedStorageDevSize.length !== 0 && !_.contains(selectedStorageDevSize, 'unknown')) {
+                        if (selectedStorageDevSize1.length !== 0 && !_.contains(selectedStorageDevSize1, 'unknown')) {
                             pass = false;
                         }
                     }
                     else {
                         var storage_size = Math.round(node.storage_devices[0].size / (1024 * 1024 * 1024));
-                        if (selectedStorageDevSize.length !== 0 && !_.contains(selectedStorageDevSize, storage_size.toString())) {
+                        if (selectedStorageDevSize1.length !== 0 && !_.contains(selectedStorageDevSize1, storage_size.toString())) {
                             pass = false;
                         }
                     }
@@ -787,6 +862,34 @@ angular.module('discoveryApp')
                 catch (err) {
                     pass = false;
                     //console.log('Missing node.storage_devices[0].size in '+node.uid);
+                }
+            }
+
+            if (!_.isEmpty($scope.filter.selectedStorageDevSize2)) {
+                var selectedStorageDevSize2 = [];
+                for (var key in $scope.filter.selectedStorageDevSize2) {
+                    if ($scope.filter.selectedStorageDevSize2[key] == true) {
+                        selectedStorageDevSize2.push(key);
+                    }
+                }
+                try {
+
+                    if (typeof node.storage_devices[1] == undefined || !node.storage_devices[1].size) {
+
+                        if (selectedStorageDevSize2.length !== 0 && !_.contains(selectedStorageDevSize2, 'unknown')) {
+                            pass = false;
+                        }
+                    }
+                    else {
+                        var storage_size = Math.round(node.storage_devices[1].size / (1024 * 1024 * 1024));
+                        if (selectedStorageDevSize2.length !== 0 && !_.contains(selectedStorageDevSize2, storage_size.toString())) {
+                            pass = false;
+                        }
+                    }
+                }
+                catch (err) {
+                    pass = false;
+                    //console.log('Missing node.storage_devices[1].size in '+node.uid);
                 }
             }
 
