@@ -30,6 +30,9 @@ RUN \
 COPY . /project
 WORKDIR /project
 
+# logs
+RUN mkdir /var/log/django
+
 # database migrations, if necessary
 RUN python manage.py migrate
 

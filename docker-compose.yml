@@ -7,16 +7,13 @@ portal:
     - ../logs/nginx_error_chameleoncloud.log:/var/log/nginx/error_chameleoncloud.log
     - ../logs/django_chameleon_auth.log:/tmp/chameleon_auth.log
     - ../logs/django_chameleon.log:/tmp/chameleon.log
-    - ../certs/certs0:/etc/ssl/chameleoncloud.org
-    - ../certs/certs1:/etc/ssl/www.chameleon.tacc.utexas.edu
-    - ../certs/certs2:/etc/ssl/api.chameleoncloud.org
     - ../media:/project/media
     - .:/project
   ports:
-    - 80:80
-    - 443:443
+    - 8888:8888
   links:
     - referenceapi:referenceapi
+  command: python manage.py runserver 0.0.0.0:8888
 referenceapi:
   image: referenceapi:latest
   ports:

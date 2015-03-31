@@ -214,13 +214,13 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/chameleon.log',
+            'filename': '/var/log/chameleon.log',
             'formatter': 'verbose',
         },
         'auth': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/tmp/chameleon_auth.log',
+            'filename': '/var/log/chameleon_auth.log',
             'formatter': 'simple',
         },
     },
@@ -388,4 +388,4 @@ MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site
 # Grid'5000 API
 #
 #####
-G5K_API_ROOT = 'referenceapi:8000'
+G5K_API_ROOT = 'http://referenceapi:8000'
