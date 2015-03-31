@@ -152,7 +152,7 @@ angular.module('discoveryApp')
                 try {
                     var deploy_support = 'unknown';
                     var supported_job_types = node.supported_job_types;
-                    if (supported_job_types && (typeof supported_job_types.deploy !== undefined && (supported_job_types.deploy !== null))) {
+                    if (supported_job_types && (typeof supported_job_types.deploy !== 'undefined' && (supported_job_types.deploy !== null))) {
                         deploy_support = supported_job_types.deploy.toString();
                     }
                     if (!$scope.map.deploy_support.hasOwnProperty(deploy_support)) {
@@ -171,7 +171,7 @@ angular.module('discoveryApp')
                 try {
                     var best_effort_support = 'unknown';
                     var supported_job_types = node.supported_job_types;
-                    if (supported_job_types && (typeof supported_job_types.besteffort !== undefined && (supported_job_types.besteffort !== null))) {
+                    if (supported_job_types && (typeof supported_job_types.besteffort !== 'undefined' && (supported_job_types.besteffort !== null))) {
                         deploy_support = supported_job_types.besteffort.toString();
                     }
                     if (!$scope.map.best_effort_support.hasOwnProperty(best_effort_support)) {
@@ -625,7 +625,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.supported_job_types == undefined || !node.supported_job_types.virtual) {
+                    if (typeof node.supported_job_types === 'undefined' || !node.supported_job_types.virtual) {
 
                         if (selectedVirtualSupport.length !== 0 && !_.contains(selectedVirtualSupport, 'unknown')) {
                             pass = false;
@@ -652,7 +652,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.supported_job_types == undefined || !node.supported_job_types.deploy) {
+                    if (typeof node.supported_job_types === 'undefined' || !node.supported_job_types.deploy) {
 
                         if (selectedDeploySupport.length !== 0 && !_.contains(selectedDeploySupport, 'unknown')) {
                             pass = false;
@@ -680,7 +680,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.supported_job_types == undefined || !node.supported_job_types.besteffort) {
+                    if (typeof node.supported_job_types === 'undefined' || !node.supported_job_types.besteffort) {
 
                         if (selectedBestEffortSupport.length !== 0 && !_.contains(selectedBestEffortSupport, 'unknown')) {
                             pass = false;
@@ -711,7 +711,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.network_adapters[0] == undefined || !node.network_adapters[0].interface) {
+                    if (typeof node.network_adapters[0] === 'undefined' || !node.network_adapters[0].interface) {
 
                         if (selectedNetAdap1.length !== 0 && !_.contains(selectedNetAdap1, 'unknown')) {
                             pass = false;
@@ -738,7 +738,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.network_adapters[1] == undefined || !node.network_adapters[1].interface) {
+                    if (typeof node.network_adapters[1] === 'undefined' || !node.network_adapters[1].interface) {
 
                         if (selectedNetAdap2.length !== 0 && !_.contains(selectedNetAdap2, 'unknown')) {
                             pass = false;
@@ -765,7 +765,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.network_adapters[2] == undefined || !node.network_adapters[2].interface) {
+                    if (typeof node.network_adapters[2] === 'undefined' || !node.network_adapters[2].interface) {
 
                         if (selectedNetAdap3.length !== 0 && !_.contains(selectedNetAdap3, 'unknown')) {
                             pass = false;
@@ -792,7 +792,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.storage_devices[0] == undefined || !node.storage_devices[0].interface) {
+                    if (typeof node.storage_devices[0] === 'undefined' || !node.storage_devices[0].interface) {
 
                         if (selectedStorageDevInf1.length !== 0 && !_.contains(selectedStorageDevInf1, 'unknown')) {
                             pass = false;
@@ -819,7 +819,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.storage_devices[1] == undefined || !node.storage_devices[1].interface) {
+                    if (typeof node.storage_devices[1] === 'undefined' || !node.storage_devices[1].interface) {
 
                         if (selectedStorageDevInf2.length !== 0 && !_.contains(selectedStorageDevInf2, 'unknown')) {
                             pass = false;
@@ -846,7 +846,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.storage_devices[0] == undefined || !node.storage_devices[0].size) {
+                    if (typeof node.storage_devices[0] === 'undefined' || !node.storage_devices[0].size) {
 
                         if (selectedStorageDevSize1.length !== 0 && !_.contains(selectedStorageDevSize1, 'unknown')) {
                             pass = false;
@@ -873,8 +873,8 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-
-                    if (typeof node.storage_devices[1] == undefined || !node.storage_devices[1].size) {
+                     
+                    if (typeof node.storage_devices[1] === 'undefined' || !node.storage_devices[1].size) {
 
                         if (selectedStorageDevSize2.length !== 0 && !_.contains(selectedStorageDevSize2, 'unknown')) {
                             pass = false;
@@ -903,7 +903,7 @@ angular.module('discoveryApp')
 
                 try {
 
-                    if (typeof node.architecture.smp_size == undefined || !node.architecture.smp_size) {
+                    if (typeof node.architecture.smp_size === 'undefined' || !node.architecture.smp_size) {
 
                         if (selectedCpus.length !== 0 && !_.contains(selectedCpus, 'unknown')) {
                             pass = false;
@@ -930,7 +930,7 @@ angular.module('discoveryApp')
                 }
 
                 try {
-                    if (typeof node.architecture.smt_size == undefined || !node.architecture.smt_size) {
+                    if (typeof node.architecture.smt_size === 'undefined' || !node.architecture.smt_size) {
 
                         if (selectedCores.length !== 0 && !_.contains(selectedCores, 'unknown')) {
                             pass = false;
@@ -958,7 +958,7 @@ angular.module('discoveryApp')
 
                 try {
 
-                    if (typeof node.architecture.smt_size == undefined || !node.main_memory.ram_size) {
+                    if (typeof node.architecture.smt_size === 'undefined' || !node.main_memory.ram_size) {
 
                         if (selectedRams.length !== 0 && !_.contains(selectedRams, 'unknown')) {
                             pass = false;
@@ -987,7 +987,7 @@ angular.module('discoveryApp')
                 }
                 try {
 
-                    if (typeof node.processor.clock_speed == undefined || !node.processor.clock_speed) {
+                    if (typeof node.processor.clock_speed === 'undefined' || !node.processor.clock_speed) {
 
                         if (selectedClockSpeed.length !== 0 && !_.contains(selectedClockSpeed, 'unknown')) {
                             pass = false;
@@ -1014,7 +1014,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.processor.model == undefined || !node.processor.model) {
+                    if (typeof node.processor.model === 'undefined' || !node.processor.model) {
 
                         if (selectedProcessorModels.length !== 0 && !_.contains(selectedProcessorModels, 'unknown')) {
                             pass = false;
@@ -1040,7 +1040,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.processor.cache_l1d == undefined || !node.processor.cache_l1d) {
+                    if (typeof node.processor.cache_l1d === 'undefined' || !node.processor.cache_l1d) {
 
                         if (selectedCachel1d.length !== 0 && !_.contains(selectedCachel1d, 'unknown')) {
                             pass = false;
@@ -1066,7 +1066,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.processor.cache_l1i == undefined || !node.processor.cache_l1i) {
+                    if (typeof node.processor.cache_l1i === 'undefined' || !node.processor.cache_l1i) {
 
                         if (selectedCachel1i.length !== 0 && !_.contains(selectedCachel1i, 'unknown')) {
                             pass = false;
@@ -1092,7 +1092,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.processor.cache_l1 == undefined || !node.processor.cache_l1) {
+                    if (typeof node.processor.cache_l1 === 'undefined' || !node.processor.cache_l1) {
 
                         if (selectedCachel1.length !== 0 && !_.contains(selectedCachel1, 'unknown')) {
                             pass = false;
@@ -1118,7 +1118,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                    if (typeof node.processor.cache_l2 == undefined || !node.processor.cache_l2) {
+                    if (typeof node.processor.cache_l2 === 'undefined' || !node.processor.cache_l2) {
 
                         if (selectedCachel2.length !== 0 && !_.contains(selectedCachel2, 'unknown')) {
                             pass = false;
@@ -1144,7 +1144,7 @@ angular.module('discoveryApp')
                     }
                 }
                 try {
-                   if (typeof node.processor.cache_l3 == undefined || !node.processor.cache_l3) {
+                   if (typeof node.processor.cache_l3 === 'undefined' || !node.processor.cache_l3) {
 
                         if (selectedCachel3.length !== 0 && !_.contains(selectedCachel3, 'unknown')) {
                             pass = false;
@@ -1367,7 +1367,7 @@ angular.module('discoveryApp')
                                 $scope.loading = false;
                             });
 
-                        promises.push(promise_clusters);
+                       promises.push(promise_clusters);
                     }
                     else {
                         console.log('cluster link is missing.');
