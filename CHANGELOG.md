@@ -1,5 +1,14 @@
 ## Changelog
 
+### v1.2.1
+
+- Added early user program app `cc_early_user_support`
+- Removed `.deprecated_apps`
+- `docker-compose.yml` included with repo configured for development work right away
+- Documented Docker Compose use
+- Moved Django logs from `/tmp` to `/var/log/django` (inside container).
+- G5K discovery fixes
+
 ### v1.2.0
 
 - Add DjangoCMS

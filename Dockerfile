@@ -36,6 +36,7 @@ RUN mkdir /var/log/django
 
 
 # database migrations, if necessary
+# maybe remove this in the future? - @mrhanlon
 RUN python manage.py migrate
 
 
