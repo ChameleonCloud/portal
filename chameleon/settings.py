@@ -389,4 +389,4 @@ MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site
 # Grid'5000 API
 #
 #####
-G5K_API_ROOT = 'referenceapi:8000'
+G5K_API_ROOT = 'http://referenceapi:8000'

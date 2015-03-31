@@ -3,6 +3,8 @@ portal:
   env_file:
     - .chameleon_env
   volumes:
+    - ../logs/django:/var/log/django
+    - ../logs/nginx:/var/log/nginx
     - ../media:/project/media
     - .:/project
   ports:
