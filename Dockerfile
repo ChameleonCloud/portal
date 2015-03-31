@@ -30,14 +30,22 @@ RUN \
 COPY . /project
 WORKDIR /project
 
+
+# logs
+RUN mkdir /var/log/django
+
+
 # database migrations, if necessary
 RUN python manage.py migrate
+
 
 # translation messages, if necessary
 RUN python manage.py compilemessages
 
+
 # setup static assets
 RUN mkdir -p /var/www/static && mkdir -p /var/www/chameleoncloud.org/static && python manage.py collectstatic --noinput
+
 
 EXPOSE 80 443
 CMD ["supervisord", "-n"]

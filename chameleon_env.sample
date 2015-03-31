@@ -9,20 +9,23 @@
 # fill in the appropriate values below.
 ###
 
+# TAS API config
 TAS_URL=
 TAS_CLIENT_KEY=
 TAS_CLIENT_SECRET=
 
+# RT REST API config
 RT_HOST=
 RT_USERNAME=
 RT_PASSWORD=
 RT_DEFAULT_QUEUE=
 
-DB_NAME=
-DB_HOST=
-DB_PORT=
-DB_USER=
-DB_PASSWORD=
+# Uncomment and configure these to use a MySQL database
+#DB_NAME=
+#DB_HOST=
+#DB_PORT=
+#DB_USER=
+#DB_PASSWORD=
 
 FG_DB_NAME=
 FG_DB_HOST=
@@ -30,6 +33,8 @@ FG_DB_PORT=
 FG_DB_USER=
 FG_DB_PASSWORD=
 
-DJANGO_ENV=Production
+# Uncomment to run in Production mode
+#DJANGO_ENV=Production
 
-GA_PROP_ID=
+# Configure Google Analytics property ID
+#GA_PROP_ID=

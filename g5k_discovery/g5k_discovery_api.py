@@ -10,4 +10,4 @@ class G5K_API:
         return data
 
     def make_url( self, endpoint ):
-        return 'http://{0}/{1}'.format( settings.G5K_API_ROOT, endpoint )
+        return '{0}/{1}.{2}'.format( settings.G5K_API_ROOT, endpoint, 'json')
