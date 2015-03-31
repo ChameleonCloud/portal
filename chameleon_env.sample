@@ -9,16 +9,19 @@
 # fill in the appropriate values below.
 ###
 
+
 # TAS API config
 TAS_URL=
 TAS_CLIENT_KEY=
 TAS_CLIENT_SECRET=
+
 
 # RT REST API config
 RT_HOST=
 RT_USERNAME=
 RT_PASSWORD=
 RT_DEFAULT_QUEUE=
+
 
 # Uncomment and configure these to use a MySQL database
 #DB_NAME=
@@ -27,14 +30,23 @@ RT_DEFAULT_QUEUE=
 #DB_USER=
 #DB_PASSWORD=
 
+
+# FG Database config
 FG_DB_NAME=
 FG_DB_HOST=
 FG_DB_PORT=
 FG_DB_USER=
 FG_DB_PASSWORD=
 
+
 # Uncomment to run in Production mode
 #DJANGO_ENV=Production
 
+
 # Configure Google Analytics property ID
 #GA_PROP_ID=
+
+
+# Django secret key
+# USE A NEW VALUE IN PRODUCTION
+DJANGO_SECRET_KEY=&q*yhkpinzej(zcs$hq-g6@^y()d2h&36!m)8-5o3@d-4rth(b
