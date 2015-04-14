@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.2.2
+
+- G5K Discovery fixes
+
 ### v1.2.1
 
 - Added early user program app `cc_early_user_support`
