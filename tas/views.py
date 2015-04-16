@@ -52,6 +52,9 @@ def profile_edit( request ):
         data[ 'firstName' ] = form_data['firstName']
         data[ 'lastName' ] = form_data['lastName']
         data[ 'email' ] = form_data['email']
+        
+        if 'piEligibility' in request.POST:
+            data['piEligibility'] = 'Requested'
 
         try:
             data[ 'institutionId' ] = int( form_data['institutionId'] )
@@ -105,7 +108,6 @@ def profile_edit( request ):
         logger = logging.getLogger('default')
         logger.exception('Error loading institutions')
         context['institutions'] = False
-
 
     try:
         countries = tas.countries()
