@@ -57,7 +57,7 @@ cd reference-api
 docker build -t referenceapi .
 ```
 
-Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameloen_env` and configure the variables as necessary.
+Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
 
 Finally, from this repository run:
 
