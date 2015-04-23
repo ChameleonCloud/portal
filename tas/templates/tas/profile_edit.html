@@ -81,6 +81,25 @@
       </div>
 
       <div class="form-group">
+        {% if profile.piEligibility|lower == "ineligible" %}
+          <div class="checkbox">
+            <label><input type="checkbox" name="piEligibility" id="piEligibility" value="false"> Request PI Eligibility</label>
+          </div>
+          <p class="help-block">
+            Faculty and Research Staff from U.S.-based institutions can request PI
+            Eligibility. If you are not PI Eligible and would like to request to be
+            eligible, please check the box above.
+          </p>
+        {% elif profile.piEligibility|lower == "requested" %}
+          <label class="control-label">PI Eligibility</label>
+          <p class="form-static-control">Requested</p>
+        {% else %}
+          <label class="control-label">PI Eligibility</label>
+          <p class="form-static-control">Eligible</p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
         <button type="submit" class="btn btn-success">Save Profile</button>
         <a href="{% url 'tas:profile' %}" class="btn btn-default">Cancel</a>
       </div>
