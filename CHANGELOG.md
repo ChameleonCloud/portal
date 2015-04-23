@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.2.3
+
+- Add ability to request PI Eligibility from profile edit page
+- Added admin functionality
+
 ### v1.2.2
 
 - G5K Discovery fixes
