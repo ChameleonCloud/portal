@@ -12,6 +12,7 @@ urlpatterns = patterns('',
 
     # admin urls
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^impersonate/', include('impersonate.urls')),
 
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),

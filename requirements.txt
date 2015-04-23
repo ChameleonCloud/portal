@@ -34,6 +34,8 @@ django-angular
 
 rt==1.0.8
 
+django-impersonate==0.9.1
+
 mysql-python
 slimit
 pyyaml
