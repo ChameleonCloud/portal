@@ -8,6 +8,8 @@ from django.contrib import messages
 import logging
 import mimetypes
 
+logger = logging.getLogger('default')
+
 @login_required
 def mytickets(request):
     rt = rtUtil.DjangoRt()
@@ -20,6 +22,11 @@ def ticketdetail(request, ticketId):
     rt = rtUtil.DjangoRt()
     ticket = rt.getTicket(ticketId)
     ticket_history = rt.getTicketHistory(ticketId)
+
+    # remove bogus "untitled" attachments
+    for history in ticket_history:
+        history['Attachments'] = filter(lambda a: not a[1].startswith('untitled ('), history['Attachments'])
+
     return render(request, 'djangoRT/ticketDetail.html', { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
 
 def ticketcreate(request):
@@ -55,7 +62,6 @@ def ticketcreate(request):
                                       requestor = form.cleaned_data['email'],
                                       cc = form.cleaned_data['cc'] )
 
-            logger = logging.getLogger('default')
             logger.debug('Creating ticket for user: %s' % form.cleaned_data)
 
             ticket_id = rt.createTicket(ticket)

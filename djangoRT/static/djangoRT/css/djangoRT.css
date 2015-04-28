@@ -36,6 +36,10 @@
 	height: 3em;
 }
 
+.history-item {
+	margin-bottom: 20px;
+}
+
 .history-content-container {
 	width: 80%;
 }
