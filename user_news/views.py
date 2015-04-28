@@ -37,8 +37,10 @@ class UserNewsRedirectView(RedirectView):
 
 class UserNewsFeed(Feed):
     title = "Chameleon News and Announcements"
-    link = "/news/"
-    description = "News and Announcements related to the Chameleon Project. https://chameleoncloud.org"
+    description = "News and Announcements related to the Chameleon Project."
+
+    def link(self):
+        return reverse('user_news:list')
 
     def items(self):
         return News.objects.order_by('-created')[:10]
