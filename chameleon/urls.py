@@ -1,10 +1,10 @@
 from cms.sitemaps import CMSSitemap
+from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.core.urlresolvers import reverse_lazy
-from django.views.generic import RedirectView
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
-from django.conf import settings
+from django.views.generic import RedirectView
 
 import chameleon.views
 
@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 
     # admin urls
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^impersonate/', include('impersonate.urls')),
+    url(r'^admin/impersonate/', include('impersonate.urls')),
 
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),
