@@ -32,6 +32,7 @@ urlpatterns = patterns('',
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
     url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
+    url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
 
     # cms urls
     url(r'^', include('cms.urls')),
