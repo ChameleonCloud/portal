@@ -1,5 +1,12 @@
 ## Changelog
 
+### v1.2.4
+
+- Add RSS feed for news/announcements
+- Add category field for tickets
+- Don't display the "untitled" attachments from RT, which is just the ticket/reply content
+- Add /robots.txt
+
 ### v1.2.3
 
 - Add ability to request PI Eligibility from profile edit page
