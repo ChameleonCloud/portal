@@ -55,7 +55,7 @@ def ticketcreate(request):
             )
 
             header = '\n'.join('[%s] %s' % m for m in meta)
-            ticket_body = '%s\n\n%s\n\n---%s\n' % ( header, form.cleaned_data['problem_description'], requestor_meta )
+            ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
 
             ticket = rtModels.Ticket( subject = form.cleaned_data['subject'],
                                       problem_description = ticket_body,
