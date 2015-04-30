@@ -48,6 +48,9 @@ class UserNewsFeed(Feed):
     def item_title(self, item):
         return item.title
 
+    def item_pubdate(self, item):
+        return item.created;
+
     def item_description(self, item):
         return item.summary
 
