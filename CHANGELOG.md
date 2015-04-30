@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.2.5
+
+- Add RSS item_pubdate
+- Address string formatting issue with tickets
+
 ### v1.2.4
 
 - Add RSS feed for news/announcements
