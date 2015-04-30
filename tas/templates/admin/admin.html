@@ -1,0 +1,88 @@
+{% extends 'adminplus/base.html' %}
+{% load chameleon_tags %}
+{% block title %}Edit TAS User{% endblock %}
+{% block content %}
+
+<form method="post" action="/admin/user_edit">
+    <input type="hidden" name="num_users" id="num_users" value="{{ users|length}}" />
+    {% csrf_token %}
+
+    {% for user in users %}
+    <h2>
+        {{ user.firstName }} {{ user.lastName }} ({% if user.source == 'Standard' %}TACC{% else %}Chameleon{% endif %}
+        <input type="hidden" name="firstName_{{forloop.counter0}}" id="firstName_{{forloop.counter0}}" value="{{ user.firstName }}" />
+        <input type="hidden" name="lastName_{{forloop.counter0}}" id="lastName_{{forloop.counter0}}" value="{{ user.lastName }}" />
+        <input type="hidden" name="id_{{forloop.counter0}}" id="id_{{forloop.counter0}}" value="{{ user.id }}" />
+        Account)
+    </h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label" for="username_{{forloop.counter0}}">Username</label>
+                <input type="text" class="form-control" name="username_{{forloop.counter0}}" id="username_{{forloop.counter0}}" placeholder="Username"
+                       value="{{ user.username }}">
+            </div>
+
+            <div class="form-group">
+                <label class="control-label" for="email_{{forloop.counter0}}">Email</label>
+                <input type="text" class="form-control" name="email_{{forloop.counter0}}" id="email_{{forloop.counter0}}" placeholder="Email"
+                       value="{{ user.email }}">
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="institution_{{forloop.counter0}}">Institution</label>
+                <select class="form-control" name="institution_{{forloop.counter0}}" id="institution_{{forloop.counter0}}" placeholder="Institution">
+                    {% for inst in institutions %}
+                    {% if user.institution == inst.name %}
+                    <option value="{{ inst.id }}" selected>{{ inst.name }}</option>
+                    {% else %}
+                    <option value="{{ inst.id }}">{{ inst.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="department_{{forloop.counter0}}">Department</label>
+                <select class="form-control" name="department_{{forloop.counter0}}" id="department_{{forloop.counter0}}" placeholder="Department">
+                    {% for inst in institutions %}
+                    {% if user.institution == inst.name %}
+                    {% for dept in inst.children %}
+                    {% if dept.name == user.department %}
+                    <option value="{{ dept.id }}" selected>{{ dept.name }}</option>
+                    {% else %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="piEligable_{{forloop.counter0}}">PI Eligable?</label>
+                {% if user.piEligable == 'Eligable' %}
+                <input type="checkbox" class="form-control" name="piEligable_{{forloop.counter0}}" id="piEligable_{{forloop.counter0}}"
+                       placeholder="PI Eligibility" checked='checked'>
+                {% else %}
+                <input type="checkbox" class="form-control" name="piEligable_{{forloop.counter0}}" id="piEligable_{{forloop.counter0}}"
+                       placeholder="PI Eligibility">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <br/>
+    <hr/>
+    <br/>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">Save TAS Information</button>
+                <a href="{% url 'tas:profile' %}" class="btn btn-default">Cancel</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+{% endblock %}

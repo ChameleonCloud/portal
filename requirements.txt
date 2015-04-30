@@ -31,6 +31,7 @@ django-simple-captcha
 django-bootstrap3
 django-termsandconditions
 django-angular
+django-adminplus
 
 rt==1.0.8
 

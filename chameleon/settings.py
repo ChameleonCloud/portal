@@ -49,7 +49,8 @@ INSTALLED_APPS = (
     ##
     # core apps
     #
-    'django.contrib.admin',
+    #'django.contrib.admin',
+    'django.contrib.admin.apps.SimpleAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -76,6 +77,11 @@ INSTALLED_APPS = (
     'djangocms_teaser',
     'djangocms_video',
     'reversion',
+
+    ##
+    # django-adminplus
+    #
+    'adminplus',
 
     ##
     # contrib
