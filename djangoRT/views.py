@@ -5,7 +5,10 @@ from django.core.urlresolvers import reverse
 from djangoRT import rtUtil, forms, rtModels
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+import logging
 import mimetypes
+
+logger = logging.getLogger('default')
 
 @login_required
 def mytickets(request):
@@ -19,26 +22,48 @@ def ticketdetail(request, ticketId):
     rt = rtUtil.DjangoRt()
     ticket = rt.getTicket(ticketId)
     ticket_history = rt.getTicketHistory(ticketId)
+
+    # remove bogus "untitled" attachments
+    for history in ticket_history:
+        history['Attachments'] = filter(lambda a: not a[1].startswith('untitled ('), history['Attachments'])
+
     return render(request, 'djangoRT/ticketDetail.html', { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
 
 def ticketcreate(request):
     rt = rtUtil.DjangoRt()
 
-    data = {}
-    if request.user.is_authenticated():
-        data = { 'email' : request.user.email, 'first_name' : request.user.first_name, 'last_name' : request.user.last_name}
-        header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
-    else:
+    if not request.user.is_authenticated():
         return HttpResponseRedirect( reverse( 'djangoRT:ticketcreateguest'), )
+
+    data = {
+        'email' : request.user.email,
+        'first_name' : request.user.first_name,
+        'last_name' : request.user.last_name
+    }
+
+    # header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
 
     if request.method == 'POST':
         form = forms.TicketForm(request.POST, request.FILES)
 
         if form.is_valid():
-            ticket = rtModels.Ticket(subject = form.cleaned_data['subject'],
-                    problem_description = header + form.cleaned_data['problem_description'],
-                    requestor = form.cleaned_data['email'],
-                    cc = form.cleaned_data['cc'])
+            requestor_meta = '%s %s &lt;%s&gt;' % ( form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['email'] )
+            meta = (
+                ('Opened by', request.user),
+                ('Category', dict(forms.TICKET_CATEGORIES)[form.cleaned_data['category']]),
+                ('Resource', 'Chameleon'),
+            )
+
+            header = '\n'.join('[%s] %s' % m for m in meta)
+            ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
+
+            ticket = rtModels.Ticket( subject = form.cleaned_data['subject'],
+                                      problem_description = ticket_body,
+                                      requestor = form.cleaned_data['email'],
+                                      cc = form.cleaned_data['cc'] )
+
+            logger.debug('Creating ticket for user: %s' % form.cleaned_data)
+
             ticket_id = rt.createTicket(ticket)
 
             if ticket_id > -1:
@@ -46,13 +71,15 @@ def ticketcreate(request):
                     rt.replyToTicket(ticket_id, files=([request.FILES['attachment'].name, request.FILES['attachment'], mimetypes.guess_type(request.FILES['attachment'].name)],))
                 return HttpResponseRedirect( reverse( 'djangoRT:ticketdetail', args=[ ticket_id ]) )
             else:
-                # make this cleaner probably
-                data['subject'] = ticket.subject
-                data['problem_description'] = ticket.problem_description
-                data['cc'] = ticket.cc
-                form = forms.TicketForm(data)
+                messages.error(request, 'There was an error creating your ticket. Please try again.')
+        else:
+            messages.error(request, 'Invalid')
     else:
-        form = forms.TicketForm(initial=data)
+        form = forms.TicketForm(initial={
+            'email' : request.user.email,
+            'first_name' : request.user.first_name,
+            'last_name' : request.user.last_name
+        })
     return render(request, 'djangoRT/ticketCreate.html', { 'form' : form })
 
 def ticketcreateguest(request):

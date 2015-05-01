@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import RedirectView
+from django.contrib.syndication.views import Feed
 from user_news.models import News, Event, Outage, OutageUpdate
 from cms.cms_toolbar import ADMIN_MENU_IDENTIFIER
 
@@ -33,3 +34,25 @@ class UserNewsRedirectView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         return reverse('user_news:detail', args=[kwargs['slug']])
+
+class UserNewsFeed(Feed):
+    title = "Chameleon News and Announcements"
+    description = "News and Announcements related to the Chameleon Project."
+
+    def link(self):
+        return reverse('user_news:list')
+
+    def items(self):
+        return News.objects.order_by('-created')[:10]
+
+    def item_title(self, item):
+        return item.title
+
+    def item_pubdate(self, item):
+        return item.created;
+
+    def item_description(self, item):
+        return item.summary
+
+    def item_link(self, item):
+        return reverse('user_news:detail', args=[item.slug])

@@ -19,10 +19,10 @@ def user_edit(request):
             user['lastName'] = data['lastName_'+str(x)]
             user['email'] = data['email_'+str(x)]
             user['departmentId'] = int(data['department_'+str(x)])
-            dept = tas.department(data['department_'+str(x)])
+            dept = tas.get_department(data['department_'+str(x)])
             user['department'] = dept.name
             user['institutionId'] = int(data['institution_'+str(x)])
-            inst = tas.institution(data['institution_'+str(x)])
+            inst = tas.get_institution(data['institution_'+str(x)])
             user['institution'] = inst.name
 
             if 'piEligable_'+str(x) in data:

@@ -3,6 +3,10 @@
 {% block content %}
 <h1>Latest News</h1>
 
+<div class="alternatives" style="position:relative;top:-25px">
+  <a class="pull-right" href="{% url 'user_news:feed' %}"><span class="label label-warning"><i class="fa fa-rss"></i> RSS</span></a>
+</div>
+
 <div class="article-list">
 {% for news in news_list %}
 <article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">

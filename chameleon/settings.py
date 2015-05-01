@@ -91,6 +91,7 @@ INSTALLED_APPS = (
     'captcha',
     'bootstrap3',
     'termsandconditions',
+    'impersonate',
 
     ##
     # custom
@@ -121,6 +122,7 @@ MIDDLEWARE_CLASSES = (
     'cms.middleware.page.CurrentPageMiddleware',
     'cms.middleware.toolbar.ToolbarMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware',
 )
 
 ROOT_URLCONF = 'chameleon.urls'
@@ -397,3 +399,11 @@ MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site
 #
 #####
 G5K_API_ROOT = 'http://referenceapi:8000'
+
+
+#####
+#
+#
+#
+#####
+IMPERSONATE_REQUIRE_SUPERUSER = True

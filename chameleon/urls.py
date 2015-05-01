@@ -1,11 +1,13 @@
 from cms.sitemaps import CMSSitemap
+from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.core.urlresolvers import reverse_lazy
-from django.views.generic import RedirectView
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
 from django.conf import settings
 from adminplus.sites import AdminSitePlus
+from django.views.generic import RedirectView
+
 
 import chameleon.views
 
@@ -16,6 +18,7 @@ urlpatterns = patterns('',
 
     # admin urls
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/impersonate/', include('impersonate.urls')),
 
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),
@@ -35,6 +38,7 @@ urlpatterns = patterns('',
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
     url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
+    url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
 
     # cms urls
     url(r'^', include('cms.urls')),
