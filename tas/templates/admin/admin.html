@@ -13,6 +13,11 @@
         <input type="hidden" name="firstName_{{forloop.counter0}}" id="firstName_{{forloop.counter0}}" value="{{ user.firstName }}" />
         <input type="hidden" name="lastName_{{forloop.counter0}}" id="lastName_{{forloop.counter0}}" value="{{ user.lastName }}" />
         <input type="hidden" name="id_{{forloop.counter0}}" id="id_{{forloop.counter0}}" value="{{ user.id }}" />
+        <input type="hidden" name="source_{{forloop.counter0}}" id="source_{{forloop.counter0}}" value="{{ user.source }}" />
+        <input type="hidden" name="citizenshipId_{{forloop.counter0}}" id="citizenshipId_{{forloop.counter0}}" value="{{ user.citizenshipId }}" />
+        <input type="hidden" name="countryId_{{forloop.counter0}}" id="countryId_{{forloop.counter0}}" value="{{ user.countryId }}" />
+        <input type="hidden" name="citizenship_{{forloop.counter0}}" id="citizenship_{{forloop.counter0}}" value="{{ user.citizenship }}" />
+        <input type="hidden" name="country_{{forloop.counter0}}" id="country_{{forloop.counter0}}" value="{{ user.country }}" />
         Account)
     </h2>
 
@@ -58,14 +63,19 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="control-label" for="piEligable_{{forloop.counter0}}">PI Eligable?</label>
-                {% if user.piEligable == 'Eligable' %}
-                <input type="checkbox" class="form-control" name="piEligable_{{forloop.counter0}}" id="piEligable_{{forloop.counter0}}"
+                <label class="control-label" for="piEligible_{{forloop.counter0}}">PI Eligible?</label>
+                {% if user.piEligibility == 'Eligible' %}
+                <input type="checkbox" class="form-control" name="piEligible_{{forloop.counter0}}" id="piEligible_{{forloop.counter0}}"
                        placeholder="PI Eligibility" checked='checked'>
                 {% else %}
-                <input type="checkbox" class="form-control" name="piEligable_{{forloop.counter0}}" id="piEligable_{{forloop.counter0}}"
+                <input type="checkbox" class="form-control" name="piEligible_{{forloop.counter0}}" id="piEligible_{{forloop.counter0}}"
                        placeholder="PI Eligibility">
                 {% endif %}
+            </div>
+            <div class="form-group">
+                <label class="control-label" for="resetPassword_{{forloop.counter0}}">Trigger Reset Password</label>
+                <input type="checkbox" class="form-control" name="resetPassword_{{forloop.counter0}}" id="resetPassword_{{forloop.counter0}}"
+                       placeholder="Trigger Reset Password">
             </div>
         </div>
     </div>

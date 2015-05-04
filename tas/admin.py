@@ -7,35 +7,52 @@ from django.contrib import admin
 
 @admin.site.register_view('user_edit')
 def user_edit(request):
-    if request.POST:
-        data = request.POST.copy()
-        num_users = data['num_users']
-        tas = TASClient()
+    data = request.POST.copy()
+    num_users = data['num_users']
+    tas = TASClient()
 
-        user = {}
-        for x in range (0, int(num_users)):
-            user['username'] = data['username_'+str(x)]
-            user['firstName'] = data['firstName_'+str(x)]
-            user['lastName'] = data['lastName_'+str(x)]
-            user['email'] = data['email_'+str(x)]
-            user['departmentId'] = int(data['department_'+str(x)])
-            dept = tas.get_department(data['department_'+str(x)])
-            user['department'] = dept.name
-            user['institutionId'] = int(data['institution_'+str(x)])
-            inst = tas.get_institution(data['institution_'+str(x)])
-            user['institution'] = inst.name
+    user = {}
+    usernameList = []
+    for x in range (0, int(num_users)):
+        user['username'] = data['username_'+str(x)]
+        user['firstName'] = data['firstName_'+str(x)]
+        user['lastName'] = data['lastName_'+str(x)]
+        user['email'] = data['email_'+str(x)]
+        user['source'] = data['source_'+str(x)]
+        user['citizenshipId'] = data['citizenshipId_'+str(x)]
+        user['citizenship'] = data['citizenship_'+str(x)]
+        user['countryId'] = data['countryId_'+str(x)]
+        user['country'] = data['country_'+str(x)]
 
-            if 'piEligable_'+str(x) in data:
-                user['piEligable'] = True
-            else:
-                user['piEligable'] = False
+        deptId = int(data['department_'+str(x)])
+        instId = int(data['institution_'+str(x)])
+        dept = tas.get_department(instId, deptId)
+        inst = tas.get_institution(instId)
 
-            user_result = tas.save_user(data['id_'+str(x)], user)
+        user['departmentId'] = int(deptId)
+        user['department'] = dept['name']
+        user['institutionId'] = int(instId)
+        user['institution'] = inst['name']
 
-            if user_result.username:
-                success = True
+        if 'piEligible_'+str(x) in data:
+            user['piEligibility'] = 'Eligible'
+        else:
+            user['piEligibility'] = 'Ineligible'
 
-    return tas_users(request, user.username)
+        if 'resetPassword_'+str(x) in data:
+            try:
+                resp = tas.request_password_reset( user['username'], source='Chameleon' )
+                print resp
+            except:
+                print 'Failed password reset request'
+
+        user_result = tas.save_user(data['id_'+str(x)], user)
+
+
+        if user_result['username']:
+            usernameList.append(user_result['username'])
+
+    return tas_users(request, usernameList)
 
 @admin.site.register_view('tas_admin')
 def tas_users(request, selectedUsers):
