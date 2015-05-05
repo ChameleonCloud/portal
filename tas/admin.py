@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from pytas.pytas import client as TASClient
@@ -51,6 +52,12 @@ def user_edit(request):
 
         if user_result['username']:
             usernameList.append(user_result['username'])
+            success = True
+
+    if success:
+        messages.success(request, 'TAS information successfully updated')
+    else:
+        messages.error(request, "There was an issue saving this user's TAS information. Please trying again later.")
 
     return tas_users(request, usernameList)
 
