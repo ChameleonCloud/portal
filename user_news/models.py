@@ -3,6 +3,7 @@ from django.db import models
 from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
 from django.contrib import messages
+from cms.models.pluginmodel import CMSPlugin
 import re
 
 class NewsTag(models.Model):
@@ -95,3 +96,9 @@ class Notification(models.Model):
 
     def display(self):
         return re.sub(r'\s+', ' ', u'<h4>{0}</h4>{1}'.format(self.title, self.message))
+
+"""
+User News CMS Plugin Model
+"""
+class UserNewsPluginModel(CMSPlugin):
+    limit = models.IntegerField(default=5)
