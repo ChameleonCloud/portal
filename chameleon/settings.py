@@ -79,11 +79,6 @@ INSTALLED_APPS = (
     'reversion',
 
     ##
-    # django-adminplus
-    #
-    'adminplus',
-
-    ##
     # contrib
     #
     'ckeditor',

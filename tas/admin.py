@@ -16,7 +16,6 @@ import logging
 
 logger = logging.getLogger('default');
 
-@admin.site.register_view('user_edit')
 def user_edit(request):
     data = request.POST.copy()
     num_users = data['num_users']
@@ -98,7 +97,8 @@ class TasUserAdminForm(UserChangeForm):
 
 
 class TasUserAdmin(UserAdmin):
-    # actions = ['tas_user_info']
+    actions = ['reset_user_password', 'make_user_pi']
+
     form = TasUserAdminForm
     fieldsets = (
         (_('Account'), { 'fields': ('username', ) }),
@@ -107,6 +107,47 @@ class TasUserAdmin(UserAdmin):
     # def tas_user_info(self, request, username):
     #
     #     return render(request, 'admin/admin.html', context)
+
+    def reset_user_password(self, request, selected_users):
+        tas = TASClient()
+        success = False
+
+        for username in selected_users:
+            try:
+                resp = tas.request_password_reset(username, source='Chameleon' )
+
+                if resp:
+                    success = True
+            except:
+                logger.exception( 'Failed password reset request' )
+
+        if success:
+            messages.success(request, 'Password reset email triggered')
+        else:
+            messages.error(request, 'There was an issue triggering the password reset email')
+
+    def make_user_pi(self, request, selected_users):
+        tas = TASClient()
+        success = False
+
+        for username in selected_users:
+            try:
+                tas_user = tas.get_user(username=username)
+                tas_user['piEligibility'] = 'Eligible'
+                user_result = tas.save_user(tas_user['id'], tas_user)
+
+                if user_result['username']:
+                    success = True
+            except:
+                logger.exception( 'Failed user save request' )
+
+        if success:
+            messages.success(request, 'User granted PI eligibility')
+        else:
+            messages.error(request, 'There was an issue saving the user')
+
+    reset_user_password.short_description = "Trigger Password Reset"
+    make_user_pi.short_description = "Make PI"
 
     def tas_manage(self, request, id, form_url=''):
         if not self.has_change_permission(request):
