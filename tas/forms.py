@@ -71,7 +71,7 @@ class PasswordResetConfirmForm( forms.Form ):
 class TasUserProfileForm(forms.Form):
     firstName = forms.CharField()
     lastName = forms.CharField()
-    email = forms.CharField()
+    email = forms.EmailField()
     # TODO
     # institutionId = forms.CharField()
     # departmentId = forms.CharField()
