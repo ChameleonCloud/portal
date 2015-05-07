@@ -139,17 +139,8 @@ class TasUserAdmin(UserAdmin):
             'adminform': adminForm,
             'form_url': form_url,
             'form': form,
-            'is_popup': (IS_POPUP_VAR in request.POST or
-                         IS_POPUP_VAR in request.GET),
-            'add': True,
-            'change': False,
-            'has_delete_permission': False,
-            'has_change_permission': True,
-            'has_absolute_url': False,
             'opts': self.model._meta,
             'original': user,
-            'save_as': False,
-            'show_save': True,
         }
         context.update(admin.site.each_context())
 
