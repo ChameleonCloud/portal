@@ -2,13 +2,16 @@ from django import forms
 from pytas.pytas import client as TASClient
 import re
 
-# ELIGIBLE = 'Eligible'
-# INELIGIBLE = 'Ineligible'
-# PI_ELIGIBILITY = (
-#     ('', 'Choose One'),
-#     (ELIGIBLE, ELIGIBLE),
-#     (INELIGIBLE, INELIGIBLE),
-# )
+ELIGIBLE = 'Eligible'
+INELIGIBLE = 'Ineligible'
+REQUESTED = 'Requested'
+PI_ELIGIBILITY = (
+    ('', 'Choose One'),
+    (ELIGIBLE, ELIGIBLE),
+    (INELIGIBLE, INELIGIBLE),
+    (REQUESTED, REQUESTED),
+)
+
 #
 # COUNTRIES = (('', 'Choose One'))
 #
@@ -63,6 +66,31 @@ class PasswordResetConfirmForm( forms.Form ):
                 self.add_error( 'password', 'The password provided does not satisfy the password complexity requirements' )
                 self.add_error( 'confirm_password', '' )
                 raise forms.ValidationError( 'The password provided does not satisfy the password complexity requirements' )
+
+
+class TasUserProfileForm(forms.Form):
+    firstName = forms.CharField()
+    lastName = forms.CharField()
+    email = forms.EmailField()
+    # TODO
+    # institutionId = forms.CharField()
+    # departmentId = forms.CharField()
+    # countryId = forms.CharField()
+    # citizenshipId = forms.CharField()
+    piEligibility = forms.ChoiceField(
+        choices=PI_ELIGIBILITY,
+        label="PI Eligibility",
+        help_text="Faculty and Research Staff from U.S.-based institutions can "
+        "request PI Eligibility. If you are not PI Eligible and would like to "
+        "request to be eligible, please check the box above."
+        )
+
+class TasUserProfileAdminForm(TasUserProfileForm):
+    reset_password = forms.BooleanField(
+        label="Reset user's password",
+        help_text="Check this box to reset the user's password. The user will be "
+            "notified via email with instructions to complete the password reset."
+        )
 
 # class UserRegistrationForm( forms.Form ):
 #     firstName = forms.CharField( label='First Name', required=True )
