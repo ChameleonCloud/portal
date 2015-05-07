@@ -44,7 +44,7 @@ FG_DB_PASSWORD=
 
 
 # Configure Google Analytics property ID
-#GA_PROP_ID=
+#GOOGLE_ANALYTICS_PROPERTY_ID=
 
 
 # Django secret key
