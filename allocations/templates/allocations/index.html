@@ -1,0 +1,161 @@
+{% extends "layout/default.html" %} {% load sekizai_tags staticfiles %} {% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %} {% block title %}Projects and Allocations{% endblock %} {% block content %}
+
+<body class="allocations-app" ng-app="allocationsApp" ng-cloak>
+    <h2>Projects and Allocations</h2>
+    <div class="content" ng-controller="AllocationsController">
+        <div class="well spinner" ng-if="loading.allocations">
+            <h4><span class="fa fa-spinner fa-spin"></span> Loading allocations...</h4>
+        </div>
+        <div ng-if="!loading.allocations">
+            <div ng-if="!loadingError.allocations">
+                <div class="form-group">
+                    <label for="filterAllocations">Search</label>
+                    <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterAllocations" name="filterAllocations" placeholder="Filter by project Id, charge code or allocation id.">
+                </div>
+                <label>Filter by Allocation Status</label>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="filter.approved" ng-change="updateSelected()"> Approved</label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
+                </div>
+                <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
+                <hr class="no-border">
+                <div class="list-group">
+                    <div ng-repeat="project in selectedProjects">
+                        <div class="row list-group-item">
+                            <h4 class="text-capitalize well-sm bg-success"><strong>[[ project.title ]]</strong></h4>
+                            <div class="col col-sm-2"><strong>Project Id: </strong></div>
+                            <div class="col col-sm-10">[[ project.id ]]</div>
+                            <div class="col col-sm-2"><strong>GId: </strong></div>
+                            <div class="col col-sm-10">[[ project.gid ]]</div>
+                            <div class="col col-sm-2"><strong>Charge Code: </strong></div>
+                            <div class="col col-sm-10">[[ project.chargeCode ]]</div>
+                            <div class="col col-sm-2"><strong>PI: </strong></div>
+                            <div class="col col-sm-10">[[ project.pi.firstName ]] [[ project.pi.firstName ]]<a href="mailto:[[ project.pi.email ]]">&nbsp;&nbsp;<i class="fa fa-envelope-o"></i></a></div>
+                            <div class="col col-sm-2"><strong>Field: </strong></div>
+                            <div class="col col-sm-10">[[ project.field ]]</div>
+                            <div class="col col-sm-2"><strong>Description: </strong></div>
+                            <div class="col-sm-10" read-more more-text="...read more" less-text="...less" words="words" limit="20" text-data="[[project.description]]"></div>
+                            <div class="col col-sm-12">&nbsp;</div>
+                            <div class="col col-sm-12">
+                                <h4><div class="allocations-header">Allocations</div></h4></div>
+                            <div ng-if="project.allocations && project.allocations.length > 0">
+                                <div ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow">
+                                    <div class="col col-sm-12">
+                                        <h4 class="list-group-item-header well-sm bg-info">&nbsp;[[ allocation.resource ]]</h4>
+                                    </div>
+                                    <div class="col col-sm-2"><strong>Allocation Id: </strong></div>
+                                    <div class="col col-sm-10">&nbsp;[[ allocation.id ]]</div>
+                                    <div class="col col-sm-2"><strong>Resource Id: </strong></div>
+                                    <div class="col col-sm-10">&nbsp;[[ allocation.resourceId ]]</div>
+                                    <div class="col col-sm-2"><strong>Status: </strong></div>
+                                    <div class="col col-sm-10">
+                                        <span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span>
+                                    </div>
+                                    <div class="col col-sm-2"><strong>Requestor: </strong></div>
+                                    <div class="col col-sm-10">&nbsp;[[ allocation.requestor ]]</div>
+                                    <div class="col col-sm-2"><strong>Requestor Id: </strong></div>
+                                    <div class="col col-sm-10">&nbsp;[[ allocation.requestorId ]]</div>
+                                    <div ng-hide="!allocation.computeRequested || allocation.computeRequested == 0">
+                                        <div class="col col-sm-2"><strong>Compute Requested: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.computeRequested ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.memoryRequested || allocation.memoryRequested == 0">
+                                        <div class="col col-sm-2"><strong>Memory Requested: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.memoryRequested ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.storageRequested || allocation.storageRequested == 0">
+                                        <div class="col col-sm-2"><strong>Storage Requested: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.storageRequested ]]</div>
+                                    </div>
+                                    <div class="col col-sm-2"><strong>Date Requested: </strong></div>
+                                    <div class="col col-sm-10">&nbsp;[[ allocation.dateRequested | date:'dd-MMMM-yyyy']]</div>
+                                    <div ng-hide="!allocation.dateReviewed">
+                                        <div class="col col-sm-2"><strong>Date Reviewed: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.decisionSummary">
+                                        <div class="col col-sm-2"><strong>Decision Summary: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.decisionSummary ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.justification">
+                                        <div class="col col-sm-2"><strong>Justification: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.justification ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.reviewer">
+                                        <div class="col col-sm-2"><strong>Reviewer: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.reviewer ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.reviewerId">
+                                        <div class="col col-sm-2"><strong>Reviewer Id: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.reviewerId ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.computeAllocated || allocation.computeAllocated == 0">
+                                        <div class="col col-sm-2"><strong>Compute Allocated: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.computeAllocated ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.memoryAllocated || allocation.memoryAllocated == 0">
+                                        <div class="col col-sm-2"><strong>Memory Allocated: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.memoryAllocated ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.storageAllocated || allocation.storagellocated == 0">
+                                        <div class="col col-sm-2"><strong>Storage Allocated: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.storageAllocated ]]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.start">
+                                        <div class="col col-sm-2"><strong>Start Date: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.start | date:'dd-MMMM-yyyy']]</div>
+                                    </div>
+                                    <div ng-hide="!allocation.end">
+                                        <div class="col col-sm-2"><strong>End Date: </strong></div>
+                                        <div class="col col-sm-10">&nbsp;[[ allocation.end | date:'dd-MMMM-yyyy']]</div>
+                                    </div>
+                                    <div class="col col-sm-12">&nbsp;</div>
+                                    <div class="col col-sm-12" ng-if="allocation.status == 'pending' || allocation.status == 'Pending'">
+                                        <button class="btn btn-success" ng-click="approveAllocation(allocation, $event)" ng-disabled="loading.approve">Approve</button>
+                                        <button class="btn btn-danger" ng-click="rejectAllocation(allocation, $event)" ng-disabled="loading.reject">Reject</button>
+                                    </div>
+                                    <div class="col col-sm-12 alert alert-info" ng-show="allocation.loadingApprove || allocation.loadingReject">
+                                        <h4><span class="fa fa-spinner fa-spin"></span ng-show="allocation.loadingApprove"><span ng-show="allocation.loadingApprove">Approv</span><span ng-show="allocation.loadingReject">Reject</span>ing this allocation request...</h4>
+                                    </div>
+                                    <div ng-show="allocation.errorApprove || allocation.errorReject" class="col col-sm-12">
+                                        <alert type="danger" autodismiss tr-show="[[allocation.errorApprove || allocation.errorReject]]">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
+                                    </div>
+                                    <div ng-show="allocation.successApprove || allocation.successReject" class="col col-sm-12">
+                                        <alert type="success" autodismiss tr-show="[[allocation.successApprove || allocation.successReject]]">This allocation request is <span ng-show="allocation.successApprove">approv</span><span ng-show="allocation.successReject">reject</span>ed successfully.</alert>
+                                    </div>
+                                    <div class="col col-sm-12">&nbsp;</div>
+                                </div>
+                            </div>
+                            <div ng-if="!project.allocations || project.allocations.length < 1">
+                                <div class="col col-sm-12 alert alert-warning">There are no allocations for this project.</div>
+                            </div>
+                        </div>
+                        <hr class="no-border">
+                    </div>
+                </div>
+            </div>
+            <div ng-if="loadingError.allocations">
+                <div class="alert alert-danger">
+                    <p>[[loadingError.allocations]]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock content %} {% block scripts %}
+<script src="{% static 'allocations/underscore/underscore.js' %}"></script>
+<script src="{% static 'allocations/angular/angular.min.js' %}"></script>
+<script src="{% static 'allocations/angular-bootstrap/ui-bootstrap-tpls.min.js' %}"></script>
+<script src="{% static 'allocations/scripts/app.js' %}"></script>
+<script src="{% static 'allocations/scripts/directive.js' %}"></script>
+<script src="{% static 'allocations/scripts/controller.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,16 @@
+.no-border{
+	border:0;
+}
+.allocations-header{
+	border-bottom: 2px solid black;
+}
+
+a:hover{
+	cursor:hand;
+	cursor:pointer;
+}
+
+.modal-header{
+	padding: 15px 15px 0 15px;
+	border-bottom: 0;
+}

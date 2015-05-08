@@ -6,6 +6,7 @@ portal:
     - ../logs/django:/var/log/django
     - ../logs/nginx:/var/log/nginx
     - ../media:/project/media
+    - ../static:/var/www/chameleoncloud.org/static
     - .:/project
   ports:
     - 8888:8888
