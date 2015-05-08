@@ -9,18 +9,38 @@ from django import forms
 from pytas.pytas import client as TASClient
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required, user_passes_test
+
 import re
 import logging
 import json
 import math
 import time
 
+def not_allocation_admin_or_superuser(user):
+    logger = logging.getLogger('default')  
+    logger.info( 'user=%s', user )  
+    if user:
+        logger.info( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )           
+        return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
+    return False
+
 @login_required
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
 def index( request ):
+    user = request.user
+    if user:
+        logger = logging.getLogger('default')
+        logger.info( 'group=%s', user.groups )    
     context = {}
     return render(request, 'allocations/index.html', context)
 
+def denied( request ):
+    context = {}
+    return render(request, 'allocations/denied.html', context)
+
 @login_required
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
 def view( request ):
     resp = ''
     try:
@@ -33,6 +53,7 @@ def view( request ):
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
 def view_test( request ):
     resp = {}
     try:
@@ -45,6 +66,7 @@ def view_test( request ):
     return HttpResponse(json.dumps(resp['result']), content_type="application/json")
 
 @login_required
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
 def approval( request ):
     resp = {}
     errors = {}

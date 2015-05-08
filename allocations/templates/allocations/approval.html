@@ -3,7 +3,7 @@
 </div>
 <form novalidate id="modalForm" class="modalForm" name="modalForm">
     <div class="modal-body">
-        <table class="table table-striped table-hover" style="white-space: nowrap;">
+        <table class="table table-striped table-hover">
             <tr>
                 <td class="title"><strong>Resource:</strong></td>
                 <td class="text capitalize">[[data.allocation.resource]]</td>
@@ -68,7 +68,7 @@
             </tr>
             <tr ng-if="data.type == 'approve'">
                 <td class="title">
-                    <label for="startDate" class="control-label">Start Date &nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup>
+                    <label for="startDate" class="control-label">Start Date<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup>
                     </label>
                 </td>
                 <td class="text">
@@ -87,7 +87,7 @@
             </tr>
             <tr ng-if="data.type == 'approve'">
                 <td class="title">
-                    <label for="endDate" class="control-label">End Date &nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup>
+                    <label for="endDate" class="control-label">End Date<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup>
                     </label>
                 </td>
                 <td class="text">
@@ -105,7 +105,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="title"><strong>Decision Summary:</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
+                <td class="title"><strong>Decision Summary</strong><sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
                 <td class="text">
                     <textarea ng-model="data.allocation.decisionSummary" name="decisionSummary" rows="4" cols="53" ng-required="true"></textarea>
                     <div style="color:red" ng-show="modalForm.decisionSummary.$dirty && modalForm.decisionSummary.$invalid">
