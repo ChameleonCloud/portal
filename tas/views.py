@@ -52,7 +52,7 @@ def profile_edit( request ):
         data[ 'firstName' ] = form_data['firstName']
         data[ 'lastName' ] = form_data['lastName']
         data[ 'email' ] = form_data['email']
-        
+
         if 'piEligibility' in request.POST:
             data['piEligibility'] = 'Requested'
 
@@ -181,6 +181,8 @@ def _process_password_reset_confirm( request, form ):
                     form.add_error( 'username', e.args[1] )
                 elif re.search( 'No password reset request matches', e.args[1] ):
                     form.add_error( 'code', e.args[1] )
+                elif re.search( 'complexity requirements', e.args[1] ):
+                    form.add_error( 'password', e.args[1] )
                 else:
                     form.add_error( '__all__', 'An unexpected error occurred. Please try again' )
             else:
