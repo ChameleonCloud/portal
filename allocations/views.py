@@ -17,11 +17,12 @@ import json
 import math
 import time
 
+logger = logging.getLogger('default')
+
 def not_allocation_admin_or_superuser(user):
-    logger = logging.getLogger('default')  
-    logger.info( 'user=%s', user )  
+    logger.info( 'user=%s', user )
     if user:
-        logger.info( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )           
+        logger.info( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
     return False
 
@@ -30,8 +31,7 @@ def not_allocation_admin_or_superuser(user):
 def index( request ):
     user = request.user
     if user:
-        logger = logging.getLogger('default')
-        logger.info( 'group=%s', user.groups )    
+        logger.info( 'group=%s', user.groups )
     context = {}
     return render(request, 'allocations/index.html', context)
 
@@ -47,7 +47,7 @@ def view( request ):
         tas = TASClient()
         resp = tas.projects()
     except Exception as e:
-        console.log('error', e);
+        logger.exception('error loading projects')
         messages.error( request, e[0] )
         raise Exception('error loading projects')
     return HttpResponse(json.dumps(resp), content_type="application/json")
@@ -59,9 +59,8 @@ def view_test( request ):
     try:
         fd = open('allocations/fixtures/projects.json', 'r')
         resp = json.loads(fd.read())
-        logger = logging.getLogger('default')        
         fd.close()
-    except: 
+    except:
         print 'Could not load allocations/fixtures/projects.json'
     return HttpResponse(json.dumps(resp['result']), content_type="application/json")
 
@@ -100,7 +99,7 @@ def approval( request ):
                 except ValidationError:
                     errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
             elif data['status'].lower() == 'approved':
-                 errors['end'] = 'Start date is required.'                      
+                 errors['end'] = 'Start date is required.'
 
         if data['computeAllocated']:
             try:
@@ -147,7 +146,7 @@ def approval( request ):
             errors['projectId'] = 'Project id is required.'
 
         if not data['project']:
-            errors['project'] = 'Project charge code is required.'  
+            errors['project'] = 'Project charge code is required.'
 
         if data['reviewerId']:
             try:
@@ -180,13 +179,11 @@ def approval( request ):
             data['source'] = 'Chameleon'
 
             # log the request
-            logger = logging.getLogger('default')
             logger.info( 'processing allocation approval: data=%s', json.dumps( data ) )
 
             try:
                 decided_allocation = tas.allocation_approval( data['id'], data )
-                logger = logging.getLogger('default')
-                logger.info('allocation approval TAS response: data=%s', json.dumps(decided_allocation)) 
+                logger.info('allocation approval TAS response: data=%s', json.dumps(decided_allocation))
                 # success!
                 #time.sleep(5)
                 status = 'success'
@@ -194,13 +191,13 @@ def approval( request ):
                 logger.exception('Error processing allocation approval, data=%s', json.dumps( data ))
                 status = 'error'
                 errors['message'] = 'An unexpected error occurred. If this problem persists please create a help ticket.'
-                    
+
         else:
             status = 'error'
 
     else:
         status = 'error'
-        errors['message'] = 'Only POST method allowed.'        
+        errors['message'] = 'Only POST method allowed.'
     resp['status'] = status
     resp['errors'] = errors
     return HttpResponse(json.dumps(resp), content_type="application/json")
