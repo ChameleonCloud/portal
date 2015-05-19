@@ -20,9 +20,9 @@ import time
 logger = logging.getLogger('default')
 
 def not_allocation_admin_or_superuser(user):
-    logger.info( 'user=%s', user )
+    logger.debug( 'user=%s', user )
     if user:
-        logger.info( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )
+        logger.debug( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
     return False
 
@@ -31,7 +31,7 @@ def not_allocation_admin_or_superuser(user):
 def index( request ):
     user = request.user
     if user:
-        logger.info( 'group=%s', user.groups )
+        logger.debug( 'group=%s', user.groups )
     context = {}
     return render(request, 'allocations/index.html', context)
 
