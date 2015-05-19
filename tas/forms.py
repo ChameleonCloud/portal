@@ -69,14 +69,13 @@ class PasswordResetConfirmForm( forms.Form ):
 
 
 class TasUserProfileForm(forms.Form):
-    firstName = forms.CharField()
-    lastName = forms.CharField()
+    """
+    Form for editing TAS User Profile
+    """
+
+    firstName = forms.CharField(label="First name")
+    lastName = forms.CharField(label="Last name")
     email = forms.EmailField()
-    # TODO
-    # institutionId = forms.CharField()
-    # departmentId = forms.CharField()
-    # countryId = forms.CharField()
-    # citizenshipId = forms.CharField()
     piEligibility = forms.ChoiceField(
         choices=PI_ELIGIBILITY,
         label="PI Eligibility",
@@ -86,7 +85,13 @@ class TasUserProfileForm(forms.Form):
         )
 
 class TasUserProfileAdminForm(TasUserProfileForm):
+    """
+    Admin Form for TAS User Profile. Adds a field to trigger a password reset
+    on the User's behalf.
+    """
+
     reset_password = forms.BooleanField(
+        required=False,
         label="Reset user's password",
         help_text="Check this box to reset the user's password. The user will be "
             "notified via email with instructions to complete the password reset."

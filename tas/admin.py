@@ -9,8 +9,12 @@ from django.contrib.admin.utils import unquote
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserChangeForm
+from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponseRedirect
 from pytas.pytas import client as TASClient
 from django.contrib import admin
+from django.utils.encoding import force_text
+from django.utils.html import escape
 from django.utils.translation import ugettext, ugettext_lazy as _
 from .forms import TasUserProfileAdminForm
 import logging
@@ -133,13 +137,49 @@ class TasUserAdmin(UserAdmin):
         tas_user = tas.get_user(username=user.username)
 
         if request.method == 'POST':
-            # TODO
             logger.debug(request.POST)
-            form = TasUserProfileAdminForm(initial=tas_user)
+            form = TasUserProfileAdminForm(request.POST)
+            if form.is_valid():
+                redirect = False
+                user.first_name = tas_user['firstName'] = form.cleaned_data['firstName']
+                user.last_name = tas_user['lastName'] = form.cleaned_data['lastName']
+                user.email = tas_user['email'] = form.cleaned_data['email']
+                tas_user['piEligibility'] = form.cleaned_data['piEligibility']
+                try:
+                    tas.save_user(tas_user['id'], tas_user) # Update remote TAS record
+                    user.save() # Update local Django record
+                    self.message_user(request, _('Successfully updated profile for user: %s') % user.username)
+                    redirect = True
+                except:
+                    logger.exception('Error saving user %s' % user.username)
+                    self.message_user(request, _('Error saving profile for user: %s') % user.username, level=messages.ERROR)
+                    redirect = False
+
+                if form.cleaned_data['reset_password']:
+                    # trigger password reset
+                    try:
+                        resp = tas.request_password_reset( user.username, source='Chameleon' )
+                        logger.debug( 'Administrator triggered password reset for user %s. Reset token: %s' % (user.username, resp) )
+                        self.message_user(request, _('Sent password reset to user: %s') % user.username)
+                        redirect = True
+                    except:
+                        logger.exception( 'Failed password reset request' )
+                        self.message_user(request, _('Password reset failed for user: %s') % user.username, level=messages.ERROR)
+                        redirect = False
+
+                if redirect:
+                    return HttpResponseRedirect(
+                        reverse(
+                            '%s:auth_%s_change' % (
+                                self.admin_site.name,
+                                user._meta.model_name,
+                            ),
+                            args=(user.pk,),
+                        )
+                    )
+
         else:
             form = TasUserProfileAdminForm(initial=tas_user)
-
-        # institutions = tas.institutions()
 
         fieldsets = [(None, {'fields': list(form.base_fields)})]
         adminForm = admin.helpers.AdminForm(form, fieldsets, {})
