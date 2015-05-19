@@ -1,9 +1,9 @@
 {% extends "layout/default.html" %} {% load sekizai_tags staticfiles %} {% block styles %}
 <link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %} {% block title %}Projects and Allocations{% endblock %} {% block content %}
 
-<body class="allocations-app" ng-app="allocationsApp" ng-cloak>
+<div class="allocations-app" ng-app="allocationsApp">
     <h2>Projects and Allocations</h2>
-    <div class="content" ng-controller="AllocationsController">
+    <div class="content" ng-controller="AllocationsController" ng-cloak>
         <div class="well spinner" ng-if="loading.allocations">
             <h4><span class="fa fa-spinner fa-spin"></span> Loading allocations...</h4>
         </div>
@@ -46,7 +46,7 @@
                             </div>
                             <div class="clearfix">
                                 <div class="col col-sm-2"><strong>PI: </strong></div>
-                                <div class="col col-sm-10">[[ project.pi.firstName ]] [[ project.pi.firstName ]]<a ng-if="[[ project.pi.email ]]" href="mailto:[[ project.pi.email ]]">&nbsp;&nbsp;<i class="fa fa-envelope-o"></i></a></div>
+                                <div class="col col-sm-10">[[ project.pi.firstName ]] [[ project.pi.lastName ]]<a ng-if="[[ project.pi.email ]]" href="mailto:[[ project.pi.email ]]">&nbsp;&nbsp;<i class="fa fa-envelope-o"></i></a></div>
                             </div>
                             <div class="clearfix">
                                 <div class="col col-sm-2"><strong>Field: </strong></div>
@@ -68,7 +68,7 @@
                                         <div class="col col-sm-2"><strong>Allocation Id: </strong></div>
                                         <div class="col col-sm-10">&nbsp;[[ allocation.id ]]</div>
                                     </div>
-                                    <div class="clearfix"> 
+                                    <div class="clearfix">
                                         <div class="col col-sm-2"><strong>Resource Id: </strong></div>
                                         <div class="col col-sm-10">&nbsp;[[ allocation.resourceId ]]</div>
                                     </div>
@@ -174,7 +174,7 @@
             </div>
         </div>
     </div>
-</body>
+</div>
 {% endblock content %} {% block scripts %}
 <script src="{% static 'allocations/underscore/underscore.js' %}"></script>
 <script src="{% static 'allocations/angular/angular.min.js' %}"></script>
