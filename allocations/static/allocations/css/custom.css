@@ -1,16 +1,20 @@
 .no-border{
-	border:0;
+  border:0;
 }
 .allocations-header{
-	border-bottom: 2px solid black;
+  border-bottom: 2px solid black;
 }
 
 a:hover{
-	cursor:hand;
-	cursor:pointer;
+  cursor:hand;
+  cursor:pointer;
 }
 
 .modal-header{
-	padding: 15px 15px 0 15px;
-	border-bottom: 0;
+  padding: 15px 15px 0 15px;
+  border-bottom: 0;
+}
+
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
 }
