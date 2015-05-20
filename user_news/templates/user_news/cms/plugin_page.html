@@ -1,0 +1,51 @@
+<h1>{{ instance.name }}</h1>
+
+<div class="alternatives" style="position:relative;top:-25px">
+  <a class="pull-right" href="{% url 'user_news:feed' %}"><span class="label label-warning"><i class="fa fa-rss"></i> RSS</span></a>
+</div>
+
+<div class="article-list">
+{% for news in news_items %}
+<article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">
+  <header>
+    <h2><a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a></h2>
+    <div class="meta">
+      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  <section class="news-item-summary">
+    {{ news.summary|safe }}
+  </section>
+  <div class="read-more">
+    <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+  </div>
+</article>
+{% empty %}
+  <div class="jumbotron">
+    <p>No news to display!</p>
+  </div>
+{% endfor %}
+</div>
+
+<nav class="text-center">
+<ul class="pagination">
+    {% if news_items.has_previous %}
+      <li>
+        <a href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+      </li>
+    {% endif %}
+    {% with ''|center:news_items.paginator.num_pages as range %}
+    {% for _ in range %}
+      <li{% if forloop.counter == news_items.number %} class="active"{% endif %}>
+        <a href="?page={{ forloop.counter }}">{{ forloop.counter }}</a>
+      </li>
+    {% endfor %}
+    {% endwith %}
+    {% if news_items.has_next %}
+      <li>
+        <a href="?page={{ news_items.next_page_number }}">Next &rarr;</a>
+      </li>
+    {% endif %}
+  </span>
+</ul>
+</nav>
