@@ -64,6 +64,10 @@ class UserMenu(CMSAttachMenu):
         nodes.append(n)
 
         menu_id += 1
+        n = NavigationNode(_('Outages'), "/user/outages/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        nodes.append(n)
+
+        menu_id += 1
         n = NavigationNode(_('Help Desk'), "/user/help/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 

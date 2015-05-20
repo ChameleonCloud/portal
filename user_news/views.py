@@ -10,7 +10,7 @@ from cms.cms_toolbar import ADMIN_MENU_IDENTIFIER
 class UserNewsListView(ListView):
     model = News
     paginate_by = 10
-    queryset = News.objects.order_by('-created')
+    queryset = News.objects.filter(outage__isnull=True, event__isnull=True).order_by('-created')
 
 class UserNewsDetailView(DetailView):
     model = News
@@ -43,7 +43,7 @@ class UserNewsFeed(Feed):
         return reverse('user_news:list')
 
     def items(self):
-        return News.objects.order_by('-created')[:10]
+        return News.objects.filter(outage__isnull=True, event__isnull=True).order_by('-created')[:10]
 
     def item_title(self, item):
         return item.title
@@ -56,3 +56,42 @@ class UserNewsFeed(Feed):
 
     def item_link(self, item):
         return reverse('user_news:detail', args=[item.slug])
+
+class OutageListView(ListView):
+    model = Outage
+    paginate_by = 10
+    queryset = Outage.objects.order_by('-created')
+
+class OutageDetailView(DetailView):
+    model = Outage
+
+    def get_context_data(self, **kwargs):
+        context = super(OutageDetailView, self).get_context_data(**kwargs)
+        admin_menu = self.request.toolbar.get_or_create_menu(ADMIN_MENU_IDENTIFIER)
+        user_news_menu = admin_menu.get_or_create_menu('user_news-menu', _('User News ...'))
+        if (user_news_menu):
+            user_news_menu.add_modal_item(
+                _('Edit Item "{0}"').format(context['outage'].title),
+                url=reverse('admin:user_news_outage_change', args=[context['outage'].id]),
+                position=0
+            )
+            user_news_menu.add_break(position=1)
+
+        return context;
+
+class OutageFeed(UserNewsFeed):
+    title = "Chameleon Outage Announcements"
+    description = "Outage Announcements related to the Chameleon Project."
+
+    def link(self):
+        return reverse('user_news:outage_list')
+
+    def items(self):
+        return Outage.objects.order_by('-created')[:10]
+
+    def item_description(self, item):
+        description = "<p>Outage Start: %s<br>Expected Outage End: %s</p>%s" % (item.start_date.strftime('%Y-%m-%d %H:%M'), item.end_date.strftime('%Y-%m-%d %H:%M'), item.summary)
+        return description
+
+    def item_link(self, item):
+        return reverse('user_news:outage_detail', args=[item.slug])

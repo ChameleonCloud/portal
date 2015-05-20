@@ -1,0 +1,25 @@
+<h1>{{ outage.title }}</h1>
+<article class="news-item">
+  <header>
+    <div class="meta">
+      <span>Posted by {{ outage.author.get_full_name }} on {{ outage.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  
+  <section>
+    <table>
+      <tr>
+        <td><b>Outage start</b></td>
+        <td>{{ outage.outage.start_date|date:"l, F d, o f a" }}</td>
+      </tr>
+      <tr>
+        <td><b>Expected end</b></td>
+        <td>{{ outage.outage.end_date|date:"l, F d, o f a" }}</td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="news-item-content">
+    {{ outage.body|safe }}
+  </section>
+</article>

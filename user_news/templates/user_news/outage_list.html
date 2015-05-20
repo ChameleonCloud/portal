@@ -1,9 +1,9 @@
-<h1>Latest News</h1>
+<h1>Outage Reports</h1>
 
-{% for news in news_list %}
+{% for news in outage_list %}
 <article class="news-item">
   <header>
-    <h2><a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a></h2>
+    <h2><a href="{% url 'user_news:outage_detail' news.slug %}">{{ news.title }}</a></h2>
     <div class="meta">
       <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
     </div>
@@ -11,7 +11,7 @@
   <section class="news-item-summary">
     {{ news.summary|safe }}
   </section>
-  <a href="{% url 'user_news:detail' news.slug %}" class="read-more">Read more</a>
+  <a href="{% url 'user_news:outage_detail' news.slug %}" class="read-more">Read more</a>
 </article>
 {% empty %}
   <div class="jumbotron">
@@ -36,5 +36,5 @@
 {% endif %}
 
 <div class="alternatives">
-  <a href="{% url 'user_news:feed' %}"><span class="label label-info">RSS</span></a>
+  <a href="{% url 'user_news:outage_feed' %}"><span class="label label-info">RSS</span></a>
 </div>

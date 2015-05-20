@@ -6,7 +6,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
 from django.conf import settings
 from django.views.generic import RedirectView
-
+from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
 import chameleon.views
 admin.autodiscover()
@@ -32,6 +32,9 @@ urlpatterns = patterns('',
     url(r'^password-reset/', 'tas.views.password_reset'),
     url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
     url(r'^user/projects/', include('projects.urls', namespace='projects')),
+    url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
+    url(r'^user/outages/rss/$', OutageFeed(), name='outage_feed'),
+    url(r'^user/outages/(?P<slug>[-_\w]+)/$', OutageDetailView.as_view(), name='outage_detail'),
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
     url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
