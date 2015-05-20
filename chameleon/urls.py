@@ -8,8 +8,6 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
-import chameleon.views
-admin.autodiscover()
 
 urlpatterns = patterns('',
 
@@ -39,6 +37,9 @@ urlpatterns = patterns('',
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
     url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
     url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
+
+    # mailing list resource for mailman autosubscribe
+    url(r'^mailman\.txt$', 'chameleon.views.mailing_list_subscription'),
 
     # cms urls
     url(r'^', include('cms.urls')),
