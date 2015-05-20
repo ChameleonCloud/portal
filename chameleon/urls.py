@@ -8,8 +8,6 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
-import chameleon.views
-admin.autodiscover()
 
 urlpatterns = patterns('',
 

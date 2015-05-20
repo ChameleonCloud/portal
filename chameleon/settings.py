@@ -49,8 +49,7 @@ INSTALLED_APPS = (
     ##
     # core apps
     #
-    #'django.contrib.admin',
-    'django.contrib.admin.apps.SimpleAdminConfig',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
