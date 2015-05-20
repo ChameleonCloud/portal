@@ -1,0 +1,80 @@
+{% extends "layout/user.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h2>{{ user.get_full_name }} <small>| {{ user.username }} </small></h2>
+
+{% if profile %}
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Name</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.firstName }} {{ profile.lastName }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Email Address</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.email }}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Institution</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.institution }}{% if profile.department %}, {{ profile.department }}{% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>Country</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.country }}<br>
+      (citizenship: {{ profile.citizenship }})
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-3 col-xs-5">
+      <b>PI Eligibility</b>
+    </div>
+    <div class="col-sm-9 col-xs-7">
+      {{ profile.piEligibility }}
+      <a data-toggle="tooltip" data-placement="top" title="Faculty and Research Staff from U.S.-based institutions can request PI Eligibility. If you are not PI Eligible and would like to request to be eligible, you can do so on &quot;Edit Profile&quot; page."><i class="fa fa-info-circle"></i></a>
+    </div>
+  </div>
+
+  <hr>
+
+  <h4>Actions</h4>
+    {% if profile.source == 'Chameleon' %}
+      <a href="{% url 'tas:profile_edit' %}" class="btn btn-default">
+        <i class="fa fa-edit"></i>
+        Edit Profile
+      </a>
+    {% endif %}
+
+    <a href="{% url 'mailman_manage' %}" class="btn btn-default">
+      <i class="fa fa-envelope"></i>
+      Manage Email Subscriptions
+    </a>
+
+{% else %}
+  <div class="alert alert-danger">
+    <p>There was an error loading your profile information.</p>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip();
+</script>
+{% endblock %}
