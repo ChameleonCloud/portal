@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger('default')
 
 @token_required
-def mailman_export(request):
+def mailman_export_outage_notifications(request):
     """
     Returns a text file, listing the email addresses, one per line, of all
     Chameleon Users subscribed to outage notifications.
@@ -23,7 +23,22 @@ def mailman_export(request):
     subscriptions = MailmanSubscription.objects.all()
     content = list(sub.user.email for sub in subscriptions if sub.outage_notifications)
     response = HttpResponse('\n'.join(content), content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="mailman.txt"'
+    response['Content-Disposition'] = 'attachment; filename="outage_notifications.txt"'
+    return response
+
+@token_required
+def mailman_export_users_list(request):
+    """
+    Returns a text file, listing the email addresses, one per line, of all
+    Chameleon Users subscribed to outage notifications.
+
+    This method is protected by Token Authorization from the chameleon_token
+    app.
+    """
+    subscriptions = MailmanSubscription.objects.all()
+    content = list(sub.user.email for sub in subscriptions if sub.users_list)
+    response = HttpResponse('\n'.join(content), content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="users_list.txt"'
     return response
 
 @login_required
