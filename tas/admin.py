@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger('default');
 
 class ReadOnlyDirectToTasWidget(forms.Widget):
-    def render(slef, name, value, attrs):
+    def render(self, name, value, attrs):
         return value
 
 class ReadOnlyDirectToTasField(forms.Field):
@@ -45,6 +45,11 @@ class TasUserAdminForm(UserChangeForm):
     username = ReadOnlyDirectToTasField(label=_("Username"),
         help_text = _('You can manage Permissions below. The User record itself is managed by TAS. Manage User Details <a href="tas/">using TAS</a>.')
     )
+    password = None # hide password
+
+    def clean_username(self):
+        # Cannot edit username, return initial value no matter what
+        return self.initial['username']
 
 
 class TasUserAdmin(UserAdmin):
@@ -52,7 +57,7 @@ class TasUserAdmin(UserAdmin):
 
     form = TasUserAdminForm
     fieldsets = (
-        (_('Account'), { 'fields': ('username', ) }),
+        (_('Account'), {'fields': ('username',)}),
     ) + UserAdmin.fieldsets[2:]
 
     def reset_user_password(self, request, selected_users, form_url=''):
