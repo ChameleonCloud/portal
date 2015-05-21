@@ -1,5 +1,6 @@
 from chameleon_token.decorators import token_required
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.response import TemplateResponse
@@ -31,12 +32,10 @@ def manage_mailman_subscriptions(request):
     if request.method == 'POST':
         form = MailmanSubscriptionForm(request.POST, instance=user_sub)
         if form.is_valid():
-            logger.debug('saving subscriptions...')
             form.save()
-        else:
-            logger.debug(form.errors)
+            messages.success(request, 'Your email subscription preferences have been updated.')
     else:
         form = MailmanSubscriptionForm(instance=user_sub)
 
     context = {'form': form}
-    return render(request, 'chameleon_admin/manage_mailman_subscriptions.html', context)
+    return render(request, 'chameleon_mailman/manage_mailman_subscriptions.html', context)
