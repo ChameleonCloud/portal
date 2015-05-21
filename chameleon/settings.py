@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     #
     'chameleon_cms_integrations',
     'chameleon_mailman',
+    'chameleon_token',
     'util',
     'tas',
     'djangoRT',
