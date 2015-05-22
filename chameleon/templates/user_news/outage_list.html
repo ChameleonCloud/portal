@@ -1,5 +1,5 @@
 {% extends 'layout/user.html' %}
-{% block title %}Latest News{% endblock %}
+{% block title %}Reported Outages{% endblock %}
 {% block content %}
 <h1>Reported Outages</h1>
 
@@ -37,7 +37,7 @@
 </article>
 {% empty %}
   <div class="jumbotron">
-    <p>No news to display!</p>
+    <p>No outages reported!</p>
   </div>
 {% endfor %}
 </div>
