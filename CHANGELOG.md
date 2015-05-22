@@ -1,5 +1,18 @@
 ## Changelog
 
+### v1.3.0
+
+- New Features
+  - Manage TAS User Accounts from Django Admin
+    - Trigger Password Reset
+    - Manage PI Eligibility
+    - Edit User Profiles (name, email address, etc.)
+  - User News "Outages" view
+  - Email Subscriptions
+    - Users can control what email lists they would like to be subscribed to
+    - List export for ingestion into external email listserv
+- Code style improvements
+
 ### v1.2.5
 
 - Add RSS item_pubdate
