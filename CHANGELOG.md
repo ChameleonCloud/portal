@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.3.1
+
+- Improvements
+  - Fix error for mailing list management for new users since 1.3.0
+  - Fix mailing list exports to correctly default to "subscribed"
+
 ### v1.3.0
 
 - New Features
