@@ -3,6 +3,14 @@
 {% block title %}Log In{% endblock %}
 {% block content %}
 
+{% if request.user.is_authenticated %}
+<h2>You're already logged in!</h2>
+
+<p class="lead">
+  This is odd, you are already logged in as <b>{{request.user}}</b>!
+  <a href="{% url 'dashboard' %}">Click here to head back to the User Dashboard.</a>
+</p>
+{% else %}
 <h2>Login to Chameleon</h2>
 
 <div class="row">
@@ -32,5 +40,6 @@
     </div>
   </div>
 </div>
-<br>
+{% endif %}
+
 {% endblock %}
