@@ -39,8 +39,7 @@ urlpatterns = patterns('',
     url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
 
     # mailing list resource for mailman autosubscribe
-    url(r'^mailman/outages_list\.txt$', 'chameleon_mailman.views.mailman_export_outage_notifications', name='mailman_export_outage_notifications'),
-    url(r'^mailman/users_list\.txt$', 'chameleon_mailman.views.mailman_export_users_list', name='mailman_export_users_list'),
+    url(r'^mailman/(?P<list_name>\w+)\.txt$', 'chameleon_mailman.views.mailman_export_list', name='mailman_export_list'),
     url(r'^user/profile/subscriptions/$', 'chameleon_mailman.views.manage_mailman_subscriptions', name='mailman_manage'),
 
     # cms urls

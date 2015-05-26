@@ -1,5 +1,6 @@
 from chameleon_token.decorators import token_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -11,39 +12,43 @@ import logging
 
 logger = logging.getLogger('default')
 
-@token_required
-def mailman_export_outage_notifications(request):
-    """
-    Returns a text file, listing the email addresses, one per line, of all
-    Chameleon Users subscribed to outage notifications.
+def is_user_subscribed_to_list(user, list_name):
+    try:
+        if list_name == 'users_list':
+            subscribed = user.subscriptions.users_list
+        elif list_name == 'outages_list':
+            subscribed = user.subscriptions.outage_notifications
+        else:
+            raise Exception('Unknown list "%s"' % list_name)
+    except MailmanSubscription.DoesNotExist:
+        subscribed = True # users are subscribed by default
 
-    This method is protected by Token Authorization from the chameleon_token
-    app.
-    """
-    subscriptions = MailmanSubscription.objects.all()
-    content = list(sub.user.email for sub in subscriptions if sub.outage_notifications)
-    response = HttpResponse('\n'.join(content), content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="outage_notifications.txt"'
-    return response
+    return subscribed
 
 @token_required
-def mailman_export_users_list(request):
+def mailman_export_list(request, list_name):
     """
     Returns a text file, listing the email addresses, one per line, of all
-    Chameleon Users subscribed to outage notifications.
-
-    This method is protected by Token Authorization from the chameleon_token
-    app.
+    Chameleon Users subscribed to the given list.
     """
-    subscriptions = MailmanSubscription.objects.all()
-    content = list(sub.user.email for sub in subscriptions if sub.users_list)
-    response = HttpResponse('\n'.join(content), content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="users_list.txt"'
+    try:
+        users = get_user_model().objects.all()
+        content = list(u.email for u in users if is_user_subscribed_to_list(u, list_name))
+        response = HttpResponse('\n'.join(content), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="%s.txt"' % list_name
+    except Exception as e:
+        response = HttpResponse('Error: %s' % e)
+        response.status_code = 400
+
     return response
 
 @login_required
 def manage_mailman_subscriptions(request):
-    user_sub = MailmanSubscription.objects.get(user=request.user)
+    try:
+        user_sub = MailmanSubscription.objects.get(user=request.user)
+    except MailmanSubscription.DoesNotExist:
+        user_sub = MailmanSubscription(user=request.user)
+
     if request.method == 'POST':
         form = MailmanSubscriptionForm(request.POST, instance=user_sub)
         if form.is_valid():
