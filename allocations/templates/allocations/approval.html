@@ -70,12 +70,13 @@
                 <td><strong>Start Date:</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
                 <td>
                     <div class="input-group">
-                        <input type="text" id="startDate" name="startDate" class="form-control" datepicker-popup="[[format]]" ng-model="data.allocation.start" is-open="open.start" min-date="minStartDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" /> <span class="input-group-btn">
-				<button type="button" class="btn btn-default"
-					ng-click="open($event,'start')">
-					<i class="fa fa-calendar"></i>
-				</button>
-			</span>
+                        <input type="text" id="startDate" name="startDate" class="form-control" datepicker-popup="[[format]]" ng-model="data.allocation.start" is-open="open.start" min-date="minStartDate" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"
+                            ng-click="open($event,'start')">
+                            <i class="fa fa-calendar"></i>
+                          </button>
+                        </span>
                     </div>
                     <div style="color:red" ng-show="modalForm.startDate.$dirty && modalForm.startDate.$invalid">
                         <div ng-show="modalForm.startDate.$error.required">Start Date is required.</div>
@@ -86,12 +87,13 @@
                 <td><strong>End Date:</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
                 <td>
                     <div class="input-group">
-                        <input type="text" id="endDate" name="endDate" class="form-control" datepicker-popup="[[format]]" ng-model="data.allocation.end" is-open="open.end" min-date="data.allocation.start" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" /> <span class="input-group-btn">
-				<button type="button" class="btn btn-default"
-					ng-click="open($event,'end')" ng-disabled="modalForm.startDate.$invalid">
-					<i class="fa fa-calendar"></i>
-				</button>
-			</span>
+                        <input type="text" id="endDate" name="endDate" class="form-control" datepicker-popup="[[format]]" ng-model="data.allocation.end" is-open="open.end" min-date="data.allocation.start" max-date="maxDate" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
+                        <span class="input-group-btn">
+                          <button type="button" class="btn btn-default"
+                            ng-click="open($event,'end')" ng-disabled="modalForm.startDate.$invalid">
+                            <i class="fa fa-calendar"></i>
+                          </button>
+                        </span>
                     </div>
                     <div style="color:red" ng-show="modalForm.endDate.$dirty && modalForm.endDate.$invalid">
                         <div ng-show="modalForm.endDate.$error.required">End Date is required.</div>
