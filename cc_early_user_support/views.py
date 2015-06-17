@@ -1,7 +1,8 @@
+from chameleon_token.decorators import token_required
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from . import forms, models
 from datetime import datetime
@@ -59,3 +60,19 @@ def request_to_participate(request, id):
 
 
     return render(request, 'cc_early_user_support/request_to_participate.html', context)
+
+@token_required
+def participants_export_list(request, id):
+    """
+    Returns a text file listing Early User Participants, one per line
+    """
+    try:
+        participants = models.EarlyUserParticipant.objects.filter(program__id=id, participant_status=models.PARTICIPANT_STATUS__APPROVED)
+        content = list(p.user.username for p in participants)
+        response = HttpResponse('\n'.join(content), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="early_user_program_%s_participants.txt"' % id
+    except Exception as e:
+        response = HttpResponse('Error: %s' % e)
+        response.status_code = 400
+
+    return response
