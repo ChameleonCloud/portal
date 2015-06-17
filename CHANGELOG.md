@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.3.2
+
+- Added export similar to mailing list export for early user participants
+
 ### v1.3.1
 
 - Improvements
