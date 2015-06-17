@@ -1,8 +1,21 @@
-{% extends "layout/default.html" %} {% load sekizai_tags staticfiles %} {% block styles %}
-<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %} {% block title %}Projects and Allocations{% endblock %} {% block content %}
-
-<body class="allocations-app" ng-app="allocationsApp" ng-cloak>
-    <h2>Projects and Allocations</h2>
+{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %}
+{% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+<!-- Custom CSS -->
+{% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %}
+{% block extrahead %} {% compressed_js 'all' %}
+<script src="{% static 'allocations/underscore/underscore.js' %}"></script>
+<script src="{% static 'allocations/angular/angular.min.js' %}"></script>
+<script src="{% static 'allocations/angular-bootstrap/ui-bootstrap-tpls.min.js' %}"></script>
+<script src="{% static 'allocations/scripts/app.js' %}"></script>
+<script src="{% static 'allocations/scripts/directive.js' %}"></script>
+<script src="{% static 'allocations/scripts/controller.js' %}"></script>
+{% endblock %} {% block coltype %}colMS{% endblock %} {% block bodyclass %}{{ block.super }} dashboard{% endblock %} {% block breadcrumbs %}{% endblock %} {% block content %}
+<h1>Projects and Allocations</h1>
+<div class="allocations-app" id="content-main" ng-app="allocationsApp" ng-cloak>
     <div class="content" ng-controller="AllocationsController">
         <div class="well spinner" ng-if="loading.allocations">
             <h4><span class="fa fa-spinner fa-spin"></span> Loading allocations...</h4>
@@ -11,144 +24,146 @@
             <div ng-if="!loadingError.allocations">
                 <div class="form-group">
                     <label for="filterAllocations">Search</label>
-                    <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterAllocations" name="filterAllocations" placeholder="Filter by project Id, charge code or allocation id.">
+                    <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterAllocations" name="filterAllocations" placeholder="Filter by project title, project Id, charge code, or allocation id.">
                 </div>
-                <label>Filter by Allocation Status</label>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                <div class="form-group">
+                    <label>Filter by Allocation Status</label>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="filter.approved" ng-change="updateSelected()"> Approved</label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
+                    </div>
+                    <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
                 </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" ng-model="filter.approved" ng-change="updateSelected()"> Approved</label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
-                </div>
-                <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
-                <hr class="no-border">
                 <div class="list-group">
                     <div ng-repeat="project in selectedProjects">
                         <div class="row list-group-item">
-                            <h4 class="text-capitalize well-sm bg-success"><strong>[[ project.title ]]</strong></h4>
-                            <div class="clearfix">
+                            <h2 class="text-capitalize well-sm bg-success"><strong>[[ project.title ]]</strong></h2>
+                            <div class="list-group">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>Project Id: </strong></div>
-                                <div class="col col-sm-10">[[ project.id ]]</div>
+                                <div class="col col-sm-9">[[ project.id ]]</div>
                             </div>
-                            <div class="clearfix">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>GId: </strong></div>
-                                <div class="col col-sm-10">[[ project.gid ]]</div>
+                                <div class="col col-sm-9">[[ project.gid ]]</div>
                             </div>
-                            <div class="clearfix">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>Charge Code: </strong></div>
-                                <div class="col col-sm-10">[[ project.chargeCode ]]</div>
+                                <div class="col col-sm-9">[[ project.chargeCode ]]</div>
                             </div>
-                            <div class="clearfix">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>PI: </strong></div>
-                                <div class="col col-sm-10">[[ project.pi.firstName ]] [[ project.pi.firstName ]]<a ng-if="[[ project.pi.email ]]" href="mailto:[[ project.pi.email ]]">&nbsp;&nbsp;<i class="fa fa-envelope-o"></i></a></div>
+                                <div class="col col-sm-9">[[ project.pi.firstName ]] [[ project.pi.firstName ]]<a ng-show="project.pi.email" ng-href="mailto:[[project.pi.email]]">&nbsp;&nbsp;<i class="fa fa-envelope-o"></i></a></div>
                             </div>
-                            <div class="clearfix">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>Field: </strong></div>
-                                <div class="col col-sm-10">[[ project.field ]]</div>
+                                <div class="col col-sm-9">[[ project.field ]]</div>
                             </div>
-                            <div class="clearfix">
+                            <div class="clearfix list-group-item">
                                 <div class="col col-sm-2"><strong>Description: </strong></div>
-                                <div class="col-sm-10" read-more more-text="...read more" less-text="...less" words="words" limit="20" text-data="[[project.description]]"></div>
+                                <div class="col-sm-9" read-more more-text="...read more" less-text="...less" words="words" limit="20" text-data="[[project.description]]"></div>
+                            </div>
                             </div>
                             <div class="col col-sm-12 clearfix">
                                 <h4><div class="allocations-header">Allocations</div></h4>
                             </div>
                             <div ng-if="project.allocations && project.allocations.length > 0">
                                 <div ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow" class="col col-sm-12 clearfix">
-                                    <div class="col col-sm-12 clearfix">
-                                        <h4 class="list-group-item-header well-sm bg-info">&nbsp;[[ allocation.resource ]]</h4>
+                                    <h4 class="list-group-item-header well-sm bg-info">&nbsp;[[ allocation.resource ]]</h4>
+                                    <div class="list-group">
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Allocation Id: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.id ]]</div>
                                     </div>
-                                    <div class="clearfix">
-                                        <div class="col col-sm-2"><strong>Allocation Id: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.id ]]</div>
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Resource Id: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.resourceId ]]</div>
                                     </div>
-                                    <div class="clearfix"> 
-                                        <div class="col col-sm-2"><strong>Resource Id: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.resourceId ]]</div>
-                                    </div>
-                                    <div class="clearfix">
-                                        <div class="col col-sm-2"><strong>Status: </strong></div>
-                                        <div class="col col-sm-10">
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Status: </strong></div>
+                                        <div class="col col-sm-9">
                                             <span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span>
                                         </div>
                                     </div>
-                                    <div class="clearfix">
-                                        <div class="col col-sm-2"><strong>Requestor: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.requestor ]]</div>
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Requestor: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.requestor ]]</div>
                                     </div>
-                                    <div class="clearfix">
-                                        <div class="col col-sm-2"><strong>Requestor Id: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.requestorId ]]</div>
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Requestor Id: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.requestorId ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.computeRequested || allocation.computeRequested == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Compute Requested: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.computeRequested ]]</div>
+                                    <div ng-hide="!allocation.computeRequested || allocation.computeRequested == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Compute Requested: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.computeRequested ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.memoryRequested || allocation.memoryRequested == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Memory Requested: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.memoryRequested ]]</div>
+                                    <div ng-hide="!allocation.memoryRequested || allocation.memoryRequested == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Memory Requested: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.memoryRequested ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.storageRequested || allocation.storageRequested == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Storage Requested: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.storageRequested ]]</div>
+                                    <div ng-hide="!allocation.storageRequested || allocation.storageRequested == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Storage Requested: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.storageRequested ]]</div>
                                     </div>
-                                    <div class="clearfix">
-                                        <div class="col col-sm-2"><strong>Date Requested: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.dateRequested | date:'dd-MMMM-yyyy']]</div>
+                                    <div class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Date Requested: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.dateRequested | date:'dd-MMMM-yyyy']]</div>
                                     </div>
-                                    <div ng-hide="!allocation.dateReviewed" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Date Reviewed: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]</div>
+                                    <div ng-hide="!allocation.dateReviewed" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Date Reviewed: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]</div>
                                     </div>
-                                    <div ng-hide="!allocation.decisionSummary" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Decision Summary: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.decisionSummary ]]</div>
+                                    <div ng-hide="!allocation.decisionSummary" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Decision Summary: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.decisionSummary ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.justification" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Justification: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.justification ]]</div>
+                                    <div ng-hide="!allocation.justification" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Justification: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.justification ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.reviewer" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Reviewer: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.reviewer ]]</div>
+                                    <div ng-hide="!allocation.reviewer" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Reviewer: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.reviewer ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.reviewerId" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Reviewer Id: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.reviewerId ]]</div>
+                                    <div ng-hide="!allocation.reviewerId" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Reviewer Id: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.reviewerId ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.computeAllocated || allocation.computeAllocated == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Compute Allocated: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.computeAllocated ]]</div>
+                                    <div ng-hide="!allocation.computeAllocated || allocation.computeAllocated == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Compute Allocated: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.computeAllocated ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.memoryAllocated || allocation.memoryAllocated == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Memory Allocated: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.memoryAllocated ]]</div>
+                                    <div ng-hide="!allocation.memoryAllocated || allocation.memoryAllocated == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Memory Allocated: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.memoryAllocated ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.storageAllocated || allocation.storagellocated == 0" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Storage Allocated: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.storageAllocated ]]</div>
+                                    <div ng-hide="!allocation.storageAllocated || allocation.storagellocated == 0" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Storage Allocated: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.storageAllocated ]]</div>
                                     </div>
-                                    <div ng-hide="!allocation.start" class="clearfix">
-                                        <div class="col col-sm-2"><strong>Start Date: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.start | date:'dd-MMMM-yyyy']]</div>
+                                    <div ng-hide="!allocation.start" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>Start Date: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.start | date:'dd-MMMM-yyyy']]</div>
                                     </div>
-                                    <div ng-hide="!allocation.end" class="clearfix">
-                                        <div class="col col-sm-2"><strong>End Date: </strong></div>
-                                        <div class="col col-sm-10">&nbsp;[[ allocation.end | date:'dd-MMMM-yyyy']]</div>
+                                    <div ng-hide="!allocation.end" class="clearfix list-group-item">
+                                        <div class="col col-sm-3"><strong>End Date: </strong></div>
+                                        <div class="col col-sm-9">&nbsp;[[ allocation.end | date:'dd-MMMM-yyyy']]</div>
                                     </div>
-                                    <div class="col col-sm-12">&nbsp;</div>
+                                    </div>
                                     <div class="col col-sm-12" ng-if="allocation.status == 'pending' || allocation.status == 'Pending'">
                                         <button class="btn btn-success" ng-click="approveAllocation(allocation, $event)" ng-disabled="loading.approve">Approve</button>
                                         <button class="btn btn-danger" ng-click="rejectAllocation(allocation, $event)" ng-disabled="loading.reject">Reject</button>
                                     </div>
                                     <div class="col col-sm-12 alert alert-info" ng-show="allocation.loadingApprove || allocation.loadingReject">
-                                        <h4><span class="fa fa-spinner fa-spin"></span ng-show="allocation.loadingApprove"><span ng-show="allocation.loadingApprove">Approv</span><span ng-show="allocation.loadingReject">Reject</span>ing this allocation request...</h4>
+                                        <h4><span class="fa fa-spinner fa-spin"></span ng-show="allocation.loadingApprove"><span ng-show="allocation.loadingApprove"> Approv</span><span ng-show="allocation.loadingReject"> Reject</span>ing this allocation request...</h4>
                                     </div>
                                     <div ng-show="allocation.errorApprove || allocation.errorReject" class="col col-sm-12">
                                         <alert type="danger" autodismiss tr-show="[[allocation.errorApprove || allocation.errorReject]]">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
@@ -163,7 +178,6 @@
                                 <div class="col col-sm-12 alert alert-warning">There are no allocations for this project.</div>
                             </div>
                         </div>
-                        <hr class="no-border">
                     </div>
                 </div>
             </div>
@@ -174,12 +188,26 @@
             </div>
         </div>
     </div>
-</body>
-{% endblock content %} {% block scripts %}
-<script src="{% static 'allocations/underscore/underscore.js' %}"></script>
-<script src="{% static 'allocations/angular/angular.min.js' %}"></script>
-<script src="{% static 'allocations/angular-bootstrap/ui-bootstrap-tpls.min.js' %}"></script>
-<script src="{% static 'allocations/scripts/app.js' %}"></script>
-<script src="{% static 'allocations/scripts/directive.js' %}"></script>
-<script src="{% static 'allocations/scripts/controller.js' %}"></script>
+</div>
+{% endblock %} {% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% trans 'Recent Actions' %}</h2>
+        <h3>{% trans 'My Actions' %}</h3> {% load log %} {% get_admin_log 9 as admin_log for_user user %} {% if not admin_log %}
+        <p>{% trans 'None available' %}</p>
+        {% else %}
+        <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %} {{ entry.object_repr }} {% else %}
+                <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a> {% endif %}
+                <br/> {% if entry.content_type %}
+                <span class="mini quiet">{% filter capfirst %}{% trans entry.content_type.name %}{% endfilter %}</span> {% else %}
+                <span class="mini quiet">{% trans 'Unknown content' %}</span> {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

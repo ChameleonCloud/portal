@@ -1,5 +1,5 @@
 /**
- * Created by agauli on 2/26/15.
+ * author agauli
  */
 angular.module('allocationsApp')
     .controller('AllocationsController', ['$scope', '$http', '_', '$q', '$timeout', '$modal', '$filter', function($scope, $http, _, $q, $timeout, $modal, $filter) {
@@ -32,21 +32,26 @@ angular.module('allocationsApp')
                 return _.filter($scope.projects, function(project) {
                     var pass = false;
                     var projectId = project.id.toString();
+                    var projectTitle = project.title;
                     var chargeCode = project.chargeCode;
-                    _.each(project.allocations, function(allocation) {
-                        var allocationId = allocation.id.toString();
-                        if (projectId && projectId.indexOf($scope.filter.search) > -1) {
-                            pass = true;
-                        }
-                        if (allocationId && allocationId.indexOf($scope.filter.search) > -1) {
-                            pass = true;
-                        }
-                        if (chargeCode && chargeCode.indexOf($scope.filter.search) > -1) {
-                            pass = true;
-                        } else {
-                            allocation.doNotShow = true;
-                        }
-                    });
+                    if (projectId && projectId.indexOf($scope.filter.search) > -1) {
+                        pass = true;
+                    } else if (projectTitle && projectTitle.indexOf($scope.filter.search) > -1) {
+                        pass = true;
+                    } else if (chargeCode && chargeCode.indexOf($scope.filter.search) > -1) {
+                        pass = true;
+                    }
+                    if (!pass) {
+                        _.each(project.allocations, function(allocation) {
+                            var allocationId = allocation.id.toString();
+                            if (allocationId && allocationId.indexOf($scope.filter.search) > -1) {
+                                pass = true;
+                            } else {
+                                allocation.doNotShow = true;
+                            }
+                        });
+                    }
+
                     return pass;
                 });
             }
@@ -58,14 +63,12 @@ angular.module('allocationsApp')
                     chosenStatusFilters.push(key.toLowerCase());
                 }
             }
-            console.log('chosenStatusFilters', chosenStatusFilters);
             $scope.selectedProjects = _search();
-
             if (chosenStatusFilters.length !== 0) {
                 var selectedProjectsNew = _.filter($scope.selectedProjects, function(project) {
                     var pass = false;
                     _.each(project.allocations, function(allocation) {
-                      allocation.doNotShow = false;
+                        allocation.doNotShow = false;
                         var status = allocation.status.toLowerCase();
                         if (_.contains(chosenStatusFilters, status)) {
                             pass = true;
@@ -76,14 +79,12 @@ angular.module('allocationsApp')
                     return pass;
                 });
                 $scope.selectedProjects = selectedProjectsNew;
-            }
-            else{
-               _.each($scope.selectedProjects, function(project){
-                      _.each(project.allocations, function(allocation) {
-                      allocation.doNotShow = false;
-                      console.log('doNotShow', allocation.doNotShow);      
+            } else {
+                _.each($scope.selectedProjects, function(project) {
+                    _.each(project.allocations, function(allocation) {
+                        allocation.doNotShow = false;
                     });
-               });
+                });
 
             }
 
@@ -105,7 +106,6 @@ angular.module('allocationsApp')
             })
             .then(function(response) {
                     $scope.loading.allocations = false;
-                    console.log('response.data', response.data);
                     $scope.projects = response.data;
                     $scope.selectedProjects = response.data;
 
