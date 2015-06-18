@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.3.3
+
+- Update Early User Program Participant message with link to CMS page with ID 'early_users_guide'. This requires a page to exist in the CMS with that ID (set under Advanced Settings) or the template render will error.
+
 ### v1.3.2
 
 - Added export similar to mailing list export for early user participants
