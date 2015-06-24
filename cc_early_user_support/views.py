@@ -62,13 +62,16 @@ def request_to_participate(request, id):
     return render(request, 'cc_early_user_support/request_to_participate.html', context)
 
 @token_required
-def participants_export_list(request, id):
+def participants_export_list(request, id, list_type='uids'):
     """
-    Returns a text file listing Early User Participants, one per line
+    Returns a text file listing Early User Participants, one per line.
     """
     try:
         participants = models.EarlyUserParticipant.objects.filter(program__id=id, participant_status=models.PARTICIPANT_STATUS__APPROVED)
-        content = list(p.user.username for p in participants)
+        if list_type == 'uids':
+            content = list(p.user.username for p in participants)
+        elif list_type == 'emails':
+            content = list(p.user.email for p in participants)
         response = HttpResponse('\n'.join(content), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="early_user_program_%s_participants.txt"' % id
     except Exception as e:
