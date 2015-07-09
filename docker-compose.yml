@@ -13,6 +13,7 @@ portal:
   links:
     - referenceapi:referenceapi
   command: python manage.py runserver 0.0.0.0:8888
+  restart: always
 referenceapi:
   image: referenceapi:latest
   ports:

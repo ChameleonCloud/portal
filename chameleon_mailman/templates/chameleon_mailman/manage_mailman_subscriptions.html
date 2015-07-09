@@ -1,0 +1,24 @@
+{% extends 'layout/user.html' %}
+
+{% load bootstrap3 %}
+
+{% block title %}Manage Email Subscriptions{% endblock %}
+
+{% block content %}
+<h2>Manage Email Subscriptions</h2>
+
+<p class="lead">
+  Manage the types of email that you would like to receive from the Chameleon
+  Project.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+
+    <div class="form-group">
+      <button type="submit" class="btn btn-success">Save</button>
+      <a href="{% url 'tas:profile' %}" class="btn btn-default">Back to Profile</a>
+    </div>
+</form>
+{% endblock %}

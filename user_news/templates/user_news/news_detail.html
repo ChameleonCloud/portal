@@ -5,7 +5,37 @@
       <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
     </div>
   </header>
-  <section class="news-item-summary">
+  {% if news.event %}
+    <section>
+      <table>
+        <tr>
+          <td><b>Event type</b></td>
+          <td>{{ news.event.event_type }}</td>
+        </tr>
+        <tr>
+          <td><b>Event date</b></td>
+          <td>{{ news.event.event_date|date:"l, F d, o f a"}}</td>
+        </tr>
+      </table>
+    </section>
+  {% endif %}
+
+  {% if news.outage %}
+    <section>
+      <table>
+        <tr>
+          <td><b>Outage start</b></td>
+          <td>{{ news.outage.start_date|date:"l, F d, o f a" }}</td>
+        </tr>
+        <tr>
+          <td><b>Expected end</b></td>
+          <td>{{ news.outage.end_date|date:"l, F d, o f a" }}</td>
+        </tr>
+      </table>
+    </section>
+  {% endif %}
+
+  <section class="news-item-content">
     {{ news.body|safe }}
   </section>
 </article>

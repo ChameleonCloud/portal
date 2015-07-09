@@ -3,6 +3,7 @@ from django.db import models
 from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
 from django.contrib import messages
+from cms.models.pluginmodel import CMSPlugin
 import re
 
 class NewsTag(models.Model):
@@ -57,12 +58,23 @@ class Event(News):
     event_type = models.TextField(choices=EVENT_TYPES)
     event_date = models.DateTimeField('event date')
 
+    def save(self):
+        if not self.slug:
+            self.slug = '%s-%s' % (self.event_date.strftime('%y-%m-%d'), slugify(self.title))
+        super(Event,self).save()
+
 """
 Implementation for System Outages
 """
 class Outage(News):
+
     start_date = models.DateTimeField('start of outage')
     end_date = models.DateTimeField('expected end of outage')
+
+    def save(self):
+        if not self.slug:
+            self.slug = '%s-%s' % (self.start_date.strftime('%y-%m-%d'), slugify(self.title))
+        super(Outage,self).save()
 
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage)
@@ -95,3 +107,12 @@ class Notification(models.Model):
 
     def display(self):
         return re.sub(r'\s+', ' ', u'<h4>{0}</h4>{1}'.format(self.title, self.message))
+
+"""
+User News CMS Plugin Model
+"""
+class UserNewsPluginModel(CMSPlugin):
+    limit = models.IntegerField(default=5)
+    display_news = models.BooleanField(default=True)
+    display_events = models.BooleanField(default=True)
+    display_outages = models.BooleanField(default=True)

@@ -1,5 +1,6 @@
 {% extends "layout/default.html" %}
 {% load i18n %}
+{% load cms_tags %}
 {% block title %}{{ program.name }} | Early User Program{% endblock %}
 {% block content %}
 
@@ -16,7 +17,8 @@
 {% if participant %}
   {% if participant.is_approved %}
     <p class="alert alert-success">
-      You are a participant in this program.
+      You are a participant in this program. Access the
+      <a href="{% page_url 'early_users_guide' %}">Early User Program Documentation</a>.
     </p>
   {% else %}
     <p class="alert alert-info">

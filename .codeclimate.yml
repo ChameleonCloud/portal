@@ -1,0 +1,9 @@
+languages:
+  Ruby: false
+  JavaScript: true
+  PHP: false
+  Python: true
+exclude_paths:
+  - "static/bower_components/*"
+  - "g5k_discovery/static/g5k_discovery/angular/*"
+  - "g5k_discovery/static/g5k_discovery/bootstrap/*"

@@ -38,6 +38,7 @@ MySQL-python==1.2.5
 slimit==0.8.1
 PyYAML==3.11
 pytz
+sqlparse
 
 # these modules aren't in PIP
 #pytas

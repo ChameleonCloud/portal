@@ -1,5 +1,36 @@
 ## Changelog
 
+### v1.3.4
+
+- EUP export support for either UID or email exports
+
+### v1.3.3
+
+- Update Early User Program Participant message with link to CMS page with ID 'early_users_guide'. This requires a page to exist in the CMS with that ID (set under Advanced Settings) or the template render will error.
+
+### v1.3.2
+
+- Added export similar to mailing list export for early user participants
+
+### v1.3.1
+
+- Improvements
+  - Fix error for mailing list management for new users since 1.3.0
+  - Fix mailing list exports to correctly default to "subscribed"
+
+### v1.3.0
+
+- New Features
+  - Manage TAS User Accounts from Django Admin
+    - Trigger Password Reset
+    - Manage PI Eligibility
+    - Edit User Profiles (name, email address, etc.)
+  - User News "Outages" view
+  - Email Subscriptions
+    - Users can control what email lists they would like to be subscribed to
+    - List export for ingestion into external email listserv
+- Code style improvements
+
 ### v1.2.5
 
 - Add RSS item_pubdate

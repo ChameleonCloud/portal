@@ -1,0 +1,40 @@
+<h1>Outage Reports</h1>
+
+{% for news in outage_list %}
+<article class="news-item">
+  <header>
+    <h2><a href="{% url 'user_news:outage_detail' news.slug %}">{{ news.title }}</a></h2>
+    <div class="meta">
+      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+    </div>
+  </header>
+  <section class="news-item-summary">
+    {{ news.summary|safe }}
+  </section>
+  <a href="{% url 'user_news:outage_detail' news.slug %}" class="read-more">Read more</a>
+</article>
+{% empty %}
+  <div class="jumbotron">
+    <p>No news to display!</p>
+  </div>
+{% endfor %}
+
+{% if is_paginated %}
+<div class="pagination">
+  <span class="page-links">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+    {% endif %}
+    <span class="page-current">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}">next</a>
+    {% endif %}
+  </span>
+</div>
+{% endif %}
+
+<div class="alternatives">
+  <a href="{% url 'user_news:outage_feed' %}"><span class="label label-info">RSS</span></a>
+</div>

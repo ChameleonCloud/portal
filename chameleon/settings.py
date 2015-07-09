@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     'www.chameleoncloud.org',
     'www.tacc.chameleoncloud.org',
     'www.chameleon.tacc.utexas.edu',
+    'dev.chameleon.tacc.utexas.edu',
 ]
 
 # Application definition
@@ -90,6 +91,8 @@ INSTALLED_APPS = (
     # custom
     #
     'chameleon_cms_integrations',
+    'chameleon_mailman',
+    'chameleon_token',
     'util',
     'tas',
     'djangoRT',

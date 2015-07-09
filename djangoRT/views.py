@@ -158,5 +158,5 @@ def ticketattachment(request, ticketId, attachmentId):
         return render(request, 'djangoRT/attachment.html', {'attachment' : attachment['Content'], 'ticketId' : ticketId, 'title' : title});
     else:
         response = HttpResponse(attachment['Content'], content_type=attachment['Headers']['Content-Type'])
-        response['Content-Disposition'] = attachment['Headers']['Content-Disposition'];
-        return response;
+        response['Content-Disposition'] = attachment['Headers']['Content-Disposition']
+        return response
