@@ -45,7 +45,7 @@ def view( request ):
     resp = ''
     try:
         tas = TASClient()
-        resp = tas.projects()
+        resp = tas.projects_for_group('Chameleon')
     except Exception as e:
         logger.exception('error loading projects')
         messages.error( request, e[0] )
