@@ -50,3 +50,9 @@ FG_DB_PASSWORD=
 # Django secret key
 # USE A NEW VALUE IN PRODUCTION
 DJANGO_SECRET_KEY=&q*yhkpinzej(zcs$hq-g6@^y()d2h&36!m)8-5o3@d-4rth(b
+
+# Email
+SMTP_HOST=relay.tacc.utexas.edu
+SMTP_PORT=25
+SMTP_USER=
+SMTP_PASSWORD=

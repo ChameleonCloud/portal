@@ -400,7 +400,19 @@ G5K_API_ROOT = 'http://referenceapi:8000'
 
 #####
 #
-#
+# Django Impersonate
 #
 #####
 IMPERSONATE_REQUIRE_SUPERUSER = True
+
+#####
+#
+# Email Configuration
+#
+#####
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('SMTP_HOST', 'localhost')
+EMAIL_PORT = os.environ.get('SMTP_PORT', 25)
+EMAIL_HOST_USER = os.environ.get('SMTP_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+DEFAULT_FROM_EMAIL = 'no-reply@chameleoncloud.org'
