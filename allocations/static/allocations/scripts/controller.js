@@ -16,46 +16,42 @@ angular.module('allocationsApp')
             approved: false,
             rejected: false,
             search: ''
-        }
+        };
         $scope.reset = function() {
             $scope.selectedProjects = $scope.projects;
             $scope.filter.pending = false;
             $scope.filter.approved = false;
             $scope.filter.rejected = false;
             $scope.filter.search = '';
-        }
+        };
 
-        _search = function() {
+        var _search = function() {
             if (!$scope.filter.search) {
                 return $scope.projects;
             } else {
                 return _.filter($scope.projects, function(project) {
+                    var term = $scope.filter.search.toLowerCase()
                     var pass = false;
-                    var projectId = project.id.toString();
-                    var projectTitle = project.title;
-                    var chargeCode = project.chargeCode;
-                    if (projectId && projectId.indexOf($scope.filter.search) > -1) {
+                    var projectTitle = project.title || '';
+                    var chargeCode = project.chargeCode || '';
+                    var pi = project.pi || false;
+                    if (projectTitle.toLowerCase().indexOf(term) > -1) {
                         pass = true;
-                    } else if (projectTitle && projectTitle.indexOf($scope.filter.search) > -1) {
+                    } else if (chargeCode.toLowerCase().indexOf(term) > -1) {
                         pass = true;
-                    } else if (chargeCode && chargeCode.indexOf($scope.filter.search) > -1) {
+                    } else if (pi && (
+                        pi.lastName.toLowerCase().indexOf(term) > -1 ||
+                        pi.firstName.toLowerCase().indexOf(term) > -1 ||
+                        pi.username.toLowerCase().indexOf(term) > -1 ||
+                        pi.email.toLowerCase().indexOf(term) > -1)
+                    ) {
                         pass = true;
                     }
-                    if (!pass) {
-                        _.each(project.allocations, function(allocation) {
-                            var allocationId = allocation.id.toString();
-                            if (allocationId && allocationId.indexOf($scope.filter.search) > -1) {
-                                pass = true;
-                            } else {
-                                allocation.doNotShow = true;
-                            }
-                        });
-                    }
-
                     return pass;
                 });
             }
-        }
+        };
+
         $scope.updateSelected = function() {
             var chosenStatusFilters = [];
             for (var key in $scope.filter) {
@@ -88,7 +84,7 @@ angular.module('allocationsApp')
 
             }
 
-        }
+        };
         $scope.getClass = function(allocation) {
             var status = allocation.status.toLowerCase();
             if (status === 'pending') {
@@ -98,7 +94,7 @@ angular.module('allocationsApp')
             } else {
                 return 'label label-success';
             }
-        }
+        };
         $http({
                 method: 'GET',
                 url: '/allocations/view/',
@@ -120,7 +116,7 @@ angular.module('allocationsApp')
             return Date.UTC(
                 date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 10, date.getMinutes(), date.getSeconds(), date.getMilliseconds()
             );
-        }
+        };
         $scope.approveAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
             var modalInstance = $modal.open({
