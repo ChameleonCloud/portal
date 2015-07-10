@@ -4,6 +4,7 @@ from chameleon.decorators import terms_required
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
 from pytas.pytas import client as TASClient
@@ -14,6 +15,30 @@ import logging
 import json
 
 logger = logging.getLogger('default')
+
+def project_pi_or_admin_or_superuser(user, project):
+    if user.is_superuser:
+        return True
+
+    if user.groups.filter(name='Allocation Admin').count() == 1:
+        return True
+
+    if user.username == project['pi']['username']:
+        return True
+
+    return False
+
+def project_member_or_admin_or_superuser(user, project, project_user):
+    if project_pi_or_admin_or_superuser(user, project):
+        return True
+
+    for pu in project_user:
+        if user.username == pu['username']:
+            return True
+
+    return False
+
+
 
 @login_required
 def user_projects( request ):
@@ -70,6 +95,10 @@ def view_project( request, project_id ):
 
     project = tas.project( project_id )
     users = tas.get_project_users( project_id )
+
+    if not project_member_or_admin_or_superuser(request.user, project, users):
+        raise PermissionDenied
+
     fg_migration = re.search( r'FG-(\d+)', project['chargeCode'] )
     if fg_migration:
         fg_project_num = fg_migration.group( 1 )
