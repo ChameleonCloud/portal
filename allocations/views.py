@@ -27,7 +27,7 @@ def not_allocation_admin_or_superuser(user):
     return False
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def index( request ):
     user = request.user
     if user:
@@ -40,7 +40,7 @@ def denied( request ):
     return render(request, 'allocations/denied.html', context)
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def view( request ):
     resp = ''
     try:
@@ -53,7 +53,7 @@ def view( request ):
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def view_test( request ):
     resp = {}
     try:
@@ -65,7 +65,7 @@ def view_test( request ):
     return HttpResponse(json.dumps(resp['result']), content_type="application/json")
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/allocations/denied/')
+@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def approval( request ):
     resp = {}
     errors = {}
