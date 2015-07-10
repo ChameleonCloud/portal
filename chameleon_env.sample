@@ -56,3 +56,6 @@ SMTP_HOST=relay.tacc.utexas.edu
 SMTP_PORT=25
 SMTP_USER=
 SMTP_PASSWORD=
+# OUTAGE_NOTIFICATION_EMAIL=outages@chameleoncloud.org
+OUTAGE_NOTIFICATION_EMAIL=
+DEFAULT_FROM_EMAIL=no-reply@chameleoncloud.org

@@ -70,6 +70,8 @@ class Outage(News):
 
     start_date = models.DateTimeField('start of outage')
     end_date = models.DateTimeField('expected end of outage')
+    resolved = models.BooleanField('resolved', default=False)
+    send_email_notification = False
 
     def save(self):
         if not self.slug:

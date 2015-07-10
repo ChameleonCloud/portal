@@ -245,6 +245,10 @@ LOGGING = {
             'handlers': ['file', 'auth'],
             'level': 'DEBUG',
         },
+        'chameleon_mailman.models': {
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
     },
 }
 
@@ -415,4 +419,7 @@ EMAIL_HOST = os.environ.get('SMTP_HOST', 'localhost')
 EMAIL_PORT = os.environ.get('SMTP_PORT', 25)
 EMAIL_HOST_USER = os.environ.get('SMTP_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'no-reply@chameleoncloud.org'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@chameleoncloud.org')
+
+# User News Outage Notification
+OUTAGE_NOTIFICATION_EMAIL = os.environ.get('OUTAGE_NOTIFICATION_EMAIL', '')
