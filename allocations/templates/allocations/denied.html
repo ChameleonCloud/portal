@@ -1,5 +1,13 @@
-{% extends "layout/default.html" %} {% load sekizai_tags staticfiles %} {% block styles %}
-<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %} {% block title %}Projects and Allocations{% endblock %} {% block content %}
+{% extends "admin/base_site.html" %}
+{% load sekizai_tags staticfiles %}
+
+{% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}">
+{% endblock %}
+
+{% block title %}Projects and Allocations{% endblock %}
+
+{% block content %}
 <div>
   <div class="alert alert-danger">Permission denied. You need superuser or allocation admin privileges.</div>
 </div>
