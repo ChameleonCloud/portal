@@ -97,7 +97,7 @@ angular.module('allocationsApp')
         };
         $http({
                 method: 'GET',
-                url: '/allocations/view/',
+                url: '/admin/allocations/view/',
                 cache: 'true'
             })
             .then(function(response) {
@@ -120,7 +120,7 @@ angular.module('allocationsApp')
         $scope.approveAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
             var modalInstance = $modal.open({
-                templateUrl: '/allocations/template/approval.html/',
+                templateUrl: '/admin/allocations/template/approval.html/',
                 controller: 'modalController',
                 resolve: {
                     data: function() {
@@ -152,7 +152,7 @@ angular.module('allocationsApp')
                 postData.dateReviewed = $filter('date')(toUTC(new Date()), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
                 $http({
                         method: 'POST',
-                        url: '/allocations/approval/',
+                        url: '/admin/allocations/approval/',
                         data: postData
                     })
                     .then(function(response) {
@@ -186,7 +186,7 @@ angular.module('allocationsApp')
         $scope.rejectAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
             var modalInstance = $modal.open({
-                templateUrl: '/allocations/template/approval.html/',
+                templateUrl: '/admin/allocations/template/approval.html/',
                 controller: 'modalController',
                 resolve: {
                     data: function() {
@@ -216,7 +216,7 @@ angular.module('allocationsApp')
                 postData.dateReviewed = $filter('date')(toUTC(new Date()), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
                 $http({
                         method: 'POST',
-                        url: '/allocations/approval/',
+                        url: '/admin/allocations/approval/',
                         data: postData
                     })
                     .then(function(response) {

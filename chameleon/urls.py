@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     # admin urls
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/impersonate/', include('impersonate.urls')),
+    url(r'^admin/allocations/', include('allocations.urls', namespace='allocations_admin')),
 
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),
@@ -26,7 +27,6 @@ urlpatterns = patterns('',
     url(r'^logout/', 'django.contrib.auth.views.logout', { 'next_page': '/' }, name='logout'),
     url(r'^register/', RedirectView.as_view(url=reverse_lazy('tas:register'))),
     url(r'^user/', include('tas.urls', namespace='tas')),
-    url(r'^allocations/', include('allocations.urls', namespace='allocations')),
     url(r'^email-confirmation/', 'tas.views.email_confirmation'),
     url(r'^password-reset/', 'tas.views.password_reset'),
     url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
