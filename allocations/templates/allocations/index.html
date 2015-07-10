@@ -70,8 +70,10 @@
                             <td>
                                 [[ project.pi.firstName ]] [[ project.pi.lastName ]]
                                 <a ng-show="project.pi.email" ng-href="mailto:[[project.pi.email]]">
-                                    <i class="fa fa-envelope-o"></i>
-                                </a>
+                                    <i class="fa fa-envelope-o"></i> [[project.pi.email]]
+                                </a><br>
+                                [[ project.pi.institution ]]<br>
+                                Username: [[ project.pi.username]]
                             </td>
                         </tr>
                         <tr>
