@@ -245,7 +245,11 @@ LOGGING = {
             'handlers': ['file', 'auth'],
             'level': 'DEBUG',
         },
-        'chameleon_mailman.models': {
+        'allocations': {
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
+        'chameleon_mailman': {
             'handlers': ['file'],
             'level': 'INFO',
         },

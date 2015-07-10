@@ -17,7 +17,7 @@ import json
 import math
 import time
 
-logger = logging.getLogger('default')
+logger = logging.getLogger(__name__)
 
 def not_allocation_admin_or_superuser(user):
     logger.debug( 'user=%s', user )
