@@ -1,10 +1,16 @@
 {% extends 'layout/user.html' %}
 {% block title %}{{ outage.title }}{% endblock %}
 {% block content %}
-<h1>{{ outage.title }}</h1>
+<h1>
+  {{ outage.title }}
+</h1>
+
 <article class="news-item">
   <header>
     <div class="meta">
+      {% if outage.resolved %}
+        <span class="label label-success">Resolved</span>
+      {% endif %}
       <span>Posted by {{ outage.author.get_full_name }} on {{ outage.created|date:"F d, o" }}</span>
     </div>
   </header>

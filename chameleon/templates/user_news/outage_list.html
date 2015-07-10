@@ -11,8 +11,13 @@
 {% for outage in outage_list %}
 <article class="news-item news-item-type-outage">
   <header>
-    <h2><a href="{% url 'outage_detail' outage.slug %}">{{ outage.title }}</a></h2>
+    <h2>
+      <a href="{% url 'outage_detail' outage.slug %}">{{ outage.title }}</a>
+    </h2>
     <div class="meta">
+      {% if outage.resolved %}
+        <span class="label label-success">Resolved</span>
+      {% endif %}
       <span>Posted by {{ outage.author.get_full_name }} on {{ outage.created|date:"F d, o" }}</span>
     </div>
   </header>
