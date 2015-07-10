@@ -25,6 +25,7 @@ TICKET_CATEGORIES = (
     ('','Choose one'),
     ('FG_AT_CHAMELEON','FutureGrid@Chameleon'),
     ('TECH_PREVIEW','Technology Preview'),
+    ('EARLY_USER','Early User Program'),
     ('OTHER','Other'),
 )
 
