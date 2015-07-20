@@ -24,7 +24,11 @@
   margin-top:10px;
 }
 
-.discovery-app .node-sub-header {
+.discovery-app .pseudolink {
   cursor: pointer;
   cursor: hand;
+}
+
+.discovery-app .filter-block {
+  padding-bottom: 10px;
 }
