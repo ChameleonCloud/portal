@@ -1,9 +1,10 @@
+'use strict';
 angular.module('underscore', [])
     .factory('_', function() {
         return window._;
     });
 
-angular.module('discoveryApp', ['ng.django.forms', 'underscore'])
+angular.module('discoveryApp', ['underscore', 'ui.bootstrap', 'ngClipboard'])
     .config(function($interpolateProvider, $httpProvider) {
         $interpolateProvider.startSymbol('[[').endSymbol(']]');
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

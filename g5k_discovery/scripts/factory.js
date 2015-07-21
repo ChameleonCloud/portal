@@ -1,15 +1,19 @@
+'use strict';
 angular.module('discoveryApp')
     .factory('UtilFactory', ['_', function(_) {
         var factory = {};
         var nameMap = {
             'smp_size': '# CPUs',
             'smt_size': '# Cores',
-            'ram_size': 'RAM (MiB)',
+            'ram_size': 'RAM (GiB)',
             'cache_l1': 'Cache L1 (KiB)',
             'cache_l2': 'Cache L2 (KiB)',
+            'cache_l3': 'Cache L3 (KiB)',
             'cache_l1d': 'Cache L1d (KiB)',
             'cache_l1i': 'Cache L1i (KiB)',
-            'clock_speed': 'Clock Speed (GHz)'
+            'clock_speed': 'Clock Speed (GHz)',
+            'rate' : 'Rate (GHz)',
+            'size': 'Size (GiB)',
         };
         factory.isEmpty = function(obj) {
             if (typeof obj === 'undefined' || !obj) {
@@ -38,12 +42,79 @@ angular.module('discoveryApp')
                 return m;
             });
             return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+        };
         return factory;
     }])
     .factory('ResourceFactory', ['$q', '$http', '_', 'UtilFactory', function($q, $http, _, UtilFactory) {
         //Step I: Fetch sites
         var factory = {};
+
+        factory.formatNode = function(node){
+            delete node.links;
+            try{
+                node['main_memory']['ram_size'] = ((node['main_memory']['ram_size'])/(1024 * 1024 * 1024)).toFixed(2);
+            }
+            catch(err){}
+            try{
+                if(typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null){
+                    node['processor']['cache_l1'] = ((node['processor']['cache_l1'])/(1024)).toFixed(2);
+                }
+            }
+            catch(err){}
+            try{
+                if(typeof node['processor']['cache_l2'] !== 'undefined' && node['processor']['cache_l2'] !== null){
+                    node['processor']['cache_l2'] = ((node['processor']['cache_l2'])/(1024)).toFixed(2);
+                }
+            }
+            catch(err){}
+            try{
+                if(typeof node['processor']['cache_l3'] !== 'undefined' && node['processor']['cache_l3'] !== null){
+                    node['processor']['cache_l3'] = ((node['processor']['cache_l3'])/(1024)).toFixed(2);
+                }
+            }
+            catch(err){}
+            try{
+                if(typeof node['processor']['cache_l1d'] !== 'undefined' && node['processor']['cache_l1d'] !== null){
+                    node['processor']['cache_l1d'] = ((node['processor']['cache_l1d'])/(1024)).toFixed(2);
+                }
+            }
+            catch(err){}
+            try{
+                if(typeof node['processor']['cache_l1i'] !== 'undefined' && node['processor']['cache_l1i'] !== null){
+                    node['processor']['cache_l1i'] = ((node['processor']['cache_l1i'])/(1024)).toFixed(2);
+                }
+            }
+            catch(err){}            
+            try{
+                if(typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null){
+                    node['processor']['clock_speed'] = ((node['processor']['clock_speed'])/(1000000000)).toFixed(2);
+                }
+            }
+            catch(err){}
+            try{
+                var networkAdapters = node['network_adapters'];
+                if(!_.isEmpty(networkAdapters) && networkAdapters.length > 0){
+                   _.each(networkAdapters, function(networkAdapter){
+                    if(typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null){
+                    networkAdapter['rate'] = ((networkAdapter['rate'])/(1000000000)).toFixed(2);
+                }
+                   });
+                }
+            }
+            catch(err){}
+            try{
+                var storageDevices = node['storage_devices'];
+                if(!_.isEmpty(storageDevices) && storageDevices.length > 0){
+                   _.each(storageDevices, function(storageDevice){
+                    if(typeof storageDevice['size'] !== 'undefined' && storageDevice['size'] !== null){
+                    storageDevice['size'] = ((storageDevice['size'])/(1024 * 1024 * 1024)).toFixed(2);
+                }
+                   });
+                }
+            }
+            catch(err){}
+        };
+
         factory.sites = [];
         factory.allNodes = [];
         factory.filters = {};
@@ -60,11 +131,11 @@ angular.module('discoveryApp')
                         factory.sites = response.data.items;
                         _.each(factory.sites, function(site, parentIndex) {
                             var links = site.links;
-                            cluster_link = _.findWhere(links, {
+                            var cluster_link = _.findWhere(links, {
                                 rel: 'clusters'
                             });
                             if (cluster_link) {
-                                cluster_link_href = (cluster_link.href.substring(1)) + '.json';
+                                var cluster_link_href = (cluster_link.href.substring(1)) + '.json';
                                 //Step II: Fetch Clusters
                                 var promise_clusters = $http({
                                         method: 'GET',
@@ -73,13 +144,13 @@ angular.module('discoveryApp')
                                     })
                                     .then(function(response) {
                                             site.clusters = response.data.items;
-                                            _.each(site.clusters, function(cluster, index) {
-                                                var links = cluster.links
-                                                node_link = _.findWhere(links, {
+                                            _.each(site.clusters, function(cluster, clusterIndex) {
+                                                var links = cluster.links;
+                                                var node_link = _.findWhere(links, {
                                                     rel: 'nodes'
                                                 });
                                                 if (node_link) {
-                                                    nodes_link_href = (node_link.href.substring(1)) + '.json';
+                                                    var nodes_link_href = (node_link.href.substring(1)) + '.json';
                                                     //Step III: Fetch Nodes
                                                     var promise_nodes = $http({
                                                             method: 'GET',
@@ -88,11 +159,17 @@ angular.module('discoveryApp')
                                                         })
                                                         .then(function(response) {
                                                                 cluster.nodes = response.data.items;
-                                                                _.each(cluster.nodes, function(node) {
+                                                                _.each(cluster.nodes, function(node, nodeIndex) {
                                                                     node.site = site.uid;
                                                                     node.cluster = cluster.uid;
-                                                                    delete node.links;
+                                                                    factory.formatNode(node);
                                                                     factory.allNodes.push(node);
+                                                                    if ((parentIndex === factory.sites.length - 1) && (clusterIndex === site.clusters.length - 1) && (nodeIndex === cluster.nodes.length - 1)) {
+                                                                        $q.all(promises).then(function() {
+                                                                            scope.loading = false;
+                                                                            successCallBack();
+                                                                        });
+                                                                    }
                                                                 });
                                                                 return response;
                                                             },
@@ -103,12 +180,6 @@ angular.module('discoveryApp')
                                                                 return response;
                                                             });
                                                     promises.push(promise_nodes);
-                                                    if ((parentIndex === factory.sites.length - 1) && (index === site.clusters.length - 1)) {
-                                                        $q.all(promises).then(function() {
-                                                            scope.loading = false;
-                                                            successCallBack();
-                                                        });
-                                                    }
                                                 } else {
                                                     scope.loadingError = true;
                                                     scope.loading = false;
@@ -139,7 +210,7 @@ angular.module('discoveryApp')
                         return response;
                     });
             promises.push(promise_sites);
-        }
+        };
 
         factory.pruneFilters = function(filters, ky) {
             var filtersOrg = filters;
@@ -147,22 +218,20 @@ angular.module('discoveryApp')
             for (var key in filters) {
                 if (_.isObject(filters[key]) && !_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key])) {
                     factory.pruneFilters(filters, key);
-                } 
-                else if (_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key])) {
-                    if(_.isObject(filters[key][0])){
+                } else if (_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key])) {
+                    if (_.isObject(filters[key][0])) {
                         for (var i = 0; i < filters[key].length; i++) {
-                           factory.pruneFilters(filters[key], i);
+                            factory.pruneFilters(filters[key], i);
                         }
                     }
-                }
-                else if (UtilFactory.isEmpty(filters[key])) { 
+                } else if (UtilFactory.isEmpty(filters[key])) {
                     delete filters[key];
                 }
             }
             if (UtilFactory.isEmpty(filters) && typeof ky !== 'undefined') {
-                    delete filtersOrg[ky];
-                }
-        }
+                delete filtersOrg[ky];
+            }
+        };
 
         var processNode = function(node, uid, filters) {
             filters = (typeof filters === 'undefined') ? factory.filters : filters;
@@ -185,8 +254,9 @@ angular.module('discoveryApp')
                         processNode(node[key], uid, filters[key]);
                     } else {
                         if (!(key === 'type' || key === 'uid' || key === 'version' || key === 'mac' || key === 'guid' || key === 'serial')) {
+                            var subKey = '';
                             if (filters.hasOwnProperty(key)) {
-                                var subKey = node[key];
+                                subKey = node[key];
                                 if (subKey) {
                                     if (typeof filters[key][subKey] === 'undefined') {
                                         filters[key][subKey] = [];
@@ -195,7 +265,7 @@ angular.module('discoveryApp')
                                 }
                             } else {
                                 filters[key] = {};
-                                var subKey = node[key];
+                                subKey = node[key];
                                 if (subKey) {
                                     filters[key][subKey] = [];
                                     filters[key][subKey].push(uid);
@@ -205,9 +275,10 @@ angular.module('discoveryApp')
                     }
                 }
             }
-        }
+        };
 
         factory.processNodes = function(nodes) {
+            factory.filters = {};
             if (UtilFactory.isEmpty(nodes)) {
                 return;
             }
@@ -215,7 +286,6 @@ angular.module('discoveryApp')
                 processNode(node, node['uid']);
             });
             factory.pruneFilters();
-            console.log('filters:', factory.filters);
-        }
+        };
         return factory;
     }]);

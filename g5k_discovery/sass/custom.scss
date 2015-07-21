@@ -1,0 +1,45 @@
+.discovery-app {
+    .node-header,
+    .node-sub-header {
+        font-weight: bold;
+    }
+    .node-sub-header {
+        border-bottom: 1px solid #999;
+    }
+    .node {
+        margin-bottom: 2em;
+    }
+    .node section {
+        margin-bottom: 1em;
+    }
+    table {
+        font-size: 0.9em;
+    }
+    .header-line {
+        border-bottom: 2px solid #EFEFF2;
+        margin-top: 10px;
+    }
+    .pseudolink {
+        cursor: pointer;
+        cursor: hand;
+        padding: 5px;
+    }
+    .filter-block {
+        padding-bottom: 10px;
+    }
+    .disabled {
+        color: #777;
+    }
+}
+
+/*Non namespaced styles*/
+
+[ng\:cloak],
+[ng-cloak],
+.ng-cloak {
+    display: none !important;
+}
+
+td {
+    white-space: nowrap;
+}
