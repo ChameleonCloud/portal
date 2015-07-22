@@ -272,7 +272,7 @@ def register(request):
             errors['citizenshipId'] = 'Please provide your country of citizenship'
 
         if 'piEligibility' in request.POST:
-            data['piEligibility'] = 'Eligible'
+            data['piEligibility'] = 'Requested'
         else:
             data['piEligibility'] = 'Ineligible'
 
