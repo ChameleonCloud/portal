@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.3.5
+
+- update PI eligibility policy for new account registration
+
 ### v1.3.4
 
 - EUP export support for either UID or email exports
