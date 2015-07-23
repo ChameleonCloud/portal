@@ -14,6 +14,8 @@ angular.module('discoveryApp')
             'clock_speed': 'Clock Speed (GHz)',
             'rate' : 'Rate (GHz)',
             'size': 'Size (GiB)',
+            'gpu' : 'GPU',
+            'besteffort' : 'Best Effort'
         };
         factory.isEmpty = function(obj) {
             if (typeof obj === 'undefined' || !obj) {
@@ -51,6 +53,7 @@ angular.module('discoveryApp')
 
         factory.formatNode = function(node){
             delete node.links;
+            delete node.type;
             try{
                 node['main_memory']['ram_size'] = ((node['main_memory']['ram_size'])/(1024 * 1024 * 1024)).toFixed(2);
             }
@@ -118,6 +121,7 @@ angular.module('discoveryApp')
         factory.sites = [];
         factory.allNodes = [];
         factory.filters = {};
+        factory.prunedAppliedFilters = {};
         var promises = [];
         factory.getResources = function(scope, successCallBack, errorCallBack) {
             scope.loading = true;
@@ -253,11 +257,12 @@ angular.module('discoveryApp')
                         }
                         processNode(node[key], uid, filters[key]);
                     } else {
-                        if (!(key === 'type' || key === 'uid' || key === 'version' || key === 'mac' || key === 'guid' || key === 'serial')) {
+                        if (!(key === 'type' || key === 'uid' || key === 'guid' || key === 'mac' || key === 'serial')) {
                             var subKey = '';
                             if (filters.hasOwnProperty(key)) {
                                 subKey = node[key];
-                                if (subKey) {
+                                //this keeps values that are false
+                                if (subKey !== null && subKey !== '') {
                                     if (typeof filters[key][subKey] === 'undefined') {
                                         filters[key][subKey] = [];
                                     }
@@ -266,7 +271,7 @@ angular.module('discoveryApp')
                             } else {
                                 filters[key] = {};
                                 subKey = node[key];
-                                if (subKey) {
+                                if (subKey !== null && subKey !== '') {
                                     filters[key][subKey] = [];
                                     filters[key][subKey].push(uid);
                                 }

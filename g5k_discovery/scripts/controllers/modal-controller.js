@@ -10,13 +10,12 @@ angular.module('discoveryApp')
             minNode: '',
             maxNode: ''
         };
-        $scope.open = function(size) {
+        $scope.open = function() {
 
             var modalInstance = $modal.open({
                 animation: true,
                 templateUrl: 'template/reserve-modal.html/',
                 controller: 'ModalInstanceCtrl',
-                size: size,
                 resolve: {
                     userSelections: function() {
                         return $scope.userSelections;
@@ -36,18 +35,48 @@ angular.module('discoveryApp')
 // Please note that $modalInstance represents a modal window (instance) dependency.
 // It is not the same as the $modal service used above.
 
-angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filter', '$modalInstance', 'userSelections', function($scope, $filter, $modalInstance, userSelections) {
+angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filter', 'ResourceFactory', '$modalInstance', 'userSelections', function($scope, $filter, ResourceFactory, $modalInstance, userSelections) {
     $scope.userSelections = userSelections;
+    var nodes = ResourceFactory.filteredNodes || ResourceFactory.allNodes;
+    $scope.maxNodes = nodes.length;
     $scope.showScript = false;
+    var scrpt = '';
     $scope.generateScript = function() {
-        console.log(' $scope.userSelections',  $scope.userSelections);
+        var appliedFilters = ResourceFactory.prunedAppliedFilters;
+        scrpt = '';
+        generateFilterScript(appliedFilters);
+        var selectionScript = 'startDate=' + $filter('date')($scope.userSelections.startDate, 'yyyy-MM-dd') + '&endDate=' + $filter('date')($scope.userSelections.endDate, 'yyyy-MM-dd') + '&min=' + $scope.userSelections.minNode + '&max=' + $scope.userSelections.maxNode;
+        if(scrpt){
+           $scope.scrpt = scrpt + '&' + selectionScript;
+        }
+        else{
+            $scope.scrpt = selectionScript;
+        }
         $scope.showScript = true;
-        //$modalInstance.close( $scope.userSelections);
     };
+    var generateFilterScript = function(appliedFilters, ky){
+        ky = ky || '';
+           for(var key in appliedFilters){console.log('key>>>>', key);
+              if(_.isArray(appliedFilters[key])){
+                var arr = appliedFilters[key];
+                 for(var i=0; i<arr.length; i++){
+                    var k1 = ky + key + '_' + i + '_';
+                    generateFilterScript(arr[i], k1);
+                 }
+              }
+              else if(_.isObject(appliedFilters[key])){
+                    var k2 = ky + key + '_';
+                    generateFilterScript(appliedFilters[key], k2);
+              }
+              else if(appliedFilters[key] === true){
+                ky = ky.substring(0, ky.length -1);
+                 scrpt += '&' + ky + '=' + key; 
+              }
+           }
+    };
+
     $scope.getScript = function() {
-        //$modalInstance.close( $scope.userSelections);
-        var scrpt = 'startDate=' + $filter('date')($scope.userSelections.startDate, 'yyyy-MM-dd') + '&endDate=' + $filter('date')($scope.userSelections.endDate, 'yyyy-MM-dd') + '&min=' + $scope.userSelections.minNode + '&max=' + $scope.userSelections.maxNode;
-        return scrpt;
+        return $scope.scrpt;
     };
 
     $scope.fallback = function(copy) {
@@ -61,6 +90,10 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
 
     $scope.cancel = function() {
         $modalInstance.dismiss('cancel');
+    };
+
+    $scope.getMin = function(){
+       return $scope.userSelections.minNode || 1;
     };
     $scope.minDate = new Date();
     $scope.open = {
@@ -91,5 +124,5 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
         startingDay: 1
     };
 
-    $scope.format = 'dd-MMMM-yyyy';
+    $scope.format = 'yyyy-MM-dd';
 }]);

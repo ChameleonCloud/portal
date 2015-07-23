@@ -124,7 +124,7 @@ module.exports = function(grunt) {
           'bower_components/angular/angular.js',
           'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
           'bower_components/zeroclipboard/dist/ZeroClipboard.js',
-          'bower_components/ng-clip/src/ngClip.js',
+          'bower_components/ng-clip/src/ngClip.js'
         ],
         dest: '.tmp/scripts/vendor.js'
       },

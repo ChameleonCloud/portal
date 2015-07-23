@@ -3,7 +3,7 @@
 </div>
 <div ng-if="showScript">
     <div class="modal-body">
-        startDate=[[userSelections.startDate | date:"yyyy-MM-dd"]]&endDate=[[userSelections.startDate | date:"yyyy-MM-dd"]]&min=[[userSelections.minNode]]&max=[[userSelections.maxNode]]
+        <code>[[scrpt]]</code>
     </div>
     <div class="modal-footer">
         <button class="btn btn-success" clip-copy="getScript()" clip-click="ok()" clip-click-fallback="fallback(copy)">Copy to Clipboard</button>
@@ -61,11 +61,11 @@
             <tr>
                 <td><strong>Max. Nodes Requested</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
                 <td>
-                    <input type="number" ng-model="userSelections.maxNode" name="maxNode" min="userSelections.minNode" max="[[maxNodes]]" ng-required="true"/>
+                    <input type="number" ng-model="userSelections.maxNode" name="maxNode" min="[[getMin()]]" max="[[maxNodes]]" ng-required="true" ng-disabled="modalForm.minNode.$invalid"/>
                     <div style="color:red" ng-show="modalForm.maxNode.$dirty && modalForm.maxNode.$invalid">
                         <div ng-show="modalForm.maxNode.$error.required">Maximum no. of nodes requested is required.</div>
                         <div ng-show="modalForm.maxNode.$error.number">Maximum no. of nodes requested must be a number.</div>
-                        <div ng-show="modalForm.maxNode.$error.min || modalForm.maxNode.$error.max">Maximum no. of nodes requested must be between 1 and [[maxNodes]].</div>
+                        <div ng-show="modalForm.maxNode.$error.min || modalForm.maxNode.$error.max">Maximum no. of nodes requested must be between [[userSelections.minNode]] and [[maxNodes]].</div>
                     </div>
                 </td>
             </tr>

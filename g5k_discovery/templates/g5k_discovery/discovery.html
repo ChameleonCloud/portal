@@ -3,108 +3,16 @@
 
 <body ng-app="discoveryApp" class="discovery-app" ng-cloak>
     <div class="content" ng-controller="MainController">
-        <div ng-if="loading" class="well">
-            <h4><span class="fa fa-refresh fa-spin"></span> Loading...</h4>
-        </div>
-        <div ng-if="!loading">
-            <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
-            <div ng-if="!loadingError">
-                <h2 class="title">Nodes</h2>
-                <div class="col col-sm-12">&nbsp;</div>
-                <div class="col col-sm-2 filter-block">
-                    <strong>Site</strong>
-                    <div ng-repeat="(key, value) in filterSite track by $index" ng-class="{'disabled' : shouldDisable(['site', key], value.length)}">
-                        <input type="checkbox" name="[[key]]" ng-model="appliedFilters.site[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['site', key], value.length)" ng-checked="value.length === filteredNodes.length"> [[snakeToReadable(key)]] ([[value.length]])
-                    </div>
-                </div>
-                <div class="col col-sm-2 filter-block">
-                    <strong>Cluster</strong>
-                    <div ng-repeat="(key, value) in filterCluster track by $index" ng-class="{'disabled' : shouldDisable(['cluster', key], value.length)}">
-                        <input type="checkbox" name="[[key]]" ng-model="appliedFilters.cluster[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['cluster', key], value.length)" ng-checked="value.length === filteredNodes.length"> [[snakeToReadable(key)]] ([[value.length]])
-                    </div>
-                </div>
-                <div ng-repeat="(key, value) in filterMainMemory track by $index" class="col col-sm-2 filter-block">
-                    <strong>[[snakeToReadable(key)]]</strong>
-                    <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable(['main_memory', key, k], v.length)}">
-                        <input type="checkbox" name="[[k]]" ng-model="appliedFilters.main_memory[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable(['main_memory', key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                    </div>
-                </div>
-                <div ng-repeat="(key, value) in filterArchitecture track by $index" class="col col-sm-2 filter-block">
-                    <strong>[[snakeToReadable(key)]]</strong>
-                    <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable(['architecture', key, k], v.length)}">
-                        <input type="checkbox" name="[[k]]" ng-model="appliedFilters.architecture[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                    </div>
-                </div>
-                <div ng-repeat="(key, value) in filterProcessor track by $index" class="col col-sm-2 filter-block">
-                    <strong>Processor [[snakeToReadable(key)]]</strong>
-                    <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable(['processor', key, k], v.length)}">
-                        <input type="checkbox" name="[[k]]" ng-model="appliedFilters.processor[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable(['processor', key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                    </div>
-                </div>
-                <div ng-repeat="(key, value) in filters track by $index" class="filter-section">
-                    <div ng-if="!isNestedObject(value) && !isArray(value)">
-                        <div class="col col-sm-3 filter-block">
-                            <strong>[[snakeToReadable(key)]]</strong>
-                            <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable([key, k], v.length)}">
-                                <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                            </div>
-                        </div>
-                    </div>
-                    <div ng-if="isArray(value)" ng-init="collapsed = true" class="col-sm-12 ">
-                        <h5 class="bg-primary pseudolink" ng-click="collapsed = !collapsed"><strong>[[snakeToReadable(key)]]</strong>
-                             <span ng-show="!collapsed" class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>
-                             <span ng-show="collapsed" class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-                        </h5>
-                        <div ng-repeat="val in value track by $index" ng-show="!collapsed" class="col-sm-12" ng-init="arrayIndex = $index; innerCollapsed = true">
-                            <h5 class="bg-success pseudolink" ng-click="innerCollapsed = !innerCollapsed"><strong>[[snakeToReadable(key)]] #[[$index]]</strong>
-                                     <span ng-show="!innerCollapsed" class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>
-                                     <span ng-show="innerCollapsed" class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-                            </h5>
-                            <div ng-repeat="(ky, vl) in val track by $index" ng-show="!innerCollapsed" class="col col-sm-3 filter-block">
-                                <strong>[[snakeToReadable(ky)]]</strong>
-                                <div ng-repeat="(k, v) in vl track by $index" ng-class="{'disabled' : shouldDisable([key, arrayIndex, ky, k], v.length)}">
-                                    <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][arrayIndex][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, arrayIndex, ky, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div ng-if="isNestedObject(value) && !isArray(value)" ng-init="collapsed = true" class="col-sm-12">
-                        <h5 class="bg-primary pseudolink" ng-click="collapsed = !collapsed"><strong>[[snakeToReadable(key)]]</strong>
-                             <span ng-show="!collapsed" class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>
-                             <span ng-show="collapsed" class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-                        </h5>
-                        <div ng-repeat="(ky, vl) in value track by $index" ng-show="!collapsed" class="col col-sm-3 filter-block">
-                            <strong>[[snakeToReadable(ky)]]</strong>
-                            <div ng-repeat="(k, v) in vl track by $index" ng-class="{'disabled' : shouldDisable([key, ky, k], v.length)}">
-                                <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, ky, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col col-sm-12">
-                    <h4><strong>[[filteredNodes.length]] nodes</strong>
-                    <span ng-if="filteredNodes.length !== allNodes.length">
-                filtered from [[allNodes.length]] originally.                
-              </span></h4>
-                </div>
-                <div class="col col-sm-12">
-                    <span ng-controller="ModalController" ><button class="btn btn-sm btn-success" ng-click="open()">Reserve</button>
-                    </span>
-                    <button class="btn btn-sm btn-info" ng-click="">View</button>
-                    <button class="btn btn-sm" ng-click="resetFilters()">Reset</button>
-                </div>
+        <div ng-include="'template/filters.html'" ng-if="!showNodes"></div>
+        <div ng-if="showNodes" ng-init="viewLoading = true;">
+            <div ng-if="viewLoading" class="well">
+                <h4><span class="fa fa-refresh fa-spin"></span> Loading nodes...</h4>
             </div>
+            <div ng-include="'template/nodes.html/'" onload="viewLoading = false;"></div>
         </div>
     </div>
 </body>
 {% endblock content %} {% block scripts %}
 <script src="{% static 'g5k_discovery/js/vendor.js' %}"></script>
 <script src="{% static 'g5k_discovery/js/main.js' %}"></script>
-<!--<script src="{% static 'g5k_discovery/underscore/underscore.js' %}"></script>
-<script src="{% static 'g5k_discovery/angular/angular.js' %}"></script>
-<script src="{% static 'g5k_discovery/angular/ui-bootstrap-tpls.min.js' %}"></script>
-<script src="{% static 'g5k_discovery/scripts/app.js' %}"></script>
-<script src="{% static 'g5k_discovery/scripts/factory.js' %}"></script>
-<script src="{% static 'g5k_discovery/scripts/main-controller.js' %}"></script>
-<script src="{% static 'g5k_discovery/scripts/modal-controller.js' %}"></script>-->
 {% endblock %}

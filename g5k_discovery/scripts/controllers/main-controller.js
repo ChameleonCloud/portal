@@ -5,9 +5,24 @@
 angular.module('discoveryApp')
     .controller('MainController', ['$scope', '$http', '_', '$q', '$timeout', 'ResourceFactory', 'UtilFactory', function($scope, $http, _, $q, $timeout, ResourceFactory, UtilFactory) {
         $scope.snakeToReadable = UtilFactory.snakeToReadable;
+        
         $scope.isArray = function(obj) {
             return _.isArray(obj);
         };
+
+        $scope.isObject = function(obj) {
+            return _.isObject(obj);
+        };
+        
+        $scope.contains = function(arr, element){
+          return _.contains(arr, element);
+        };
+
+        $scope.changeView = function(){
+            $scope.showNodes = !$scope.showNodes;
+            console.log('$scope.showNodes', $scope.showNodes);
+        };
+
         $scope.isNestedObject = function(obj) {
             if (_.isArray(obj)) {
                 return false;
@@ -110,12 +125,18 @@ angular.module('discoveryApp')
             delete $scope.filters['site'];
             $scope.filterCluster = $scope.filters['cluster'];
             delete $scope.filters['cluster'];
+            $scope.filterVersion = $scope.filters['version'];
+            delete $scope.filters['version'];
             $scope.filterArchitecture = $scope.filters['architecture'];
             delete $scope.filters['architecture'];
             $scope.filterProcessor = $scope.filters['processor'];
             delete $scope.filters['processor'];
             $scope.filterMainMemory = $scope.filters['main_memory'];
             delete $scope.filters['main_memory'];
+            $scope.filterGpu = $scope.filters['gpu'];
+            delete $scope.filters['gpu'];
+            $scope.filterMonitoring = $scope.filters['monitoring'];
+            delete $scope.filters['monitoring'];
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -166,6 +187,7 @@ angular.module('discoveryApp')
             console.log('$scope.prunedAppliedFilters', $scope.prunedAppliedFilters);
             var prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
             console.log('prunedAppliedFilters', prunedAppliedFilters);
+            ResourceFactory.prunedAppliedFilters = prunedAppliedFilters;
             intersectArray = [];
             createIntersectArray();
             console.log('intersectArray', intersectArray);
@@ -188,6 +210,7 @@ angular.module('discoveryApp')
                 });
             }
             ResourceFactory.processNodes($scope.filteredNodes);
+            ResourceFactory.filteredNodes = $scope.filteredNodes;
             $scope.filters = angular.copy(ResourceFactory.filters);
             makeChunks();
             console.log('$scope.appliedFilters', $scope.appliedFilters);
