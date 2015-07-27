@@ -53,8 +53,8 @@
 
 /*Non namespaced styles*/
 
-code {
-    overflow: scroll;
+.modal-body {
+    overflow: auto;
 }
 
 [ng\:cloak],
