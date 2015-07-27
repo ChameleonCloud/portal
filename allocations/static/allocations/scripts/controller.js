@@ -12,15 +12,17 @@ angular.module('allocationsApp')
             allocations: '',
         };
         $scope.filter = {
+            active: false,
+            inactive: false,
             pending: false,
-            approved: false,
             rejected: false,
             search: ''
         };
         $scope.reset = function() {
             $scope.selectedProjects = $scope.projects;
+            $scope.filter.active = false;
+            $scope.filter.inactive = false;
             $scope.filter.pending = false;
-            $scope.filter.approved = false;
             $scope.filter.rejected = false;
             $scope.filter.search = '';
         };
