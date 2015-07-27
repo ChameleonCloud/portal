@@ -257,3 +257,15 @@ article {
     }
   }
 }
+
+.btn-highlight {
+  color: #fff;
+  background-color: #eda711;
+  border-color: #cd910f;
+
+  &:hover {
+    color: #fff;
+    background-color: #cd910f;
+    border-color: #9e6f0b;
+  }
+}
