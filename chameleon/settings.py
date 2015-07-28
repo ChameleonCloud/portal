@@ -255,6 +255,10 @@ LOGGING = {
             'handlers': ['file', 'auth'],
             'level': 'DEBUG',
         },
+        'tas': {
+            'handlers': ['file', 'auth'],
+            'level': 'DEBUG',
+        },
         'allocations': {
             'handlers': ['file'],
             'level': 'INFO',

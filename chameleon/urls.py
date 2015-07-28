@@ -19,7 +19,7 @@ urlpatterns = patterns('',
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),
     url(r'^captcha/', include('captcha.urls')),
-    url(r'^terms/', include('termsandconditions.urls')),
+    url(r'^terms/', include('termsandconditions.urls', namespace='terms')),
     url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': {'cmspages': CMSSitemap}}),
 
     # custom urls
