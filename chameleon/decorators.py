@@ -22,7 +22,7 @@ def terms_required(terms_slug):
                 return view_func(request, *args, **kwargs)
 
             currentPath = request.META['PATH_INFO']
-            accept_path = reverse( 'tc_accept_specific_version_page', args=[ terms.slug, terms.version_number ] )
+            accept_path = reverse('terms:tc_accept_specific_version_page', args=[terms.slug, terms.version_number])
             login_url_parts = list(urlparse.urlparse(accept_path))
             querystring = QueryDict(login_url_parts[4], mutable=True)
             querystring['returnTo'] = currentPath
