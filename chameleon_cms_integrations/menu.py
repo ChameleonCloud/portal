@@ -59,9 +59,9 @@ class UserMenu(CMSAttachMenu):
         n = NavigationNode(_('Projects'), "/user/projects/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
-        menu_id += 1
-        n = NavigationNode(_('FutureGrid@Chameleon'), "/user/projects/futuregrid/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
-        nodes.append(n)
+        # menu_id += 1
+        # n = NavigationNode(_('FutureGrid@Chameleon'), "/user/projects/futuregrid/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        # nodes.append(n)
 
         menu_id += 1
         n = NavigationNode(_('Outages'), "/user/outages/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
