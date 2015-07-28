@@ -1,9 +1,10 @@
 {% extends "layout/default.html" %}
-{% load chameleon_tags %}
+{% load staticfiles chameleon_tags bootstrap3 %}
 {% block title %}Edit Profile{% endblock %}
 {% block content %}
 <h2>Edit Profile <small>| {{ user.username }} </small></h2>
 
+{% comment %}
 {% if profile %}
 <form method="post" action="{% url 'tas:profile_edit' %}">
   {% csrf_token %}
@@ -86,9 +87,9 @@
             <label><input type="checkbox" name="piEligibility" id="piEligibility" value="false"> Request PI Eligibility</label>
           </div>
           <p class="help-block">
-            Faculty and Research Staff from U.S.-based institutions can request PI
-            Eligibility. If you are not PI Eligible and would like to request to be
-            eligible, please check the box above.
+            Users who intend to create and lead projects on Chameleon must meet the PI Eligibility requirements.
+            <a href="/docs/getting-started/pi-eligibility/">Please review the PI Eligibility requirements</a> to
+            determine if you qualify as PI Eligibile.
           </p>
         {% elif profile.piEligibility|lower == "requested" %}
           <label class="control-label">PI Eligibility</label>
@@ -112,36 +113,59 @@
     <p>There was an error loading your profile information.</p>
   </div>
 {% endif %}
+{% endcomment %}
+
+<div class="row">
+  <div class="col-md-6">
+    <form method="post">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+
+      <div class="form-group">
+        <label>PI Eligibility</label>
+        {% if user.piEligibility|lower == 'eligible' %}
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" checked disabled>
+              Eligible
+            </label>
+          </div>
+        {% elif user.piEligibility|lower == 'requested' %}
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" checked disabled>
+              Requested
+            </label>
+          </div>
+          <p class="help-block">
+            You have requested PI Eligibility. The Chameleon accounting team is reviewing your
+            request.
+          </p>
+        {% else %}
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility">
+              Request PI Eligibility
+            </label>
+          </div>
+          <p class="help-block">
+            Faculty and Research Staff from U.S.-based institutions can request PI
+            Eligibility. If you are not PI Eligible and would like to request to be
+            eligible, please check the box above.
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-success">Save Profile</button>
+        <a href="{% url 'tas:profile' %}" class="btn btn-default">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
-jQuery(function($) {
-  $('#institutionId').on('change', function(e) {
-    var id = this.value;
-    if (id) {
-      var depts = JSON.parse( $(this).find('option[value='+id+']').attr('data-depts') );
-      if (depts.length) {
-        var opts = '<option value="">Choose One</option>';
-        $.each(depts, function(i, o) {
-          opts += '<option value="' + o.id + '">' + o.name + '</option>';
-        });
-        $('#departmentId').html(opts);
-        $('#departmentId').parent().removeClass('hide');
-      } else {
-        $('#departmentId').val('');
-        $('#departmentId').parent().addClass('hide');
-      }
-    } else {
-      $('#departmentId').val('');
-      $('#departmentId').parent().addClass('hide');
-    }
-  });
-
-  if ($('#departmentId').val() === '') {
-    $('#departmentId').parent().addClass('hide');
-  }
-});
-</script>
+<script type="text/javascript" src="{% static 'tas/js/institution_departments.js' %}"></script>
 {% endblock %}

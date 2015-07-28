@@ -4,13 +4,15 @@ from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.forms.util import ErrorList
+from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from pytas.pytas import client as TASClient
-from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm
+from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
 import re
 import logging
 import json
+
 
 @login_required
 def profile(request):
@@ -29,94 +31,40 @@ def profile(request):
 
     return render(request, 'tas/profile.html', context)
 
+def get_departments_json(request):
+    institutionId = request.GET.get('institutionId')
+    if institutionId:
+        tas = TASClient()
+        departments = tas.get_departments(institutionId)
+    else:
+        departments = {}
+    return HttpResponse(json.dumps(departments), content_type='application/json')
+
+
 @login_required
 def profile_edit(request):
-    context = {}
-
     tas = TASClient()
-    is_valid = True
+    tas_user = tas.get_user(username=request.user)
 
     if request.method == 'POST':
-        data = tas.get_user(username=request.user)
-
-        form_data = {
-            'firstName': request.POST['firstName'],
-            'lastName': request.POST['lastName'],
-            'email': request.POST['email'],
-            'institutionId': request.POST['institutionId'],
-            'departmentId': request.POST['departmentId'],
-            'countryId': request.POST['countryId'],
-            'citizenshipId': request.POST['citizenshipId'],
-        }
-
-        data[ 'firstName' ] = form_data['firstName']
-        data[ 'lastName' ] = form_data['lastName']
-        data[ 'email' ] = form_data['email']
-
-        if 'piEligibility' in request.POST:
-            data['piEligibility'] = 'Requested'
-
-        try:
-            data[ 'institutionId' ] = int(form_data['institutionId'])
-        except:
-            messages.error(request, 'Please select an institution.')
-            is_valid = False
-
-        try:
-            data[ 'departmentId' ] = int(form_data['departmentId'])
-        except:
-            data[ 'departmentId' ] = None
-
-        try:
-            data[ 'countryId' ] = int(form_data['countryId'])
-        except:
-            messages.error(request, 'Please select your country of residence.')
-            is_valid = False
-
-        try:
-            data[ 'citizenshipId' ] = int(form_data['citizenshipId'])
-        except:
-            messages.error(request, 'Please select your country of Citizenship.')
-            is_valid = False
-
-        if is_valid:
-            tas.save_user(data[ 'id' ], data)
+        form = UserProfileForm(request.POST, initial=tas_user)
+        if form.is_valid():
+            data = form.cleaned_data
+            if request.POST.get('request_pi_eligibility'):
+                data['piEligibility'] = 'Requested'
+            else:
+                data['piEligibility'] = tas_user['piEligibility']
+            data['source'] = 'Chameleon'
+            tas.save_user(tas_user['id'], data)
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
-        else:
-            context['profile'] = data
-            context['profile']['source'] = 'Chameleon'
-
     else:
-        try:
-            resp = tas.get_user(username=request.user)
-            context['profile'] = resp
-        except:
-            context['profile'] = False
-            # raise Exception('error loading profile')
+        form = UserProfileForm(initial=tas_user)
 
-    if context['profile']['source'] != 'Chameleon':
-        return HttpResponseRedirect(reverse('tas:profile'))
-
-    try:
-        inst = tas.institutions()
-        context['institutions'] = inst
-
-        curr_inst = next((x for x in inst if x['id'] == context['profile']['institutionId']), None)
-        context['curr_inst'] = curr_inst
-    except Exception as e:
-        logger = logging.getLogger('default')
-        logger.exception('Error loading institutions')
-        context['institutions'] = False
-
-    try:
-        countries = tas.countries()
-        context['countries'] = countries
-    except Exception as e:
-        logger = logging.getLogger('default')
-        logger.exception('Error loading countries')
-        context['countries'] = False
-
+    context = {
+        'form': form,
+        'user': tas_user,
+        }
     return render(request, 'tas/profile_edit.html', context)
 
 def password_reset(request):
@@ -153,7 +101,7 @@ def _process_password_reset_request(request, form):
         messages.success(request, 'Your request has been received. If an account matching the username you provided is found, you will receive an email with further instructions to complete the password reset process.')
 
         username = form.cleaned_data['username']
-        logger = logging.getLogger('auth')
+        logger = logging.getLogger('tas')
         logger.info('Password reset request for username: "%s"', username)
         try:
             tas = TASClient()
@@ -174,7 +122,7 @@ def _process_password_reset_confirm(request, form):
             tas = TASClient()
             return tas.confirm_password_reset(data['username'], data['code'], data['password'], source='Chameleon')
         except Exception as e:
-            logger = logging.getLogger('auth')
+            logger = logging.getLogger('tas')
             logger.exception('Password reset failed')
             if len(e.args) > 1:
                 if re.search('account does not match', e.args[1]):
@@ -204,7 +152,7 @@ def email_confirmation(request):
                 messages.success(request, 'Congratulations, your email has been verified! Please log in now.')
                 return HttpResponseRedirect(reverse('tas:profile'))
             except Exception as e:
-                logger = logging.getLogger('auth')
+                logger = logging.getLogger('tas')
                 logger.exception('Email verification failed')
                 if e[0] == 'User not found':
                     form.add_error('username', e[1])
@@ -219,82 +167,26 @@ def email_confirmation(request):
     return render(request, 'tas/email_confirmation.html', context)
 
 def register(request):
+    logger = logging.getLogger('tas')
+
     if request.user is not None and request.user.is_authenticated():
         return HttpResponseRedirect(reverse('tas:profile'))
 
-    tas = TASClient()
+    if request.method == 'POST':
+        profile_form = UserRegistrationForm(request.POST)
+        account_form = UserAccountForm(request.POST)
+        if profile_form.is_valid() and account_form.is_valid():
+            data = dict(profile_form.cleaned_data.items() + account_form.cleaned_data.items())
 
-    context = { 'form': {} }
-    if request.POST:
-        data = request.POST.copy()
+            if request.POST.get('request_pi_eligibility'):
+                data['piEligibility'] = 'Requested'
+            else:
+                data['piEligibility'] = 'Ineligible'
 
-        errors = {}
-
-        if not data['firstName']:
-            errors['firstName'] = 'Please provide your first name'
-
-        if not data['lastName']:
-            errors['lastName'] = 'Please provide your last name'
-
-        if data['username']:
-            validate_username = validators.RegexValidator('^[a-z][a-z0-9_]{2,7}$', 'Please enter a valid username.')
-            try:
-                validate_username(data['username'])
-            except ValidationError as e:
-                errors['username'] = e[0]
-        else:
-            errors['username'] = 'Please select a username'
-
-        if data['email']:
-            try:
-                validators.validate_email(data['email'])
-            except ValidationError as e:
-                errors['email'] = e[0]
-        else:
-            errors['email'] = 'Please provide a valid email address'
-
-        if data['institutionId']:
-            data['institutionId'] = int(data['institutionId'])
-        else:
-            errors['institutionId'] = 'Please select your affilitated Institution'
-
-        if data['departmentId']:
-            data['departmentId'] = int(data['departmentId'])
-
-        if data['countryId']:
-            data['countryId'] = int(data['countryId'])
-        else:
-            errors['countryId'] = 'Please provide your current country of residence'
-
-        if data['citizenshipId']:
-            data['citizenshipId'] = int(data['citizenshipId'])
-        else:
-            errors['citizenshipId'] = 'Please provide your country of citizenship'
-
-        if 'piEligibility' in request.POST:
-            data['piEligibility'] = 'Requested'
-        else:
-            data['piEligibility'] = 'Ineligible'
-
-        if data['password'] and data['confirm_password']:
-            if data['password'] != data['confirm_password']:
-                errors['password'] = 'The passwords provided do not match'
-        else:
-            errors['password'] = 'Please provide and confirm your password'
-
-        if len(errors) == 0:
-            # success!
-
-            # source
             data['source'] = 'Chameleon'
 
-            # log the request
-            cleaned = data.copy()
-            cleaned['password'] = cleaned['confirm_password'] = '********'
-            logger = logging.getLogger('auth')
-            logger.info('processing user registration: data=%s', json.dumps(cleaned))
-
             try:
+                tas = TASClient()
                 created_user = tas.save_user(None, data)
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect('/')
@@ -303,51 +195,35 @@ def register(request):
                 if len(e.args) > 1:
                     if re.search('DuplicateLoginException', e.args[1]):
                         message = 'The username you chose has already been taken. Please choose another. If you already have an account with TACC, please log in using those credentials.'
+                        errors = account_form._errors.setdefault('username', ErrorList())
+                        errors.append(message)
                         messages.error(request, message)
-                        errors['username'] = message
                     elif re.search('DuplicateEmailException', e.args[1]):
                         message = 'This email is already registered. If you already have an account with TACC, please log in using those credentials.'
                         messages.error(request, message + ' <a href="{0}">Did you forget your password?</a>'.format(reverse('tas:password_reset')))
-                        errors['email'] = message
+                        errors = profile_form._errors.setdefault('email', ErrorList())
+                        errors.append(message)
                     elif re.search('PasswordInvalidException', e.args[1]):
                         message = 'The password you provided did not meet the complexity requirements.'
                         messages.error(request, message)
-                        errors['password'] = message
-                        errors['confirm_password'] = message
+                        errors = account_form._errors.setdefault('password', ErrorList())
+                        errors.append(message)
                     else:
                         messages.error(request, 'An unexpected error occurred. If this problem persists please create a help ticket.')
                 else:
                     messages.error(request, 'An unexpected error occurred. If this problem persists please create a help ticket.')
-        else:
-            messages.error(request, 'There was an error in your registration. See below for details.')
 
-        context['form']['errors'] = errors
-        context['form']['data'] = data
+            # return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        data = {}
+        profile_form = UserRegistrationForm()
+        account_form = UserAccountForm()
 
-    try:
-        inst = tas.institutions()
+    context = {
+        'profile_form': profile_form,
+        'account_form': account_form,
+        }
 
-        # remove "n/a" from list
-        inst = [i for i in inst if i['id'] is not 175]
-
-        context['institutions'] = inst
-        if 'institutionId' in data and data['institutionId']:
-            context['curr_inst'] = next((x for x in inst if x['id'] == data['institutionId']), None)
-        else:
-            context['curr_inst'] = None
-    except Exception as e:
-        logger = logging.getLogger('default')
-        logger.error('Error loading institutions', e)
-        context['institutions'] = False
-
-    try:
-        countries = tas.countries()
-        context['countries'] = countries
-    except Exception as e:
-        logger = logging.getLogger('default')
-        logger.error('Error loading countries', e)
-        context['countries'] = False
+    if request.method == 'POST':
+        context['request_pi_eligibility'] = request.POST.get('request_pi_eligibility')
 
     return render(request, 'tas/register.html', context)

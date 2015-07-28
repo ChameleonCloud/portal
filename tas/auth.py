@@ -14,7 +14,7 @@ class TASBackend(ModelBackend):
     # This is called by the standard Django login procedure
     def authenticate(self, username=None, password=None, request=None, errors=[]):
         tas_user = None
-        logger = logging.getLogger('auth')
+        logger = logging.getLogger('tas')
         if request is not None:
             logger.info('Attempting login for user "%s" from IP "%s"' % (username, request.META.get('REMOTE_ADDR')))
         else:

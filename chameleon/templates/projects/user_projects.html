@@ -41,19 +41,7 @@
 {% empty %}
   <div class="jumbotron">
     <h1 style="border:0;margin-top:0;font-size:48px">You don't have any projects!</h1>
-    <h4>FutureGrid@Chameleon</h4>
-    <p>
-      At this time, Chameleon is supporting
-      <a href="{% page_url 'futuregrid_at_chameleon' %}">FutureGrid@Chameleon</a>.
-      If you are a former FutureGrid User, you can migrate your project to
-      Chameleon.
-    </p>
-    <p>
-      <a href="{% url 'projects:lookup_fg_projects' %}" class="btn btn-info">
-        <i class="fa fa-plus-circle"></i>
-        Migrate a FutureGrid Project
-      </a>
-    </p>
+
     {% if is_pi_eligible %}
     <hr>
     <h4>Create a New Project</h4>
@@ -67,6 +55,22 @@
       </a>
     </p>
     {% endif %}
+
+    <h4>Get added to a project</h4>
+    <p>
+      To use Chameleon resources you will need to be added to an existing project.
+      Please contact your PI and provide them with your Chameleon username to be added
+      to thier project.
+    </p>
+
+    {% if not is_pi_eligible %}
+    <h4>Request PI Eligibility</h4>
+    <p>
+      If you meet the <a href="/docs/getting-started/pi-eligibility/">Chameleon PI Eligibility Requirements</a>,
+      you can request PI Eligibility on your <a href="{% url 'tas:profile_edit' %}">User Account Page</a>.
+    </p>
+    {% endif %}
+
   </div>
 {% endfor %}
 

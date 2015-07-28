@@ -34,7 +34,7 @@ class UserMenu(CMSAttachMenu):
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Experiment'), "https://horizon.chameleon.tacc.utexas.edu/", menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Experiment'), "/docs/getting-started/experiment-quickstart/", menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1

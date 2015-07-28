@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
+    'cmsplugin_cascade',
 
     ##
     # core apps
@@ -218,6 +219,11 @@ LOGGING = {
         },
     },
     'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -232,6 +238,10 @@ LOGGING = {
         },
     },
     'loggers': {
+        'console': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
         'django': {
             'handlers': ['file'],
             'level': 'INFO',
@@ -243,6 +253,14 @@ LOGGING = {
         },
         'auth': {
             'handlers': ['file', 'auth'],
+            'level': 'DEBUG',
+        },
+        'tas': {
+            'handlers': ['file', 'auth'],
+            'level': 'DEBUG',
+        },
+        'projects': {
+            'handlers': ['file'],
             'level': 'DEBUG',
         },
         'allocations': {
@@ -386,6 +404,8 @@ DJANGO_RT = {
 BOOTSTRAP3 = {
     'required_css_class': 'required',
 }
+
+CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.bootstrap3',)
 
 #####
 #
