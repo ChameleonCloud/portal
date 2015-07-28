@@ -18,7 +18,7 @@
     <p><button type="submit" class="btn btn-primary">Accept</button></p>
   </form>
   <p>
-    <a href="{% url "tc_print_page" form.initial.terms.slug form.initial.terms.version_number %}" target="_blank">Print Terms & Conditions</a>
+    <a href="{% url "terms:tc_print_page" form.initial.terms.slug form.initial.terms.version_number %}" target="_blank">Print Terms & Conditions</a>
   </p>
 </section>
 {% endblock %}
