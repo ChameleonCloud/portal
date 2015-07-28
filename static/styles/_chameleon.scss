@@ -273,4 +273,8 @@ article {
     background-color: #cd910f;
     border-color: #9e6f0b;
   }
+
+  &:focus {
+    color: #fff;
+  }
 }
