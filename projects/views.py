@@ -125,7 +125,7 @@ def create_project( request ):
 
     user = tas.get_user( username=request.user )
     if user['piEligibility'] != 'Eligible':
-        messages.error( request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please submit a help desk ticket!' )
+        messages.error( request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.' )
         return HttpResponseRedirect( reverse( 'projects:user_projects' ) )
 
     if request.POST:
