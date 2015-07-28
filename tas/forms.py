@@ -1,6 +1,8 @@
 from django import forms
 from pytas.pytas import client as TASClient
 import re
+import logging
+
 
 ELIGIBLE = 'Eligible'
 INELIGIBLE = 'Ineligible'
@@ -12,13 +14,46 @@ PI_ELIGIBILITY = (
     (REQUESTED, REQUESTED),
 )
 
-#
-# COUNTRIES = (('', 'Choose One'))
-#
-# INSTITUTIONS = (('', 'Choose One'))
-# inst = tas.institutions()
-# for i in inst:
-#     INSTITUTIONS += ((i['id'], i['name']))
+
+USER_PROFILE_TITLES = (
+    ('', 'Choose one'),
+    ('Center Non-Researcher Staff', 'Center Non-Researcher Staff'),
+    ('Center Researcher Staff', 'Center Researcher Staff'),
+    ('Faculty', 'Faculty'),
+    ('Government User', 'Government User'),
+    ('Graduate Student', 'Graduate Student'),
+    ('High School Student', 'High School Student'),
+    ('High School Teacher', 'High School Teacher'),
+    ('Industrial User', 'Industrial User'),
+    ('Unaffiliated User', 'Unaffiliated User'),
+    ('Nonprofit User', 'Nonprofit User'),
+    ('NSF Graduate Research Fellow', 'NSF Graduate Research Fellow'),
+    ('Other User', 'Other User'),
+    ('Postdoctorate', 'Postdoctorate'),
+    ('Undergraduate Student', 'Undergraduate Student'),
+    ('Unknown', 'Unknown'),
+    ('University Non-Research Staff', 'University Non-Research Staff'),
+    ('University Research Staff (excluding postdoctorates)', 'University Research Staff (excluding postdoctorates)'),
+)
+
+
+def get_institution_choices():
+    tas = TASClient()
+    institutions_list = tas.institutions()
+    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in institutions_list)
+
+
+def get_department_choices(institutionId):
+    tas = TASClient()
+    departments_list = tas.get_departments(institutionId)
+    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in departments_list)
+
+
+def get_country_choices():
+    tas = TASClient()
+    countries_list = tas.countries()
+    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in countries_list)
+
 
 class EmailConfirmationForm(forms.Form):
     code = forms.CharField(
@@ -89,28 +124,40 @@ class PasswordResetConfirmForm(forms.Form):
                 raise forms.ValidationError('The password provided does not satisfy the password complexity requirements')
 
 
-class TasUserProfileForm(forms.Form):
-    """
-    Form for editing TAS User Profile
-    """
+class UserProfileForm(forms.Form):
+    firstName = forms.CharField(label='First name')
+    lastName = forms.CharField(label='Last name')
+    email = forms.EmailField()
+    institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
+    departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
+    title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
+    countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
+    citizenshipId = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
 
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        self.fields['institutionId'].choices = get_institution_choices()
+
+        data = self.data or self.initial
+        if (data is not None and 'institutionId' in data):
+            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
+
+        self.fields['countryId'].choices = get_country_choices()
+        self.fields['citizenshipId'].choices = get_country_choices()
+
+
+class TasUserProfileAdminForm(forms.Form):
+    """
+    Admin Form for TAS User Profile. Adds a field to trigger a password reset
+    on the User's behalf.
+    """
     firstName = forms.CharField(label="First name")
     lastName = forms.CharField(label="Last name")
     email = forms.EmailField()
     piEligibility = forms.ChoiceField(
         choices=PI_ELIGIBILITY,
-        label="PI Eligibility",
-        help_text="Faculty and Research Staff from U.S.-based institutions can "
-        "request PI Eligibility. If you are not PI Eligible and would like to "
-        "request to be eligible, please check the box above."
+        label="PI Eligibility"
        )
-
-class TasUserProfileAdminForm(TasUserProfileForm):
-    """
-    Admin Form for TAS User Profile. Adds a field to trigger a password reset
-    on the User's behalf.
-    """
-
     reset_password = forms.BooleanField(
         required=False,
         label="Reset user's password",
@@ -118,30 +165,55 @@ class TasUserProfileAdminForm(TasUserProfileForm):
             "notified via email with instructions to complete the password reset."
        )
 
-# class UserRegistrationForm(forms.Form):
-#     firstName = forms.CharField(label='First Name', required=True)
-#     lastName = forms.CharField(label='Last Name', required=True)
-#     email = forms.EmailField(label='Email Address', required=True)
-#     institutionId = forms.CharField(label='Institution', required=True)
-#     countryId = forms.CharField(label='Country of Residence', required=True)
-#     citizenshipId = forms.CharField(label='Country of Citizenship', required=True)
-#     piEligibility =
-#     username = forms.CharField(label='Username', required=True)
-#     password = forms.CharField(widget=forms.PasswordInput, label='Password', required=True)
-#     confirmPassword = forms.CharField(widget=forms.PasswordInput, label='Confirm Password', required=True)
-#
-#     def clean(self):
-#         cleaned_data = self.cleaned_data
-#         password = cleaned_data.get('password')
-#         confirmPassword = cleaned_data.get('confirmPassword')
-#
-#         if password and confirmPassword:
-#             if password != confirmPassword:
-#                 self.add_error('password', 'The password provided does not match the confirmation')
-#                 self.add_error('confirmPassword', '')
-#                 raise forms.ValidationError('The password provided does not match the confirmation')
-#
-#             if not _password_policy(password):
-#                 self.add_error('password', 'The password provided does not satisfy the password complexity requirements')
-#                 self.add_error('confirmPassword', '')
-#                 raise forms.ValidationError('The password provided does not satisfy the password complexity requirements')
+
+class UserRegistrationForm(forms.Form):
+    """
+    Except for `institutionName`, this is the same form as `UserProfileForm`. However,
+    due to limited ability to control field order, we cannot cleanly inherit from that form.
+    """
+    firstName = forms.CharField(label='First name')
+    lastName = forms.CharField(label='Last name')
+    email = forms.EmailField()
+    institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
+    departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
+    institutionName = forms.CharField(label='Institution name',
+                                      help_text='If your institution is not listed, please provide the name of the institution as it should be shown here.',
+                                      required=False,
+                                      )
+    title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
+    countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
+    citizenshipId = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
+
+    def __init__(self, *args, **kwargs):
+        super(UserRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['institutionId'].choices = get_institution_choices()
+        self.fields['institutionId'].choices += (('-1', 'My Institution is not listed'),)
+
+        data = self.data or self.initial
+        if (data is not None and 'institutionId' in data):
+            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
+
+        self.fields['countryId'].choices = get_country_choices()
+        self.fields['citizenshipId'].choices = get_country_choices()
+
+
+class UserAccountForm(forms.Form):
+    username = forms.CharField(label='Username', help_text='Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.')
+    password = forms.CharField(widget=forms.PasswordInput, label='Password')
+    confirmPassword = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        password = cleaned_data.get('password')
+        confirmPassword = cleaned_data.get('confirmPassword')
+
+        if password and confirmPassword:
+            if password != confirmPassword:
+                self.add_error('password', 'The password provided does not match the confirmation')
+                self.add_error('confirmPassword', '')
+                raise forms.ValidationError('The password provided does not match the confirmation')
+
+            if not _password_policy(password):
+                self.add_error('password', 'The password provided does not satisfy the password complexity requirements')
+                self.add_error('confirmPassword', '')
+                raise forms.ValidationError('The password provided does not satisfy the password complexity requirements')
