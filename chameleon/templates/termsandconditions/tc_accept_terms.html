@@ -11,7 +11,7 @@
   <div id="tc-terms-html">
     {{ form.initial.terms.text|safe }}
   </div>
-  <form action="{% url 'tc_accept_page' %}" method="post" id="tc-terms-form" data-ajax="false">
+  <form action="{% url 'terms:tc_accept_page' %}" method="post" id="tc-terms-form" data-ajax="false">
     {% csrf_token %}
     {{ form.terms }}
     {{ form.returnTo }}
