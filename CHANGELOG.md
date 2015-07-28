@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.5.1
+
+- update pi eligibility notes in form help
+
 ### v1.5.0
 
 - Fix bug with filters "approved/active" in admin allocation approval
