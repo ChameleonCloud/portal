@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.5.2
+
+- fix reverse URLs for django-termsandconditions
+
 ### v1.5.1
 
 - update pi eligibility notes in form help
