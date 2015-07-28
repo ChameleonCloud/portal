@@ -1,5 +1,16 @@
 ## Changelog
 
+### v1.5.0
+
+- Fix bug with filters "approved/active" in admin allocation approval
+- remove "futuregrid@chameleon" menu/references
+- add terms of use links to account page
+- update tas profile, registration views to use forms
+- added djangocms-cascade
+- updated projects form for additional fields, request config
+- additional updates to prepare for public release
+- CMS pages no longer preserve the parent link. Parent pages are placeholders only.
+
 ### v1.4.1
 
 - update PI eligibility policy for new account registration
