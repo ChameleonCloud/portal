@@ -1,3 +1,5 @@
+'use strict';
+/*global it, expect, describe, beforeEach, afterEach, inject, jasmine, getJSONFixture, _ */
 describe('UtilFactory', function() {
 
     var UtilFactory;
@@ -56,29 +58,29 @@ describe('UtilFactory', function() {
     });
 });
 
-describe('ResourceFactory', function(_) {
-    var ResourceFactory, $httpBackend, underscore;
+describe('ResourceFactory', function() {
+    var ResourceFactory, $httpBackend;
     var sites = {
         items: [{
-            uid: "tacc",
+            uid: 'tacc',
             links: [{
-                href: "/sites/tacc/clusters",
-                rel: "clusters"
+                href: '/sites/tacc/clusters',
+                rel: 'clusters'
             }]
         }]
     };
     var clusters = {
         items: [{
-            uid: "alamo",
+            uid: 'alamo',
             links: [{
-                href: "/sites/tacc/clusters/alamo/nodes",
-                rel: "nodes"
+                href: '/sites/tacc/clusters/alamo/nodes',
+                rel: 'nodes'
             }]
         }, {
-            uid: "chameleon",
+            uid: 'chameleon',
             links: [{
-                href: "/sites/tacc/clusters/chameleon/nodes",
-                rel: "nodes"
+                href: '/sites/tacc/clusters/chameleon/nodes',
+                rel: 'nodes'
             }]
         }]
     };
@@ -138,10 +140,9 @@ describe('ResourceFactory', function(_) {
         module('discoveryApp');
     });
 
-    beforeEach(inject(function(_ResourceFactory_, _$httpBackend_, _) {
+    beforeEach(inject(function(_ResourceFactory_, _$httpBackend_) {
         ResourceFactory = _ResourceFactory_;
-        underscore = _;
-        $httpBackend = _$httpBackend_;;
+        $httpBackend = _$httpBackend_;
         jasmine.getJSONFixtures().fixturesPath='base/unit/fixtures';
     }));
 
@@ -154,9 +155,10 @@ describe('ResourceFactory', function(_) {
         $httpBackend.when('GET', 'sites.json').respond(sites);
         $httpBackend.when('GET', 'sites/tacc/clusters.json').respond(clusters);
         $httpBackend.when('GET', 'sites/tacc/clusters/alamo/nodes.json').respond(alamoNodes);
-        $httpBackend.when('GET', 'sites/tacc/clusters/chameleon/nodes.json').respond(chameleonNodes)
+        $httpBackend.when('GET', 'sites/tacc/clusters/chameleon/nodes.json').respond(chameleonNodes);
         ResourceFactory.getResources(scope, function() {
-            expect(ResourceFactory.allNodes).toEqual(ResourceFactory.allNodes);
+            var allNodes = _.union(alamoNodes.items, chameleonNodes.items);
+            expect(ResourceFactory.allNodes).toEqual(allNodes);
         });
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();

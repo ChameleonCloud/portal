@@ -1,3 +1,5 @@
+'use strict';
+/*global it, expect, describe, beforeEach, inject */
 describe('ModalInstanceCtrl', function() {
 
     var controller, scope, modalInstance;
@@ -9,8 +11,8 @@ describe('ModalInstanceCtrl', function() {
     beforeEach(module(function($provide) {
         $provide.value('$modalInstance', {});
         $provide.value('userSelections', {
-            startDate: Date.parse("01/01/2015"),
-            endDate: Date.parse("12/30/2015"),
+            startDate: Date.parse('01/01/2015'),
+            endDate: Date.parse('12/30/2015'),
             minNode: 10,
             maxNode: 20
         });

@@ -1,3 +1,5 @@
+'use strict';
+/*global it, expect, describe, beforeEach, inject */
 describe('MainController', function() {
 
     var controller, scope;

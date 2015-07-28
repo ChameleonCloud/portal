@@ -90,9 +90,9 @@ module.exports = function(grunt) {
             ],
             test: {
                 options: {
-                    jshintrc: 'test/.jshintrc'
+                    jshintrc: '.jshintrc'
                 },
-                src: ['test/spec/{,*/}*.js']
+                src: ['tests/js/{,*/}*.js']
             }
         },
 
@@ -152,7 +152,7 @@ module.exports = function(grunt) {
 
         karma: {
             unit: {
-                configFile: 'test/js/karma.conf.js'
+                configFile: 'tests/js/karma.conf.js'
             }
         }
     });
