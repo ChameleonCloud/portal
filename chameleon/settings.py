@@ -259,6 +259,10 @@ LOGGING = {
             'handlers': ['file', 'auth'],
             'level': 'DEBUG',
         },
+        'projects': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
         'allocations': {
             'handlers': ['file'],
             'level': 'INFO',
