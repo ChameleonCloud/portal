@@ -78,16 +78,21 @@
 
   <hr>
 
-  <a href="{% url 'terms:tc_view_specific_version_page' 'user-terms' '1.00' %}">
-    Chameleon User Terms of Use
-  </a>
+  <ul class="list-unstyled">
+    <li>
+      <a href="{% url 'terms:tc_view_specific_version_page' 'user-terms' '1.00' %}">
+        <small>Chameleon User Terms of Use</small>
+      </a>
+    </li>
 
-  {% if profile.piEligibility == 'Eligible' %}
-  <a href="{% url 'terms:tc_view_specific_version_page' 'project-terms' '1.00' %}">
-    Chameleon Project Lead Terms of Use
-  </a>
-  {% endif %}
-
+    {% if profile.piEligibility == 'Eligible' %}
+    <li>
+      <a href="{% url 'terms:tc_view_specific_version_page' 'project-terms' '1.00' %}">
+        <small>Chameleon Project Lead Terms of Use</small>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
 {% else %}
   <div class="alert alert-danger">
     <p>There was an error loading your profile information.</p>
