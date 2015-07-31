@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.5.3
+
+- fix field name for new insitutions on registration
+
 ### v1.5.2
 
 - fix reverse URLs for django-termsandconditions
