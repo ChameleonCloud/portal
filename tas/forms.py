@@ -168,7 +168,7 @@ class TasUserProfileAdminForm(forms.Form):
 
 class UserRegistrationForm(forms.Form):
     """
-    Except for `institutionName`, this is the same form as `UserProfileForm`. However,
+    Except for `institution`, this is the same form as `UserProfileForm`. However,
     due to limited ability to control field order, we cannot cleanly inherit from that form.
     """
     firstName = forms.CharField(label='First name')
@@ -176,7 +176,7 @@ class UserRegistrationForm(forms.Form):
     email = forms.EmailField()
     institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
     departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
-    institutionName = forms.CharField(label='Institution name',
+    institution = forms.CharField(label='Institution name',
                                       help_text='If your institution is not listed, please provide the name of the institution as it should be shown here.',
                                       required=False,
                                       )

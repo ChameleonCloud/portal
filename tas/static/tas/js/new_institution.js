@@ -2,11 +2,11 @@ jQuery(function($) {
   function updateNewInstitutionFieldStatus() {
     var $inst = $('#id_institutionId');
     if ($inst.val() === '-1') {
-      $('#id_institutionName').parent().removeClass('hide').addClass('required');
-      $('#id_institutionName').attr('required', 'required');
+      $('#id_institution').parent().removeClass('hide').addClass('required');
+      $('#id_institution').attr('required', 'required');
     } else {
-      $('#id_institutionName').parent().addClass('hide').removeClass('required');
-      $('#id_institutionName').attr('required', null);
+      $('#id_institution').parent().addClass('hide').removeClass('required');
+      $('#id_institution').attr('required', null);
     }
   }
   $('#id_institutionId').on('change', updateNewInstitutionFieldStatus);
