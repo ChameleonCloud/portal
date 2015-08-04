@@ -4,8 +4,13 @@
 <div ng-if="!loading">
     <div ng-if="loadingError" class="well alert alert-error">There was an error. Please try again.</div>
     <div ng-if="!loadingError">
-        <h2 class="title">Nodes</h2>
-        <div class="col col-sm-12">&nbsp;</div>
+        <h1 class="title">Resource Discovery</h1>
+        <h4>Filter nodes using the options below, then generate a reservation script to reserve those nodes.</h4>
+        <h4 class="filter-state"><strong>[[filteredNodes.length]] node<span ng-show="filteredNodes.length > 1">s</span></strong>
+            <span ng-show="filteredNodes.length !== allNodes.length">
+                filtered from [[allNodes.length]] originally.                
+            </span>
+        </h4>
         <div class="row">
             <div class="col col-sm-2 filter-block">
                 <strong>Site</strong>
@@ -100,12 +105,11 @@
                 </div>
             </div>
         </div>
-        <div>
-            <h4><strong>[[filteredNodes.length]] node<span ng-show="filteredNodes.length > 1">s</span></strong>
-                    <span ng-if="filteredNodes.length !== allNodes.length">
+        <h4 class="filter-state"><strong>[[filteredNodes.length]] node<span ng-show="filteredNodes.length > 1">s</span></strong>
+            <span ng-show="filteredNodes.length !== allNodes.length">
                 filtered from [[allNodes.length]] originally.                
-              </span></h4>
-        </div>
+            </span>
+        </h4>
         <div>
             <span ng-controller="ModalController"><button class="btn btn-sm btn-success" ng-click="open()">Reserve</button>
                     </span>

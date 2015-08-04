@@ -183,13 +183,10 @@ angular.module('discoveryApp')
         $scope.applyFilter = function() {
             $scope.prunedAppliedFilters = angular.copy($scope.appliedFilters);
             $scope.prune($scope.prunedAppliedFilters, null, true);
-            console.log('$scope.prunedAppliedFilters', $scope.prunedAppliedFilters);
             var prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
-            console.log('prunedAppliedFilters', prunedAppliedFilters);
             ResourceFactory.prunedAppliedFilters = prunedAppliedFilters;
             $scope.intersectArray = [];
             $scope.createIntersectArray();
-            console.log('$scope.intersectArray', $scope.intersectArray);
             var filteredNodes = null;
             if ($scope.intersectArray.length > 0) {
                 _.each($scope.intersectArray, function(arr) {
@@ -212,7 +209,5 @@ angular.module('discoveryApp')
             ResourceFactory.filteredNodes = $scope.filteredNodes;
             $scope.filters = angular.copy(ResourceFactory.filters);
             makeChunks();
-            console.log('$scope.appliedFilters', $scope.appliedFilters);
-            //console.log($scope.filteredNodes);
         };
     }]);
