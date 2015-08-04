@@ -116,8 +116,7 @@ angular.module('allocationsApp')
 
         var toUTC = function(date) {
             return Date.UTC(
-                date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 10, date.getMinutes(), date.getSeconds(), date.getMilliseconds()
-            );
+                date.getFullYear(), date.getMonth(), date.getDate(), 10, 0, 0, 0);
         };
         $scope.approveAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
@@ -144,6 +143,7 @@ angular.module('allocationsApp')
                     delete postData.loadingApprove;
                     delete postData.errorApprove;
                     delete postData.successApprove;
+                    delete postData.doNotShow;
                 } catch (err) {
                     //pass
                 }
@@ -210,6 +210,7 @@ angular.module('allocationsApp')
                     delete postData.loadingReject;
                     delete postData.errorReject;
                     delete postData.successReject
+                    delete postData.doNotShow;
                 } catch (err) {
                     //pass
                 }

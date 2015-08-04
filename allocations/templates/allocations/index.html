@@ -136,7 +136,7 @@
                                             <h4><span class="fa fa-spinner fa-spin"></span ng-show="allocation.loadingApprove"><span ng-show="allocation.loadingApprove"> Approv</span><span ng-show="allocation.loadingReject"> Reject</span>ing this allocation request...</h4>
                                         </div>
                                         <div ng-show="allocation.errorApprove || allocation.errorReject" class="col col-sm-12">
-                                            <alert type="danger" autodismiss tr-show="[[allocation.errorApprove || allocation.errorReject]]">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
+                                            <alert type="danger" ng-show="[[allocation.errorApprove || allocation.errorReject]]">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
                                         </div>
                                         <div ng-show="allocation.successApprove || allocation.successReject" class="col col-sm-12">
                                             <alert type="success" autodismiss tr-show="[[allocation.successApprove || allocation.successReject]]">This allocation request is <span ng-show="allocation.successApprove">approv</span><span ng-show="allocation.successReject">reject</span>ed successfully.</alert>

@@ -84,7 +84,7 @@ app.directive('readMore', function() {
 app.directive('autodismiss',function($timeout){
     return {
         link:function(scope, element, attrs){         
-          var duration = 3000;
+          var duration = 7000;
           if(attrs.autodismiss){
             duration = parseInt(attrs.autodismiss);
           }
