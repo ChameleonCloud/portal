@@ -21,11 +21,20 @@ class MultiEmailField(forms.Field):
         for email in value:
             validate_email(email.strip())
 
+"""
 TICKET_CATEGORIES = (
     ('','Choose one'),
     ('FG_AT_CHAMELEON','FutureGrid@Chameleon'),
     ('TECH_PREVIEW','Technology Preview'),
     ('EARLY_USER','Early User Program'),
+    ('OTHER','Other'),
+)
+"""
+TICKET_CATEGORIES = (
+    ('','Choose one'),
+    ('OPENSTACK_KVM_CLOUD','OpenStack KVM Cloud'),
+    ('TECH_PREVIEW','Technology Preview'),
+    ('BARE_METAL','Bare Metal'),
     ('OTHER','Other'),
 )
 
