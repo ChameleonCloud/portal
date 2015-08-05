@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.5.4
+
+- Registration form validation fixes
+
 ### v1.5.3
 
 - fix field name for new insitutions on registration
