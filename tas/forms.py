@@ -198,7 +198,9 @@ class UserRegistrationForm(forms.Form):
 
 
 class UserAccountForm(forms.Form):
-    username = forms.CharField(label='Username', help_text='Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.')
+    username = forms.RegexField(label='Username',
+                               help_text='Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.',
+                               regex='^[a-z][a-z0-9_]{2,7}$')
     password = forms.CharField(widget=forms.PasswordInput, label='Password')
     confirmPassword = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
 
