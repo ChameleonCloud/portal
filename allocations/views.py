@@ -68,7 +68,8 @@ def approval( request ):
         data['reviewerId'] = userData['id']
         logger.info( 'Allocation approval requested by admin: %s', request.user )
         logger.info( 'Allocation approval request data: %s', json.dumps( data ) )
-        validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' )
+        validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}$' )
+        validate_datetimestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' )
         if not data['decisionSummary']:
             errors['decisionSummary'] = 'Decision Summary is required.'
 
@@ -81,7 +82,7 @@ def approval( request ):
                 try:
                     validate_datestring( data['start'] )
                 except ValidationError:
-                    errors['start'] = 'Start date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                    errors['start'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
                  errors['start'] = 'Start date is required.'
 
@@ -89,7 +90,7 @@ def approval( request ):
                 try:
                     validate_datestring( data['end'] )
                 except ValidationError:
-                    errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                    errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
                  errors['end'] = 'Start date is required.'
 
@@ -153,7 +154,7 @@ def approval( request ):
 
         if data['dateRequested']:
             try:
-                validate_datestring( data['dateRequested'] )
+                validate_datetimestring( data['dateRequested'] )
             except ValidationError:
                 errors['dateRequested'] = 'Requested date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
         #else:
@@ -163,7 +164,7 @@ def approval( request ):
             try:
                 validate_datestring( data['dateReviewed'] )
             except ValidationError:
-                errors['dateReviewed'] = 'Reviewed date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                errors['dateReviewed'] = 'Reviewed date must be a valid date string e.g. "2015-05-20" .'
         else:
              errors['dateReviewed'] = 'Reviewed date is required.'
         if len( errors ) == 0:
@@ -183,6 +184,7 @@ def approval( request ):
                 errors['message'] = 'An unexpected error occurred. If this problem persists please create a help ticket.'
 
         else:
+            logger.info( 'Request data failed validation. %s', errors.values())
             status = 'error'
 
     else:

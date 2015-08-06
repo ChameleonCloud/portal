@@ -182,7 +182,7 @@ it('checks getClass', function() {
     });
 
 it('checks toUTC', function() {
-        var expectedDate = moment().format('YYYY-MM-DD') + 'T05:00:00Z';
+        var expectedDate = moment().format('YYYY-MM-DD');
         console.log('expectedDate', expectedDate);
         var result = scope.toUTC(moment());
         expect(result).toEqual(expectedDate);

@@ -116,7 +116,7 @@ angular.module('allocationsApp')
                 });
 
         $scope.toUTC = function(date) {
-            return moment(date).format('YYYY-MM-DD') + 'T05:00:00Z';
+            return moment(date).format('YYYY-MM-DD');
         };
         $scope.approveAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
