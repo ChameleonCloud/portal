@@ -1,8 +1,9 @@
 /**
  * author agauli
  */
+'use strict';
 angular.module('allocationsApp')
-    .controller('AllocationsController', ['$scope', '$http', '_', '$q', '$timeout', '$modal', '$filter', function($scope, $http, _, $q, $timeout, $modal, $filter) {
+    .controller('AllocationsController', ['$scope', '$http', '_', '$q', '$timeout', '$modal', 'moment', function($scope, $http, _, $q, $timeout, $modal, moment) {
         $scope.projects = [];
         $scope.filteredProjects = [];
         $scope.loading = {
@@ -27,12 +28,12 @@ angular.module('allocationsApp')
             $scope.filter.search = '';
         };
 
-        var _search = function() {
+        $scope.search = function() {
             if (!$scope.filter.search) {
                 return $scope.projects;
             } else {
                 return _.filter($scope.projects, function(project) {
-                    var term = $scope.filter.search.toLowerCase()
+                    var term = $scope.filter.search.toLowerCase();
                     var pass = false;
                     var projectTitle = project.title || '';
                     var chargeCode = project.chargeCode || '';
@@ -57,11 +58,11 @@ angular.module('allocationsApp')
         $scope.updateSelected = function() {
             var chosenStatusFilters = [];
             for (var key in $scope.filter) {
-                if ($scope.filter[key] == true) {
+                if ($scope.filter[key] === true) {
                     chosenStatusFilters.push(key.toLowerCase());
                 }
             }
-            $scope.selectedProjects = _search();
+            $scope.selectedProjects = $scope.search();
             if (chosenStatusFilters.length !== 0) {
                 var selectedProjectsNew = _.filter($scope.selectedProjects, function(project) {
                     var pass = false;
@@ -114,9 +115,8 @@ angular.module('allocationsApp')
                     $scope.loading.allocations = false;
                 });
 
-        var toUTC = function(date) {
-            return Date.UTC(
-                date.getFullYear(), date.getMonth(), date.getDate(), 10, 0, 0, 0);
+        $scope.toUTC = function(date) {
+            return moment(date).format('YYYY-MM-DD') + 'T05:00:00Z';
         };
         $scope.approveAllocation = function(allocation, $event) {
             var modifiedAllocation = angular.copy(allocation);
@@ -128,7 +128,7 @@ angular.module('allocationsApp')
                         return {
                             'allocation': modifiedAllocation,
                             'type': 'approve'
-                        }
+                        };
                     }
                 }
             });
@@ -149,19 +149,18 @@ angular.module('allocationsApp')
                 }
 
                 postData.status = 'Approved';
-                postData.start = $filter('date')(toUTC(postData.start), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
-                postData.end = $filter('date')(toUTC(postData.end), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
-                postData.dateReviewed = $filter('date')(toUTC(new Date()), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
+                postData.start = $scope.toUTC(postData.start);
+                postData.end = $scope.toUTC(postData.end);
+                postData.dateReviewed = $scope.toUTC(new Date());
                 $http({
                         method: 'POST',
                         url: '/admin/allocations/approval/',
                         data: postData
                     })
                     .then(function(response) {
-                            console.log('response.data', response.data);
                             allocation.loadingApprove = false;
                             if (response.data.status === 'error') {
-                                allocation.errorApprove = true
+                                allocation.errorApprove = true;
                             } else {
                                 //not working when i assign postData to allocation entirely
                                 allocation.successApprove = true;
@@ -195,7 +194,7 @@ angular.module('allocationsApp')
                         return {
                             'allocation': modifiedAllocation,
                             'type': 'reject'
-                        }
+                        };
                     }
                 }
             });
@@ -209,14 +208,14 @@ angular.module('allocationsApp')
                 try {
                     delete postData.loadingReject;
                     delete postData.errorReject;
-                    delete postData.successReject
+                    delete postData.successReject;
                     delete postData.doNotShow;
                 } catch (err) {
                     //pass
                 }
 
                 postData.status = 'Rejected';
-                postData.dateReviewed = $filter('date')(toUTC(new Date()), 'yyyy-MM-ddTHH:mm:ss') + 'Z';
+                postData.dateReviewed = $scope.toUTC(new Date());
                 $http({
                         method: 'POST',
                         url: '/admin/allocations/approval/',
@@ -226,7 +225,7 @@ angular.module('allocationsApp')
                             console.log('response.data', response.data);
                             allocation.loadingReject = false;
                             if (response.data.status === 'error') {
-                                allocation.errorReject = true
+                                allocation.errorReject = true;
                             } else {
                                 //not working when i assign postData to allocation entirely
                                 allocation.successReject = true;
@@ -245,53 +244,4 @@ angular.module('allocationsApp')
             });
         };
 
-    }])
-    .controller('modalController', ['$scope', '$modalInstance', '$timeout', 'data', function modalController($scope, $modalInstance, $timeout, data) {
-        $scope.data = data;
-        $scope.ok = function() {
-            $modalInstance.close(data);
-        };
-
-        $scope.cancel = function() {
-            $modalInstance.dismiss('cancel');
-        };
-
-        //calendar
-        $scope.disabled = function(date, mode) {
-            //always returns false, not using currently but good to keep
-            return (false && mode === 'day' && (date.getDay() === 0 || date.getDay() === 6));
-        };
-
-        $scope.minStartDate = new Date();
-        $scope.maxDate = angular.copy($scope.minStartDate);
-        $scope.maxDate = $scope.maxDate.setFullYear($scope.maxDate.getFullYear() + 10);
-        $scope.open = {
-            start: false,
-            end: false
-        }
-        $scope.open = function($event, caltype) {
-            $event.preventDefault();
-            $event.stopPropagation();
-
-            caltype = caltype.toLowerCase();
-            if (caltype === 'start') {
-                if ($scope.open.start) {
-                    $scope.open.start = false;
-                }
-                $scope.open.start = true;
-
-            } else if (caltype === 'end') {
-                if ($scope.open.end) {
-                    $scope.open.end = false;
-                }
-                $scope.open.end = true;
-            }
-        };
-
-        $scope.dateOptions = {
-            formatYear: 'yy',
-            startingDay: 1
-        };
-
-        $scope.format = 'dd-MMMM-yyyy';
     }]);

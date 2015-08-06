@@ -4,21 +4,17 @@
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/custom.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
-<script src="{% static 'allocations/underscore/underscore.js' %}"></script>
-<script src="{% static 'allocations/angular/angular.min.js' %}"></script>
-<script src="{% static 'allocations/angular-bootstrap/ui-bootstrap-tpls.min.js' %}"></script>
-<script src="{% static 'allocations/scripts/app.js' %}"></script>
-<script src="{% static 'allocations/scripts/directive.js' %}"></script>
-<script src="{% static 'allocations/scripts/controller.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
+<script src="{% static 'allocations/js/vendor.js' %}"></script>
+<script src="{% static 'allocations/js/main.js' %}"></script>
 {% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
 </div>
 {% endblock %} {% endif %} {% block content %}
-<div id="content-main">
+<div id="content-main" class="allocations-app">
     <h1>Projects and Allocations</h1>
-    <div class="allocations-app" id="content-main" ng-app="allocationsApp" ng-cloak>
+    <div id="content-main" ng-app="allocationsApp" ng-cloak>
         <div class="content" ng-controller="AllocationsController">
             <div class="well spinner" ng-if="loading.allocations">
                 <h4><span class="fa fa-spinner fa-spin"></span> Loading allocations...</h4>
@@ -70,7 +66,7 @@
                             <tr>
                                 <td><b>Abstract</b></td>
                                 <td>
-                                    <div style="padding:0" read-more more-text="...read more" less-text="...less" words="words" limit="20" text-data="[[project.description]]"></div>
+                                    <div style="padding:0" read-more more-text="...read more" less-text="...less" words="words" limit="30" text-data="[[project.description]]"></div>
                                 </td>
                             </tr>
                             <tr>
@@ -132,13 +128,13 @@
                                                 Reject
                                             </button>
                                         </div>
-                                        <div class="col col-sm-12 alert alert-info" ng-show="allocation.loadingApprove || allocation.loadingReject">
+                                        <div class="alert alert-info" ng-show="allocation.loadingApprove || allocation.loadingReject">
                                             <h4><span class="fa fa-spinner fa-spin"></span ng-show="allocation.loadingApprove"><span ng-show="allocation.loadingApprove"> Approv</span><span ng-show="allocation.loadingReject"> Reject</span>ing this allocation request...</h4>
                                         </div>
-                                        <div ng-show="allocation.errorApprove || allocation.errorReject" class="col col-sm-12">
-                                            <alert type="danger" ng-show="[[allocation.errorApprove || allocation.errorReject]]">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
+                                        <div ng-show="allocation.errorApprove || allocation.errorReject">
+                                            <alert type="danger">There was an error <span ng-show="allocation.errorApprove">approv</span><span ng-show="allocation.errorReject">reject</span>ing this allocation request. Please try again or file a ticket if this seems persistent.</alert>
                                         </div>
-                                        <div ng-show="allocation.successApprove || allocation.successReject" class="col col-sm-12">
+                                        <div ng-show="allocation.successApprove || allocation.successReject">
                                             <alert type="success" autodismiss tr-show="[[allocation.successApprove || allocation.successReject]]">This allocation request is <span ng-show="allocation.successApprove">approv</span><span ng-show="allocation.successReject">reject</span>ed successfully.</alert>
                                         </div>
                                     </td>

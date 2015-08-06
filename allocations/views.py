@@ -20,7 +20,6 @@ import time
 logger = logging.getLogger(__name__)
 
 def allocation_admin_or_superuser(user):
-    logger.debug( 'user=%s', user )
     if user:
         logger.debug( 'If user has allocation admin role: %s', user.groups.filter(name='Allocation Admin').count() )
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
@@ -54,18 +53,6 @@ def view( request ):
         messages.error( request, e[0] )
         raise Exception('Error loading chameleon projects')
     return HttpResponse(json.dumps(resp), content_type="application/json")
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
-def view_test( request ):
-    resp = {}
-    try:
-        fd = open('allocations/fixtures/projects.json', 'r')
-        resp = json.loads(fd.read())
-        fd.close()
-    except:
-        logger.debug('Could not load allocations/fixtures/projects.json')
-    return HttpResponse(json.dumps(resp['result']), content_type="application/json")
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
@@ -191,7 +178,7 @@ def approval( request ):
                 logger.info('Allocation approval TAS response: data=%s', json.dumps(decided_allocation))
                 status = 'success'
             except Exception as e:
-                logger.exception('Error processing allocation approval, data=%s', json.dumps( data ))
+                logger.exception('Error processing allocation approval.')
                 status = 'error'
                 errors['message'] = 'An unexpected error occurred. If this problem persists please create a help ticket.'
 

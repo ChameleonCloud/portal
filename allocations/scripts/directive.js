@@ -1,10 +1,6 @@
+'use strict';
+/*global $ */
 var app = angular.module('allocationsApp');
-/**
- * Created by Joyce Cam on 30/12/2014.
- *
- * Simple and easy-to-implement angular read more directive.
- *
- */
 app.directive('readMore', function() {
   return {
     restrict: 'A',

@@ -30,21 +30,21 @@ button:hover,
 
 .btn-primary,
 .btn-primary:hover {
-	color: #fff !important;
+    color: #fff !important;
     background-color: #3071A9 !important;
     border-color: #3071A9 !important;
 }
 
 .btn-success,
 .btn-success:hover {
-	color: #fff !important;
+    color: #fff !important;
     background-color: #59B259 !important;
     border-color: #59B259 !important;
 }
 
 .btn-warning,
 .btn-warning:hover {
-	color: #fff !important;
+    color: #fff !important;
     background-color: #F89406 !important;
     border-color: #F89406 !important;
 }
@@ -70,8 +70,10 @@ button:hover,
     border: 0;
 }
 
-[ng\:cloak], [ng-cloak], .ng-cloak {
-  display: none !important;
+[ng\:cloak],
+[ng-cloak],
+.ng-cloak {
+    display: none !important;
 }
 
 .row {
@@ -80,4 +82,8 @@ button:hover,
 
 table {
     margin: 0 0 !important;
+}
+
+.more-text.show-inline {
+    display: inline !important;
 }
