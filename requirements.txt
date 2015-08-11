@@ -29,6 +29,7 @@ djangocms-text-ckeditor==2.4.3
 djangocms-video==0.1
 cmsplugin-filer==0.10.1
 
+python-openid
 ply==3.4
 html5lib==0.999
 six==1.9.0

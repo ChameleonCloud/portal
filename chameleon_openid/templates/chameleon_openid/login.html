@@ -1,0 +1,15 @@
+{% extends "layout/default.html" %}
+{% load bootstrap3 %}
+{% block title %}OpenID Log In{% endblock %}
+{% block content %}
+<h1>OpenID Login</h1>
+
+{% for key, val in providers.items %}
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="openid_url" value="{{ val.openid_url }}">
+<button class="btn btn-primary" type="submit" name="{{ key }}">Log in with {{ val.name }}</button>
+<a class="btn btn-link" href="{{ val.site_url }}">Visit site</a>
+</form>
+{% endfor %}
+{% endblock %}

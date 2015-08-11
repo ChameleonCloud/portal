@@ -91,6 +91,7 @@ INSTALLED_APPS = (
     ##
     # custom
     #
+    'chameleon_openid',
     'chameleon_cms_integrations',
     'chameleon_mailman',
     'chameleon_token',
@@ -197,10 +198,23 @@ LOCALE_PATHS = (
 
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
+    # 'chameleon_openid.auth.OpenIDBackend',
 )
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/user/dashboard'
+
+
+OPENID_PROVIDERS = {
+    'geni': {
+        'name': 'GENI',
+        'site_url': 'http://www.geni.net/',
+        'openid_url': 'https://portal.geni.net/server/server.php'
+    },
+}
+
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
 
 #####
 #
@@ -212,10 +226,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '[%(levelname)s] [%(asctime)s] [%(filename)s %(funcName)s, line %(lineno)d] %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(asctime)s %(message)s'
+            'format': '[%(levelname)s] [%(asctime)s] [%(filename)s %(funcName)s, line %(lineno)d] %(message)s'
         },
     },
     'handlers': {
@@ -234,7 +248,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': '/var/log/django/chameleon_auth.log',
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -248,6 +262,18 @@ LOGGING = {
             'propagate': True,
         },
         'default': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'chameleon_openid': {
+            'handlers': ['auth'],
+            'level': 'DEBUG',
+        },
+        'openid': {
+            'handlers': ['auth'],
+            'level': 'DEBUG',
+        },
+        'chameleon': {
             'handlers': ['file'],
             'level': 'DEBUG',
         },
@@ -273,6 +299,7 @@ LOGGING = {
         },
     },
 }
+
 
 #####
 #
@@ -311,6 +338,7 @@ MIGRATION_MODULES = {
     'djangocms_video': 'djangocms_video.migrations_django',
 }
 
+
 #####
 #
 # CKEditor Config
@@ -330,6 +358,7 @@ CKEDITOR_CONFIGS = {
     },
 
 }
+
 
 #####
 #
@@ -377,12 +406,14 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     'cms.context_processors.cms_settings',
 )
 
+
 #####
 #
 # Google Analytics
 #
 #####
 GOOGLE_ANALYTICS_PROPERTY_ID = os.environ.get( 'GOOGLE_ANALYTICS_PROPERTY_ID' )
+
 
 #####
 #
@@ -396,6 +427,7 @@ DJANGO_RT = {
     'RT_QUEUE': os.environ.get('RT_DEFAULT_QUEUE'),
 }
 
+
 #####
 #
 # Bootstrap3 Settings
@@ -407,6 +439,7 @@ BOOTSTRAP3 = {
 
 CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.bootstrap3',)
 
+
 #####
 #
 # Terms and Conditions settings
@@ -417,6 +450,7 @@ ACCEPT_TERMS_PATH = '/terms/accept/'
 TERMS_EXCLUDE_URL_PREFIX_LIST = {'/admin', '/terms'}
 TERMS_EXCLUDE_URL_LIST = {'/', '/termsrequired/', '/logout/', '/securetoo/'}
 MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
+
 
 #####
 #
@@ -432,6 +466,7 @@ G5K_API_ROOT = 'http://referenceapi:8000'
 #
 #####
 IMPERSONATE_REQUIRE_SUPERUSER = True
+
 
 #####
 #

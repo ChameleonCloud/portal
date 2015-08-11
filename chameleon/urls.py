@@ -17,6 +17,7 @@ urlpatterns = patterns('',
     url(r'^admin/allocations/', include('allocations.urls', namespace='allocations_admin')),
 
     # contrib urls
+    url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
     url(r'^ckeditor/', include('ckeditor.urls')),
     url(r'^captcha/', include('captcha.urls')),
     url(r'^terms/', include('termsandconditions.urls', namespace='terms')),
