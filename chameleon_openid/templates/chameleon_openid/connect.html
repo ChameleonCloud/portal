@@ -1,0 +1,42 @@
+{% extends "layout/default.html" %}
+{% load bootstrap3 %}
+{% block title %}OpenID Connect{% endblock %}
+{% block content %}
+<h1>OpenID Connect</h1>
+
+<p class="lead">
+  Hello, {{ ax.full_name.0 }}! You have successfully authenticated with the remote
+  identity:<br><code>{{ url }}</code>
+</p>
+
+{% if existing_user %}
+<p class="lead">
+  It looks like you already have a Chameleon account, but this is the first time you've
+  logged in using this OpenID Identity. Please enter your Chameleon credentials below to
+  connect this identity with your existing Chameleon account.
+</p>
+{% else %}
+<p class="lead">
+  However, we failed to match this to a valid Chameleon user! Please either connect this
+  identity with your existing Chameleon account, or create a Chameleon account if you
+  don't already have one!
+</p>
+{% endif %}
+
+<!-- OpenID Debug Info {{sreg}} {{ax}} -->
+
+<form method="post">
+  {% csrf_token %}
+
+  {% bootstrap_form form %}
+
+  <div class="actions">
+    <button type="submit" class="btn btn-primary">Connect account</button>
+    {% if not existing_user %}
+    <a class="btn btn-info" href="{% url 'chameleon_openid:openid_register' %}">Register new account</a>
+    {% endif %}
+  </div>
+</form>
+
+
+{% endblock %}

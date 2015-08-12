@@ -198,7 +198,7 @@ LOCALE_PATHS = (
 
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
-    # 'chameleon_openid.auth.OpenIDBackend',
+    'chameleon_openid.auth.OpenIDBackend',
 )
 
 LOGIN_URL = '/login/'
@@ -212,8 +212,6 @@ OPENID_PROVIDERS = {
         'openid_url': 'https://portal.geni.net/server/server.php'
     },
 }
-
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 
 #####
