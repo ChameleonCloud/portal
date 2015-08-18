@@ -27,9 +27,13 @@ class OpenIDNonce(models.Model):
         return self.server_url
 
 
+@python_2_unicode_compatible
 class OpenIDUserIdentity(models.Model):
     uid = models.CharField(unique=True, verbose_name=_('uid'), max_length=255)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="openid_identities")
     last_login = models.DateTimeField(verbose_name=_('last login'), auto_now=True)
     date_joined = models.DateTimeField(verbose_name=_('date joined'), auto_now_add=True)
+
+    def __str__(self):
+        return self.uid
 

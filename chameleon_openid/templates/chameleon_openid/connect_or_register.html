@@ -10,15 +10,15 @@
 </p>
 
 <p class="lead">
-  It looks like you already have a Chameleon account, but this is the first time you've
-  logged in using this OpenID Identity. Please enter your Chameleon credentials below to
-  connect this identity with your existing Chameleon account.
+  However, we were unable to match this to a valid Chameleon user! Please either connect
+  this identity with your existing Chameleon account, or create a Chameleon account if you
+  don't already have one!
 </p>
 
 <!-- OpenID Debug Info {{openid}} -->
 
 <div class="row">
-  <div class="col-sm-9">
+  <div class="col-sm-6">
     <h2>Connect account</h2>
     <p>
       Enter your Chameleon username and password to link your Chameleon account with this
@@ -26,11 +26,21 @@
     </p>
     <form method="post">
       {% csrf_token %}
+
       {% bootstrap_form form %}
+
       <div class="actions">
         <button type="submit" class="btn btn-primary">Connect account</button>
       </div>
     </form>
+  </div>
+  <div class="col-sm-6">
+    <h2>Register account</h2>
+    <p>
+      If you don't have a Chameleon account, please register for one. After registration
+      is complete, we will link your OpenID identity to your account automatically.
+    </p>
+    <a class="btn btn-info" href="{% url 'chameleon_openid:openid_register' %}">Register new account</a>
   </div>
 </div>
 
