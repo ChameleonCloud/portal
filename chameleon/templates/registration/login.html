@@ -1,5 +1,5 @@
 {% extends "layout/default.html" %}
-{% load bootstrap3 %}
+{% load bootstrap3 chameleon_openid_tags %}
 {% block title %}Log In{% endblock %}
 {% block content %}
 
@@ -25,6 +25,9 @@
         <a class="btn btn-link" href="{% url 'tas:password_reset' %}">Forgot your password?</a>
       </div>
     </form>
+
+    <h3>Other login options</h3>
+    {% openid_login_options %}
   </div>
 
   <div class="col-sm-6">

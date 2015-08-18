@@ -198,7 +198,7 @@ LOCALE_PATHS = (
 
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
-    'chameleon_openid.auth.OpenIDBackend',
+    'chameleon_openid.backend.OpenIDBackend',
 )
 
 LOGIN_URL = '/login/'
