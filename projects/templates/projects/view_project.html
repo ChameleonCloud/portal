@@ -1,11 +1,6 @@
 {% extends 'layout/user.html' %}
-
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-
+{% load staticfiles bootstrap3 chameleon_tags %}
 {% block title %}Project - {{ project.chargeCode }}{% endblock %}
-
 {% block content %}
 <h2>
   {{ project.title }} |
@@ -34,18 +29,15 @@
         <th>Field of Science</th>
         <td>{{ project.field }}</td>
       </tr>
-      <tr>
-        <th>Allocation</th>
-        <td>
-          <ul class="list-unstyled">
-            {% for alloc in project.allocations %}
-              <li>{{ alloc.resource }} <i>{{ alloc.status }}</i></li>
-            {% endfor %}
-          </ul>
-        </td>
-      </tr>
     </tbody>
   </table>
+</div>
+
+<h3>Allocations</h3>
+<div class="allocations">
+  {% for alloc in project.allocations %}
+    {% include 'projects/allocation.html' %}
+  {% endfor %}
 </div>
 
 <h3>Project Users</h3>
@@ -105,7 +97,6 @@
   </div>
   {% endif %}
 </div>
-
 {% endblock %}
 
 {% block scripts %}

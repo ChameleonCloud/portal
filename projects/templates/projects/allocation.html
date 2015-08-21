@@ -1,0 +1,32 @@
+{% load chameleon_tags %}
+
+<div class="allocation" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
+  <h4>{{ alloc.resource }} <small><span class="label label-default">{{ alloc.status }}</small></h4>
+
+  {% if alloc.status == 'Rejected' or alloc.status == 'Pending' %}
+    <p><b>Date requested:</b> {{ alloc.dateRequested|date:"D d M Y" }}</p>
+  {% endif %}
+
+  {% if alloc.status == 'Rejected' %}
+    <p><b>Decision summary:</b> {{ alloc.decisionSummary }}</p>
+  {% endif %}
+
+  {% if alloc.status == 'Approved' or alloc.status == 'Active' %}
+  <table class="table">
+    <thead>
+      <th>Start</th>
+      <th>End</th>
+      <th>Usage</th>
+      <th>Actions</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ alloc.start }}</td>
+        <td>{{ alloc.end }}</td>
+        <td>{{ alloc.computeAllocated }}</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+</div>
