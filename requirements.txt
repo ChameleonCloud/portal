@@ -43,5 +43,5 @@ sqlparse
 
 # these modules aren't in PIP
 -e git+https://github.com/jrief/djangocms-cascade.git@173731aa6f14b403c4f9a3b4e5626337a92f2320#egg=djangocms_cascade-master
+-e git+https://bitbucket.org/taccaci/pytas.git@2bcc290b0abbbc1ad996921a8bf9acee00f08f6a#egg=pytas-1.0
 
-#pytas
