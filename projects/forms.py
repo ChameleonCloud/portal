@@ -1,5 +1,5 @@
 from django import forms
-from pytas.pytas import client as TASClient
+from pytas.http import TASClient
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
 

@@ -7,9 +7,13 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
-from pytas.pytas import client as TASClient
+
+from pytas.http import TASClient
+from pytas.models import Project
+
 from forms import ProjectCreateForm, ProjectAddUserForm
 import project_util
+
 import re
 import logging
 import json
@@ -23,7 +27,7 @@ def project_pi_or_admin_or_superuser(user, project):
     if user.groups.filter(name='Allocation Admin').count() == 1:
         return True
 
-    if user.username == project['pi']['username']:
+    if user.username == project.pi.username:
         return True
 
     return False
@@ -33,7 +37,7 @@ def project_member_or_admin_or_superuser(user, project, project_user):
         return True
 
     for pu in project_user:
-        if user.username == pu['username']:
+        if user.username == pu.username:
             return True
 
     return False
@@ -48,20 +52,16 @@ def user_projects(request):
     user = tas.get_user(username=request.user)
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
 
-    projects = tas.projects_for_user(request.user)
-    ch_projects = []
+    projects = Project.list(username=request.user)
+    projects = list(p for p in projects if p.source == 'Chameleon')
 
-    for p in projects:
-        if 'source' in p and p[ 'source' ] == 'Chameleon':
-            ch_projects.append(p)
-
-    context['projects'] = ch_projects
+    context['projects'] = projects
 
     return render(request, 'projects/user_projects.html', context)
 
 @login_required
 def view_project(request, project_id):
-    tas = TASClient()
+    project = Project.get(project_id)
 
     if request.POST:
         if 'add_user' in request.POST:
@@ -70,7 +70,7 @@ def view_project(request, project_id):
                 # try to add user
                 try:
                     add_username = form.cleaned_data['username']
-                    if tas.add_project_user(project_id, add_username):
+                    if project.add_user(add_username):
                         messages.success(request, 'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
                 except:
@@ -86,7 +86,7 @@ def view_project(request, project_id):
             # try to remove user
             try:
                 del_username = request.POST['username']
-                if tas.del_project_user(project_id, del_username):
+                if project.remove_user(del_username):
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
                 logger.exception('Failed removing user')
@@ -95,26 +95,25 @@ def view_project(request, project_id):
     else:
         form = ProjectAddUserForm()
 
-    project = tas.project(project_id)
-    users = tas.get_project_users(project_id)
+    users = project.get_users()
 
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
-    fg_migration = re.search(r'FG-(\d+)', project['chargeCode'])
+    fg_migration = re.search(r'FG-(\d+)', project.chargeCode)
     if fg_migration:
         fg_project_num = fg_migration.group(1)
         fg_users = project_util.list_migration_users(fg_project_num)
 
         # filter out existing users
-        fg_users = [u for u in fg_users if not any(x for x in users if x['username'] == u['username']) ]
+        fg_users = [u for u in fg_users if not any(x for x in users if x.username == u['username'])]
     else:
         fg_users = None
 
     return render(request, 'projects/view_project.html', {
         'project': project,
         'users': users,
-        'is_pi': request.user.username == project['pi']['username'],
+        'is_pi': request.user.username == project.pi.username,
         'fg_migration': fg_migration,
         'fg_users': fg_users,
         'form': form,

@@ -1,5 +1,6 @@
 from HTMLParser import HTMLParser
 
+
 class Project:
     def __init__(self, username = "", project_title = "", project_id = "", abstract = "", manager_email = "", lead_email = "", is_pi = False):
         self.username = username
@@ -15,6 +16,7 @@ class Project:
         s = MLStripper()
         s.feed(html)
         return s.get_data()
+
 
 class MLStripper(HTMLParser):
     def __init__(self):
