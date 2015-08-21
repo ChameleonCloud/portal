@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
-from pytas.pytas import client as TASClient
+from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
 import re
 import logging

@@ -1,5 +1,5 @@
 from django import forms
-from pytas.pytas import client as TASClient
+from pytas.http import TASClient
 import re
 import logging
 

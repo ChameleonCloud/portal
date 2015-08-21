@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserChangeForm
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
-from pytas.pytas import client as TASClient
+from pytas.http import TASClient
 from django.contrib import admin
 from django.utils.encoding import force_text
 from django.utils.html import escape
