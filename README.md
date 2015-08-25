@@ -65,6 +65,12 @@ Finally, from this repository run:
 docker-compose up
 ```
 
+If you need to rebuild the image, simply run:
+
+```bash
+docker-compose build
+```
+
 #### Production
 
 There are a few additional requirements for running the composition in production. We want to run Django with uWSGI and Nginx in production (not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!) so the ports and command are different. We also need to mount in SSL certificates and log file directories.

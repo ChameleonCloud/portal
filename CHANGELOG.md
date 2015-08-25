@@ -1,5 +1,14 @@
 ## Changelog
 
+### v1.5.5
+
+- Update help desk ticket categories #7866
+- Update "Users" menu items #7889
+
+### v1.5.4
+
+- Registration form validation fixes #7930
+
 ### v1.5.3
 
 - fix field name for new insitutions on registration
