@@ -17,6 +17,20 @@ angular.module('discoveryApp')
             'gpu' : 'GPU',
             'besteffort' : 'Best Effort'
         };
+
+        var tagMap = {
+            'architecture~smt_size' : 'Compute Nodes',
+            'storage_devices~16~device' : 'Storage Nodes',
+            'gpu~gpu' : 'With GPU',
+            'infiniband' : 'With Infiniband'
+        };
+
+        nameMap = _.extend(nameMap, tagMap);
+
+        factory.isShowValTag = function(key){
+            return tagMap[key]?false:true;
+        };
+
         factory.isEmpty = function(obj) {
             if (typeof obj === 'undefined' || !obj) {
                 return true;
@@ -35,7 +49,7 @@ angular.module('discoveryApp')
                 return name;
             }
             str = str + '';
-            str = str.replace(/(_[a-z\d])/g, function(m) {
+            str = str.replace(/([_~][a-z\d])/g, function(m) {
                 if (!isNaN(parseInt(m[1]))) {
                     m = ' #' + m[1];
                 } else {
@@ -122,6 +136,7 @@ angular.module('discoveryApp')
         factory.allNodes = [];
         factory.filters = {};
         factory.prunedAppliedFilters = {};
+        factory.flatAppliedFilters = {};
         var promises = [];
         factory.getResources = function(scope, successCallBack, errorCallBack) {
             scope.loading = true;
@@ -236,6 +251,28 @@ angular.module('discoveryApp')
                 delete filtersOrg[ky];
             }
         };
+
+        // make sure to set factory.flatAppliedFilters = {} before calling this function
+        factory.flatten = function(appliedFilters, ky){
+        ky = ky || '';
+           for(var key in appliedFilters){
+              if(_.isArray(appliedFilters[key])){
+                var arr = appliedFilters[key];
+                 for(var i=0; i<arr.length; i++){
+                    var k1 = ky + key + '~' + i + '~';
+                    factory.flatten(arr[i], k1);
+                 }
+              }
+              else if(_.isObject(appliedFilters[key])){
+                    var k2 = ky + key + '~';
+                    factory.flatten(appliedFilters[key], k2);
+              }
+              else if(appliedFilters[key] === true){
+                ky = ky.substring(0, ky.length - 1);
+                 factory.flatAppliedFilters[ky] = key; 
+              }
+           }
+    };
 
         var processNode = function(node, uid, filters) {
             filters = (typeof filters === 'undefined') ? factory.filters : filters;

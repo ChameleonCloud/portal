@@ -8,7 +8,7 @@
     }
     .node {
         margin-bottom: 2em;
-        word-wrap: break-word; 
+        word-wrap: break-word;
     }
     .node section {
         margin-bottom: 1em;
@@ -49,10 +49,41 @@
         margin-top: 8px;
         margin-bottom: 0px;
     }
-    .filter-state{
+    .filter-state {
         margin-top: 15px;
         margin-bottom: 25px;
     }
+    .label-filter {
+        margin-left: 5px;
+        line-height: 2em;
+    }
+    .btn-filter {
+        margin-left: 15px;
+        margin-bottom: 20px;
+    }
+    .fa-times {
+        margin-right: -5px;
+        font-size: 1.2em;
+        color: red;
+        vertical-align: middle;
+    }
+    .label {
+        white-space: normal;
+    }
+    .label-text {
+        white-space: nowrap;
+    }
+    .advanced-filter {
+        max-height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+   }
+   .advanced-filter-block {
+        padding: 5px 25px 5px 25px;
+   }
+   .filterSearch{
+        width: 86%;
+   }
 }
 
 

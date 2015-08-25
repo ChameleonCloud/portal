@@ -58,7 +58,8 @@ module.exports = function(grunt) {
             dist: {
                 files: {
                     '<%= yeoman.dist %>/css/main.css': [
-                        '.tmp/css/custom.css'
+                        '.tmp/css/custom.css',
+                        'bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css'
                     ]
                 }
             }
@@ -125,7 +126,8 @@ module.exports = function(grunt) {
                     'bower_components/angular/angular.js',
                     'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
                     'bower_components/zeroclipboard/dist/ZeroClipboard.js',
-                    'bower_components/ng-clip/src/ngClip.js'
+                    'bower_components/ng-clip/src/ngClip.js',
+                    'bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.js'
                 ],
                 dest: '.tmp/scripts/vendor.js'
             },

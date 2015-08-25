@@ -1,11 +1,11 @@
 /**
  * Created by agauli on 2/26/15.
  */
- 'use strict';
+'use strict';
 angular.module('discoveryApp')
     .controller('MainController', ['$scope', '$http', '_', '$q', '$timeout', 'ResourceFactory', 'UtilFactory', function($scope, $http, _, $q, $timeout, ResourceFactory, UtilFactory) {
         $scope.snakeToReadable = UtilFactory.snakeToReadable;
-        
+
         $scope.isArray = function(obj) {
             return _.isArray(obj);
         };
@@ -13,12 +13,15 @@ angular.module('discoveryApp')
         $scope.isObject = function(obj) {
             return _.isObject(obj);
         };
-        
-        $scope.contains = function(arr, element){
-          return _.contains(arr, element);
+
+        $scope.contains = function(arr, element) {
+            return _.contains(arr, element);
         };
 
-        $scope.changeView = function(){
+        $scope.isShowValTag = UtilFactory.isShowValTag;
+        $scope.isEmpty = UtilFactory.isEmpty;
+
+        $scope.changeView = function() {
             $scope.showNodes = !$scope.showNodes;
         };
 
@@ -35,6 +38,19 @@ angular.module('discoveryApp')
                         return false;
                     }
                 }
+            }
+        };
+
+        $scope.isEmptyArrayNested = function(arr) {
+            if (!arr || !_.isArray(arr) || arr.length < 1) {
+                return true;
+            } else {
+                for (var i = 0; i < arr.length; i++) {
+                    if (!_.isEmpty(arr[i])) {
+                        return false;
+                    }
+                }
+                return true;
             }
         };
         $scope.isArrayOfObjects = function(obj) {
@@ -59,12 +75,12 @@ angular.module('discoveryApp')
                     val = val[k];
                 }
             }
+            //do not disable if it is a user selected filter, only auto checked filters are disabled
             if (val === false) {
-                if (count !== $scope.filteredNodes.length) {
+                if (typeof count !== 'undefined' && count !== $scope.filteredNodes.length) {
                     val = true;
                 }
             }
-            //do not disable if it is a user selected filter, only auto checked filters are disabled
             return !val;
         };
         $scope.booleanizeFilter = function(filters) {
@@ -124,18 +140,9 @@ angular.module('discoveryApp')
             delete $scope.filters['site'];
             $scope.filterCluster = $scope.filters['cluster'];
             delete $scope.filters['cluster'];
-            $scope.filterVersion = $scope.filters['version'];
-            delete $scope.filters['version'];
             $scope.filterArchitecture = $scope.filters['architecture'];
             delete $scope.filters['architecture'];
-            $scope.filterProcessor = $scope.filters['processor'];
-            delete $scope.filters['processor'];
-            $scope.filterMainMemory = $scope.filters['main_memory'];
-            delete $scope.filters['main_memory'];
-            $scope.filterGpu = $scope.filters['gpu'];
-            delete $scope.filters['gpu'];
-            $scope.filterMonitoring = $scope.filters['monitoring'];
-            delete $scope.filters['monitoring'];
+            $scope.advancedFiltersOrg = angular.copy($scope.filters);
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -173,6 +180,80 @@ angular.module('discoveryApp')
             }
         };
 
+        $scope.advancedFilter = {
+            search: '',
+            allKeys: false
+        };
+
+        $scope.filterSearchRecursive = function(filters, filtersTemp, searchKeys) {
+            for (var key in filters) {
+                var humanizedKey = UtilFactory.snakeToReadable(key).toLowerCase();
+                var pass = false;
+                for (var j = 0; j < searchKeys.length; j++) {
+                    pass = humanizedKey.indexOf(searchKeys[j]) > -1;
+                    if (pass) {
+                        break;
+                    }
+                }
+                if (pass) {
+                    if (_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key]) && _.isString(filters[key][0])) {
+                        //this means this is a selection option, other options should NOT be filtered out
+                        filtersTemp = _.extend(filtersTemp, filters);
+                        break;
+                    } else {
+                        filtersTemp[key] = filters[key];
+                    }
+                } else {
+                    if (_.isObject(filters[key]) && !_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key])) {
+                        filtersTemp[key] = {};
+                        $scope.filterSearchRecursive(filters[key], filtersTemp[key], searchKeys);
+                    } else if (_.isArray(filters[key]) && !UtilFactory.isEmpty(filters[key])) {
+                        if (_.isObject(filters[key][0])) {
+                            var len = filters[key].length - 1;
+                            filtersTemp[key] = [];
+                            for (var i = len; i >= 0; i--) {
+                                filtersTemp[key][i] = {};
+                                $scope.filterSearchRecursive(filters[key][i], filtersTemp[key][i], searchKeys);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        $scope.filterSearch = function() {
+            //$scope.switch.status true means ALL, false means ANY
+            console.log('advancedFilter.allKeys', $scope.advancedFilter.allKeys);
+            var searchKeys = $scope.advancedFilter.search.split(' ');
+            _.each(searchKeys, function(searchKey) {
+                searchKey = searchKey.replace(/^\s+ \s+$/g, '');
+                searchKey = searchKey.toLowerCase();
+            });
+            console.log('searchKeys', searchKeys);
+            if (searchKeys && searchKeys.length > 0) {
+                var filtersTemp = {};
+                if ($scope.advancedFilter.allKeys) {
+                    var filters = $scope.advancedFiltersOrg;
+                    for (var i = 0; i < searchKeys.length; i++) {
+                        filtersTemp = {};
+                        var searchKey = searchKeys[i];
+                        $scope.filterSearchRecursive(filters, filtersTemp, [searchKey]);
+                        $scope.prune(filtersTemp, null, true);
+                        filters = filtersTemp;
+                    }
+                    $scope.filters = filtersTemp;
+
+                } else {
+                    $scope.filterSearchRecursive($scope.advancedFiltersOrg, filtersTemp, searchKeys);
+                    $scope.prune(filtersTemp, null, true);
+                    $scope.filters = filtersTemp;
+                }
+                console.log('filtersTemp', filtersTemp);
+            } else {
+                $scope.filters = $scope.advancedFiltersOrg;
+            }
+        };
+
         $scope.resetFilters = function() {
             $scope.filters = angular.copy($scope.filtersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
@@ -180,10 +261,35 @@ angular.module('discoveryApp')
             makeChunks();
         };
 
+        $scope.removeFilter = function(key, value) {
+            var keyArr = key.split('~') || [];
+            if (_.isNumber(value)) {
+                value = value.toString();
+            }
+            console.log('keyArr', keyArr);
+            var thisFilter = $scope.appliedFilters;
+            for (var i = 0; i < keyArr.length; i++) {
+                console.log('thisFilter', thisFilter);
+                console.log('i', i);
+                console.log('keyArr[i]', keyArr[i]);
+                var k = keyArr[i].toLowerCase();
+                thisFilter = thisFilter[k];
+            }
+            console.log('value', value);
+            console.log('thisFilter[value]', thisFilter[value]);
+            thisFilter[value] = false;
+            $scope.applyFilter();
+            console.log('flatAppliedFilters', $scope.flatAppliedFilters);
+        };
+
+
         $scope.applyFilter = function() {
             $scope.prunedAppliedFilters = angular.copy($scope.appliedFilters);
             $scope.prune($scope.prunedAppliedFilters, null, true);
             var prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
+            ResourceFactory.flatAppliedFilters = {};
+            ResourceFactory.flatten(prunedAppliedFilters);
+            $scope.flatAppliedFilters = ResourceFactory.flatAppliedFilters;
             ResourceFactory.prunedAppliedFilters = prunedAppliedFilters;
             $scope.intersectArray = [];
             $scope.createIntersectArray();

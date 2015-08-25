@@ -4,7 +4,7 @@ angular.module('underscore', [])
         return window._;
     });
 
-angular.module('discoveryApp', ['underscore', 'ui.bootstrap', 'ngClipboard'])
+angular.module('discoveryApp', ['underscore', 'ui.bootstrap', 'ngClipboard', 'toggle-switch'])
     .config(function($interpolateProvider, $httpProvider) {
         $interpolateProvider.startSymbol('[[').endSymbol(']]');
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
