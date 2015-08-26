@@ -7,41 +7,59 @@
         <p class="lead">Filter nodes using the options below, then generate a reservation script to reserve those nodes.</p>
         <h4>
             Applied Filters: 
-            <span ng-show="filteredNodes.length === allNodes.length"> None</span>
-            <span ng-show="filteredNodes.length !== allNodes.length" ng-repeat="(key, value) in flatAppliedFilters" class="label label-default label-filter">
+            <span ng-show="filteredNodesOrg.length === allNodes.length"> None</span>
+            <span ng-show="filteredNodesOrg.length !== allNodes.length" ng-repeat="(key, value) in flatAppliedFilters" class="label label-default label-filter">
             <span class="label-text">[[snakeToReadable(key)]]<span ng-show="isShowValTag(key)">: [[value]]</span> &nbsp;
             <i ng-click="removeFilter(key, value)" class="pseudolink fa fa-times"></i>
             </span>
             </span>            
         </h4>
-        <h4 class="filter-state"><strong>[[filteredNodes.length]] node<span ng-show="filteredNodes.length > 1">s</span></strong>
-            <span ng-show="filteredNodes.length !== allNodes.length">
+        <h4 class="filter-state"><strong>[[filteredNodesOrg.length]] node<span ng-show="filteredNodesOrg.length > 1">s</span></strong>
+            <span ng-show="filteredNodesOrg.length !== allNodes.length">
                 filtered from [[allNodes.length]] originally.
             </span>
         </h4>
         <div class="row">
-            <button type="button" class="btn btn-lg btn-primary btn-filter" ng-model="appliedFilters.architecture.smt_size[48]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', 'smt_size', 48], filterArchitecture.smt_size['48'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.architecture['smt_size'][48] || filterArchitecture.smt_size['48'].length === filteredNodes.length"></i> Compute Nodes <span ng-show="filterArchitecture.smt_size['48'].length > 0">([[filterArchitecture.smt_size['48'].length]])</span></button>
-            <button type="button" class="btn btn-lg btn-primary btn-filter" ng-model="appliedFilters.storage_devices[16].device.sdq" ng-change="applyFilter()" ng-disabled="shouldDisable(['storage_devices', 16, 'device', 'sdq'], filters.storage_devices[16].device.sdq.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.storage_devices[16].device.sdq || filters.storage_devices[16].device.sdq.length === filteredNodes.length"></i> Storage Nodes <span ng-show="filters.storage_devices[16].device.sdq.length > 0">([[filters.storage_devices[16].device.sdq.length]])</span></button>
-            <label class="btn btn-lg btn-primary btn-filter" ng-model="appliedFilters.gpu.gpu['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'true'], filterGpu.gpu['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['true'] || filterGpu.gpu['true'].length === filteredNodes.length"></i> With GPU <span ng-show="filterGpu.gpu['true'].length > 0">([[filterGpu.gpu['true'].length]])</span></label>
-            <button type="button" class="btn btn-lg btn-primary btn-filter" ng-model="appliedFilters.infiniband['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['infiniband', 'true'], filters.infiniband['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.infiniband['true'] || filters.infiniband['true'].length === filteredNodes.length"></i> With Infiniband Support <span ng-show="filters.infiniband['true'].length > 0">([[filters.infiniband['true'].length]])</span></button>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.architecture.smt_size[48]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', 'smt_size', 48], filterArchitecture.smt_size['48'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.architecture['smt_size'][48] || filterArchitecture.smt_size['48'].length === filteredNodesOrg.length"></i> Compute Nodes <span ng-show="filterArchitecture.smt_size['48'].length > 0">([[filterArchitecture.smt_size['48'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.storage_devices[16].device.sdq" ng-change="applyFilter()" ng-disabled="shouldDisable(['storage_devices', 16, 'device', 'sdq'], filters.storage_devices[16].device.sdq.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.storage_devices[16].device.sdq || filters.storage_devices[16].device.sdq.length === filteredNodesOrg.length"></i> Storage Nodes <span ng-show="filters.storage_devices[16].device.sdq.length > 0">([[filters.storage_devices[16].device.sdq.length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.gpu.gpu['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'true'], filterGpu.gpu['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['true'] || filterGpu.gpu['true'].length === filteredNodesOrg.length"></i> With GPU <span ng-show="filterGpu.gpu['true'].length > 0">([[filterGpu.gpu['true'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.infiniband['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['infiniband', 'true'], filters.infiniband['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.infiniband['true'] || filters.infiniband['true'].length === filteredNodesOrg.length"></i> With Infiniband Support <span ng-show="filters.infiniband['true'].length > 0">([[filters.infiniband['true'].length]])</span></button>
+            </div>
         </div>
         <div class="row">
             <div class="col col-sm-2 filter-block">
                 <strong>Site</strong>
                 <div ng-repeat="(key, value) in filterSite track by $index" ng-class="{'disabled' : shouldDisable(['site', key], value.length)}">
-                    <input type="checkbox" name="[[key]]" ng-model="appliedFilters.site[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['site', key], value.length)" ng-checked="value.length === filteredNodes.length"> [[snakeToReadable(key)]] ([[value.length]])
+                    <input type="checkbox" name="[[key]]" id="[[key]]" ng-model="appliedFilters.site[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['site', key], value.length)" ng-checked="value.length === filteredNodesOrg.length">
+                    <label class="filter-label" for="[[key]]">[[snakeToReadable(key)]] ([[value.length]])</label>
                 </div>
             </div>
             <div class="col col-sm-2 filter-block">
                 <strong>Cluster</strong>
                 <div ng-repeat="(key, value) in filterCluster track by $index" ng-class="{'disabled' : shouldDisable(['cluster', key], value.length)}">
-                    <input type="checkbox" name="[[key]]" ng-model="appliedFilters.cluster[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['cluster', key], value.length)" ng-checked="value.length === filteredNodes.length"> [[snakeToReadable(key)]] ([[value.length]])
+                    <input type="checkbox" name="[[key]]" id="[[key]]" ng-model="appliedFilters.cluster[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['cluster', key], value.length)" ng-checked="value.length === filteredNodesOrg.length">
+                    <label class="filter-label" for="[[key]]">[[snakeToReadable(key)]] ([[value.length]])</label>
                 </div>
             </div>
             <div ng-repeat="(key, value) in filterArchitecture track by $index" class="col col-sm-2 filter-block">
                 <strong>[[snakeToReadable(key)]]</strong>
                 <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable(['architecture', key, k], v.length)}">
-                    <input type="checkbox" name="[[k]]" ng-model="appliedFilters.architecture[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
+                    <input type="checkbox" name="[[key]][[k]]" id="[[key]][[k]]" ng-model="appliedFilters.architecture[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', key, k], v.length)" ng-checked="v.length === filteredNodesOrg.length">
+                    <label class="filter-label" for="[[key]][[k]]">[[snakeToReadable(k)]] ([[v.length]])</label>
+                </div>
+            </div>
+            <div class="col col-sm-2 filter-block">
+                <strong>RAM Size</strong>
+                <div ng-repeat="(key, value) in filterRamSize track by $index" ng-class="{'disabled' : shouldDisable(['main_memory', 'humanized_ram_size', key], value.length)}">
+                    <input type="checkbox" name="[[key]]" id="[[key]]" ng-model="appliedFilters.main_memory.humanized_ram_size[key]" ng-change="applyFilter()" ng-disabled="shouldDisable(['main_memory', 'humanized_ram_size', key], value.length)" ng-checked="value.length === filteredNodesOrg.length">
+                    <label class="filter-label" for="[[key]]">[[snakeToReadable(key)]] ([[value.length]])</label>
                 </div>
             </div>
         </div>
@@ -50,7 +68,7 @@
             <div ng-show="!advancedCollapsed">
                 <h4 class="bg-primary">Advanced Filters</h4>
                 <div>
-                    <input type="text" name="filterSearch" ng-model="advancedFilter.search" ng-change="filterSearch()" class="filterSearch" placeholder="Search by space separated keywords.">
+                    <input type="text" name="filterSearch" ng-model="advancedFilter.search" ng-change="filterSearch()" class="filter-search" ng-model-options="{debounce: 500}" placeholder="Search by space separated keywords.">
                     <toggle-switch ng-model="advancedFilter.allKeys" on-label="ALL" off-label="ANY" knob-label="" ng-change="filterSearch()">
                     </toggle-switch>
                     <button class="btn btn-sm" ng-click="advancedFilter.search = '';filterSearch()">Clear</button>
@@ -63,7 +81,8 @@
                     <div class="advanced-filter-block">
                         <strong>[[snakeToReadable(key)]]</strong>
                         <div ng-repeat="(k, v) in value track by $index" ng-class="{'disabled' : shouldDisable([key, k], v.length)}">
-                            <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
+                            <input type="checkbox" name="[[key]][[k]]" id="[[key]][[k]]" ng-model="appliedFilters[key][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, k], v.length)" ng-checked="v.length === filteredNodesOrg.length">
+                            <label class="filter-label" for="[[key]][[k]]">[[snakeToReadable(k)]] ([[v.length]])</label>
                         </div>
                     </div>
                 </div>
@@ -77,7 +96,8 @@
                             <div ng-repeat="(ky, vl) in val track by $index" class="advanced-filter-block">
                                 <strong>[[snakeToReadable(ky)]]</strong>
                                 <div ng-repeat="(k, v) in vl track by $index" ng-class="{'disabled' : shouldDisable([key, arrayIndex, ky, k], v.length)}">
-                                    <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][arrayIndex][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, arrayIndex, ky, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
+                                    <input type="checkbox" name="[[key]][[arrayIndex]][[ky]][[k]]" id="[[key]][[arrayIndex]][[ky]][[k]]" ng-model="appliedFilters[key][arrayIndex][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, arrayIndex, ky, k], v.length)" ng-checked="v.length === filteredNodesOrg.length">
+                                    <label class="filter-label" for="[[key]][[arrayIndex]][[ky]][[k]]">[[snakeToReadable(k)]] ([[v.length]])</label>
                                 </div>
                             </div>
                         </div>
@@ -90,15 +110,16 @@
                         <div ng-repeat="(ky, vl) in value track by $index" class="advanced-filter-block">
                             <strong>[[snakeToReadable(ky)]]</strong>
                             <div ng-repeat="(k, v) in vl track by $index" ng-class="{'disabled' : shouldDisable([key, ky, k], v.length)}">
-                                <input type="checkbox" name="[[k]]" ng-model="appliedFilters[key][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, ky, k], v.length)" ng-checked="v.length === filteredNodes.length"> [[snakeToReadable(k)]] ([[v.length]])
+                                <input type="checkbox" name="[[key]][[ky]][[k]]" id="[[key]][[ky]][[k]]" ng-model="appliedFilters[key][ky][k]" ng-change="applyFilter()" ng-disabled="shouldDisable([key, ky, k], v.length)" ng-checked="v.length === filteredNodesOrg.length">
+                                <label class="filter-label" for="[[key]][[ky]][[k]]">[[snakeToReadable(k)]] ([[v.length]])</label>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <h4 class="filter-state"><strong>[[filteredNodes.length]] node<span ng-show="filteredNodes.length > 1">s</span></strong>
-            <span ng-show="filteredNodes.length !== allNodes.length">
+        <h4 class="filter-state"><strong>[[filteredNodesOrg.length]] node<span ng-show="filteredNodesOrg.length > 1">s</span></strong>
+            <span ng-show="filteredNodesOrg.length !== allNodes.length">
                 filtered from [[allNodes.length]] originally.
             </span>
         </h4>

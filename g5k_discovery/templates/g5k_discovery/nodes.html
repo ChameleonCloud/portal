@@ -1,8 +1,10 @@
 <h2 class="title"><span ng-show="filteredNodes.length !== allNodes.length">Filtered </span>Nodes</h2>
-<div class="col col-sm-12">
-    <button class="btn btn-sm" ng-click="changeView()">Back</button>
-</div>
-<ol>
+<div><button class="btn btn-sm back-btn" ng-click="changeView()">Back</button></div>
+<input type="text" name="nodeViewSearch" ng-model="nodeView.search" ng-change="nodeViewSearch()" class="filter-search" ng-model-options="{debounce: 500}" placeholder="Search by any node properties.">
+<toggle-switch ng-model="nodeView.allKeys" on-label="ALL" off-label="ANY" knob-label="" ng-change="nodeViewSearch()">
+</toggle-switch>
+<button class="btn btn-sm" ng-click="nodeView.search = '';nodeViewSearch()">Clear</button>
+<ol ng-show="filteredNodes.length > 0">
     <li ng-repeat="node in filteredNodes track by $index" class="node">
         <h4 class="node-header">[[node.uid]]</h4>
         <section>
@@ -61,6 +63,7 @@
         </section>
     </li>
 </ol>
-<div class="col col-sm-12">
+<div ng-show="isEmpty(filteredNodes)" class="alert alert-warning">Node(s) not found.</div>
+<div>
     <button class="btn btn-sm" ng-click="changeView()">Back</button>
 </div>

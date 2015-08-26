@@ -5,17 +5,19 @@ angular.module('discoveryApp')
         var nameMap = {
             'smp_size': '# CPUs',
             'smt_size': '# Cores',
-            'ram_size': 'RAM (GiB)',
-            'cache_l1': 'Cache L1 (KiB)',
-            'cache_l2': 'Cache L2 (KiB)',
-            'cache_l3': 'Cache L3 (KiB)',
-            'cache_l1d': 'Cache L1d (KiB)',
-            'cache_l1i': 'Cache L1i (KiB)',
-            'clock_speed': 'Clock Speed (GHz)',
-            'rate' : 'Rate (GHz)',
-            'size': 'Size (GiB)',
-            'gpu' : 'GPU',
-            'besteffort' : 'Best Effort'
+            'ram_size': 'RAM',
+            'cache_l1': 'Cache L1',
+            'cache_l2': 'Cache L2',
+            'cache_l3': 'Cache L3',
+            'cache_l1d': 'Cache L1d',
+            'cache_l1i': 'Cache L1i',
+            'clock_speed': 'Clock Speed',
+            'rate': 'Rate',
+            'size': 'Size',
+            'gpu': 'GPU',
+            'besteffort': 'Best Effort',
+            'true': 'Yes',
+            'false': 'No'
         };
 
         var tagMap = {
@@ -65,46 +67,66 @@ angular.module('discoveryApp')
         //Step I: Fetch sites
         var factory = {};
 
+        factory.scaleMemory = function(num){
+           var scale= ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+           var index = 0;
+           while(num > 1024){
+             num = (num/1024).toFixed(2);
+             index++;
+           }
+           return num + ' ' + scale[index];
+        };
+
+        factory.scaleFrequency = function(num){
+           var scale= ['Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz'];
+           var index = 0;
+           while(num >= 1000){
+             num = (num/1000).toFixed(2);
+             index++;
+           }
+           return num + ' ' + scale[index];
+        };
+
         factory.formatNode = function(node){
             delete node.links;
             delete node.type;
             try{
-                node['main_memory']['ram_size'] = ((node['main_memory']['ram_size'])/(1024 * 1024 * 1024)).toFixed(2);
+                node['main_memory']['ram_size'] = factory.scaleMemory(node['main_memory']['ram_size']);
             }
             catch(err){}
             try{
                 if(typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null){
-                    node['processor']['cache_l1'] = ((node['processor']['cache_l1'])/(1024)).toFixed(2);
+                    node['processor']['cache_l1'] = factory.scaleMemory(node['processor']['cache_l1']);
                 }
             }
             catch(err){}
             try{
                 if(typeof node['processor']['cache_l2'] !== 'undefined' && node['processor']['cache_l2'] !== null){
-                    node['processor']['cache_l2'] = ((node['processor']['cache_l2'])/(1024)).toFixed(2);
+                    node['processor']['cache_l2'] = factory.scaleMemory(node['processor']['cache_l2']);
                 }
             }
             catch(err){}
             try{
                 if(typeof node['processor']['cache_l3'] !== 'undefined' && node['processor']['cache_l3'] !== null){
-                    node['processor']['cache_l3'] = ((node['processor']['cache_l3'])/(1024)).toFixed(2);
+                    node['processor']['cache_l3'] = factory.scaleMemory(node['processor']['cache_l3']);
                 }
             }
             catch(err){}
             try{
                 if(typeof node['processor']['cache_l1d'] !== 'undefined' && node['processor']['cache_l1d'] !== null){
-                    node['processor']['cache_l1d'] = ((node['processor']['cache_l1d'])/(1024)).toFixed(2);
+                    node['processor']['cache_l1d'] = factory.scaleMemory(node['processor']['cache_l1d']);
                 }
             }
             catch(err){}
             try{
                 if(typeof node['processor']['cache_l1i'] !== 'undefined' && node['processor']['cache_l1i'] !== null){
-                    node['processor']['cache_l1i'] = ((node['processor']['cache_l1i'])/(1024)).toFixed(2);
+                    node['processor']['cache_l1i'] = factory.scaleMemory(node['processor']['cache_l1i']);
                 }
             }
             catch(err){}            
             try{
                 if(typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null){
-                    node['processor']['clock_speed'] = ((node['processor']['clock_speed'])/(1000000000)).toFixed(2);
+                    node['processor']['clock_speed'] = factory.scaleFrequency(node['processor']['clock_speed']);
                 }
             }
             catch(err){}
@@ -113,7 +135,7 @@ angular.module('discoveryApp')
                 if(!_.isEmpty(networkAdapters) && networkAdapters.length > 0){
                    _.each(networkAdapters, function(networkAdapter){
                     if(typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null){
-                    networkAdapter['rate'] = ((networkAdapter['rate'])/(1000000000)).toFixed(2);
+                    networkAdapter['rate'] = factory.scaleFrequency(networkAdapter['rate']);
                 }
                    });
                 }
@@ -124,7 +146,7 @@ angular.module('discoveryApp')
                 if(!_.isEmpty(storageDevices) && storageDevices.length > 0){
                    _.each(storageDevices, function(storageDevice){
                     if(typeof storageDevice['size'] !== 'undefined' && storageDevice['size'] !== null){
-                    storageDevice['size'] = ((storageDevice['size'])/(1024 * 1024 * 1024)).toFixed(2);
+                    storageDevice['size'] = factory.scaleMemory(storageDevice['size']);
                 }
                    });
                 }

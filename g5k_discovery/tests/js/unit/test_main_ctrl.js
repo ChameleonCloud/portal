@@ -85,7 +85,7 @@ describe('MainController', function() {
             }]
         };
         
-        scope.filteredNodes = [{
+        scope.filteredNodesOrg = [{
             uid: 1,
             site: 'tacc'
         }, {
