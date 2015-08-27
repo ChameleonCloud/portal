@@ -1,11 +1,11 @@
 'use strict';
 angular.module('discoveryApp')
-    .factory('UtilFactory', ['_', function(_) {
+    .factory('UtilFactory', ['_', 'moment', function(_, moment) {
         var factory = {};
         var nameMap = {
             'smp_size': '# CPUs',
             'smt_size': '# Cores',
-            'ram_size': 'RAM',
+            'ram_size': 'RAM Size',
             'cache_l1': 'Cache L1',
             'cache_l2': 'Cache L2',
             'cache_l3': 'Cache L3',
@@ -14,23 +14,40 @@ angular.module('discoveryApp')
             'clock_speed': 'Clock Speed',
             'rate': 'Rate',
             'size': 'Size',
+            'humanized_size': 'Size',
             'gpu': 'GPU',
             'besteffort': 'Best Effort',
             'true': 'Yes',
             'false': 'No'
         };
+        //RAM Size and disk size provided as humanized and byte size could not be related by a formula, thus mapping
+        var sizeMap = {
+            '12 GiB': 12587876352,
+            '64 GiB':  67445407744,
+            '128 GiB': 134956859392,
+            '146 GB': 14681573376,
+            '250 GB': 250059350016,
+            '400 GB': 400088457216 ,
+            '500 GB': 500107862016,
+            '1 TB': 1000204886016,
+            '2 TB': 2000398934016
+        };
 
         var tagMap = {
-            'architecture~smt_size' : 'Compute Nodes',
-            'storage_devices~16~device' : 'Storage Nodes',
-            'gpu~gpu' : 'With GPU',
-            'infiniband' : 'With Infiniband'
+            'architecture~smt_size:48': 'Compute Nodes',
+            'storage_devices~16~device:sdq': 'Storage Nodes',
+            'gpu~gpu': 'With GPU',
+            'infiniband': 'With Infiniband Support',
+            'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
         };
 
         nameMap = _.extend(nameMap, tagMap);
 
-        factory.isShowValTag = function(key){
-            return tagMap[key]?false:true;
+        factory.isShowValTag = function(key, val) {
+            if(val && val.length > 0){
+               key += ':' + val;
+            }
+            return tagMap[key] ? false : true;
         };
 
         factory.isEmpty = function(obj) {
@@ -44,11 +61,73 @@ angular.module('discoveryApp')
                 return false;
             }
         };
+        
+        factory.humanizedToBytes = function(str) {
+            var size = sizeMap[str];
+            if (size) {
+                return size;
+            }
+            if(!str || str.length < 4){
+               return str;
+            }
+            else{
+                if(str.indexOf('KiB') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1024;
+                  return str;
+                }
+                else if(str.indexOf('MiB') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1024 * 1024;
+                  return str;
+                }
+                 else if(str.indexOf('GiB') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1024 * 1024 * 1024;
+                  return str;
+                }
+                 else if(str.indexOf('TiB') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1024 * 1024 * 1024 * 1024;
+                  return str;
+                }
+                 else if(str.indexOf('PiB') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1024 * 1024 * 1024 * 1024 * 1024;
+                  return str;
+                }
+                else if(str.indexOf('KHz') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1000;
+                  return str;
+                }
+                else if(str.indexOf('MHz') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1000 * 1000;
+                  return str;
+                }
+                else if(str.indexOf('GHz') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1000 * 1000 * 1000;
+                  return str;
+                }
+                else if(str.indexOf('THz') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1000 * 1000 * 1000 * 1000;
+                  return str;
+                }
+                else if(str.indexOf('PHz') > -1){
+                  str = parseFloat(str.substring(0, str.length-4), 10) * 1000 * 1000 * 1000 * 1000;
+                  return str;
+                }
+                else{
+                    return str;
+                }
+            }
+        };
 
-        factory.snakeToReadable = function(str) {
+        factory.snakeToReadable = function(str, opt) {
+            var strOrg = str;
+            if(opt && opt.length > 0){
+               str += ':' + opt;
+            }
             var name = nameMap[str];
             if (name) {
                 return name;
+            }
+            else{
+                str = strOrg;
             }
             str = str + '';
             str = str.replace(/([_~][a-z\d])/g, function(m) {
@@ -61,97 +140,102 @@ angular.module('discoveryApp')
             });
             return str.charAt(0).toUpperCase() + str.slice(1);
         };
+
+        factory.getFormattedDate = function(date, time) {
+            if (!time || !time instanceof Date) {
+                time = date;
+            }
+            if (!date || !date instanceof Date) {
+                return null;
+            }
+            var dateString = moment(date).format('YYYY-MM-DD');
+            var timeString = moment(time).format('HH:mm');
+            var combinedDate = moment(dateString + ' ' + timeString + ':00').utc();
+            return moment(combinedDate).format('YYYY-MM-DD HH:mm');
+        };
+
         return factory;
     }])
     .factory('ResourceFactory', ['$q', '$http', '_', 'UtilFactory', function($q, $http, _, UtilFactory) {
         //Step I: Fetch sites
         var factory = {};
 
-        factory.scaleMemory = function(num){
-           var scale= ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
-           var index = 0;
-           while(num > 1024){
-             num = (num/1024).toFixed(2);
-             index++;
-           }
-           return num + ' ' + scale[index];
+        factory.scaleMemory = function(num) {
+            var scale = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+            var index = 0;
+            while (num > 1024) {
+                num = (num / 1024).toFixed(2);
+                index++;
+            }
+            return num + ' ' + scale[index];
         };
 
-        factory.scaleFrequency = function(num){
-           var scale= ['Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz'];
-           var index = 0;
-           while(num >= 1000){
-             num = (num/1000).toFixed(2);
-             index++;
-           }
-           return num + ' ' + scale[index];
+        factory.scaleFrequency = function(num) {
+            var scale = ['Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz'];
+            var index = 0;
+            while (num >= 1000) {
+                num = (num / 1000).toFixed(2);
+                index++;
+            }
+            return num + ' ' + scale[index];
         };
 
-        factory.formatNode = function(node){
+        factory.formatNode = function(node) {
             delete node.links;
             delete node.type;
-            try{
-                node['main_memory']['ram_size'] = factory.scaleMemory(node['main_memory']['ram_size']);
-            }
-            catch(err){}
-            try{
-                if(typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null){
+            try {
+                //node['main_memory']['ram_size'] = factory.scaleMemory(node['main_memory']['ram_size']);
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null) {
                     node['processor']['cache_l1'] = factory.scaleMemory(node['processor']['cache_l1']);
                 }
-            }
-            catch(err){}
-            try{
-                if(typeof node['processor']['cache_l2'] !== 'undefined' && node['processor']['cache_l2'] !== null){
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['cache_l2'] !== 'undefined' && node['processor']['cache_l2'] !== null) {
                     node['processor']['cache_l2'] = factory.scaleMemory(node['processor']['cache_l2']);
                 }
-            }
-            catch(err){}
-            try{
-                if(typeof node['processor']['cache_l3'] !== 'undefined' && node['processor']['cache_l3'] !== null){
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['cache_l3'] !== 'undefined' && node['processor']['cache_l3'] !== null) {
                     node['processor']['cache_l3'] = factory.scaleMemory(node['processor']['cache_l3']);
                 }
-            }
-            catch(err){}
-            try{
-                if(typeof node['processor']['cache_l1d'] !== 'undefined' && node['processor']['cache_l1d'] !== null){
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['cache_l1d'] !== 'undefined' && node['processor']['cache_l1d'] !== null) {
                     node['processor']['cache_l1d'] = factory.scaleMemory(node['processor']['cache_l1d']);
                 }
-            }
-            catch(err){}
-            try{
-                if(typeof node['processor']['cache_l1i'] !== 'undefined' && node['processor']['cache_l1i'] !== null){
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['cache_l1i'] !== 'undefined' && node['processor']['cache_l1i'] !== null) {
                     node['processor']['cache_l1i'] = factory.scaleMemory(node['processor']['cache_l1i']);
                 }
-            }
-            catch(err){}            
-            try{
-                if(typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null){
+            } catch (err) {}
+            try {
+                if (typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null) {
                     node['processor']['clock_speed'] = factory.scaleFrequency(node['processor']['clock_speed']);
                 }
-            }
-            catch(err){}
-            try{
+            } catch (err) {}
+            try {
                 var networkAdapters = node['network_adapters'];
-                if(!_.isEmpty(networkAdapters) && networkAdapters.length > 0){
-                   _.each(networkAdapters, function(networkAdapter){
-                    if(typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null){
-                    networkAdapter['rate'] = factory.scaleFrequency(networkAdapter['rate']);
+                if (!_.isEmpty(networkAdapters) && networkAdapters.length > 0) {
+                    _.each(networkAdapters, function(networkAdapter) {
+                        if (typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null) {
+                            networkAdapter['rate'] = factory.scaleFrequency(networkAdapter['rate']);
+                        }
+                    });
                 }
-                   });
-                }
-            }
-            catch(err){}
-            try{
+            } catch (err) {}
+            try {
                 var storageDevices = node['storage_devices'];
-                if(!_.isEmpty(storageDevices) && storageDevices.length > 0){
-                   _.each(storageDevices, function(storageDevice){
-                    if(typeof storageDevice['size'] !== 'undefined' && storageDevice['size'] !== null){
-                    storageDevice['size'] = factory.scaleMemory(storageDevice['size']);
+                if (!_.isEmpty(storageDevices) && storageDevices.length > 0) {
+                    _.each(storageDevices, function(storageDevice) {
+                        if (typeof storageDevice['size'] !== 'undefined' && storageDevice['size'] !== null) {
+                            //storageDevice['size'] = factory.scaleMemory(storageDevice['size']);
+                        }
+                    });
                 }
-                   });
-                }
-            }
-            catch(err){}
+            } catch (err) {}
         };
 
         factory.sites = [];
@@ -275,26 +359,24 @@ angular.module('discoveryApp')
         };
 
         // make sure to set factory.flatAppliedFilters = {} before calling this function
-        factory.flatten = function(appliedFilters, ky){
-        ky = ky || '';
-           for(var key in appliedFilters){
-              if(_.isArray(appliedFilters[key])){
-                var arr = appliedFilters[key];
-                 for(var i=0; i<arr.length; i++){
-                    var k1 = ky + key + '~' + i + '~';
-                    factory.flatten(arr[i], k1);
-                 }
-              }
-              else if(_.isObject(appliedFilters[key])){
+        factory.flatten = function(appliedFilters, ky) {
+            ky = ky || '';
+            for (var key in appliedFilters) {
+                if (_.isArray(appliedFilters[key])) {
+                    var arr = appliedFilters[key];
+                    for (var i = 0; i < arr.length; i++) {
+                        var k1 = ky + key + '~' + i + '~';
+                        factory.flatten(arr[i], k1);
+                    }
+                } else if (_.isObject(appliedFilters[key])) {
                     var k2 = ky + key + '~';
                     factory.flatten(appliedFilters[key], k2);
-              }
-              else if(appliedFilters[key] === true){
-                ky = ky.substring(0, ky.length - 1);
-                 factory.flatAppliedFilters[ky] = key; 
-              }
-           }
-    };
+                } else if (appliedFilters[key] === true) {
+                    ky = ky.substring(0, ky.length - 1);
+                    factory.flatAppliedFilters[ky] = key;
+                }
+            }
+        };
 
         var processNode = function(node, uid, filters) {
             filters = (typeof filters === 'undefined') ? factory.filters : filters;
@@ -350,6 +432,31 @@ angular.module('discoveryApp')
                 processNode(node, node['uid']);
             });
             factory.pruneFilters();
+        };
+        return factory;
+    }])
+    .factory('UserSelectionsFactory', ['moment', function(moment) {
+        var factory = {};
+        var userSelections = null;
+        var dateS = moment();
+        dateS.hours(15);
+        dateS.minutes(0);
+        dateS = moment(dateS).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        factory.userSelectionsInit = function() {
+            userSelections = {
+                startDate: '',
+                startTime: dateS,
+                endDate: '',
+                endTime: dateS,
+                minNode: '',
+                maxNode: ''
+            };
+        };
+        factory.getUserSelections = function() {
+            if(userSelections === null){
+               factory.userSelectionsInit();
+            }
+            return userSelections;
         };
         return factory;
     }]);

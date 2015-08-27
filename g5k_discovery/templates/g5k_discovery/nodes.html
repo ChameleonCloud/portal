@@ -18,7 +18,7 @@
                 <div ng-repeat="(ky, vl) in node.architecture track by $index" class="col col-sm-3">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
-                <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3">
+                <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3" ng-if="ky.indexOf('humanized') === -1">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
                 <div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
@@ -45,7 +45,7 @@
                     <div ng-repeat="val in value track by $index" ng-show="!collapsed" ng-init="arrayIndex = $index; innerCollapsed = true">
                         <h5 class="bg-info"><strong>[[snakeToReadable(key)]] #[[$index]]</strong></h5>
                         <div class="row">
-                            <div ng-repeat="(ky, vl) in val track by $index" class="col col-sm-3" ng-if="vl !== null && vl !== ''">
+                            <div ng-repeat="(ky, vl) in val track by $index" class="col col-sm-3" ng-if="vl !== null && vl !== '' && ky.indexOf('humanized') === -1">
                                 <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                             </div>
                         </div>

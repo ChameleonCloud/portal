@@ -3,7 +3,8 @@
  */
 'use strict';
 angular.module('discoveryApp')
-    .controller('MainController', ['$scope', '$http', '_', '$q', '$timeout', 'ResourceFactory', 'UtilFactory', function($scope, $http, _, $q, $timeout, ResourceFactory, UtilFactory) {
+    .controller('MainController', ['$scope', '$http', '_', '$q', '$timeout', 'ResourceFactory', 'UtilFactory', 'UserSelectionsFactory', 
+        function($scope, $http, _, $q, $timeout, ResourceFactory, UtilFactory, UserSelectionsFactory) {
         $scope.snakeToReadable = UtilFactory.snakeToReadable;
 
         $scope.isArray = function(obj) {
@@ -142,10 +143,17 @@ angular.module('discoveryApp')
             delete $scope.filters['cluster'];
             $scope.filterArchitecture = $scope.filters['architecture'];
             delete $scope.filters['architecture'];
+            $scope.filterGpu = $scope.filters['gpu'];
+            delete $scope.filters['gpu'];
+            //$scope.filterInfiniband = $scope.filters['infiniband'];
+            delete $scope.filters['infiniband'];
             $scope.filterRamSize = $scope.filters['main_memory']['humanized_ram_size'];
             delete $scope.filters['main_memory']['humanized_ram_size'];
+            delete $scope.filters['main_memory']['ram_size'];
+            _.each($scope.filters['storage_devices'], function(storage){
+                 delete storage['size'];
+            });
             $scope.advancedFiltersOrg = angular.copy($scope.filters);
-            console.log('$scope.filters', $scope.filters);
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -159,6 +167,7 @@ angular.module('discoveryApp')
             $scope.booleanizeFilter($scope.appliedFiltersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
             makeChunks();
+            $scope.advancedFilters = angular.copy($scope.advancedFiltersOrg);
 
         }, function(errorMsg) {
             console.error(errorMsg);
@@ -237,22 +246,21 @@ angular.module('discoveryApp')
             if (searchKeys && searchKeys.length > 0) {
                 var filtersTemp = {};
                 if ($scope.advancedFilter.allKeys) {
-                    var filters = $scope.advancedFiltersOrg;
+                    var advancedFilters = $scope.advancedFiltersOrg;
                     for (var i = 0; i < searchKeys.length; i++) {
                         filtersTemp = {};
                         var searchKey = searchKeys[i];
-                        filterSearchRecursive(filters, filtersTemp, [searchKey]);
+                        filterSearchRecursive(advancedFilters, filtersTemp, [searchKey]);
                         $scope.prune(filtersTemp, null, true);
-                        filters = filtersTemp;
+                        advancedFilters = filtersTemp;
                     }
                 } else {
                     filterSearchRecursive($scope.advancedFiltersOrg, filtersTemp, searchKeys);
                     $scope.prune(filtersTemp, null, true);
                 }
-                console.log('filtersTemp', filtersTemp);
-                $scope.filters = filtersTemp;
+                $scope.advancedFilters = filtersTemp;
             } else {
-                $scope.filters = $scope.advancedFiltersOrg;
+                $scope.advancedFilters = angular.copy($scope.advancedFiltersOrg);
             }
         };
 
@@ -305,6 +313,7 @@ angular.module('discoveryApp')
                     }
                     searchKeys.push(searchKey);
                 });
+                $scope.filteredNodes = $scope.filteredNodesOrg;
                 if ($scope.nodeView.allKeys) {
                     //jshint loopfunc:true
                     for (var i = 0; i < searchKeys.length; i++) {
@@ -324,16 +333,20 @@ angular.module('discoveryApp')
             } else {
                 $scope.filteredNodes = $scope.filteredNodesOrg;
             }
-            console.log('$scope.filteredNodes', $scope.filteredNodes);
         };
 
         $scope.resetFilters = function() {
             $scope.filters = angular.copy($scope.filtersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
+            $scope.prunedAppliedFilters = angular.copy($scope.appliedFilters);
+            $scope.prune($scope.prunedAppliedFilters, null, true);
+            ResourceFactory.prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
             $scope.filteredNodes = ResourceFactory.allNodes;
             $scope.filteredNodesOrg = ResourceFactory.allNodes;
             $scope.advancedFilter.search = '';
+            UserSelectionsFactory.userSelectionsInit();
             makeChunks();
+            $scope.advancedFilters = angular.copy($scope.advancedFiltersOrg);
         };
 
         $scope.removeFilter = function(key, value) {
@@ -355,10 +368,10 @@ angular.module('discoveryApp')
             $scope.prunedAppliedFilters = angular.copy($scope.appliedFilters);
             $scope.prune($scope.prunedAppliedFilters, null, true);
             var prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
+            ResourceFactory.prunedAppliedFilters = angular.copy($scope.prunedAppliedFilters);
             ResourceFactory.flatAppliedFilters = {};
             ResourceFactory.flatten(prunedAppliedFilters);
             $scope.flatAppliedFilters = ResourceFactory.flatAppliedFilters;
-            ResourceFactory.prunedAppliedFilters = prunedAppliedFilters;
             $scope.intersectArray = [];
             $scope.createIntersectArray();
             var filteredNodes = null;
@@ -380,6 +393,8 @@ angular.module('discoveryApp')
                 });
             }
             ResourceFactory.processNodes($scope.filteredNodes);
+            //used by modal controller via this factory
+            ResourceFactory.filteredNodes = $scope.filteredNodes;
             //used in nodes view search reset
             $scope.filteredNodesOrg = angular.copy($scope.filteredNodes);
             $scope.filters = angular.copy(ResourceFactory.filters);

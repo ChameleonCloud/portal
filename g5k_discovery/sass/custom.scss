@@ -57,9 +57,6 @@
         margin-left: 5px;
         line-height: 2em;
     }
-    .alert-model {
-        font-size: 12px;
-    }
     .back-btn{
        margin-bottom: 10px; 
     }
@@ -79,7 +76,7 @@
         white-space: nowrap;
     }
     .advanced-filter {
-        max-height: 600px;
+        max-height: 400px;
         overflow-y: auto;
         overflow-x: hidden;
    }
@@ -110,6 +107,11 @@
 td {
     border-top: 0 !important;
     white-space: nowrap;
+}
+
+.alert-modal{
+    margin-top: 10px;
+    white-space: normal;
 }
 
 .fa-asterisk{

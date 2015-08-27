@@ -9,7 +9,7 @@
             Applied Filters: 
             <span ng-show="filteredNodesOrg.length === allNodes.length"> None</span>
             <span ng-show="filteredNodesOrg.length !== allNodes.length" ng-repeat="(key, value) in flatAppliedFilters" class="label label-default label-filter">
-            <span class="label-text">[[snakeToReadable(key)]]<span ng-show="isShowValTag(key)">: [[value]]</span> &nbsp;
+            <span class="label-text">[[snakeToReadable(key, value)]]<span ng-show="isShowValTag(key, value)">: [[value]]</span> &nbsp;
             <i ng-click="removeFilter(key, value)" class="pseudolink fa fa-times"></i>
             </span>
             </span>            
@@ -30,7 +30,7 @@
                 <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.gpu.gpu['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'true'], filterGpu.gpu['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['true'] || filterGpu.gpu['true'].length === filteredNodesOrg.length"></i> With GPU <span ng-show="filterGpu.gpu['true'].length > 0">([[filterGpu.gpu['true'].length]])</span></button>
             </div>
             <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter col col-sm-12" ng-model="appliedFilters.infiniband['true']" ng-change="applyFilter()" ng-disabled="shouldDisable(['infiniband', 'true'], filters.infiniband['true'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.infiniband['true'] || filters.infiniband['true'].length === filteredNodesOrg.length"></i> With Infiniband Support <span ng-show="filters.infiniband['true'].length > 0">([[filters.infiniband['true'].length]])</span></button>
+                <button type="button" class="btn btn-lg btn-primary btn-filter" ng-model="appliedFilters.network_adapters[4].interface.InfiniBand" ng-change="applyFilter()" ng-disabled="shouldDisable(['network_adapters', 4, 'interface', 'InfiniBand'], filters.network_adapters[4].interface.InfiniBand.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.network_adapters[4].interface.InfiniBand || filters.network_adapters[4].interface.InfiniBand.length === filteredNodesOrg.length"></i> With Infiniband Support <span ng-show="filters.network_adapters[4].interface.InfiniBand.length > 0">([[filters.network_adapters[4].interface.InfiniBand.length]])</span></button>
             </div>
         </div>
         <div class="row">
@@ -64,7 +64,7 @@
             </div>
         </div>
         <div ng-init="advancedCollapsed = true">
-            <h4><a ng-click="advancedCollapsed = !advancedCollapsed" ng-show="advancedCollapsed" class="pseudolink">Show Advanced Filters</a></h4>
+            <div><a ng-click="advancedCollapsed = !advancedCollapsed" ng-show="advancedCollapsed" class="pseudolink">Show Advanced Filters</a></div>
             <div ng-show="!advancedCollapsed">
                 <h4 class="bg-primary">Advanced Filters</h4>
                 <div>
@@ -76,7 +76,7 @@
             </div>
         </div>
         <div class="advanced-filter">
-            <div ng-repeat="(key, value) in filters track by $index" class="filter-section" ng-show="!advancedCollapsed">
+            <div ng-repeat="(key, value) in advancedFilters track by $index" class="filter-section" ng-show="!advancedCollapsed">
                 <div ng-if="!isNestedObject(value) && !isArray(value)" class="row">
                     <div class="advanced-filter-block">
                         <strong>[[snakeToReadable(key)]]</strong>

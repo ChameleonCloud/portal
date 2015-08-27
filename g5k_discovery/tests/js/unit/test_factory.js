@@ -1,6 +1,6 @@
 'use strict';
-/*global it, xit, expect, describe, beforeEach, afterEach, inject, jasmine, getJSONFixture, _ */
-describe('UtilFactory', function() {
+/*global it, xit, expect, xdescribe, beforeEach, afterEach, inject, jasmine, getJSONFixture, _ */
+xdescribe('UtilFactory', function() {
 
     var UtilFactory;
 
@@ -58,7 +58,7 @@ describe('UtilFactory', function() {
     });
 });
 
-describe('ResourceFactory', function() {
+xdescribe('ResourceFactory', function() {
     var ResourceFactory, $httpBackend;
     var sites = {
         items: [{

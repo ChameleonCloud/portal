@@ -1,6 +1,6 @@
 'use strict';
-/*global it, expect, describe, beforeEach, inject */
-describe('MainController', function() {
+/*global it, expect, xdescribe, beforeEach, inject */
+xdescribe('MainController', function() {
 
     var controller, scope;
 

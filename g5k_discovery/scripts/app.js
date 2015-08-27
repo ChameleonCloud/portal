@@ -4,7 +4,12 @@ angular.module('underscore', [])
         return window._;
     });
 
-angular.module('discoveryApp', ['underscore', 'ui.bootstrap', 'ngClipboard', 'toggle-switch'])
+angular.module('moment', [])
+    .factory('moment', function() {
+        return window.moment;
+    });
+
+angular.module('discoveryApp', ['underscore', 'moment', 'ui.bootstrap', 'ngClipboard', 'toggle-switch'])
     .config(function($interpolateProvider, $httpProvider) {
         $interpolateProvider.startSymbol('[[').endSymbol(']]');
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

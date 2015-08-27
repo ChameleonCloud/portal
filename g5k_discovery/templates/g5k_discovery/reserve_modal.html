@@ -5,6 +5,7 @@
     <div class="modal-body">
         <code>[[scrpt]]</code>
     </div>
+    <div class="col col-sm-12 alert-modal"><div class="alert alert-info">Please replace 'my-custom-lease' with your actual lease name. For more info see the <a href="https://www.chameleoncloud.org/docs/user-guides/bare-metal-user-guide/#advanced_usage" target="_blank">documentation</a>.</div></div>
     <div class="modal-footer">
         <button class="btn btn-success" clip-copy="getScript()" clip-click="ok()" clip-click-fallback="fallback(copy)">Copy to Clipboard</button>
         <button class="btn btn-info" ng-click="cancel()">Close</button>
@@ -25,7 +26,7 @@
                           </button>
                         </span>
                     </div>
-                    <div ng-show="modalForm.startDate.$dirty && modalForm.startDate.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.startDate.$dirty && modalForm.startDate.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.startDate.$error.required">Start Date is required.</div>
                     </div>
                 </td>
@@ -36,7 +37,7 @@
                     <div class="input-group">
                         <timepicker id="startTime" name="startTime" ng-model="userSelections.startTime" hour-step="1" minute-step="15" mousewheel="false" show-meridian="true" ng-required="true" readonly-input="false"></timepicker>
                     </div>
-                    <div ng-show="modalForm.startTime.$dirty && modalForm.startTime.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.startTime.$dirty && modalForm.startTime.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.startTime.$error.required">Start Time is required.</div>
                     </div>
                 </td>
@@ -53,7 +54,7 @@
                           </button>
                         </span>
                     </div>
-                    <div ng-show="modalForm.endDate.$dirty && modalForm.endDate.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.endDate.$dirty && modalForm.endDate.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.endDate.$error.required">End Date is required.</div>
                     </div>
                 </td>
@@ -64,7 +65,7 @@
                     <div class="input-group">
                         <timepicker id="endTime" name="endTime" ng-model="userSelections.endTime" hour-step="1" minute-step="15" mousewheel="false" show-meridian="true" ng-required="true" readonly-input="false"></timepicker>
                     </div>
-                    <div ng-show="modalForm.endTime.$dirty && modalForm.endTime.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.endTime.$dirty && modalForm.endTime.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.endTime.$error.required">End Time is required.</div>
                     </div>
                 </td>
@@ -73,7 +74,7 @@
                 <td><strong>Min. Nodes Requested</strong>&nbsp;<sup><i class="fa fa-asterisk"></i></sup></td>
                 <td>
                     <input type="number" ng-model="userSelections.minNode" name="minNode" min="1" max="[[maxNodes]]" ng-required="true"/>
-                    <div ng-show="modalForm.minNode.$dirty && modalForm.minNode.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.minNode.$dirty && modalForm.minNode.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.minNode.$error.required">Minimum no. of nodes requested is required.</div>
                         <div ng-show="modalForm.minNode.$error.number">Minimum no. of nodes requested must be a number.</div>
                         <div ng-show="modalForm.minNode.$error.min || modalForm.minNode.$error.max">Minimum no. of nodes requested must be between 1 and [[maxNodes]].</div>
@@ -84,10 +85,10 @@
                 <td><strong>Max. Nodes Requested</strong>&nbsp;<sup><i class="fa fa-asterisk"></i></sup></td>
                 <td>
                     <input type="number" ng-model="userSelections.maxNode" name="maxNode" min="[[getMin()]]" max="[[maxNodes]]" ng-required="true" ng-disabled="modalForm.minNode.$invalid"/>
-                    <div ng-show="modalForm.maxNode.$dirty && modalForm.maxNode.$invalid" class="alert alert-danger alert-model">
+                    <div ng-show="modalForm.maxNode.$touched && modalForm.maxNode.$invalid" class="alert alert-danger alert-modal">
                         <div ng-show="modalForm.maxNode.$error.required">Maximum no. of nodes requested is required.</div>
                         <div ng-show="modalForm.maxNode.$error.number">Maximum no. of nodes requested must be a number.</div>
-                        <div ng-show="modalForm.maxNode.$error.min || modalForm.maxNode.$error.max">Maximum no. of nodes requested must be between [[userSelections.minNode]] and [[maxNodes]].</div>
+                        <div ng-show="modalForm.maxNode.$touched && (modalForm.maxNode.$error.min || modalForm.maxNode.$error.max)">Maximum no. of nodes requested must be between [[userSelections.minNode]] and [[maxNodes]].</div>
                     </div>
                 </td>
             </tr>

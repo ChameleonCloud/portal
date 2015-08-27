@@ -1,6 +1,6 @@
 'use strict';
-/*global it, expect, describe, beforeEach, inject */
-describe('ModalInstanceCtrl', function() {
+/*global it, expect, xdescribe, beforeEach, inject */
+xdescribe('ModalInstanceCtrl', function() {
 
     var controller, scope, modalInstance;
 
