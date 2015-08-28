@@ -184,7 +184,24 @@ angular.module('discoveryApp')
             delete node.links;
             delete node.type;
             try {
-                //node['main_memory']['ram_size'] = factory.scaleMemory(node['main_memory']['ram_size']);
+                if (typeof node['supported_job_types']['besteffort'] !== 'undefined' && node['supported_job_types']['besteffort'] !== null) {
+                    node['supported_job_types']['besteffort'] = node['supported_job_types']['besteffort']?'yes':'no';
+                }
+            } catch (err) {}
+            try {
+                if (typeof node['supported_job_types']['deploy'] !== 'undefined' && node['supported_job_types']['deploy'] !== null) {
+                    node['supported_job_types']['deploy'] = node['supported_job_types']['deploy']?'yes':'no';
+                }
+            } catch (err) {}
+            try {
+                if (typeof node['gpu']['gpu'] !== 'undefined' && node['gpu']['gpu'] !== null) {
+                    node['gpu']['gpu'] = node['gpu']['gpu']?'yes':'no';
+                }
+            } catch (err) {}
+            try {
+                if (typeof node['monitoring']['wattmeter'] !== 'undefined' && node['monitoring']['wattmeter'] !== null) {
+                    node['monitoring']['wattmeter'] = node['monitoring']['wattmeter']?'yes':'no';
+                }
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null) {
@@ -223,19 +240,18 @@ angular.module('discoveryApp')
                         if (typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null) {
                             networkAdapter['rate'] = factory.scaleFrequency(networkAdapter['rate']);
                         }
-                    });
-                }
-            } catch (err) {}
-            try {
-                var storageDevices = node['storage_devices'];
-                if (!_.isEmpty(storageDevices) && storageDevices.length > 0) {
-                    _.each(storageDevices, function(storageDevice) {
-                        if (typeof storageDevice['size'] !== 'undefined' && storageDevice['size'] !== null) {
-                            //storageDevice['size'] = factory.scaleMemory(storageDevice['size']);
+                        if (typeof networkAdapter['mounted'] !== 'undefined' && networkAdapter['mounted'] !== null) {
+                            networkAdapter['mounted'] = networkAdapter['mounted']?'yes':'no';
+                        }
+                        if (typeof networkAdapter['management'] !== 'undefined' && networkAdapter['management'] !== null) {
+                            networkAdapter['management'] = networkAdapter['management']?'yes':'no';
+                        }
+                        if (typeof networkAdapter['bridged'] !== 'undefined' && networkAdapter['bridged'] !== null) {
+                            networkAdapter['bridged'] = networkAdapter['bridged']?'yes':'no';
                         }
                     });
                 }
-            } catch (err) {}
+            } catch (err) {}            
         };
 
         factory.sites = [];
