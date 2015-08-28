@@ -1,6 +1,6 @@
 'use strict';
-/*global it, expect, xdescribe, beforeEach, inject */
-xdescribe('MainController', function() {
+/*global it, expect, describe, beforeEach, spyOn, inject */
+describe('MainController', function() {
 
     var controller, scope;
 
@@ -15,6 +15,23 @@ xdescribe('MainController', function() {
             site: {
                 tacc: [1, 2, 3, 4],
                 uc: [5, 6, 7, 8]
+            },
+            network_adapters: [{
+                rate: {
+                    1.00: [1, 2, 3],
+                    10.00: [4]
+                }
+            }, {
+                rate: {
+                    10.00: [5, 6, 7],
+                    100.00: [8]
+                }
+            }]
+        };
+        scope.advancedFilters = scope.advancedFiltersOrg = {
+            processor: {
+                clock_speed: [1, 2],
+                model: ['one', 'two']
             },
             network_adapters: [{
                 rate: {
@@ -85,7 +102,7 @@ xdescribe('MainController', function() {
             }]
         };
         
-        scope.filteredNodesOrg = [{
+        scope.filteredNodes = scope.filteredNodesOrg = [{
             uid: 1,
             site: 'tacc'
         }, {
@@ -163,5 +180,72 @@ xdescribe('MainController', function() {
         expect(scope.intersectArray).toEqual([[1, 2, 3, 4], [1, 2, 3]]);
         scope.intersectArray=[];
     });
+    it('Should filter advanced filters', function() {
+        var result = {
+            processor: {
+                clock_speed: [1, 2]
+            },
+            network_adapters: [{
+                rate: {
+                    1.00: [1, 2, 3],
+                    10.00: [4]
+                }
+            }, {
+                rate: {
+                    10.00: [5, 6, 7],
+                    100.00: [8]
+                }
+            }]
+        };
+        scope.advancedFilter = {
+            search : 'clock rate',
+            allKeys: false
+        };
+        scope.filterSearch();
+        expect(result).toEqual(scope.advancedFilters);
+        scope.advancedFilter = {
+            search : 'clock rate',
+            allKeys: true
+        };
+        scope.filterSearch();
+        expect({ network_adapters : [ {  }, {  } ] }).toEqual(scope.advancedFilters);
+    });
+    it('Should filter node views', function() {
+        var result = [{
+            uid: 1,
+            site: 'tacc'
+        }, {
+            uid: 2,
+            site: 'uc'
+        }];
+        scope.nodeView = {
+            search : 'tacc 2',
+            allKeys: false
+        };
+        scope.nodeViewSearch();
+        expect(result).toEqual(scope.filteredNodes);
+        scope.nodeView = {
+            search : 'tacc 1',
+            allKeys: false
+        };
+        scope.nodeViewSearch();
+        expect([{
+            uid: 1,
+            site: 'tacc'
+        }]).toEqual(scope.filteredNodes);
+        scope.nodeView = {
+            search : 'tacc 2',
+            allKeys: true
+        };
+        scope.nodeViewSearch();
+        expect([]).toEqual(scope.filteredNodes);
+    });
 
+    it('Should remove an applied filter', function() {
+        scope.appliedFilters.network_adapters[0].rate['1.00'] = true;
+        var applyFilterSpy = spyOn(scope, 'applyFilter').andReturn('');
+        scope.removeFilter('network_adapters~0~rate', 1.00);
+        expect(false).toEqual(scope.appliedFilters.network_adapters[0].rate[1.00]);
+        expect(applyFilterSpy).toHaveBeenCalled();
+    });
 });

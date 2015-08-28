@@ -2,7 +2,7 @@
 angular.module('discoveryApp')
     .factory('UtilFactory', ['_', 'moment', function(_, moment) {
         var factory = {};
-        var nameMap = {
+        factory.nameMap = {
             'smp_size': '# CPUs',
             'smt_size': '# Cores',
             'ram_size': 'RAM Size',
@@ -21,7 +21,7 @@ angular.module('discoveryApp')
             'false': 'No'
         };
         //RAM Size and disk size provided as humanized and byte size could not be related by a formula, thus mapping
-        var sizeMap = {
+        factory.sizeMap = {
             '12 GiB': 12587876352,
             '64 GiB':  67445407744,
             '128 GiB': 134956859392,
@@ -33,7 +33,7 @@ angular.module('discoveryApp')
             '2 TB': 2000398934016
         };
 
-        var tagMap = {
+        factory.tagMap = {
             'architecture~smt_size:48': 'Compute Nodes',
             'storage_devices~16~device:sdq': 'Storage Nodes',
             'gpu~gpu': 'With GPU',
@@ -41,13 +41,13 @@ angular.module('discoveryApp')
             'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
         };
 
-        nameMap = _.extend(nameMap, tagMap);
+        factory.nameMap = _.extend(factory.nameMap, factory.tagMap);
 
         factory.isShowValTag = function(key, val) {
             if(val && val.length > 0){
                key += ':' + val;
             }
-            return tagMap[key] ? false : true;
+            return factory.tagMap[key] ? false : true;
         };
 
         factory.isEmpty = function(obj) {
@@ -63,7 +63,7 @@ angular.module('discoveryApp')
         };
         
         factory.humanizedToBytes = function(str) {
-            var size = sizeMap[str];
+            var size = factory.sizeMap[str];
             if (size) {
                 return size;
             }
@@ -117,12 +117,32 @@ angular.module('discoveryApp')
             }
         };
 
+        factory.scaleMemory = function(num) {
+            var scale = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+            var index = 0;
+            while (num >= 1024) {
+                num = (num / 1024).toFixed(2);
+                index++;
+            }
+            return num + ' ' + scale[index];
+        };
+
+        factory.scaleFrequency = function(num) {
+            var scale = ['Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz'];
+            var index = 0;
+            while (num >= 1000) {
+                num = (num / 1000).toFixed(2);
+                index++;
+            }
+            return num + ' ' + scale[index];
+        };
+
         factory.snakeToReadable = function(str, opt) {
             var strOrg = str;
             if(opt && opt.length > 0){
                str += ':' + opt;
             }
-            var name = nameMap[str];
+            var name = factory.nameMap[str];
             if (name) {
                 return name;
             }
@@ -160,26 +180,6 @@ angular.module('discoveryApp')
         //Step I: Fetch sites
         var factory = {};
 
-        factory.scaleMemory = function(num) {
-            var scale = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
-            var index = 0;
-            while (num > 1024) {
-                num = (num / 1024).toFixed(2);
-                index++;
-            }
-            return num + ' ' + scale[index];
-        };
-
-        factory.scaleFrequency = function(num) {
-            var scale = ['Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz'];
-            var index = 0;
-            while (num >= 1000) {
-                num = (num / 1000).toFixed(2);
-                index++;
-            }
-            return num + ' ' + scale[index];
-        };
-
         factory.formatNode = function(node) {
             delete node.links;
             delete node.type;
@@ -205,32 +205,32 @@ angular.module('discoveryApp')
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l1'] !== 'undefined' && node['processor']['cache_l1'] !== null) {
-                    node['processor']['cache_l1'] = factory.scaleMemory(node['processor']['cache_l1']);
+                    node['processor']['cache_l1'] = UtilFactory.scaleMemory(node['processor']['cache_l1']);
                 }
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l2'] !== 'undefined' && node['processor']['cache_l2'] !== null) {
-                    node['processor']['cache_l2'] = factory.scaleMemory(node['processor']['cache_l2']);
+                    node['processor']['cache_l2'] = UtilFactory.scaleMemory(node['processor']['cache_l2']);
                 }
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l3'] !== 'undefined' && node['processor']['cache_l3'] !== null) {
-                    node['processor']['cache_l3'] = factory.scaleMemory(node['processor']['cache_l3']);
+                    node['processor']['cache_l3'] = UtilFactory.scaleMemory(node['processor']['cache_l3']);
                 }
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l1d'] !== 'undefined' && node['processor']['cache_l1d'] !== null) {
-                    node['processor']['cache_l1d'] = factory.scaleMemory(node['processor']['cache_l1d']);
+                    node['processor']['cache_l1d'] = UtilFactory.scaleMemory(node['processor']['cache_l1d']);
                 }
             } catch (err) {}
             try {
                 if (typeof node['processor']['cache_l1i'] !== 'undefined' && node['processor']['cache_l1i'] !== null) {
-                    node['processor']['cache_l1i'] = factory.scaleMemory(node['processor']['cache_l1i']);
+                    node['processor']['cache_l1i'] = UtilFactory.scaleMemory(node['processor']['cache_l1i']);
                 }
             } catch (err) {}
             try {
                 if (typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null) {
-                    node['processor']['clock_speed'] = factory.scaleFrequency(node['processor']['clock_speed']);
+                    node['processor']['clock_speed'] = UtilFactory.scaleFrequency(node['processor']['clock_speed']);
                 }
             } catch (err) {}
             try {
@@ -238,7 +238,7 @@ angular.module('discoveryApp')
                 if (!_.isEmpty(networkAdapters) && networkAdapters.length > 0) {
                     _.each(networkAdapters, function(networkAdapter) {
                         if (typeof networkAdapter['rate'] !== 'undefined' && networkAdapter['rate'] !== null) {
-                            networkAdapter['rate'] = factory.scaleFrequency(networkAdapter['rate']);
+                            networkAdapter['rate'] = UtilFactory.scaleFrequency(networkAdapter['rate']);
                         }
                         if (typeof networkAdapter['mounted'] !== 'undefined' && networkAdapter['mounted'] !== null) {
                             networkAdapter['mounted'] = networkAdapter['mounted']?'yes':'no';
@@ -453,13 +453,14 @@ angular.module('discoveryApp')
     }])
     .factory('UserSelectionsFactory', ['moment', function(moment) {
         var factory = {};
-        var userSelections = null;
+        factory.userSelections = null;
         var dateS = moment();
         dateS.hours(15);
         dateS.minutes(0);
+        dateS.seconds(0);
         dateS = moment(dateS).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         factory.userSelectionsInit = function() {
-            userSelections = {
+            factory.userSelections = {
                 startDate: '',
                 startTime: dateS,
                 endDate: '',
@@ -469,10 +470,10 @@ angular.module('discoveryApp')
             };
         };
         factory.getUserSelections = function() {
-            if(userSelections === null){
+            if(factory.userSelections === null){
                factory.userSelectionsInit();
             }
-            return userSelections;
+            return factory.userSelections;
         };
         return factory;
     }]);

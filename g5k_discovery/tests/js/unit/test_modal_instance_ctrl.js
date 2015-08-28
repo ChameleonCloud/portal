@@ -1,6 +1,6 @@
 'use strict';
-/*global it, expect, xdescribe, beforeEach, inject */
-xdescribe('ModalInstanceCtrl', function() {
+/*global it, expect, describe, beforeEach, inject */
+describe('ModalInstanceCtrl', function() {
 
     var controller, scope, modalInstance;
 
@@ -52,13 +52,17 @@ xdescribe('ModalInstanceCtrl', function() {
 
     it('Generates script based on user selections', function() {
         scope.generateScript();
-        expect('&site=tacc&network_adapters_0_rate=1&startDate=2015-01-01&endDate=2015-12-30&min=10&max=20').toEqual(scope.scrpt);
+        expect('climate lease-create --physical-reservation min=10,max=20,resource_properties=\'[\"=\", \"$site\", \"tacc\", \"=\", \"$network_adapters.0.rate\", \"1\"]\' --start-date \"2015-01-01 06:00\" --end-date \"2015-12-30 06:00\" my-custom-lease').toEqual(scope.scrpt);
     });
 
     it('Opens and closes calendar', function() {
-        scope.open(new Event('test'), 'start');
+        var mockEvent = {
+            preventDefault: function(){},
+            stopPropagation: function(){}
+        };
+        scope.open(mockEvent, 'start');
         expect(scope.open.start).toEqual(true);
-        scope.open(new Event('test'), 'end');
+        scope.open(mockEvent, 'end');
         expect(scope.open.end).toEqual(true);
     });
 

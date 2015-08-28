@@ -7,7 +7,7 @@
     "bios": {
         "release_date": "04/06/2010",
         "vendor": "Dell Inc.",
-        "version": 2.0
+        "version": 2
     },
     "chassis": {
         "manufacturer": "Dell Inc.",
@@ -15,39 +15,39 @@
         "serial": "2X71JM1"
     },
     "gpu": {
-        "gpu": false
+        "gpu": "no"
     },
     "main_memory": {
-        "ram_size": "11.72"
+        "ram_size": 12587876352
     },
     "monitoring": {
-        "wattmeter": false
+        "wattmeter": "no"
     },
     "network_adapters": [
         {
-            "bridged": false,
+            "bridged": "no",
             "device": "eno1",
             "driver": "bnx2",
             "interface": "Ethernet",
             "mac": "00:26:b9:fb:6a:34",
-            "management": false,
+            "management": "no",
             "model": "NetXtreme II BCM5709S Gigabit Ethernet",
-            "mounted": true,
-            "rate": "1.00",
+            "mounted": "yes",
+            "rate": "1.00 GHz",
             "switch": null,
             "switch_port": null,
             "vendor": "Broadcom Corporation"
         },
         {
-            "bridged": false,
+            "bridged": "no",
             "device": "eno2",
             "driver": "bnx2",
             "interface": "Ethernet",
             "mac": "00:26:b9:fb:6a:36",
-            "management": false,
+            "management": "no",
             "model": "NetXtreme II BCM5709S Gigabit Ethernet",
-            "mounted": false,
-            "rate": "1.00",
+            "mounted": "no",
+            "rate": "1.00 GHz",
             "vendor": "Broadcom Corporation"
         }
     ],
@@ -58,11 +58,11 @@
     },
     "processor": {
         "cache_l1": null,
-        "cache_l1d": "32.00",
-        "cache_l1i": "32.00",
-        "cache_l2": "256.00",
-        "cache_l3": "8192.00",
-        "clock_speed": "2.66",
+        "cache_l1d": "32.00 KiB",
+        "cache_l1i": "32.00 KiB",
+        "cache_l2": "256.00 KiB",
+        "cache_l3": "8.00 MiB",
+        "clock_speed": "2.66 GHz",
         "instruction_set": "x86-64",
         "model": "Intel Xeon",
         "other_description": "Intel(R) Xeon(R) CPU           X5550  @ 2.67GHz",
@@ -76,13 +76,13 @@
             "interface": "SCSI",
             "model": "ST9500430SS",
             "rev": "DS62",
-            "size": "465.76",
+            "size": 500107862016,
             "vendor": "SEAGATE"
         }
     ],
     "supported_job_types": {
-        "besteffort": false,
-        "deploy": true,
+        "besteffort": "no",
+        "deploy": "yes",
         "virtual": "ivt"
     },
     "uid": "0a5b61b2-dc1c-4bee-86f7-247c9689ea88",
