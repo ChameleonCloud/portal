@@ -63,6 +63,9 @@ class DjangoRt:
     def replyToTicket(self, ticket_id, text='', files=[]):
         return self.tracker.reply(ticket_id, text=text, files=files)
 
+    def commentOnTicket(self, ticket_id, text=''):
+        return self.tracker.comment(ticket_id, text=text)
+
     def getAttachment(self, ticketId, attachmentId):
         attachment_name = self.tracker.get_attachment(ticketId, attachmentId).get("Filename")
         if attachment_name == '':
