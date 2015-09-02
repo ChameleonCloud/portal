@@ -1,0 +1,120 @@
+.discovery-app {
+    .node-header,
+    .node-sub-header {
+        font-weight: bold;
+    }
+    .node-sub-header {
+        border-bottom: 1px solid #999;
+    }
+    .node {
+        margin-bottom: 2em;
+        word-wrap: break-word;
+    }
+    .node section {
+        margin-bottom: 1em;
+    }
+    table {
+        font-size: 0.9em;
+    }
+    .header-line {
+        border-bottom: 2px solid #EFEFF2;
+        margin-top: 10px;
+    }
+    .pseudolink {
+        cursor: pointer;
+        cursor: hand;
+    }
+    .filter-block {
+        padding-bottom: 10px;
+        word-wrap: break-word;
+    }
+    .disabled {
+        color: #777;
+    }
+    .bg-primary,
+    .bg-success {
+        padding: 3px;
+    }
+    ol {
+        padding-left: 20px;
+    }
+    .row > .col-sm-2:nth-child(6n+1) {
+        clear: left;
+    }
+    .row > .col-sm-3:nth-child(4n+1) {
+        clear: left;
+    }
+    h5,
+    .h5 {
+        margin-top: 8px;
+        margin-bottom: 0px;
+    }
+    .filter-state {
+        margin-top: 15px;
+        margin-bottom: 25px;
+    }
+    .label-filter {
+        margin-left: 5px;
+        line-height: 2em;
+    }
+    .back-btn{
+       margin-bottom: 10px; 
+    }
+    .btn-filter {
+        margin-bottom: 20px;
+    }
+    .fa-times {
+        margin-right: -5px;
+        font-size: 1.2em;
+        color: red;
+        vertical-align: middle;
+    }
+    .label {
+        white-space: normal;
+    }
+    .label-text {
+        white-space: nowrap;
+    }
+    .advanced-filter {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+   }
+   .advanced-filter-block {
+        padding: 5px 25px 5px 25px;
+   }
+   .filter-search{
+        width: 86%;
+   }
+   .filter-label{
+       font-weight:normal;
+   }
+}
+
+
+/*Non namespaced styles*/
+
+.modal-body {
+    word-wrap: break-word;
+}
+
+[ng\:cloak],
+[ng-cloak],
+.ng-cloak {
+    display: none !important;
+}
+
+td {
+    border-top: 0 !important;
+    white-space: nowrap;
+}
+
+.alert-modal{
+    margin-top: 10px;
+    white-space: normal;
+}
+
+.fa-asterisk{
+        color: red;
+        font-size:0.5em;
+   }
