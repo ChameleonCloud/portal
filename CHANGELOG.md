@@ -2,7 +2,11 @@
 
 ### v1.6.0
 
-- Fixed missing dates for admin allocation approval
+- Closing a ticket now requires a comment #6874
+- Fixed missing dates for admin allocation approval #7865
+- Improved logging of allocation admin actions #7863
+- Completely refactored Resource Discovery #7683
+- Record supplemental details and funding sources in allocation justification instead of project description #8007
 
 ### v1.5.5
 
