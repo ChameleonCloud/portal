@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.6.0
+
+- Fixed missing dates for admin allocation approval
+
 ### v1.5.5
 
 - Update help desk ticket categories #7866
