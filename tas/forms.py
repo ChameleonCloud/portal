@@ -33,7 +33,7 @@ USER_PROFILE_TITLES = (
     ('Undergraduate Student', 'Undergraduate Student'),
     ('Unknown', 'Unknown'),
     ('University Non-Research Staff', 'University Non-Research Staff'),
-    ('University Research Staff (excluding postdoctorates)', 'University Research Staff (excluding postdoctorates)'),
+    ('University Research Staff', 'University Research Staff (excluding postdoctorates)'),
 )
 
 

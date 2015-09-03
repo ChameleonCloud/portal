@@ -9,10 +9,12 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from pytas.pytas import client as TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
+
 import re
 import logging
 import json
 
+logger = logging.getLogger(__name__)
 
 @login_required
 def profile(request):
@@ -101,7 +103,6 @@ def _process_password_reset_request(request, form):
         messages.success(request, 'Your request has been received. If an account matching the username you provided is found, you will receive an email with further instructions to complete the password reset process.')
 
         username = form.cleaned_data['username']
-        logger = logging.getLogger('tas')
         logger.info('Password reset request for username: "%s"', username)
         try:
             tas = TASClient()
@@ -122,7 +123,6 @@ def _process_password_reset_confirm(request, form):
             tas = TASClient()
             return tas.confirm_password_reset(data['username'], data['code'], data['password'], source='Chameleon')
         except Exception as e:
-            logger = logging.getLogger('tas')
             logger.exception('Password reset failed')
             if len(e.args) > 1:
                 if re.search('account does not match', e.args[1]):
@@ -152,7 +152,6 @@ def email_confirmation(request):
                 messages.success(request, 'Congratulations, your email has been verified! Please log in now.')
                 return HttpResponseRedirect(reverse('tas:profile'))
             except Exception as e:
-                logger = logging.getLogger('tas')
                 logger.exception('Email verification failed')
                 if e[0] == 'User not found':
                     form.add_error('username', e[1])
@@ -167,8 +166,6 @@ def email_confirmation(request):
     return render(request, 'tas/email_confirmation.html', context)
 
 def register(request):
-    logger = logging.getLogger('tas')
-
     if request.user is not None and request.user.is_authenticated():
         return HttpResponseRedirect(reverse('tas:profile'))
 
@@ -184,7 +181,7 @@ def register(request):
                 data['piEligibility'] = 'Ineligible'
 
             data['source'] = 'Chameleon'
-
+            logger.info('Attempting new user registration: %s' % _clean_registration_data(data))
             try:
                 tas = TASClient()
                 created_user = tas.save_user(None, data)
@@ -227,3 +224,7 @@ def register(request):
         context['request_pi_eligibility'] = request.POST.get('request_pi_eligibility')
 
     return render(request, 'tas/register.html', context)
+
+def _clean_registration_data(registration_data):
+    hide_keys = ['password', 'confirm_password', 'confirmPassword']
+    return dict((k, v) for k, v in registration_data.iteritems() if k not in hide_keys)
