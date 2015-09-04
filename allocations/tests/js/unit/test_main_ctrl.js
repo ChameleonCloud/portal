@@ -1,28 +1,62 @@
 'use strict';
-/*global it, expect, describe, beforeEach, inject, moment*/
+/*global it, expect, describe, beforeEach, inject, spyOn*/
 describe('AllocationsController', function() {
-
-    var controller, scope, httpBackend;
+    var controller, scope, modal;
+    var projects = [{
+        id: 1,
+        allocations: [{
+            id: 1
+        }]
+    }, {
+        id: 2,
+        allocations: [{
+            id: 2
+        }]
+    }];
 
     beforeEach(function() {
-        module('moment');
         module('allocationsApp');
-        inject(function($controller, $httpBackend, $rootScope) {
-            httpBackend = $httpBackend;
+        module(function($provide) {
+            $provide.value('AllocationFactory', {
+                getAllocations: function() {
+                    return {
+                        then: function(successClbk) {
+                            successClbk(projects);
+                        }
+                    };
+                },
+                approveAllocation: function(postData) {
+                    return {
+                        then: function(successClbk) {
+                            angular.noop(postData);
+                            successClbk({
+                                id: 1,
+                                status: 'Approved'
+                            });
+                        }
+                    };
+                },
+                rejectAllocation: function(postData) {
+                    return {
+                        then: function(successClbk) {
+                            angular.noop(postData);
+                            successClbk({
+                                id: 1,
+                                status: 'Rejected'
+                            });
+                        }
+                    };
+                },
+                projects: projects
+            });
+        });
+        inject(function($controller, $rootScope, $modal) {
+            modal = $modal;
             scope = $rootScope.$new();
             controller = $controller('AllocationsController', {
                 $scope: scope
             });
         });
-    });
-
-    it('checks call to allocations view', function(){
-        var data = [{title: 'Project I'},{title: 'Project II'}];
-       httpBackend.expect('GET', '/admin/allocations/view/')
-            .respond(data);
-       httpBackend.flush();
-       expect(scope.projects).toEqual(data);
-       expect(scope.selectedProjects).toEqual(data);
     });
 
     it('checks reset', function() {
@@ -36,155 +70,51 @@ describe('AllocationsController', function() {
         expect(scope.filter.search).toEqual('');
     });
 
-    it('checks search', function() {
-        scope.filter = {
-            search: ''
-        };
-
-        scope.projects = [{
-            title: 'Analytical Mathematics',
-            chargeCode: '1ABC',
-            pi: {
-                firstName: 'John',
-                lastName:  'Ham',
-                username: 'jham',
-                email: 'jham@test.edu'
-            },
-            allocations: [{
-                title: 'Wrangler Allocation',
-                status: 'pending'
-            }, {
-                title: 'Maverick Allocation',
-                status: 'approved'
-            }]
-        }, {
-            title: 'Computational Science',
-            chargeCode: '2DEF',
-            pi: {
-                firstName: 'Walter',
-                lastName:  'Smith',
-                username: 'swalter',
-                email: 'swalter@test.edu'
-            },
-            allocations: [{
-                title: 'Chameleon Allocation',
-                status: 'active'
-            }, {
-                title: 'Stampede Allocation',
-                status: 'inactive'
-            }]
-        }];
-
-        var projectsJohn = [{
-            title: 'Analytical Mathematics',
-            chargeCode: '1ABC',
-            pi: {
-                firstName: 'John',
-                lastName:  'Ham',
-                username: 'jham',
-                email: 'jham@test.edu'
-            },
-            allocations: [{
-                title: 'Wrangler Allocation',
-                status: 'pending'
-            }, {
-                title: 'Maverick Allocation',
-                status: 'approved'
-            }]
-        }];
-
-        var result = scope.search();
-        expect(result).toEqual(scope.projects);
-        scope.filter.search = 'Analytical Mathematics';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = '1ABC';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = 'jham';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = 'John';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = 'Ham';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = 'jham';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
-        scope.filter.search = 'jham@test.edu';
-        result = scope.search();
-        expect(result).toEqual(projectsJohn);
+    it('checks get allocations', function() {
+        scope.getAllocations();
+        expect(scope.projects).toEqual(projects);
+        expect(scope.selectedProjects).toEqual(projects);
     });
 
-    it('checks update selected', function() {
-        scope.filter = {
-            pending: true,
-            approved: false,
-            active: false,
-            inactive: false,
-            search: ''
+    it('checks approve allocation', function() {
+        var modalInstance = {
+            result: {
+                then: function(successClbk) {
+                    successClbk({
+                        allocation: projects[0].allocations[0]
+                    });
+                }
+            }
         };
-        var selectedProjects = [{
-            name: 'Project I',
-            allocations: [{
-                name: 'Allocation I',
-                status: 'pending',
-                doNotShow : false
-            }, {
-                name: 'Allocation II',
-                status: 'approved',
-                doNotShow : true
-            }]
-        }];
-
-        scope.projects = [{
-            name: 'Project I',
-            allocations: [{
-                name: 'Allocation I',
-                status: 'pending'
-            }, {
-                name: 'Allocation II',
-                status: 'approved'
-            }]
-        }, {
-            name: 'Project II',
-            allocations: [{
-                name: 'Allocation III',
-                status: 'active'
-            }, {
-                name: 'Allocation III',
-                status: 'inactive'
-            }]
-        }];
-
-        scope.updateSelected();
-        expect(scope.selectedProjects).toEqual(selectedProjects);
+        var $event = {
+            currentTarget: {
+                blur: function() {}
+            }
+        };
+        spyOn(modal, 'open').andReturn(modalInstance);
+        var project = projects[0];
+        scope.approveAllocation(project, project.allocations[0], $event);
+        expect(project.allocations[0].status).toEqual('Approved');
     });
 
-it('checks getClass', function() {
-        var allocation = {
-            status: 'pending'
+    it('checks reject allocation', function() {
+        var modalInstance = {
+            result: {
+                then: function(successClbk) {
+                    successClbk({
+                        allocation: projects[0].allocations[0]
+                    });
+                }
+            }
         };
-        var result = scope.getClass(allocation);
-        expect(result).toEqual('label label-warning');
-        allocation = {
-            status: 'rejected'
+        var $event = {
+            currentTarget: {
+                blur: function() {}
+            }
         };
-        result = scope.getClass(allocation);
-        expect(result).toEqual('label label-danger');
-        allocation = {
-            status: 'active'
-        };
-        result = scope.getClass(allocation);
-        expect(result).toEqual('label label-success');
-    });
-
-it('checks toUTC', function() {
-        var expectedDate = moment().format('YYYY-MM-DD');
-        console.log('expectedDate', expectedDate);
-        var result = scope.toUTC(moment());
-        expect(result).toEqual(expectedDate);
+        spyOn(modal, 'open').andReturn(modalInstance);
+        var project = projects[0];
+        scope.rejectAllocation(project, project.allocations[0], $event);
+        expect(project.allocations[0].status).toEqual('Rejected');
     });
 });

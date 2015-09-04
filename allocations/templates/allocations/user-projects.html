@@ -1,0 +1,146 @@
+{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+<!-- Custom CSS -->
+{% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'allocations/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
+<script src="{% static 'allocations/js/vendor.js' %}"></script>
+<script src="{% static 'allocations/js/main.js' %}"></script>
+{% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
+</div>
+{% endblock %} {% endif %} {% block content %}
+<div id="content-main" class="allocations-app">
+    <div id="content-main" ng-app="allocationsApp" ng-cloak>
+        <div class="content" ng-controller="UserAllocationsController">
+            <div class="form-group">
+                <input type="text" ng-model="selections.usernamemodel" placeholder="Username" ng-keypress="handleKeyPress($event)" /> &nbsp;
+                <button class="btn btn-success" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
+                    Get User Allocations
+                </button>
+            </div>
+            <h1 ng-show="selections.username">Projects and Allocations: [[selections.username]]</h1>
+            <div class="well spinner" ng-if="loading.userAllocations">
+                <h4><span class="fa fa-spinner fa-spin"></span> Loading user allocations...</h4>
+            </div>
+            <div ng-if="!loading.userAllocations">
+                <div ng-if="isEmpty(messages.userAllocations)">
+                    <div ng-if="selections.username.length === 0 && submitted">
+                        <alert type="danger">Username is required</alert>
+                    </div>
+                    <div ng-if="projects.length === 0 && selections.username.length > 0">
+                        <alert type="warning">No allocations found for user: [[selections.username]]</alert>
+                    </div>
+                    <div ng-if="projects.length > 0">
+                        <div class="form-group">
+                            <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterUserAllocations" name="filterUserAllocations" placeholder="Filter by project title, number, or PI.">
+                        </div>
+                        <div class="form-group">
+                            <label>Filter by Allocation Status</label>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="filter.active" ng-change="updateSelected()"> Active</label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="filter.inactive" ng-change="updateSelected()"> Inactive</label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
+                            </div>
+                            <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
+                        </div>
+                        <div class="form-group module" ng-repeat="project in selectedProjects track by $index">
+                            <h2>[[ project.title ]] <small><a href="/user/projects/[[ project.id ]]" target="_blank">View Project &rarr;</a></small></h2>
+                            <table class="table">
+                                <tr>
+                                    <td width="30%"><b>Project Number</b></td>
+                                    <td>[[ project.chargeCode ]]</td>
+                                </tr>
+                                <tr>
+                                    <td><b>PI</b></td>
+                                    <td>
+                                        [[ project.pi.firstName ]] [[ project.pi.lastName ]]
+                                        <a ng-show="project.pi.email" ng-href="mailto:[[project.pi.email]]">
+                                            <i class="fa fa-envelope-o"></i> [[project.pi.email]]
+                                        </a>
+                                        <br> [[ project.pi.institution ]]
+                                        <br> Username: [[ project.pi.username]]
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Abstract</b></td>
+                                    <td>
+                                        <div style="padding:0" read-more more-text="...read more" less-text="...less" words="words" limit="30" text-data="[[project.description]]"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><b>Type</b></td>
+                                    <td>[[ project.type ]]</td>
+                                </tr>
+                                <tr>
+                                    <td><b>Field of Science</b></td>
+                                    <td>[[ project.field ]]</td>
+                                </tr>
+                            </table>
+                            <h3>Allocations</h3>
+                            <div ng-if="!project.allocations || project.allocations.length < 1">
+                                <div class="alert alert-warning">
+                                    There are no allocations for this project.
+                                </div>
+                            </div>
+                            <table ng-if="project.allocations && project.allocations.length > 0">
+                                <thead>
+                                    <tr>
+                                        <th width="20%">Resource</th>
+                                        <th width="20%">Requestor</th>
+                                        <th width="10%">Status</th>
+                                        <th width="50%">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow">
+                                        <td>[[ allocation.resource ]]</td>
+                                        <td>[[ allocation.requestor ]]</td>
+                                        <td><span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span></td>
+                                        <td>
+                                            <p>
+                                                <b>Date requested:</b> [[ allocation.dateRequested | date:'dd-MMMM-yyyy']]
+                                            </p>
+                                            <div ng-if="allocation.status.toLowerCase() === 'pending'">
+                                                <p>
+                                                    <b>Justification:</b> [[ allocation.justification ]]
+                                                </p>
+                                            </div>
+                                            <div ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved' || allocation.status.toLowerCase() === 'rejected'">
+                                                <p><b>Review date:</b> [[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]
+                                                </p>
+                                                <p><b>Decision summary:</b> [[ allocation.decisionSummary ]]
+                                                </p>
+                                            </div>
+                                            <div ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved'">
+                                                <p><b>Allocation dates:</b> [[ allocation.start | date:'dd-MMMM-yyyy']] - [[ allocation.end | date:'dd-MMMM-yyyy']]
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="!isEmpty(messages.userAllocations)">
+                    <alert ng-repeat="msg in messages.userAllocations" type="[[msg.type]]">[[msg.body]]</alert>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
