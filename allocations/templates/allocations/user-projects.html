@@ -14,16 +14,21 @@
 {% endblock %} {% endif %} {% block content %}
 <div id="content-main" class="allocations-app">
     <div id="content-main" ng-app="allocationsApp" ng-cloak>
-        <div class="content" ng-controller="UserAllocationsController">
-            <div class="form-group">
-                <input type="text" ng-model="selections.usernamemodel" placeholder="Username" ng-keypress="handleKeyPress($event)" /> &nbsp;
-                <button class="btn btn-success" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
-                    Get User Allocations
-                </button>
-            </div>
-            <h1 ng-show="selections.username">Projects and Allocations: [[selections.username]]</h1>
-            <div class="well spinner" ng-if="loading.userAllocations">
-                <h4><span class="fa fa-spinner fa-spin"></span> Loading user allocations...</h4>
+        <h1>Lookup User Allocations</h1>
+        <div class="content module" ng-controller="UserAllocationsController">
+            <form class="">
+                <div>
+                    <label for="id_username">Username</label>
+                    <input type="text" class="" id="id_username" ng-model="selections.usernamemodel" placeholder="Username" ng-keypress="handleKeyPress($event)" /> &nbsp;
+                    <button type="button" class="" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
+                        Get User Allocations
+                    </button>
+                </div>
+            </form>
+
+            <h2 ng-show="selections.username">Projects and Allocations: [[selections.username]]</h2>
+            <div class="alert alert-info" ng-if="loading.userAllocations">
+                <span class="fa fa-spinner fa-spin"></span> Loading user allocations...
             </div>
             <div ng-if="!loading.userAllocations">
                 <div ng-if="isEmpty(messages.userAllocations)">
@@ -57,7 +62,7 @@
                             </div>
                             <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
                         </div>
-                        <div class="form-group module" ng-repeat="project in selectedProjects track by $index">
+                        <div class="form-group " ng-repeat="project in selectedProjects track by $index">
                             <h2>[[ project.title ]] <small><a href="/user/projects/[[ project.id ]]" target="_blank">View Project &rarr;</a></small></h2>
                             <table class="table">
                                 <tr>

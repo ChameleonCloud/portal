@@ -3,7 +3,7 @@
  */
 'use strict';
 angular.module('allocationsApp')
-    .controller('UserAllocationsController', ['$scope', '$http', '_', 'UtilFactory', 'AllocationFactory', 'NotificationFactory', function($scope, $http, _, UtilFactory, AllocationFactory, NotificationFactory) {
+    .controller('UserAllocationsController', ['$scope', '$location', '$http', '_', 'UtilFactory', 'AllocationFactory', 'NotificationFactory', function($scope, $location, $http, _, UtilFactory, AllocationFactory, NotificationFactory) {
         $scope.messages = [];
         $scope.$on('allocation:notifyMessage', function() {
             $scope.messages = NotificationFactory.getMessages();
@@ -41,10 +41,13 @@ angular.module('allocationsApp')
             usernamemodel: '',
             username: ''
         };
+
         $scope.submitted = false;
+
         $scope.getUserAllocations = function() {
             $scope.projects = [];
             $scope.selections.username = $scope.selections.usernamemodel;
+            $location.url('/' + $scope.selections.username);
             $scope.submitted = true;
             if ($scope.selections.username && $scope.selections.username.length > 0) {
                 AllocationFactory.getUserAllocations($scope.selections.username).then(function() {
@@ -60,4 +63,10 @@ angular.module('allocationsApp')
                 $scope.getUserAllocations();
             }
         };
+
+        var path = $location.path();
+        if (path) {
+            $scope.selections.usernamemodel = path.substring(1);
+            $scope.getUserAllocations();
+        }
     }]);
