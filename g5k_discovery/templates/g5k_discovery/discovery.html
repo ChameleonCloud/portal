@@ -2,6 +2,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}"> {% endblock %} {% block content %}
 
 <h1 class="title">Resource Discovery</h1>
+<div class="alert alert-warning">Currently reserving based on only single parameter filter is supported.</div>
 <div ng-app="discoveryApp" class="discovery-app" ng-cloak>
     <div class="content" ng-controller="MainController">
         <div ng-include="'template/filters.html'" ng-if="!showNodes"></div>
