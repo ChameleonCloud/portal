@@ -70,3 +70,12 @@ target/
 
 #Pycharm
 .idea/*
+
+#bower dependencies
+*/bower_components
+
+#node dependencies
+*/node_modules
+
+#tmp folder
+*/.tmp

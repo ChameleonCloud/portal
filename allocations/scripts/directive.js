@@ -76,22 +76,3 @@ app.directive('readMore', function() {
     }
   };
 });
-
-app.directive('autodismiss',function($timeout){
-    return {
-        link:function(scope, element, attrs){         
-          var duration = 7000;
-          if(attrs.autodismiss){
-            duration = parseInt(attrs.autodismiss);
-          }
-          attrs.$observe('trShow', function(){
-            if(scope.$eval(attrs.trShow) === true){             
-              $timeout(function(){                 
-                 element.fadeOut(1000);
-                }, duration);
-            }
-          });
-           
-        }
-      };
-    });

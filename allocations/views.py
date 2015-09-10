@@ -56,6 +56,34 @@ def view( request ):
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+def user_select( request ):
+    user = request.user
+    logger.debug( 'Serving user projects view to: %s', user.username )
+    context = {}
+    return render(request, 'allocations/user-projects.html', context)
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+def user_projects( request, username ):
+    logger.info( 'User projects requested by admin: %s for user %s', request.user, username )
+    resp = []
+    try:
+        if username:
+            tas = TASClient()
+            userProjects = tas.projects_for_user( username=username )
+            chameleonProjects = tas.projects_for_group('Chameleon');
+            if (chameleonProjects and userProjects):
+                for project in userProjects:
+                    if project in chameleonProjects:
+                        resp.append(project)
+                        logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
+    except Exception as e:
+        logger.exception('Error loading projects for user: %s', username)
+        raise Exception('Error loading projects for user: %s', username)
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def approval( request ):
     resp = {}
     errors = {}
@@ -154,7 +182,7 @@ def approval( request ):
 
         if data['dateRequested']:
             try:
-                validate_datetimestring( data['dateRequested'] )
+                validate_datetimestring(data['dateRequested'])
             except ValidationError:
                 errors['dateRequested'] = 'Requested date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
         #else:
@@ -175,8 +203,8 @@ def approval( request ):
             logger.info( 'Request data passed validation. Calling TAS ...')
 
             try:
-                decided_allocation = tas.allocation_approval( data['id'], data )
-                logger.info('Allocation approval TAS response: data=%s', json.dumps(decided_allocation))
+                resp['result'] = tas.allocation_approval( data['id'], data )
+                logger.info('Allocation approval TAS response: data=%s', json.dumps(resp['result']))
                 status = 'success'
             except Exception as e:
                 logger.exception('Error processing allocation approval.')

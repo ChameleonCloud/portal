@@ -7,7 +7,9 @@ angular.module('moment', []).factory('moment', function() {
   return window.moment; // assumes moment has already been loaded on the page
 });
 
-angular.module('allocationsApp',['underscore', 'moment', 'ui.bootstrap'])
+angular.module('allocationsApp.service', []);
+
+angular.module('allocationsApp',['underscore', 'moment', 'allocationsApp.service', 'ui.bootstrap'])
 .config(function($interpolateProvider, $httpProvider) {
     $interpolateProvider.startSymbol('[[').endSymbol(']]');
     $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
