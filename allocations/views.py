@@ -19,53 +19,71 @@ import time
 
 logger = logging.getLogger(__name__)
 
-def not_allocation_admin_or_superuser(user):
-    logger.debug( 'user=%s', user )
+def allocation_admin_or_superuser(user):
     if user:
-        logger.debug( 'user groups count=%s', user.groups.filter(name='Allocation Admin').count() )
+        logger.debug( 'If user has allocation admin role: %s', user.groups.filter(name='Allocation Admin').count() )
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
     return False
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def index( request ):
     user = request.user
-    if user:
-        logger.debug( 'group=%s', user.groups )
+    logger.debug( 'Serving allocation approval view to: %s', user.username )
     context = {}
     return render(request, 'allocations/index.html', context)
 
 def denied( request ):
+    user = request.user
+    if user:
+        logger.debug( 'Denying allocation approval view to: %s', user.username )
     context = {}
     return render(request, 'allocations/denied.html', context)
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def view( request ):
     resp = ''
     try:
         tas = TASClient()
         resp = tas.projects_for_group('Chameleon')
+        logger.debug( 'Total projects: %s', len(resp) )
     except Exception as e:
-        logger.exception('error loading projects')
+        logger.exception('Error loading chameleon projects')
         messages.error( request, e[0] )
-        raise Exception('error loading projects')
+        raise Exception('Error loading chameleon projects')
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
-def view_test( request ):
-    resp = {}
-    try:
-        fd = open('allocations/fixtures/projects.json', 'r')
-        resp = json.loads(fd.read())
-        fd.close()
-    except:
-        print 'Could not load allocations/fixtures/projects.json'
-    return HttpResponse(json.dumps(resp['result']), content_type="application/json")
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+def user_select( request ):
+    user = request.user
+    logger.debug( 'Serving user projects view to: %s', user.username )
+    context = {}
+    return render(request, 'allocations/user-projects.html', context)
 
 @login_required
-@user_passes_test(not_allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
+def user_projects( request, username ):
+    logger.info( 'User projects requested by admin: %s for user %s', request.user, username )
+    resp = []
+    try:
+        if username:
+            tas = TASClient()
+            userProjects = tas.projects_for_user( username=username )
+            chameleonProjects = tas.projects_for_group('Chameleon');
+            if (chameleonProjects and userProjects):
+                for project in userProjects:
+                    if project in chameleonProjects:
+                        resp.append(project)
+                        logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
+    except Exception as e:
+        logger.exception('Error loading projects for user: %s', username)
+        raise Exception('Error loading projects for user: %s', username)
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def approval( request ):
     resp = {}
     errors = {}
@@ -76,7 +94,10 @@ def approval( request ):
         data = json.loads(request.body)
         data['reviewer'] = userData['username']
         data['reviewerId'] = userData['id']
-        validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' )
+        logger.info( 'Allocation approval requested by admin: %s', request.user )
+        logger.info( 'Allocation approval request data: %s', json.dumps( data ) )
+        validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}$' )
+        validate_datetimestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$' )
         if not data['decisionSummary']:
             errors['decisionSummary'] = 'Decision Summary is required.'
 
@@ -89,7 +110,7 @@ def approval( request ):
                 try:
                     validate_datestring( data['start'] )
                 except ValidationError:
-                    errors['start'] = 'Start date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                    errors['start'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
                  errors['start'] = 'Start date is required.'
 
@@ -97,7 +118,7 @@ def approval( request ):
                 try:
                     validate_datestring( data['end'] )
                 except ValidationError:
-                    errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                    errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
                  errors['end'] = 'Start date is required.'
 
@@ -161,7 +182,7 @@ def approval( request ):
 
         if data['dateRequested']:
             try:
-                validate_datestring( data['dateRequested'] )
+                validate_datetimestring(data['dateRequested'])
             except ValidationError:
                 errors['dateRequested'] = 'Requested date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
         #else:
@@ -171,7 +192,7 @@ def approval( request ):
             try:
                 validate_datestring( data['dateReviewed'] )
             except ValidationError:
-                errors['dateReviewed'] = 'Reviewed date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
+                errors['dateReviewed'] = 'Reviewed date must be a valid date string e.g. "2015-05-20" .'
         else:
              errors['dateReviewed'] = 'Reviewed date is required.'
         if len( errors ) == 0:
@@ -179,20 +200,19 @@ def approval( request ):
             data['source'] = 'Chameleon'
 
             # log the request
-            logger.info( 'processing allocation approval: data=%s', json.dumps( data ) )
+            logger.info( 'Request data passed validation. Calling TAS ...')
 
             try:
-                decided_allocation = tas.allocation_approval( data['id'], data )
-                logger.info('allocation approval TAS response: data=%s', json.dumps(decided_allocation))
-                # success!
-                #time.sleep(5)
+                resp['result'] = tas.allocation_approval( data['id'], data )
+                logger.info('Allocation approval TAS response: data=%s', json.dumps(resp['result']))
                 status = 'success'
             except Exception as e:
-                logger.exception('Error processing allocation approval, data=%s', json.dumps( data ))
+                logger.exception('Error processing allocation approval.')
                 status = 'error'
                 errors['message'] = 'An unexpected error occurred. If this problem persists please create a help ticket.'
 
         else:
+            logger.info( 'Request data failed validation. %s', errors.values())
             status = 'error'
 
     else:
@@ -203,5 +223,6 @@ def approval( request ):
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 def allocations_template(request, resource):
+    logger.debug('Template requested: %s.html', resource)
     templateUrl = 'allocations/%s.html' %resource
     return render_to_response(templateUrl)

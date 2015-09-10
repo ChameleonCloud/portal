@@ -1,0 +1,89 @@
+.allocations-header {
+    border-bottom: 2px solid black;
+}
+
+a:hover {
+    cursor: hand;
+    cursor: pointer;
+}
+
+button:hover,
+.btn,
+.btn:hover {
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.btn-danger,
+.btn-danger:hover {
+    color: #fff !important;
+    background-color: #C53C36 !important;
+    border-color: #C53C36 !important;
+}
+
+.btn-info,
+.btn-info:hover {
+    color: #fff !important;
+    background-color: #31B0D5 !important;
+    border-color: #31B0D5 !important;
+}
+
+.btn-primary,
+.btn-primary:hover {
+    color: #fff !important;
+    background-color: #3071A9 !important;
+    border-color: #3071A9 !important;
+}
+
+.btn-success,
+.btn-success:hover {
+    color: #fff !important;
+    background-color: #59B259 !important;
+    border-color: #59B259 !important;
+}
+
+.btn-warning,
+.btn-warning:hover {
+    color: #fff !important;
+    background-color: #F89406 !important;
+    border-color: #F89406 !important;
+}
+
+.form-group {
+    margin: 10px;
+}
+
+.list-group-item {
+    padding: 5px 5px;
+}
+
+.modal-footer {
+    border-top: 0;
+}
+
+.modal-header {
+    padding: 15px 15px 0 15px;
+    border-bottom: 0;
+}
+
+.no-border {
+    border: 0;
+}
+
+[ng\:cloak],
+[ng-cloak],
+.ng-cloak {
+    display: none !important;
+}
+
+.row {
+    margin: 0;
+}
+
+table {
+    margin: 0 0 !important;
+}
+
+.more-text.show-inline {
+    display: inline !important;
+}

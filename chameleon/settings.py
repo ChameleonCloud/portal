@@ -248,6 +248,12 @@ LOGGING = {
             'filename': '/var/log/django/chameleon_auth.log',
             'formatter': 'verbose',
         },
+        'allocations': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/django/chameleon_allocations.log',
+            'formatter': 'simple',
+        }
     },
     'loggers': {
         'console': {
@@ -288,8 +294,8 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'allocations': {
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['file', 'allocations'],
+            'level': 'DEBUG',
         },
         'chameleon_mailman': {
             'handlers': ['file'],

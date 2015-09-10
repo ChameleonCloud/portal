@@ -137,10 +137,6 @@ def create_project(request):
             project = form.cleaned_data.copy()
             project.pop('accept_project_terms', None)
 
-            project['description'] = '%s\n\n--- Supplemental details ---\n\n%s\n\n--- Funding source(s) ---\n\n%s' % (project['description'], project['supplemental_details'], project['funding_source'])
-            project.pop('supplemental_details', None)
-            project.pop('funding_source', None)
-
             # pi
             pi_user = tas.get_user(username=request.user)
             project['piId'] = pi_user['id']
@@ -150,10 +146,13 @@ def create_project(request):
                 {
                     'resourceId': 39,                        # chameleon
                     'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': 'Initial; see abstract',# reuse for now
+                    'justification': '--- Supplemental Details ---\n\n%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']),# reuse for now
                     'computeRequested': 20000,               # simple request for now
                 }
             ]
+
+            project.pop('supplemental_details', None)
+            project.pop('funding_source', None)
 
             # startup
             project['typeId'] = 2

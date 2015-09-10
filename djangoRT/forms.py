@@ -69,3 +69,9 @@ class ReplyForm(forms.Form):
     """
     reply = forms.CharField(required=True, widget=forms.Textarea(), label="Enter Reply")
     attachment = forms.FileField(required=False)
+
+class CloseForm(forms.Form):
+    """
+    Ticket Close form.
+    """
+    reply = forms.CharField(required=True, widget=forms.Textarea(), label="Enter Close Comment")
