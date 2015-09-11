@@ -54,20 +54,24 @@
       </fieldset>
 
       <div class="form-group">
-        <button type="submit" class="btn btn-success">Save Profile</button>
+        <button type="submit" class="btn btn-success">Register Account</button>
         <a href="{% url 'tas:profile' %}" class="btn btn-default">Cancel</a>
       </div>
     </div>
 
     <div class="col-sm-6">
-      <div class="well">
+      <div class="well well-sm">
         <h3>Already have an account?</h3>
         <p class="lead">
-          If you already have an account <a class="btn btn-default" href="{% url 'login' %}"> click here to log in</a>.
+          If you already have an account <a href="{% url 'login' %}">click here</a> to log in.
         </p>
+      </div>
+
+      <div class="well well-sm">
+        <h3>Do you have a TACC Account?</h3>
         <p class="lead">
-          If you have a TACC account you can use your TACC credentials to log in to
-          the Chameleon portal and activate your Chameleon account.
+          If you have a TACC account you can use your TACC credentials to
+          <a href="{% url 'login' %}">log in</a> and activate your Chameleon account.
         </p>
       </div>
     </div>
