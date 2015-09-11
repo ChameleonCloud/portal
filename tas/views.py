@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from pytas.pytas import client as TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
+from tas.models import activate_local_user
 
 import re
 import logging
@@ -149,6 +150,7 @@ def email_confirmation(request):
                 tas = TASClient()
                 user = tas.get_user(username=username)
                 tas.verify_user(user['id'], code)
+                activate_local_user(username)
                 messages.success(request, 'Congratulations, your email has been verified! Please log in now.')
                 return HttpResponseRedirect(reverse('tas:profile'))
             except Exception as e:
