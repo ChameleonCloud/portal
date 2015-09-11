@@ -2,6 +2,7 @@
 import urlparse
 from functools import wraps
 from django.conf import settings
+from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, QueryDict
 from django.utils.decorators import available_attrs
@@ -40,3 +41,17 @@ def _agreed_to_terms( user, terms ):
         return True
     except UserTermsAndConditions.DoesNotExist:
         return False
+
+def anonymous_required(function=None, redirect_url='/'):
+    """
+    Decorator for views that checks that the user is NOT logged in, redirecting
+    to the specified page if necessary.
+    """
+    actual_decorator = user_passes_test(
+        lambda u: u.is_anonymous(),
+        login_url=redirect_url
+    )
+
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
