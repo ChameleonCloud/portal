@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ValidationError
 from pytas.pytas import client as TASClient
+from tas.models import activate_local_user
+
 import logging
 import re
 
@@ -25,6 +27,7 @@ class TASBackend(ModelBackend):
                 # Check if this user is valid on the mail server
                 if self.tas.authenticate(username, password):
                     tas_user = self.tas.get_user(username=username)
+                    activate_local_user(username)
                     logger.info('Login successful for user "%s"' % username)
                 else:
                     raise ValidationError('Authentication Error', 'Your username or password is incorrect.')
