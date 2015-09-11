@@ -15,7 +15,10 @@ class OpenIDBackend(ModelBackend):
     def authenticate(self, openid_identity=None, **kwargs):
         if openid_identity is not None:
             logger.info('Attempting to autheticate user for OpenID "%s"' % openid_identity)
-            oid = OpenIDUserIdentity.objects.get(uid=openid_identity)
+            try:
+                oid = OpenIDUserIdentity.objects.get(uid=openid_identity)
+            except OpenIDUserIdentity.DoesNotExist:
+                oid = None
             if oid:
                 logger.info('User "%s" login using OpenID "%s"' % (oid.user, oid.uid))
                 logger.info('Login successful for user "%s"' % oid.user)
