@@ -1,10 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth import get_user_model
 
-# Create your models here.
-class TASUser(AbstractBaseUser):
-    username = models.CharField(max_length=8, unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=254)
-    USERNAME_FIELD = 'username'
+def activate_local_user(username):
+    try:
+        UserModel = get_user_model()
+        local_user = UserModel.objects.get(username=username)
+        local_user.is_active = True
+        local_user.save()
+    except:
+        pass
