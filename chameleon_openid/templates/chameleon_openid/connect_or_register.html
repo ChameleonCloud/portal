@@ -1,8 +1,8 @@
 {% extends "layout/default.html" %}
 {% load bootstrap3 %}
-{% block title %}OpenID Connect{% endblock %}
+{% block title %}OpenID: Connect Account{% endblock %}
 {% block content %}
-<h1>OpenID Connect</h1>
+<h1>OpenID: Connect your Account</h1>
 
 <p class="lead">
   Hello, {{ openid.ax.full_name.0 }}! You have successfully authenticated with the remote
@@ -10,7 +10,7 @@
 </p>
 
 <p class="lead">
-  However, we were unable to match this to a valid Chameleon user! Please either connect
+  However, we were unable to match this to a Chameleon user account! Please either connect
   this identity with your existing Chameleon account, or create a Chameleon account if you
   don't already have one!
 </p>
@@ -21,8 +21,10 @@
   <div class="col-sm-6">
     <h2>Connect account</h2>
     <p>
-      Enter your Chameleon username and password to link your Chameleon account with this
-      OpenID identity.
+      Enter your <strong>Chameleon username and password</strong> to link your Chameleon
+      account with this OpenID identity. If you have a <strong>TACC account</strong>, you
+      can use your TACC username and password to activate your Chameleon account and link
+      your OpenID at the same time.
     </p>
     <form method="post">
       {% csrf_token %}
