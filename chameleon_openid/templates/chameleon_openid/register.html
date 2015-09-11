@@ -1,0 +1,95 @@
+{% extends "layout/default.html" %}
+
+{% load staticfiles chameleon_tags bootstrap3 %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<h2>Register</h2>
+
+<p class="lead">
+  After registering you will be able to log in with either your GENI OpenID or
+  directly using the username and password you select below.
+</p>
+
+<form method="post" action="{% url 'chameleon_openid:openid_register' %}">
+  {% csrf_token %}
+
+  {% if profile_form.errors or account_form.errors %}
+  <div class="alert alert-error">
+    <p>There were errors processing your request. Please see below for details.</p>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6">
+      <fieldset>
+        <legend>Contact Information</legend>
+
+        {% bootstrap_form profile_form %}
+
+        <div class="form-group">
+          <label class="control-label">PI Eligibility</label>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="request_pi_eligibility" {% if request_pi_eligibility %}checked{% endif %}> Request PI Eligibility
+            </label>
+          </div>
+          <p class="help-block">
+            Users who intend to create and lead projects on Chameleon must meet the PI Eligibility requirements.
+            <a href="/docs/getting-started/pi-eligibility/">Please review the PI Eligibility requirements</a> to
+            determine if you qualify as PI Eligibile.
+          </p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Account Information</legend>
+
+        {% bootstrap_form account_form %}
+
+        <div>
+          <p class="help-block">Passwords must meet the following criteria:</p>
+          <ul class="help-block">
+            <li>Must not contain your account name or parts of your full name</li>
+            <li>Must be a minimum of 8 characters in length</li>
+            <li>Must contain characters from at least three of the following: uppercase letters, lowercase letters, numbers, symbols</li>
+          </ul>
+        </div>
+      </fieldset>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-success">Register Account</button>
+        <a href="{% url 'tas:profile' %}" class="btn btn-default">Cancel</a>
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <div class="well well-sm">
+        <h3>Already have an account?</h3>
+        <p class="lead">
+          If you already have an account
+          <a href="{% url 'chameleon_openid:openid_connect' %}">click here</a>
+          to connect your existing account with your GENI OpenID.
+        </p>
+      </div>
+
+      <div class="well well-sm">
+        <h3>Do you have a TACC Account?</h3>
+        <p class="lead">
+          If you have a TACC account you can use your TACC credentials to
+          <a href="{% url 'chameleon_openid:openid_connect' %}">log in</a>
+          the Chameleon portal, connect your GENI OpenID and activate your Chameleon
+          account.
+        </p>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{% static 'tas/js/institution_departments.js' %}"></script>
+<script type="text/javascript" src="{% static 'tas/js/new_institution.js' %}"></script>
+{% endblock %}
