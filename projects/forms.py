@@ -74,6 +74,30 @@ class ProjectCreateForm( forms.Form ):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
         self.fields['fieldId'].choices = get_fields_choices()
 
+class AllocationCreateForm(forms.Form):
+    description = forms.CharField(
+        label='Abstract',
+        help_text='Your project abstract may be publicly viewable on the Chameleon website.',
+        required=True,
+        widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
+    )
+    supplemental_details = forms.CharField(
+        label='Supplemental details',
+        help_text='Additional justification for the project beyond the Abstract. This text will not be publicly viewable.',
+        required=False,
+        widget=forms.Textarea(),
+    )
+    funding_source = forms.CharField(
+        label='Source(s) of funding',
+        help_text='If the proposed research is related to a funded grant or has pending support, please include funding agency name(s) and grant name(s).',
+        required=False,
+        widget=forms.Textarea()
+    )
+    accept_project_terms = forms.BooleanField(
+        label='I agree to abide by Chameleon Acceptable Use Policies',
+        help_text=get_accept_project_terms_help_text_lazy(),
+    )
+
 
 class ProjectEditForm( forms.Form ):
     title = forms.CharField(
