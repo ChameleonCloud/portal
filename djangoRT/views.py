@@ -148,8 +148,20 @@ def ticketreply(request, ticketId):
 
 @login_required
 def ticketclose(request, ticketId):
-    rtUtil.DjangoRt().closeTicket(ticketId)
-    return HttpResponseRedirect(reverse( 'djangoRT:ticketdetail', args=[ ticketId ] ) )
+    rt = rtUtil.DjangoRt()
+
+    ticket = rt.getTicket(ticketId)
+    data = {}
+
+    if request.method == 'POST':
+        form = forms.CloseForm(request.POST)
+        if form.is_valid():
+            if rt.commentOnTicket(ticketId, text=form.cleaned_data['reply']) and rt.closeTicket(ticketId):
+                return HttpResponseRedirect(reverse( 'djangoRT:ticketdetail', args=[ ticketId ] ) )
+    else:
+        form = forms.CloseForm(initial=data)
+    return render(request, 'djangoRT/ticketClose.html', { 'ticket_id' : ticketId , 'ticket' : ticket, 'form' : form, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
+
 
 @login_required
 def ticketattachment(request, ticketId, attachmentId):

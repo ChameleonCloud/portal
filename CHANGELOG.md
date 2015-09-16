@@ -1,5 +1,18 @@
 ## Changelog
 
+### v1.6.0
+
+- Closing a ticket now requires a comment #6874
+- Fixed missing dates for admin allocation approval #7865
+- Improved logging of allocation admin actions #7863
+- Completely refactored Resource Discovery #7683
+- Record supplemental details and funding sources in allocation justification instead of project description #8007
+
+### v1.5.6
+
+- limit `user.title` to 50 characters
+- improved logging during registration process
+
 ### v1.5.5
 
 - Update help desk ticket categories #7866
