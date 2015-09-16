@@ -1,7 +1,11 @@
-{% load chameleon_tags %}
-
 <div class="allocation" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
   <h4>{{ alloc.resource }} <small><span class="label label-default">{{ alloc.status }}</small></h4>
+  {% if project.up_for_renewal %}
+      <a class="btn btn-default btn-sm" href="{% url 'projects:renew_allocation' project.id alloc.id %}">
+      <i class="fa fa-reply"></i>
+      Submit Renewal
+    </a>
+  {% endif %}
 
   {% if alloc.status == 'Rejected' or alloc.status == 'Pending' %}
     <p><b>Date requested:</b> {{ alloc.dateRequested|date:"D d M Y" }}</p>
@@ -17,14 +21,15 @@
       <th>Start</th>
       <th>End</th>
       <th>Usage</th>
-      <th>Actions</th>
     </thead>
     <tbody>
       <tr>
-        <td>{{ alloc.start }}</td>
-        <td>{{ alloc.end }}</td>
-        <td>{{ alloc.computeAllocated }}</td>
-        <td></td>
+        <td>{{ alloc.start|date:"D d M Y" }}</td>
+        <td>{{ alloc.end|date:"D d M Y" }}</td>
+        <td>
+          <div id="progressbar" used="{{ alloc.computeAllocated }}"></div>
+          {{ alloc.computeAllocated }} / 20000
+        </td>
       </tr>
     </tbody>
   </table>

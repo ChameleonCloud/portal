@@ -6,12 +6,12 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllow
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pytas.http import TASClient
 from pytas.models import Project
 
-from forms import ProjectCreateForm, ProjectAddUserForm
+from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
 import project_util
 
 import re
@@ -110,6 +110,28 @@ def view_project(request, project_id):
     else:
         fg_users = None
 
+    project.has_active_allocations = False
+    project.up_for_renewal = False
+
+    # turn the allocation datetimes into actual datetimes for formatting purposes
+    for a in project.allocations:
+        a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
+        a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
+
+        print(a)
+
+        # going to make a note here that setting this on the project object is probably short sighted
+        # since it assumes projects will continue to only have one allocation. We can probably update this later.
+        # Sorry future Carrie
+        # Also note: 'Approved' shouldn't ever happen but the approval stuff isn't running in dev.
+        if a.status == 'Pending' or a.status == 'Active' or a.status == 'Approved':
+            project.has_active_allocations = True
+
+        # if the allocation end is less than 3 months from now, show the renewal button
+        three_months_to_end = a.end - timedelta(days=90)
+        if datetime.today() > three_months_to_end:
+            project.up_for_renewal = True
+
     return render(request, 'projects/view_project.html', {
         'project': project,
         'users': users,
@@ -118,6 +140,57 @@ def view_project(request, project_id):
         'fg_users': fg_users,
         'form': form,
     })
+
+@login_required
+def create_allocation(request, project_id, allocation_id = -1):
+    tas = TASClient()
+
+    user = tas.get_user(username=request.user)
+    if user['piEligibility'] != 'Eligible':
+        messages.error(request, 'Only PI Eligible users can request allocations. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
+        return HttpResponseRedirect(reverse('projects:user_projects'))
+
+    project = Project.get(project_id)
+
+    abstract = project.description.split("\n\n--- Supplemental details ---\n\n")
+    justification = abstract[1].split("\n\n--- Funding source(s) ---\n\n")
+
+    form = AllocationCreateForm(initial={'description': abstract[0],
+                                         'supplemental_details': justification[0],
+                                         'funding_source': justification[1]})
+
+    if request.POST:
+        if form.is_valid():
+            allocation = form.cleaned_data.copy()
+            allocation['computeRequested'] = '2000'
+            # Also update the project
+            allocation['justification'] = '%s\n\n--- Supplemental details ---\n\n%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['description'], allocation['supplemental_details'], allocation['funding_source'])
+            project['description'] = '%s\n\n--- Supplemental details ---\n\n%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['description'], allocation['supplemental_details'], allocation['funding_source'])
+
+            allocation.pop('description', None)
+            allocation.pop('supplemental_details', None)
+            allocation.pop('funding_source', None)
+
+            allocation['projectId'] = project_id
+            allocation['requestorId'] = tas.get_user(username=request.user)['id']
+            allocation['resourceId'] = '39'
+
+            if allocation_id > 0:
+                allocation['id'] = allocation_id
+
+
+            try:
+                created_allocation = tas.create_allocation(allocation)
+                updated_project = tas.edit_project(project)
+                messages.success(request, 'Your allocation request has been submitted!')
+                return HttpResponseRedirect(reverse('projects:view_project', args=[ updated_project['id'] ]))
+            except:
+                logger.exception('Error creating allocation')
+                form.add_error('__all__', 'An unexpected error occurred. Please try again')
+        else:
+            form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+
+    return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id })
 
 @login_required
 @terms_required('project-terms')

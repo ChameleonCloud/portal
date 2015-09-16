@@ -1,0 +1,42 @@
+{% extends 'layout/user.html' %}
+
+{% load bootstrap3 %}
+
+{% block title %}
+    {% if alloc_id != -1 %}
+        Renew
+    {% else %}
+        Create
+    {% endif %}
+        Allocation
+{% endblock %}
+
+{% block content %}
+<h2>
+    {% if alloc_id != -1 %}
+        Renew Allocation #{{alloc_id}}
+    {% else %}
+        Create a New Allocation
+    {% endif %}
+    for Project {{project.chargeCode}}
+</h2>
+
+<form method="post">
+  {% csrf_token %}
+
+  {% bootstrap_form form %}
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-success">
+        Submit
+        {% if alloc_id != -1 %}
+            Renewal
+        {% else %}
+            Request
+        {% endif %}
+    </button>
+    <a href="{% url 'projects:user_projects' %}" class="btn btn-default">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}
