@@ -48,9 +48,9 @@ class ProjectCreateForm( forms.Form ):
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Supplemental details',
-        help_text='Additional justification for the project beyond the Abstract. This text will not be publicly viewable.',
-        required=False,
+        label='Resource justification',
+        help_text='Provide details for how you intend to use Chameleon to accomplish your research goals. This text will not be publicly viewable.',
+        required=True,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(
@@ -82,9 +82,9 @@ class AllocationCreateForm(forms.Form):
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Supplemental details',
-        help_text='Additional justification for the project beyond the Abstract. This text will not be publicly viewable.',
-        required=False,
+        label='Resource justification',
+        help_text='Provide details for how you intend to use Chameleon to accomplish your research goals. This text will not be publicly viewable.',
+        required=True,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(
