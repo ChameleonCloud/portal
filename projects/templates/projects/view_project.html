@@ -35,19 +35,28 @@
 
 <h3>Allocations</h3>
 <div class="allocations">
-  {% if project.has_active_allocations %}
-    {% for alloc in project.allocations %}
-      {% include 'projects/allocation.html' %}
-    {% endfor %}
-  {% else %}
-          You don't seem to have any active allocations! This could be because your allocation expired, or your project is new and you have not requested one yet.
-          Please click on the "Request Allocation" link below to get started!
-          <br /><br/>
-          <a class="btn btn-default btn-sm" href="{% url 'projects:create_allocation' project.id %}">
-            <i class="fa fa-plus"></i>
-            Request Allocation
-          </a>
+  {% if not project.has_active_allocations %}
+    <div class="alert alert-info">
+      <h4>No active allocations</h4>
+      <p>
+        You don't have any current allocations. This could be because your allocation
+        recently expired or your project is new and you have not requested one yet.
+        Please click on the <b>Request Allocation</b> below to get started!
+      </p>
+    </div>
+    <a class="btn btn-primary btn-sm" href="{% url 'projects:create_allocation' project.id %}">
+      <i class="fa fa-plus"></i>
+      Request Allocation
+    </a>
   {% endif %}
+
+  {% if project.has_inactive_allocations %}
+    <button class="btn btn-xs btn-default pull-right" name="allocation-display-toggle">Toggle inactive allocations</button>
+  {% endif %}
+
+  {% for alloc in project.allocations %}
+    {% include 'projects/allocation.html' %}
+  {% endfor %}
 </div>
 
 <h3>Project Users</h3>
@@ -110,9 +119,6 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static 'bower_components/jquery-ui/ui/core.js' %}" type="text/javascript"></script>
-  <script src="{% static 'bower_components/jquery-ui/ui/widget.js' %}" type="text/javascript"></script>
-  <script src="{% static 'bower_components/jquery-ui/ui/progressbar.js' %}" type="text/javascript"></script>
   <script src="{% static 'projects/js/fg_user_add.js' %}" type="text/javascript"></script>
   <script src="{% static 'projects/js/allocations.js' %}" type="text/javascript"></script>
 {% endblock %}

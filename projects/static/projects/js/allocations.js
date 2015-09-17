@@ -1,9 +1,7 @@
 'use strict';
 (function( window, $, undefined ) {
-    var used = parseInt($("#progressbar").attr("used"));
-    console.log(used);
-    $( "#progressbar" ).progressbar({
-        max: 20000,
-        value: used
+    $('button[name="allocation-display-toggle"]').on('click', function(e) {
+      e.preventDefault();
+      $('.allocation').toggleClass('show');
     });
 })( this, $ );

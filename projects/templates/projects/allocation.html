@@ -1,14 +1,16 @@
-<div class="allocation" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
-  <h4>{{ alloc.resource }} <small><span class="label label-default">{{ alloc.status }}</small></h4>
+<div class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
+  <h4>
+    {{ alloc.resource }}
+    <small><span class="label label-default label-{{ alloc.status|lower }}">{{ alloc.status }}</small>
+  </h4>
   {% if project.up_for_renewal %}
-      <a class="btn btn-default btn-sm" href="{% url 'projects:renew_allocation' project.id alloc.id %}">
-      <i class="fa fa-reply"></i>
-      Submit Renewal
+    <a class="btn btn-info btn-sm" href="{% url 'projects:renew_allocation' project.id alloc.id %}">
+      <i class="fa fa-refresh"></i> Submit Renewal
     </a>
   {% endif %}
 
   {% if alloc.status == 'Rejected' or alloc.status == 'Pending' %}
-    <p><b>Date requested:</b> {{ alloc.dateRequested|date:"D d M Y" }}</p>
+    <p><b>Date requested:</b> {{ alloc.dateRequested|date:"d F, Y" }}</p>
   {% endif %}
 
   {% if alloc.status == 'Rejected' %}
@@ -16,22 +18,23 @@
   {% endif %}
 
   {% if alloc.status == 'Approved' or alloc.status == 'Active' %}
-  <table class="table">
-    <thead>
-      <th>Start</th>
-      <th>End</th>
-      <th>Usage</th>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ alloc.start|date:"D d M Y" }}</td>
-        <td>{{ alloc.end|date:"D d M Y" }}</td>
-        <td>
-          <div id="progressbar" used="{{ alloc.computeAllocated }}"></div>
-          {{ alloc.computeAllocated }} / 20000
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="row">
+    <div class="col-sm-4">
+      <h5>Start date</h5>
+      {{ alloc.start|date:"d F, Y" }}
+    </div>
+    <div class="col-sm-4">
+      <h5>End date</h5>
+      {{ alloc.end|date:"d F, Y" }}
+    </div>
+    <div class="col-sm-4">
+      <h5>Usage</h5>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%">
+        </div>
+      </div>
+      <div class="text-center">{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used</div>
+    </div>
+  </div>
   {% endif %}
 </div>

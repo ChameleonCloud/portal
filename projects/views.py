@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from chameleon.decorators import terms_required
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
@@ -61,7 +61,11 @@ def user_projects(request):
 
 @login_required
 def view_project(request, project_id):
-    project = Project.get(project_id)
+    try:
+        project = Project(project_id)
+    except Exception as e:
+        logger.error(e)
+        raise Http404('The requested project does not exist!')
 
     if request.POST:
         if 'add_user' in request.POST:
@@ -113,24 +117,26 @@ def view_project(request, project_id):
     project.has_active_allocations = False
     project.up_for_renewal = False
 
-    # turn the allocation datetimes into actual datetimes for formatting purposes
     for a in project.allocations:
-        a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
-        a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
-
-        print(a)
-
         # going to make a note here that setting this on the project object is probably short sighted
         # since it assumes projects will continue to only have one allocation. We can probably update this later.
         # Sorry future Carrie
         # Also note: 'Approved' shouldn't ever happen but the approval stuff isn't running in dev.
-        if a.status == 'Pending' or a.status == 'Active' or a.status == 'Approved':
+        if a.status in ['Pending', 'Active', 'Approved']:
             project.has_active_allocations = True
 
+        if a.status in ['Rejected', 'Inactive']:
+            project.has_inactive_allocations = True
+
         # if the allocation end is less than 3 months from now, show the renewal button
-        three_months_to_end = a.end - timedelta(days=90)
-        if datetime.today() > three_months_to_end:
-            project.up_for_renewal = True
+        if a.start and isinstance(a.start, basestring):
+            a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
+        if a.end:
+            if isinstance(a.end, basestring):
+                a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
+            three_months_to_end = a.end - timedelta(days=90)
+            if datetime.today() > three_months_to_end:
+                project.up_for_renewal = True
 
     return render(request, 'projects/view_project.html', {
         'project': project,
@@ -150,22 +156,33 @@ def create_allocation(request, project_id, allocation_id = -1):
         messages.error(request, 'Only PI Eligible users can request allocations. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
-    project = Project.get(project_id)
+    project = Project(project_id)
 
-    abstract = project.description.split("\n\n--- Supplemental details ---\n\n")
-    justification = abstract[1].split("\n\n--- Funding source(s) ---\n\n")
-
-    form = AllocationCreateForm(initial={'description': abstract[0],
-                                         'supplemental_details': justification[0],
-                                         'funding_source': justification[1]})
+    # goofiness that we should clean up later; requires data cleansing
+    abstract = project.description
+    if '--- Supplemental details ---' in abstract:
+        additional = abstract.split('\n\n--- Supplemental details ---\n\n')
+        abstract = additional[0]
+        additional = additional[1].split('\n\n--- Funding source(s) ---\n\n')
+        justification = additional[0]
+        if len(additional) > 1:
+            funding_source = additional[1]
+        else:
+            funding_source = ''
+    else:
+        justification = ''
+        funding_source = ''
 
     if request.POST:
+        form = AllocationCreateForm(request.POST, initial={'description': abstract,
+                                             'supplemental_details': justification,
+                                             'funding_source': funding_source})
         if form.is_valid():
             allocation = form.cleaned_data.copy()
-            allocation['computeRequested'] = '2000'
+            allocation['computeRequested'] = 20000
             # Also update the project
-            allocation['justification'] = '%s\n\n--- Supplemental details ---\n\n%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['description'], allocation['supplemental_details'], allocation['funding_source'])
-            project['description'] = '%s\n\n--- Supplemental details ---\n\n%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['description'], allocation['supplemental_details'], allocation['funding_source'])
+            allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['supplemental_details'], allocation['funding_source'])
+            project.description = allocation['description']
 
             allocation.pop('description', None)
             allocation.pop('supplemental_details', None)
@@ -178,10 +195,10 @@ def create_allocation(request, project_id, allocation_id = -1):
             if allocation_id > 0:
                 allocation['id'] = allocation_id
 
-
             try:
+                logger.info('Submitting allocation request for project %s: %s' % (project.id, allocation))
+                updated_project = tas.edit_project(project.as_dict())
                 created_allocation = tas.create_allocation(allocation)
-                updated_project = tas.edit_project(project)
                 messages.success(request, 'Your allocation request has been submitted!')
                 return HttpResponseRedirect(reverse('projects:view_project', args=[ updated_project['id'] ]))
             except:
@@ -189,6 +206,10 @@ def create_allocation(request, project_id, allocation_id = -1):
                 form.add_error('__all__', 'An unexpected error occurred. Please try again')
         else:
             form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+    else:
+        form = AllocationCreateForm(initial={'description': abstract,
+                                             'supplemental_details': justification,
+                                             'funding_source': funding_source})
 
     return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id })
 
@@ -218,7 +239,7 @@ def create_project(request):
                 {
                     'resourceId': 39,                        # chameleon
                     'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': '--- Supplemental Details ---\n\n%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']),# reuse for now
+                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']), # reuse for now
                     'computeRequested': 20000,               # simple request for now
                 }
             ]
