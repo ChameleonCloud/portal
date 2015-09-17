@@ -31,14 +31,6 @@ RT_DEFAULT_QUEUE=
 #DB_PASSWORD=
 
 
-# FG Database config
-FG_DB_NAME=
-FG_DB_HOST=
-FG_DB_PORT=
-FG_DB_USER=
-FG_DB_PASSWORD=
-
-
 # Uncomment to run in Production mode
 #DJANGO_ENV=Production
 

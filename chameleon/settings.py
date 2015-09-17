@@ -152,15 +152,6 @@ else:
         },
     }
 
-DATABASES['futuregrid'] = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': os.environ.get('FG_DB_NAME'),
-    'HOST': os.environ.get('FG_DB_HOST'),
-    'PORT': os.environ.get('FG_DB_PORT'),
-    'USER': os.environ.get('FG_DB_USER'),
-    'PASSWORD': os.environ.get('FG_DB_PASSWORD'),
-}
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 

@@ -71,54 +71,23 @@
 </form>
 {% endif %}
 
-<div class="row">
-  <div class="col-md-6">
-    <h4>Current Users</h4>
-    <ul class="list-unstyled">
-      {% for u in users %}
-      <li>
-        {{ u.username }} ({{ u.role }})
-        {% if is_pi and u.username != request.user.username %}
-          <form role="form" method="post" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="username" value="{{ u.username }}">
-            <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
-          </form>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  {% if fg_migration and is_pi %}
-  <input type="hidden" name="fg_add_user_url" value="{% url 'projects:fg_add_user' project.id %}">
-  <div class="col-md-6">
-    <div class="well">
-      <h4>Add/Invite FutureGrid Users</h4>
-      <table class="table">
-        <tbody>
-        {% for u in fg_users %}
-          <tr>
-            <td width="30%">{{ u.username }}</td>
-            <td>
-              <form role="form" name="fg-user-add">
-                {% csrf_token %}
-                <input type="hidden" name="username" value="{{ u.username }}">
-                <input type="hidden" name="email" value="{{ u.email }}">
-                <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-plus-circle"></i> Add User</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-</div>
+<h4>Current Users</h4>
+<ul class="list-unstyled">
+  {% for u in users %}
+  <li>
+    {{ u.username }} ({{ u.role }})
+    {% if is_pi and u.username != request.user.username %}
+      <form role="form" method="post" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ u.username }}">
+        <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
+      </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static 'projects/js/fg_user_add.js' %}" type="text/javascript"></script>
   <script src="{% static 'projects/js/allocations.js' %}" type="text/javascript"></script>
 {% endblock %}
