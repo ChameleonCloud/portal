@@ -249,32 +249,32 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'django': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': True,
         },
         'default': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'DEBUG',
         },
         'auth': {
-            'handlers': ['file', 'auth'],
+            'handlers': ['file', 'auth', 'console'],
             'level': 'DEBUG',
         },
         'tas': {
-            'handlers': ['file', 'auth'],
+            'handlers': ['file', 'auth', 'console'],
             'level': 'DEBUG',
         },
         'projects': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'DEBUG',
         },
         'allocations': {
-            'handlers': ['file', 'allocations'],
+            'handlers': ['file', 'allocations', 'console'],
             'level': 'DEBUG',
         },
         'chameleon_mailman': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'INFO',
         },
     },
