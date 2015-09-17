@@ -355,6 +355,7 @@ PIPELINE_CSS = {
         'source_filenames': (
             'styles/main.scss',
             'djangoRT/css/djangoRT.css',
+            'projects/css/projects.scss',
             ),
         'output_filename': 'styles/main.css',
     },
