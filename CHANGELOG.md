@@ -7,6 +7,8 @@
 - Improved logging of allocation admin actions #7863
 - Completely refactored Resource Discovery #7683
 - Record supplemental details and funding sources in allocation justification instead of project description #8007
+- Added detailed allocation display, usage reporting, renewal support #7811
+- Deprecate FutureGrid@Chameleon transitional support #
 
 ### v1.5.6
 
