@@ -12,7 +12,6 @@ from pytas.http import TASClient
 from pytas.models import Project
 
 from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
-import project_util
 
 import re
 import logging
@@ -104,16 +103,6 @@ def view_project(request, project_id):
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
-    fg_migration = re.search(r'FG-(\d+)', project.chargeCode)
-    if fg_migration:
-        fg_project_num = fg_migration.group(1)
-        fg_users = project_util.list_migration_users(fg_project_num)
-
-        # filter out existing users
-        fg_users = [u for u in fg_users if not any(x for x in users if x.username == u['username'])]
-    else:
-        fg_users = None
-
     project.has_active_allocations = False
     project.up_for_renewal = False
 
@@ -142,8 +131,6 @@ def view_project(request, project_id):
         'project': project,
         'users': users,
         'is_pi': request.user.username == project.pi.username,
-        'fg_migration': fg_migration,
-        'fg_users': fg_users,
         'form': form,
     })
 
@@ -274,118 +261,3 @@ def edit_project(request):
 
     return render(request, 'projects/edit_project.html', context)
 
-@login_required
-def lookup_fg_projects(request):
-    fg_projects = project_util.list_migration_projects(request.user.email)
-
-    # filter already migrated projects
-    tas = TASClient()
-    projects = tas.projects_for_user(request.user)
-    fg_projects = [p for p in fg_projects if not any(q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode) ]
-
-    return render(request, 'projects/lookup_fg_project.html', { 'fg_projects': fg_projects })
-
-@login_required
-@terms_required('project-terms')
-def fg_project_migrate(request, project_id):
-    if request.method == 'POST':
-        form = ProjectCreateForm(request.POST)
-        tas = TASClient()
-        try:
-            pi_user = tas.get_user(username=request.user)
-
-            # migrated data
-            project = request.POST.copy()
-
-            # default values
-            project['chargeCode'] = 'FG-%s' % project_id
-            project['typeId'] = 2 # startup
-            project['piId'] = pi_user['id']
-
-            # allocation
-            project['allocations'] = [
-                {
-                    'resourceId': 39,                        # chameleon
-                    'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': 'FutureGrid project migration', # reuse for now
-                    'computeRequested': 1,                   # simple request for now
-                }
-            ]
-
-            # source
-            project['source'] = 'Chameleon'
-
-            logger.debug(project)
-
-            created_project = tas.create_project(project)
-            messages.success(request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'])
-            return HttpResponseRedirect(reverse('projects:view_project', args=[ created_project['id'] ]))
-        except Exception as e:
-            logger.exception('Error migrating project')
-            if len(e.args) > 1:
-                if re.search('DuplicateProjectNameException', e.args[1]):
-                    messages.error(request, 'A project with this name already exists. This project may have already been migrated.')
-                else:
-                    messages.error(request, 'An unexpected error occurred. Please try again')
-            else:
-                messages.error(request, 'An unexpected error occurred. Please try again')
-    else:
-        project = project_util.get_project(project_id)
-
-        form = ProjectCreateForm(initial={
-            'title': project.title,
-            'description': project.abstract,
-            'typeId': 2,
-            'fieldId': 1,
-        })
-
-    form.fields['typeId'].widget = forms.HiddenInput()
-    return render(request, 'projects/fg_project_migrate.html', { 'project': project, 'form': form })
-
-@login_required
-def fg_add_user(request, project_id):
-    response = {}
-
-    if request.POST:
-        username = request.POST['username']
-        email = request.POST['email']
-        try:
-            tas = TASClient()
-            user = tas.get_user(username=username)
-            if user['email'] == email:
-                # add user to project
-                if tas.add_project_user(project_id, username):
-                    response['status'] = 'success'
-                    response['message'] = 'User added to project!'
-                    response['result'] = True
-                else:
-                    response['status'] = 'error'
-                    response['message'] = 'An unexpected error occurred. Please try again.'
-                    response['result'] = {
-                        'error': 'unexpected_error'
-                    }
-            else:
-                response['status'] = 'error'
-                response['message'] = 'A user with this username exists, but the email is different. Please confirm that they are the same user (%s). You can add the user manually on the left.' % user['email']
-                response['result'] = {
-                    'error': 'user_email_mismatch'
-                }
-        except Exception as e:
-            logger.exception('Error adding FG user to project')
-
-            if e.args and e.args[0] == 'User not found':
-                response['status'] = 'error'
-                response['message'] = e.args[1]
-                response['result'] = {
-                    'error': 'user_not_found'
-                }
-            else:
-                response['status'] = 'error'
-                response['message'] = 'An unexpected error occurred. Please try again.'
-                response['result'] = {
-                    'error': 'unexpected_error'
-                }
-
-        return HttpResponse(json.dumps(response), content_type='application/json')
-    else:
-        return HttpResponseNotAllowed(['POST'])
