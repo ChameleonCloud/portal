@@ -1,0 +1,9 @@
+{% extends "layout/default.html" %}
+{% block title %}Error{% endblock %}
+{% block content %}
+<h1>Something went wrong!</h1>
+<p>
+  We're sorry, something unexpected seems to have happened. If this problem persists,
+  please let us know by <a href="{% url 'djangoRT:ticketcreate' %}">submitting a help desk ticket</a>.
+</p>
+{% endblock %}
