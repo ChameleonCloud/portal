@@ -6,7 +6,7 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpRespons
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from pytas.http import TASClient
 from pytas.models import Project
@@ -62,6 +62,8 @@ def user_projects(request):
 def view_project(request, project_id):
     try:
         project = Project(project_id)
+        if project.source != 'Chameleon':
+            raise Http404('The requested project does not exist!')
     except Exception as e:
         logger.error(e)
         raise Http404('The requested project does not exist!')
@@ -123,9 +125,10 @@ def view_project(request, project_id):
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
-            three_months_to_end = a.end - timedelta(days=90)
-            if datetime.today() > three_months_to_end:
+            days_left = (a.end - datetime.today()).days
+            if days_left >= 0 and days_left <= 90:
                 project.up_for_renewal = True
+                project.renewal_days = days_left
 
     return render(request, 'projects/view_project.html', {
         'project': project,
