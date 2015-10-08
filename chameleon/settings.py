@@ -214,24 +214,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon.log',
-            'formatter': 'verbose',
-        },
-        'auth': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon_auth.log',
-            'formatter': 'simple',
-        },
-        'allocations': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon_allocations.log',
-            'formatter': 'simple',
-        }
     },
     'loggers': {
         'console': {
