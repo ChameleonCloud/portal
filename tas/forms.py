@@ -68,15 +68,23 @@ class EmailConfirmationForm(forms.Form):
             required=True)
 
 
-def _password_policy(password):
+def check_password_policy(username, password, confirm_password):
     """
-    Checks the password for meeting the minimum password policy requirements;
+    Checks the password for meeting the minimum password policy requirements:
+    * Must be a minimum of 8 characters in length
+    * Must contain characters from at least three of the following: uppercase letters,
+      lowercase letters, numbers, symbols
+    * Must NOT contain the username or the first or last name from the profile
 
-    Must be a minimum of 8 characters in length
-    Must contain characters from at least three of the following: uppercase letters, lowercase letters, numbers, symbols
+    Returns:
+        A boolean value indicating if the password meets the policy,
+        An error message string or None
     """
+    if password != confirm_password:
+        return False, 'The password provided does not match the confirmation.'
+
     if len(password) < 8:
-        return False
+        return False, 'The password provided is too short. Please review the password criteria.'
 
     char_classes = 0
     for cc in ['[a-z]', '[A-Z]', '[0-9]', '[^a-zA-Z0-9]']:
@@ -84,9 +92,18 @@ def _password_policy(password):
             char_classes += 1
 
     if char_classes < 3:
-        return False
+        return False, 'The password provided does not meet the complexity requirements.'
 
-    return True
+    pwd_without_case = password.lower()
+    if username.lower() in pwd_without_case:
+        return False, 'The password provided must not contain parts of your name or username.'
+
+    tas = TASClient()
+    user = tas.get_user(username=username)
+    if user['firstName'].lower() in pwd_without_case or user['lastName'].lower() in pwd_without_case:
+        return False, 'The password provided must not contain parts of your name or username.'
+
+    return True, None
 
 class PasswordResetRequestForm(forms.Form):
     username = forms.CharField(label='Enter Your Chameleon Username', required=True)
@@ -100,28 +117,24 @@ class PasswordResetConfirmForm(forms.Form):
                                     label='Confirm Password',
                                     required=True,
                                     help_text=
-                                            'Passwords must meet the following criteria: '
-                                            'Must not contain your account name or parts of '
-                                            'your full name; Must be a minimum of 8 characters '
-                                            'in length; Must contain characters from at least '
+                                            'Passwords must meet the following criteria:<ul>'
+                                            '<li>Must not contain your username or parts of '
+                                            'your full name;</li><li>Must be a minimum of 8 characters '
+                                            'in length;</li><li>Must contain characters from at least '
                                             'three of the following: uppercase letters, '
-                                            'lowercase letters, numbers, symbols')
+                                            'lowercase letters, numbers, symbols</li></ul>')
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         confirm_password = cleaned_data.get('confirm_password')
 
-        if password and confirm_password:
-            if password != confirm_password:
-                self.add_error('password', 'The password provided does not match the confirmation')
-                self.add_error('confirm_password', '')
-                raise forms.ValidationError('The password provided does not match the confirmation')
-
-            if not _password_policy(password):
-                self.add_error('password', 'The password provided does not satisfy the password complexity requirements')
-                self.add_error('confirm_password', '')
-                raise forms.ValidationError('The password provided does not satisfy the password complexity requirements')
+        valid, error_message = check_password_policy(username, password, confirm_password)
+        if not valid:
+            self.add_error('password', error_message)
+            self.add_error('confirm_password', '')
+            raise forms.ValidationError(error_message)
 
 
 class UserProfileForm(forms.Form):
@@ -206,16 +219,12 @@ class UserAccountForm(forms.Form):
 
     def clean(self):
         cleaned_data = self.cleaned_data
+        username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         confirmPassword = cleaned_data.get('confirmPassword')
 
-        if password and confirmPassword:
-            if password != confirmPassword:
-                self.add_error('password', 'The password provided does not match the confirmation')
-                self.add_error('confirmPassword', '')
-                raise forms.ValidationError('The password provided does not match the confirmation')
-
-            if not _password_policy(password):
-                self.add_error('password', 'The password provided does not satisfy the password complexity requirements')
-                self.add_error('confirmPassword', '')
-                raise forms.ValidationError('The password provided does not satisfy the password complexity requirements')
+        valid, error_message = check_password_policy(username, password, confirm_password)
+        if not valid:
+            self.add_error('password', error_message)
+            self.add_error('confirm_password', '')
+            raise forms.ValidationError(error_message)
