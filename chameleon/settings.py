@@ -45,7 +45,6 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
-    'cmsplugin_cascade',
 
     ##
     # core apps
@@ -403,8 +402,6 @@ BOOTSTRAP3 = {
     'required_css_class': 'required',
 }
 
-CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.bootstrap3',)
-
 #####
 #
 # Terms and Conditions settings
@@ -445,3 +442,18 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@chameleonclo
 
 # User News Outage Notification
 OUTAGE_NOTIFICATION_EMAIL = os.environ.get('OUTAGE_NOTIFICATION_EMAIL', '')
+
+###
+# Opbeat Integration
+#
+if os.environ.get('OPBEAT_ORGANIZATION_ID'):
+    INSTALLED_APPS += ('opbeat.contrib.django',)
+    OPBEAT = {
+        'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGANIZATION_ID', ''),
+        'APP_ID': os.environ.get('OPBEAT_APP_ID', ''),
+        'SECRET_TOKEN': os.environ.get('OPBEAT_SECRET_TOKEN', ''),
+    }
+    # Opbeat middleware needs to be first
+    MIDDLEWARE_CLASSES = (
+        'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+        ) + MIDDLEWARE_CLASSES
