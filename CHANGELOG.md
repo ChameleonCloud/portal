@@ -1,5 +1,16 @@
 ## Changelog
 
+### v1.7.0
+
+- GENI OpenID Authentication and Project Federation
+
+### v1.6.1
+
+- Logging
+- Better error pages
+- Fix password policy checks
+- Performance instrumentation
+
 ### v1.6.0
 
 - Closing a ticket now requires a comment #6874
