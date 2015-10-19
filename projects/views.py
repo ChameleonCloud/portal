@@ -113,8 +113,11 @@ def view_project(request, project_id):
         # since it assumes projects will continue to only have one allocation. We can probably update this later.
         # Sorry future Carrie
         # Also note: 'Approved' shouldn't ever happen but the approval stuff isn't running in dev.
-        if a.status in ['Pending', 'Active', 'Approved']:
+        if a.status in ['Active']:
             project.has_active_allocations = True
+
+        if a.status in ['Pending', 'Approved']:
+            project.has_pending_allocations = True
 
         if a.status in ['Rejected', 'Inactive']:
             project.has_inactive_allocations = True
@@ -122,6 +125,9 @@ def view_project(request, project_id):
         # if the allocation end is less than 3 months from now, show the renewal button
         if a.start and isinstance(a.start, basestring):
             a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
+        if a.dateRequested:
+            if isinstance(a.dateRequested, basestring):
+                a.dateRequested = datetime.strptime(a.dateRequested, '%Y-%m-%dT%H:%M:%SZ')
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')

@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
+from djangoRT import rtUtil, rtModels
 
 import re
 import logging
@@ -54,6 +55,13 @@ def profile_edit(request):
             data = form.cleaned_data
             if request.POST.get('request_pi_eligibility'):
                 data['piEligibility'] = 'Requested'
+
+                # Create a ticket to help differentiate between TUP vs Chameleon PI requests
+                rt = rtUtil.DjangoRt()
+                ticket = rtModels.Ticket( subject = "Chameleon PI Eligibility Request: " + tas_user.username,
+                                      problem_description = "",
+                                      requestor = "us@tacc.utexas.edu" )
+                rt.createTicket(ticket)
             else:
                 data['piEligibility'] = tas_user['piEligibility']
             data['source'] = 'Chameleon'

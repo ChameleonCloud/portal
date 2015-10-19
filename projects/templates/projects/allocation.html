@@ -3,7 +3,7 @@
     {{ alloc.resource }}
     <small><span class="label label-default label-{{ alloc.status|lower }}">{{ alloc.status }}</small>
   </h4>
-  {% if project.up_for_renewal %}
+  {% if project.up_for_renewal and not project.has_pending_allocations %}
     <div class="alert alert-info">
       <p>
         This allocation will expire in {{project.renewal_days}} days.

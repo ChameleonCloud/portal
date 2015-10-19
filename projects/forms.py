@@ -128,9 +128,9 @@ class AllocationEditForm( forms.Form ):
         help_text='Enter the number of SUs you would like to request',
     )
     justification = forms.CharField(
-        label='Justification',
+        label='Request Justification',
         required=True,
-        widget=forms.Textarea(attrs={'placeholder': 'Provide a brief justification for the use of this resource'}),
+        widget=forms.Textarea(attrs={'placeholder': 'Provide a brief summary of what was achieved under the previous request, including pointers to papers and other artifacts'}),
     )
 
 class ProjectAddUserForm( forms.Form ):
