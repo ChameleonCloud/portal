@@ -174,3 +174,53 @@ class PasswordPolicy(TestCase):
         form_data = mock_registration_form_data()
         form = UserRegistrationForm(form_data)
         self.assertTrue(form.is_valid())
+
+    @mock.patch('pytas.http.TASClient.get_user')
+    def test_password_reset_form_username(self, mock_tas_get_user):
+        mock_tas_get_user.side_effect = Exception('User not found', 'User not found with username bad_username')
+
+        form_data = {
+            'username': 'bad_username',
+            'code': 'asdf1234asdf1234',
+            'password': 'asdf;1234;',
+            'confirm_password': 'asdf;1234;',
+        }
+        form = PasswordResetConfirmForm(form_data)
+        self.assertFalse(form.is_valid())
+
+    @httpretty.activate
+    def test_password_reset_form_policy(self):
+        mock_tas_get_user()
+
+        form_data = {
+            'username': 'jdoe1',
+            'code': 'asdf1234asdf1234',
+            'password': 'asdf;john;1235;',
+            'confirm_password': 'asdf;john;1234;',
+        }
+        form = PasswordResetConfirmForm(form_data)
+        self.assertFalse(form.is_valid())
+
+        form_data = {
+            'username': 'jdoe1',
+            'code': 'asdf1234asdf1234',
+            'password': 'asdf;john;1234;',
+            'confirm_password': 'asdf;john;1234;',
+        }
+        form = PasswordResetConfirmForm(form_data)
+        self.assertFalse(form.is_valid())
+
+    @httpretty.activate
+    @mock.patch('pytas.http.TASClient.confirm_password_reset')
+    def test_password_reset_form_success(self, mock_tas_confirm_password_reset):
+        mock_tas_get_user()
+        mock_tas_confirm_password_reset.return_value = True
+
+        form_data = {
+            'username': 'jdoe1',
+            'code': 'asdf1234asdf1234',
+            'password': 'asdf;;1234;',
+            'confirm_password': 'asdf;;1234;',
+        }
+        form = PasswordResetConfirmForm(form_data)
+        self.assertTrue(form.is_valid())
