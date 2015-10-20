@@ -10,7 +10,7 @@
 <form method="post" action="{% url 'tas:register' %}">
   {% csrf_token %}
 
-  {% if profile_form.errors or account_form.errors %}
+  {% if register_form.errors %}
   <div class="alert alert-error">
     <p>There were errors processing your request. Please see below for details.</p>
   </div>
@@ -21,7 +21,15 @@
       <fieldset>
         <legend>Contact Information</legend>
 
-        {% bootstrap_form profile_form %}
+        {% bootstrap_field register_form.firstName %}
+        {% bootstrap_field register_form.lastName %}
+        {% bootstrap_field register_form.email %}
+        {% bootstrap_field register_form.institutionId %}
+        {% bootstrap_field register_form.departmentId %}
+        {% bootstrap_field register_form.institution %}
+        {% bootstrap_field register_form.title %}
+        {% bootstrap_field register_form.countryId %}
+        {% bootstrap_field register_form.citizenshipId %}
 
         <div class="form-group">
           <label class="control-label">PI Eligibility</label>
@@ -41,7 +49,9 @@
       <fieldset>
         <legend>Account Information</legend>
 
-        {% bootstrap_form account_form %}
+        {% bootstrap_field register_form.username %}
+        {% bootstrap_field register_form.password %}
+        {% bootstrap_field register_form.confirmPassword %}
 
         <div>
           <p class="help-block">Passwords must meet the following criteria:</p>

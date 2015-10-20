@@ -68,7 +68,7 @@ class EmailConfirmationForm(forms.Form):
             required=True)
 
 
-def check_password_policy(username, password, confirm_password):
+def check_password_policy(user, password, confirm_password):
     """
     Checks the password for meeting the minimum password policy requirements:
     * Must be a minimum of 8 characters in length
@@ -95,11 +95,9 @@ def check_password_policy(username, password, confirm_password):
         return False, 'The password provided does not meet the complexity requirements.'
 
     pwd_without_case = password.lower()
-    if username.lower() in pwd_without_case:
+    if user['username'].lower() in pwd_without_case:
         return False, 'The password provided must not contain parts of your name or username.'
 
-    tas = TASClient()
-    user = tas.get_user(username=username)
     if user['firstName'].lower() in pwd_without_case or user['lastName'].lower() in pwd_without_case:
         return False, 'The password provided must not contain parts of your name or username.'
 
@@ -127,10 +125,18 @@ class PasswordResetConfirmForm(forms.Form):
     def clean(self):
         cleaned_data = self.cleaned_data
         username = cleaned_data.get('username')
+
+        try:
+            tas = TASClient()
+            user = tas.get_user(username=username)
+        except:
+            self.add_error('username', 'The username provided does not match an existing user.')
+            raise forms.ValidationError('The username provided does not match an existing user.')
+
         password = cleaned_data.get('password')
         confirm_password = cleaned_data.get('confirm_password')
 
-        valid, error_message = check_password_policy(username, password, confirm_password)
+        valid, error_message = check_password_policy(user, password, confirm_password)
         if not valid:
             self.add_error('password', error_message)
             self.add_error('confirm_password', '')
@@ -152,7 +158,7 @@ class UserProfileForm(forms.Form):
         self.fields['institutionId'].choices = get_institution_choices()
 
         data = self.data or self.initial
-        if (data is not None and 'institutionId' in data):
+        if (data is not None and 'institutionId' in data and data['institutionId']):
             self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
 
         self.fields['countryId'].choices = get_country_choices()
@@ -197,34 +203,36 @@ class UserRegistrationForm(forms.Form):
     countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
     citizenshipId = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
 
-    def __init__(self, *args, **kwargs):
-        super(UserRegistrationForm, self).__init__(*args, **kwargs)
-        self.fields['institutionId'].choices = get_institution_choices()
-        self.fields['institutionId'].choices += (('-1', 'My Institution is not listed'),)
-
-        data = self.data or self.initial
-        if (data is not None and 'institutionId' in data):
-            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
-
-        self.fields['countryId'].choices = get_country_choices()
-        self.fields['citizenshipId'].choices = get_country_choices()
-
-
-class UserAccountForm(forms.Form):
     username = forms.RegexField(label='Username',
                                help_text='Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.',
                                regex='^[a-z][a-z0-9_]{2,7}$')
     password = forms.CharField(widget=forms.PasswordInput, label='Password')
     confirmPassword = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        username = cleaned_data.get('username')
-        password = cleaned_data.get('password')
-        confirmPassword = cleaned_data.get('confirmPassword')
+    def __init__(self, *args, **kwargs):
+        super(UserRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['institutionId'].choices = get_institution_choices()
+        self.fields['institutionId'].choices += (('-1', 'My Institution is not listed'),)
 
-        if username and password and confirmPassword:
-            valid, error_message = check_password_policy(username, password, confirmPassword)
+        data = self.data or self.initial
+        if (data is not None and 'institutionId' in data and data['institutionId']):
+            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
+
+        self.fields['countryId'].choices = get_country_choices()
+        self.fields['citizenshipId'].choices = get_country_choices()
+
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        firstName = self.cleaned_data.get('firstName')
+        lastName = self.cleaned_data.get('lastName')
+        password = self.cleaned_data.get('password')
+        confirmPassword = self.cleaned_data.get('confirmPassword')
+
+
+        if username and firstName and lastName and password and confirmPassword:
+            valid, error_message = check_password_policy(self.cleaned_data,
+                                                         password,
+                                                         confirmPassword)
             if not valid:
                 self.add_error('password', error_message)
                 self.add_error('confirmPassword', '')
