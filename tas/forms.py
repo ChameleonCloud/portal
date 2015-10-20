@@ -223,8 +223,8 @@ class UserAccountForm(forms.Form):
         password = cleaned_data.get('password')
         confirmPassword = cleaned_data.get('confirmPassword')
 
-        valid, error_message = check_password_policy(username, password, confirm_password)
+        valid, error_message = check_password_policy(username, password, confirmPassword)
         if not valid:
             self.add_error('password', error_message)
-            self.add_error('confirm_password', '')
+            self.add_error('confirmPassword', '')
             raise forms.ValidationError(error_message)
