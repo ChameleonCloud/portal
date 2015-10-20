@@ -41,6 +41,7 @@ pytz
 sqlparse
 opbeat
 httpretty
+mock
 
 
 # these modules aren't in PIP
