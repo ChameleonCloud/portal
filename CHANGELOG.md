@@ -6,6 +6,10 @@
 
 ### v1.6.1
 
+- form error
+
+### v1.6.1
+
 - Logging
 - Better error pages
 - Fix password policy checks
