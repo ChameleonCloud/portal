@@ -4,9 +4,9 @@
 
 - GENI OpenID Authentication and Project Federation
 
-### v1.6.1
+### v1.6.3
 
-- form error
+- Fix password policy check bug on registration form
 
 ### v1.6.1
 
