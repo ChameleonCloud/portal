@@ -52,7 +52,7 @@ def _create_ticket_for_pi_request(user):
     This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
     """
     rt = rtUtil.DjangoRt()
-    subject = "Chameleon PI Eligibility Request: %s" % user.username
+    subject = "Chameleon PI Eligibility Request: %s" % user['username']
     ticket = rtModels.Ticket(subject = subject,
                              problem_description = "",
                              requestor = "us@tacc.utexas.edu")
