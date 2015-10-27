@@ -7,6 +7,10 @@
 ### v1.6.3
 
 - Fix password policy check bug on registration form
+- Display "date requested" on pending allocations
+- Fix bug where "submit renewal" button shown on a pending allocation after submitting the renewal
+- Update allocation forms
+- Automatically create a ticket when a user submits a PI request
 
 ### v1.6.1
 
