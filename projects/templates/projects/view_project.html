@@ -35,7 +35,7 @@
 
 <h3>Allocations</h3>
 <div class="allocations">
-  {% if not project.has_active_allocations %}
+  {% if not project.has_active_allocations and not project.has_pending_allocations %}
     <div class="alert alert-info">
       <h4>No active allocations</h4>
       <p>
