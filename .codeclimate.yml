@@ -4,5 +4,6 @@ languages:
   PHP: false
   Python: true
 exclude_paths:
+  - "**/tests.py"
   - "static/bower_components/*"
   - "g5k_discovery/static/g5k_discovery/*"
