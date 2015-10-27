@@ -9,8 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, \
-                      PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, \
-                      UserAccountForm
+                      PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm
 from djangoRT import rtUtil, rtModels
 
 import re
@@ -48,11 +47,24 @@ def get_departments_json(request):
         departments = {}
     return HttpResponse(json.dumps(departments), content_type='application/json')
 
+def _create_ticket_for_pi_request(user):
+    """
+    This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
+    """
+    rt = rtUtil.DjangoRt()
+    subject = "Chameleon PI Eligibility Request: %s" % user.username
+    ticket = rtModels.Ticket(subject = subject,
+                             problem_description = "",
+                             requestor = "us@tacc.utexas.edu")
+    rt.createTicket(ticket)
 
 @login_required
 def profile_edit(request):
     tas = TASClient()
     tas_user = tas.get_user(username=request.user)
+
+    if tas_user['source'] != 'Chameleon':
+        return HttpResponseRedirect(reverse('tas:profile'))
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, initial=tas_user)
@@ -60,13 +72,7 @@ def profile_edit(request):
             data = form.cleaned_data
             if request.POST.get('request_pi_eligibility'):
                 data['piEligibility'] = 'Requested'
-
-                # Create a ticket to help differentiate between TUP vs Chameleon PI requests
-                rt = rtUtil.DjangoRt()
-                ticket = rtModels.Ticket( subject = "Chameleon PI Eligibility Request: " + tas_user.username,
-                                      problem_description = "",
-                                      requestor = "us@tacc.utexas.edu" )
-                rt.createTicket(ticket)
+                _create_ticket_for_pi_request(tas_user)
             else:
                 data['piEligibility'] = tas_user['piEligibility']
             data['source'] = 'Chameleon'
@@ -199,6 +205,10 @@ def register(request):
             try:
                 tas = TASClient()
                 created_user = tas.save_user(None, data)
+
+                if data['piEligibility'] == 'Requested':
+                    _create_ticket_for_pi_request(created_user)
+
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect('/')
             except Exception as e:
