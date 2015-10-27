@@ -8,26 +8,26 @@ import os
 
 def test_user_fixture():
     return {
-            "username": "jdoe1",
-            "citizenshipId": 230,
-            "countryId": 230,
-            "citizenship": "United States",
-            "firstName": "John",
-            "source": "Standard",
-            "institutionId": 1,
-            "lastName": "Doe",
-            "title": "University Research Staff",
-            "piEligibility": "Eligible",
-            "phone": "555 555 1234",
-            "id": 98765,
-            "email": "jdoe1@tacc.utexas.edu",
-            "departmentId": 127,
-            "country": "United States",
-            "department": "Department of Computer Science",
-            "emailConfirmations": [],
-            "institution": "University of Texas at Austin",
-            "source": "Chameleon"
-            }
+        "username": "jdoe1",
+        "citizenshipId": 230,
+        "countryId": 230,
+        "citizenship": "United States",
+        "firstName": "John",
+        "source": "Standard",
+        "institutionId": 1,
+        "lastName": "Doe",
+        "title": "University Research Staff",
+        "piEligibility": "Eligible",
+        "phone": "555 555 1234",
+        "id": 98765,
+        "email": "jdoe1@tacc.utexas.edu",
+        "departmentId": 127,
+        "country": "United States",
+        "department": "Department of Computer Science",
+        "emailConfirmations": [],
+        "institution": "University of Texas at Austin",
+        "source": "Chameleon"
+        }
 
 def mock_registration_form_data():
     return {
