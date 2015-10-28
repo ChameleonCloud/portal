@@ -31,7 +31,7 @@
     <p><b>Decision summary:</b> {{ alloc.decisionSummary }}</p>
   {% endif %}
 
-  {% if alloc.status == 'Approved' or alloc.status == 'Active' %}
+  {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
   <div class="row">
     <div class="col-sm-4">
       <h5>Start date</h5>
@@ -47,7 +47,7 @@
         <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%">
         </div>
       </div>
-      <div class="text-center">{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used</div>
+      <div class="text-center">{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</div>
     </div>
   </div>
   {% endif %}
