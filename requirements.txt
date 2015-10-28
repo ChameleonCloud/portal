@@ -45,5 +45,5 @@ mock
 
 
 # these modules aren't in PIP
--e git+https://bitbucket.org/taccaci/pytas.git@6878353f7193218f83bd5653c0c9e1f5076ab98f#egg=pytas-1.0
+-e git+https://bitbucket.org/taccaci/pytas.git@v1.0.1#egg=pytas-1.0.1
 
