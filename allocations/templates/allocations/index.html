@@ -58,11 +58,11 @@
                                     <label>
                                         <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
                                 </div>
-                                <button class="btn btn-sm btn-info" ng-click="reset()">Clear/Show All</button>
+                                <button type="button" ng-click="reset()">Clear/Show All</button>
                             </div>
                         </div>
-                        <br>
                         <div class="form-group">
+                            <br>
                             <p>Displaying [[ selectedProjects.length ]] of [[ projects.length ]] total projects.</p>
                         </div>
                     </form>
