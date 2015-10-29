@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django import forms
-from pytas.pytas import client as TASClient
+from pytas.http import TASClient
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test

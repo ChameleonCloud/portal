@@ -1,68 +1,96 @@
-{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static cms_tags staticfiles compressed %}
+{% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+
 <!-- Custom CSS -->
-{% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
+{% block extrastyle %}
+{{ block.super }}
+{% compressed_css 'main' %}
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'allocations/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
 <script src="{% static 'allocations/js/vendor.js' %}"></script>
 <script src="{% static 'allocations/js/main.js' %}"></script>
-{% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
-<div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
-</div>
-{% endblock %} {% endif %} {% block content %}
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+{% block bodyclass %}{{ block.super }} change-form{% endblock %}
+{% if not is_popup %}
+    {% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'User Allocations' %}
+    </div>
+    {% endblock %}
+{% endif %}
+
+{% block content %}
 <div id="content-main" class="allocations-app">
     <div id="content-main" ng-app="allocationsApp" ng-cloak>
         <h1>Lookup User Allocations</h1>
-        <div class="content module" ng-controller="UserAllocationsController">
-            <form class="">
-                <div>
+        <div class="content" ng-controller="UserAllocationsController">
+            <form>
+                <div class="form-group">
                     <label for="id_username">Username</label>
                     <input type="text" class="" id="id_username" ng-model="selections.usernamemodel" placeholder="Username" ng-keypress="handleKeyPress($event)" /> &nbsp;
-                    <button type="button" class="" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
+                    <button type="button" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
                         Get User Allocations
                     </button>
                 </div>
             </form>
 
-            <h2 ng-show="selections.username">Projects and Allocations: [[selections.username]]</h2>
-            <div class="alert alert-info" ng-if="loading.userAllocations">
-                <span class="fa fa-spinner fa-spin"></span> Loading user allocations...
+            <div class="well spinner" ng-if="loading.userAllocations">
+                <h4><span class="fa fa-spinner fa-spin"></span> Loading user allocations...</h4>
             </div>
+
             <div ng-if="!loading.userAllocations">
+                <hr>
+                <div class="form-group">
+                    <h3>Projects and Allocations for user: [[selections.username]] ([[projects.length]] projects)</h3>
+                </div>
                 <div ng-if="isEmpty(messages.userAllocations)">
                     <div ng-if="selections.username.length === 0 && submitted">
                         <alert type="danger">Username is required</alert>
                     </div>
+
                     <div ng-if="projects.length === 0 && selections.username.length > 0">
                         <alert type="warning">No allocations found for user: [[selections.username]]</alert>
                     </div>
+
                     <div ng-if="projects.length > 0">
-                        <div class="form-group">
-                            <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterUserAllocations" name="filterUserAllocations" placeholder="Filter by project title, number, or PI.">
-                        </div>
-                        <div class="form-group">
-                            <label>Filter by Allocation Status</label>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" ng-model="filter.active" ng-change="updateSelected()"> Active</label>
+                        <form>
+                            <div class="form-group">
+                                <input type="text" ng-model="filter.search" ng-change="updateSelected()" class="form-control" id="filterUserAllocations" name="filterUserAllocations" placeholder="Filter by project title, number, or PI.">
                             </div>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" ng-model="filter.inactive" ng-change="updateSelected()"> Inactive</label>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <label>Filter by Allocation Status</label>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="filter.active" ng-change="updateSelected()"> Active</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="filter.inactive" ng-change="updateSelected()"> Inactive</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
+                                    </div>
+                                    <button type="button" ng-click="reset()">Clear/Show All</button>
+                                </div>
                             </div>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" ng-model="filter.pending" ng-change="updateSelected()"> Pending</label>
+                            <div class="form-group">
+                                <br>
+                                <p>Displaying [[ selectedProjects.length ]] of [[ projects.length ]] total projects.</p>
                             </div>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()"> Rejected</label>
-                            </div>
-                            <button class="btn btn-info" ng-click="reset()">Clear/Show All</button>
-                        </div>
-                        <div class="form-group " ng-repeat="project in selectedProjects track by $index">
+                        </form>
+                        <hr>
+                        <div class="module" ng-repeat="project in selectedProjects track by $index">
                             <h2>[[ project.title ]] <small><a href="/user/projects/[[ project.id ]]" target="_blank">View Project &rarr;</a></small></h2>
                             <table class="table">
                                 <tr>

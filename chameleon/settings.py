@@ -45,7 +45,6 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
-    'cmsplugin_cascade',
 
     ##
     # core apps
@@ -153,15 +152,6 @@ else:
         },
     }
 
-DATABASES['futuregrid'] = {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': os.environ.get('FG_DB_NAME'),
-    'HOST': os.environ.get('FG_DB_HOST'),
-    'PORT': os.environ.get('FG_DB_PORT'),
-    'USER': os.environ.get('FG_DB_USER'),
-    'PASSWORD': os.environ.get('FG_DB_PASSWORD'),
-}
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
@@ -236,24 +226,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon.log',
-            'formatter': 'verbose',
-        },
-        'auth': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon_auth.log',
-            'formatter': 'verbose',
-        },
-        'allocations': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/chameleon_allocations.log',
-            'formatter': 'simple',
-        }
     },
     'loggers': {
         'console': {
@@ -261,44 +233,44 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'default': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'chameleon_openid': {
-            'handlers': ['auth', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'openid': {
-            'handlers': ['auth', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'chameleon': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'auth': {
-            'handlers': ['file', 'auth', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'tas': {
-            'handlers': ['file', 'auth', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'projects': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'allocations': {
-            'handlers': ['file', 'allocations', 'console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
         'chameleon_mailman': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
     },
@@ -382,6 +354,7 @@ PIPELINE_CSS = {
         'source_filenames': (
             'styles/main.scss',
             'djangoRT/css/djangoRT.css',
+            'projects/css/projects.scss',
             ),
         'output_filename': 'styles/main.css',
     },
@@ -441,8 +414,6 @@ BOOTSTRAP3 = {
     'required_css_class': 'required',
 }
 
-CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.bootstrap3',)
-
 
 #####
 #
@@ -486,3 +457,19 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@chameleonclo
 
 # User News Outage Notification
 OUTAGE_NOTIFICATION_EMAIL = os.environ.get('OUTAGE_NOTIFICATION_EMAIL', '')
+
+
+###
+# Opbeat Integration
+#
+if os.environ.get('OPBEAT_ORGANIZATION_ID'):
+    INSTALLED_APPS += ('opbeat.contrib.django',)
+    OPBEAT = {
+        'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGANIZATION_ID', ''),
+        'APP_ID': os.environ.get('OPBEAT_APP_ID', ''),
+        'SECRET_TOKEN': os.environ.get('OPBEAT_SECRET_TOKEN', ''),
+    }
+    # Opbeat middleware needs to be first
+    MIDDLEWARE_CLASSES = (
+        'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+        ) + MIDDLEWARE_CLASSES

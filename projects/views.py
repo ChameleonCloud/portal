@@ -2,14 +2,17 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from chameleon.decorators import terms_required
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
-from pytas.pytas import client as TASClient
-from forms import ProjectCreateForm, ProjectAddUserForm
-import project_util
+
+from pytas.http import TASClient
+from pytas.models import Project
+
+from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
+
 import re
 import logging
 import json
@@ -23,7 +26,7 @@ def project_pi_or_admin_or_superuser(user, project):
     if user.groups.filter(name='Allocation Admin').count() == 1:
         return True
 
-    if user.username == project['pi']['username']:
+    if user.username == project.pi.username:
         return True
 
     return False
@@ -33,7 +36,7 @@ def project_member_or_admin_or_superuser(user, project, project_user):
         return True
 
     for pu in project_user:
-        if user.username == pu['username']:
+        if user.username == pu.username:
             return True
 
     return False
@@ -48,20 +51,22 @@ def user_projects(request):
     user = tas.get_user(username=request.user)
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
 
-    projects = tas.projects_for_user(request.user)
-    ch_projects = []
+    projects = Project.list(username=request.user)
+    projects = list(p for p in projects if p.source == 'Chameleon')
 
-    for p in projects:
-        if 'source' in p and p[ 'source' ] == 'Chameleon':
-            ch_projects.append(p)
-
-    context['projects'] = ch_projects
+    context['projects'] = projects
 
     return render(request, 'projects/user_projects.html', context)
 
 @login_required
 def view_project(request, project_id):
-    tas = TASClient()
+    try:
+        project = Project(project_id)
+        if project.source != 'Chameleon':
+            raise Http404('The requested project does not exist!')
+    except Exception as e:
+        logger.error(e)
+        raise Http404('The requested project does not exist!')
 
     if request.POST:
         if 'add_user' in request.POST:
@@ -70,7 +75,7 @@ def view_project(request, project_id):
                 # try to add user
                 try:
                     add_username = form.cleaned_data['username']
-                    if tas.add_project_user(project_id, add_username):
+                    if project.add_user(add_username):
                         messages.success(request, 'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
                 except:
@@ -86,7 +91,7 @@ def view_project(request, project_id):
             # try to remove user
             try:
                 del_username = request.POST['username']
-                if tas.del_project_user(project_id, del_username):
+                if project.remove_user(del_username):
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
                 logger.exception('Failed removing user')
@@ -95,30 +100,114 @@ def view_project(request, project_id):
     else:
         form = ProjectAddUserForm()
 
-    project = tas.project(project_id)
-    users = tas.get_project_users(project_id)
+    users = project.get_users()
 
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
-    fg_migration = re.search(r'FG-(\d+)', project['chargeCode'])
-    if fg_migration:
-        fg_project_num = fg_migration.group(1)
-        fg_users = project_util.list_migration_users(fg_project_num)
+    project.has_active_allocations = False
+    project.up_for_renewal = False
 
-        # filter out existing users
-        fg_users = [u for u in fg_users if not any(x for x in users if x['username'] == u['username']) ]
-    else:
-        fg_users = None
+    for a in project.allocations:
+        # going to make a note here that setting this on the project object is probably short sighted
+        # since it assumes projects will continue to only have one allocation. We can probably update this later.
+        # Sorry future Carrie
+        # Also note: 'Approved' shouldn't ever happen but the approval stuff isn't running in dev.
+        if a.status in ['Active']:
+            project.has_active_allocations = True
+
+        if a.status in ['Pending', 'Approved']:
+            project.has_pending_allocations = True
+
+        if a.status in ['Rejected', 'Inactive']:
+            project.has_inactive_allocations = True
+
+        # if the allocation end is less than 3 months from now, show the renewal button
+        if a.start and isinstance(a.start, basestring):
+            a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
+        if a.dateRequested:
+            if isinstance(a.dateRequested, basestring):
+                a.dateRequested = datetime.strptime(a.dateRequested, '%Y-%m-%dT%H:%M:%SZ')
+        if a.end:
+            if isinstance(a.end, basestring):
+                a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
+            days_left = (a.end - datetime.today()).days
+            if days_left >= 0 and days_left <= 90:
+                project.up_for_renewal = True
+                project.renewal_days = days_left
 
     return render(request, 'projects/view_project.html', {
         'project': project,
         'users': users,
-        'is_pi': request.user.username == project['pi']['username'],
-        'fg_migration': fg_migration,
-        'fg_users': fg_users,
+        'is_pi': request.user.username == project.pi.username,
         'form': form,
     })
+
+@login_required
+def create_allocation(request, project_id, allocation_id = -1):
+    tas = TASClient()
+
+    user = tas.get_user(username=request.user)
+    if user['piEligibility'] != 'Eligible':
+        messages.error(request, 'Only PI Eligible users can request allocations. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
+        return HttpResponseRedirect(reverse('projects:user_projects'))
+
+    project = Project(project_id)
+
+    # goofiness that we should clean up later; requires data cleansing
+    abstract = project.description
+    if '--- Supplemental details ---' in abstract:
+        additional = abstract.split('\n\n--- Supplemental details ---\n\n')
+        abstract = additional[0]
+        additional = additional[1].split('\n\n--- Funding source(s) ---\n\n')
+        justification = additional[0]
+        if len(additional) > 1:
+            funding_source = additional[1]
+        else:
+            funding_source = ''
+    else:
+        justification = ''
+        funding_source = ''
+
+    if request.POST:
+        form = AllocationCreateForm(request.POST, initial={'description': abstract,
+                                             'supplemental_details': justification,
+                                             'funding_source': funding_source})
+        if form.is_valid():
+            allocation = form.cleaned_data.copy()
+            allocation['computeRequested'] = 20000
+            # Also update the project
+            allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['supplemental_details'], allocation['funding_source'])
+            project.description = allocation['description']
+
+            allocation.pop('description', None)
+            allocation.pop('supplemental_details', None)
+            allocation.pop('funding_source', None)
+
+            allocation['projectId'] = project_id
+            allocation['requestorId'] = tas.get_user(username=request.user)['id']
+            allocation['resourceId'] = '39'
+
+            if allocation_id > 0:
+                allocation['id'] = allocation_id
+
+            try:
+                logger.info('Submitting allocation request for project %s: %s' % (project.id, allocation))
+                updated_project = tas.edit_project(project.as_dict())
+                created_allocation = tas.create_allocation(allocation)
+                messages.success(request, 'Your allocation request has been submitted!')
+                return HttpResponseRedirect(reverse('projects:view_project', args=[ updated_project['id'] ]))
+            except:
+                logger.exception('Error creating allocation')
+                form.add_error('__all__', 'An unexpected error occurred. Please try again')
+        else:
+            form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+    else:
+        form = AllocationCreateForm(initial={'description': abstract,
+                                             'supplemental_details': justification,
+                                             'funding_source': funding_source})
+
+    return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id })
 
 @login_required
 @terms_required('project-terms')
@@ -146,7 +235,7 @@ def create_project(request):
                 {
                     'resourceId': 39,                        # chameleon
                     'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': '--- Supplemental Details ---\n\n%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']),# reuse for now
+                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']), # reuse for now
                     'computeRequested': 20000,               # simple request for now
                 }
             ]
@@ -181,118 +270,3 @@ def edit_project(request):
 
     return render(request, 'projects/edit_project.html', context)
 
-@login_required
-def lookup_fg_projects(request):
-    fg_projects = project_util.list_migration_projects(request.user.email)
-
-    # filter already migrated projects
-    tas = TASClient()
-    projects = tas.projects_for_user(request.user)
-    fg_projects = [p for p in fg_projects if not any(q for q in projects if q['chargeCode'] == 'FG-%s' % p.chargeCode) ]
-
-    return render(request, 'projects/lookup_fg_project.html', { 'fg_projects': fg_projects })
-
-@login_required
-@terms_required('project-terms')
-def fg_project_migrate(request, project_id):
-    if request.method == 'POST':
-        form = ProjectCreateForm(request.POST)
-        tas = TASClient()
-        try:
-            pi_user = tas.get_user(username=request.user)
-
-            # migrated data
-            project = request.POST.copy()
-
-            # default values
-            project['chargeCode'] = 'FG-%s' % project_id
-            project['typeId'] = 2 # startup
-            project['piId'] = pi_user['id']
-
-            # allocation
-            project['allocations'] = [
-                {
-                    'resourceId': 39,                        # chameleon
-                    'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': 'FutureGrid project migration', # reuse for now
-                    'computeRequested': 1,                   # simple request for now
-                }
-            ]
-
-            # source
-            project['source'] = 'Chameleon'
-
-            logger.debug(project)
-
-            created_project = tas.create_project(project)
-            messages.success(request, 'Your project "%s" has been migrated to Chameleon!' % created_project['chargeCode'])
-            return HttpResponseRedirect(reverse('projects:view_project', args=[ created_project['id'] ]))
-        except Exception as e:
-            logger.exception('Error migrating project')
-            if len(e.args) > 1:
-                if re.search('DuplicateProjectNameException', e.args[1]):
-                    messages.error(request, 'A project with this name already exists. This project may have already been migrated.')
-                else:
-                    messages.error(request, 'An unexpected error occurred. Please try again')
-            else:
-                messages.error(request, 'An unexpected error occurred. Please try again')
-    else:
-        project = project_util.get_project(project_id)
-
-        form = ProjectCreateForm(initial={
-            'title': project.title,
-            'description': project.abstract,
-            'typeId': 2,
-            'fieldId': 1,
-        })
-
-    form.fields['typeId'].widget = forms.HiddenInput()
-    return render(request, 'projects/fg_project_migrate.html', { 'project': project, 'form': form })
-
-@login_required
-def fg_add_user(request, project_id):
-    response = {}
-
-    if request.POST:
-        username = request.POST['username']
-        email = request.POST['email']
-        try:
-            tas = TASClient()
-            user = tas.get_user(username=username)
-            if user['email'] == email:
-                # add user to project
-                if tas.add_project_user(project_id, username):
-                    response['status'] = 'success'
-                    response['message'] = 'User added to project!'
-                    response['result'] = True
-                else:
-                    response['status'] = 'error'
-                    response['message'] = 'An unexpected error occurred. Please try again.'
-                    response['result'] = {
-                        'error': 'unexpected_error'
-                    }
-            else:
-                response['status'] = 'error'
-                response['message'] = 'A user with this username exists, but the email is different. Please confirm that they are the same user (%s). You can add the user manually on the left.' % user['email']
-                response['result'] = {
-                    'error': 'user_email_mismatch'
-                }
-        except Exception as e:
-            logger.exception('Error adding FG user to project')
-
-            if e.args and e.args[0] == 'User not found':
-                response['status'] = 'error'
-                response['message'] = e.args[1]
-                response['result'] = {
-                    'error': 'user_not_found'
-                }
-            else:
-                response['status'] = 'error'
-                response['message'] = 'An unexpected error occurred. Please try again.'
-                response['result'] = {
-                    'error': 'unexpected_error'
-                }
-
-        return HttpResponse(json.dumps(response), content_type='application/json')
-    else:
-        return HttpResponseNotAllowed(['POST'])

@@ -61,7 +61,7 @@ describe('UtilFactory', function() {
         result = UtilFactory.humanizedToBytes('1 THz');
         expect(result).toEqual(1000 * 1000 * 1000 * 1000);
     });
-    
+
     it('Should scale to appropriate memory size', function() {
         var result = UtilFactory.scaleMemory(1024);
         expect(result).toEqual('1.00 KiB');
@@ -71,7 +71,7 @@ describe('UtilFactory', function() {
         expect(result).toEqual('1.00 GiB');
         result = UtilFactory.scaleMemory(1024 * 1024 * 1024 * 1024);
         expect(result).toEqual('1.00 TiB');
-        
+
     });
 
     it('Should scale to appropriate frequency size', function() {
@@ -83,7 +83,7 @@ describe('UtilFactory', function() {
         expect(result).toEqual('1.00 GHz');
         result = UtilFactory.scaleFrequency(1000 * 1000 * 1000 * 1000);
         expect(result).toEqual('1.00 THz');
-        
+
     });
 
     it('Checks if undefined is an empty object', function() {
@@ -192,47 +192,46 @@ describe('ResourceFactory', function() {
     };
 
     var filters = {
-            site: {
-                tacc: [1, 2, 3, 4],
-                uc: []
-            },
-            network_adapters: [{
-                rate: {
-                    1.00: [1, 2, 3],
-                    10.00: [4]
-                }
-            }, {
-                rate: null
-            }]
-        };
-    var prunedFilters = {
-            site: {
-                tacc: [1, 2, 3, 4]
-            },
-            network_adapters: [{
-                rate: {
-                    1.00: [1, 2, 3],
-                    10.00: [4]
-                }
-            },
-             undefined
-            ]
-        };
-    var appliedFilters = {
-            site: {
-                tacc: true
-            },
-            network_adapters: [{
-                rate: {
-                    1.00: true
-                }
+        site: {
+            tacc: [1, 2, 3, 4],
+            uc: []
+        },
+        network_adapters: [{
+            rate: {
+                1.00: [1, 2, 3],
+                10.00: [4]
             }
-            ]
-        };
+        }, {
+            rate: null
+        }]
+    };
+    var prunedFilters = {
+        site: {
+            tacc: [1, 2, 3, 4]
+        },
+        network_adapters: [{
+                rate: {
+                    1.00: [1, 2, 3],
+                    10.00: [4]
+                }
+            },
+            undefined
+        ]
+    };
+    var appliedFilters = {
+        site: {
+            tacc: true
+        },
+        network_adapters: [{
+            rate: {
+                1.00: true
+            }
+        }]
+    };
     var flatAppliedFilters = {
-            'site': 'tacc',
-            'network_adapters~0~rate': '1'
-        };
+        'site': 'tacc',
+        'network_adapters~0~rate': '1'
+    };
 
     beforeEach(function() {
         module('discoveryApp');
@@ -241,7 +240,7 @@ describe('ResourceFactory', function() {
     beforeEach(inject(function(_ResourceFactory_, _$httpBackend_) {
         ResourceFactory = _ResourceFactory_;
         $httpBackend = _$httpBackend_;
-        jasmine.getJSONFixtures().fixturesPath='base/unit/fixtures';
+        jasmine.getJSONFixtures().fixturesPath = 'base/unit/fixtures';
     }));
 
     afterEach(function() {
@@ -292,14 +291,19 @@ describe('ResourceFactory', function() {
 
 describe('UserSelectionsFactory', function() {
     var UserSelectionsFactory;
+    var dateS = moment();
+    dateS.hours(15);
+    dateS.minutes(0);
+    dateS.seconds(0);
+    dateS = moment(dateS).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     var userSelections = {
-                startDate: '',
-                startTime: '2015-08-28T15:00:00Z',
-                endDate: '',
-                endTime: '2015-08-28T15:00:00Z',
-                minNode: '',
-                maxNode: ''
-            };
+        startDate: '',
+        startTime: dateS,
+        endDate: '',
+        endTime: dateS,
+        minNode: '',
+        maxNode: ''
+    };
     beforeEach(function() {
         module('moment');
         module('discoveryApp');

@@ -1,3 +1,0 @@
-[submodule "deps/pytas"]
-	path = deps/pytas
-	url = git@bitbucket.org:taccaci/pytas.git

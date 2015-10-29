@@ -7,10 +7,11 @@ from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
-from pytas.pytas import client as TASClient
-from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, UserAccountForm
+from pytas.http import TASClient
+from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, \
+                      PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm
 from tas.models import activate_local_user
-
+from djangoRT import rtUtil, rtModels
 import re
 import logging
 import json
@@ -30,7 +31,10 @@ def profile(request):
         # raise Exception('error loading profile')
 
     if context['profile']['source'] != 'Chameleon':
-        messages.info(request, 'Your account was created outside of the Chameleon Portal. Please visit the <a target="_blank" href="https://portal.tacc.utexas.edu">TACC User Portal</a> to edit your profile.')
+        messages.info(request,
+                      'Your account was created outside of the Chameleon Portal. ' \
+                      'Please visit the <a target="_blank" href="https://portal.tacc.utexas.edu">'\
+                      'TACC User Portal</a> to edit your profile.')
 
     return render(request, 'tas/profile.html', context)
 
@@ -43,11 +47,24 @@ def get_departments_json(request):
         departments = {}
     return HttpResponse(json.dumps(departments), content_type='application/json')
 
+def _create_ticket_for_pi_request(user):
+    """
+    This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
+    """
+    rt = rtUtil.DjangoRt()
+    subject = "Chameleon PI Eligibility Request: %s" % user['username']
+    ticket = rtModels.Ticket(subject = subject,
+                             problem_description = "",
+                             requestor = "us@tacc.utexas.edu")
+    rt.createTicket(ticket)
 
 @login_required
 def profile_edit(request):
     tas = TASClient()
     tas_user = tas.get_user(username=request.user)
+
+    if tas_user['source'] != 'Chameleon':
+        return HttpResponseRedirect(reverse('tas:profile'))
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, initial=tas_user)
@@ -55,6 +72,7 @@ def profile_edit(request):
             data = form.cleaned_data
             if request.POST.get('request_pi_eligibility'):
                 data['piEligibility'] = 'Requested'
+                _create_ticket_for_pi_request(tas_user)
             else:
                 data['piEligibility'] = tas_user['piEligibility']
             data['source'] = 'Chameleon'
@@ -132,6 +150,8 @@ def _process_password_reset_confirm(request, form):
                     form.add_error('code', e.args[1])
                 elif re.search('complexity requirements', e.args[1]):
                     form.add_error('password', e.args[1])
+                elif re.search('expired', e.args[1]):
+                    form.add_error('code', e.args[1])
                 else:
                     form.add_error('__all__', 'An unexpected error occurred. Please try again')
             else:
@@ -172,10 +192,9 @@ def register(request):
         return HttpResponseRedirect(reverse('tas:profile'))
 
     if request.method == 'POST':
-        profile_form = UserRegistrationForm(request.POST)
-        account_form = UserAccountForm(request.POST)
-        if profile_form.is_valid() and account_form.is_valid():
-            data = dict(profile_form.cleaned_data.items() + account_form.cleaned_data.items())
+        register_form = UserRegistrationForm(request.POST)
+        if register_form.is_valid():
+            data = register_form.cleaned_data
 
             if request.POST.get('request_pi_eligibility'):
                 data['piEligibility'] = 'Requested'
@@ -187,6 +206,10 @@ def register(request):
             try:
                 tas = TASClient()
                 created_user = tas.save_user(None, data)
+
+                if data['piEligibility'] == 'Requested':
+                    _create_ticket_for_pi_request(created_user)
+
                 messages.success(request, 'Congratulations! Your account request has been received. Please check your email for account verification.')
                 return HttpResponseRedirect('/')
             except Exception as e:
@@ -194,18 +217,18 @@ def register(request):
                 if len(e.args) > 1:
                     if re.search('DuplicateLoginException', e.args[1]):
                         message = 'The username you chose has already been taken. Please choose another. If you already have an account with TACC, please log in using those credentials.'
-                        errors = account_form._errors.setdefault('username', ErrorList())
+                        errors = register_form._errors.setdefault('username', ErrorList())
                         errors.append(message)
                         messages.error(request, message)
                     elif re.search('DuplicateEmailException', e.args[1]):
                         message = 'This email is already registered. If you already have an account with TACC, please log in using those credentials.'
                         messages.error(request, message + ' <a href="{0}">Did you forget your password?</a>'.format(reverse('tas:password_reset')))
-                        errors = profile_form._errors.setdefault('email', ErrorList())
+                        errors = register_form._errors.setdefault('email', ErrorList())
                         errors.append(message)
                     elif re.search('PasswordInvalidException', e.args[1]):
                         message = 'The password you provided did not meet the complexity requirements.'
                         messages.error(request, message)
-                        errors = account_form._errors.setdefault('password', ErrorList())
+                        errors = register_form._errors.setdefault('password', ErrorList())
                         errors.append(message)
                     else:
                         messages.error(request, 'An unexpected error occurred. If this problem persists please create a help ticket.')
@@ -214,12 +237,10 @@ def register(request):
 
             # return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        profile_form = UserRegistrationForm()
-        account_form = UserAccountForm()
+        register_form = UserRegistrationForm()
 
     context = {
-        'profile_form': profile_form,
-        'account_form': account_form,
+        'register_form': register_form,
         }
 
     if request.method == 'POST':

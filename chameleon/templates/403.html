@@ -1,0 +1,9 @@
+{% extends "layout/default.html" %}
+{% block title %}Permission denied{% endblock %}
+{% block content %}
+<h1>You do not have permission to access the requested resource.</h1>
+<p>
+  If you feel that you have received this message in error please let us know
+  by <a href="{% url 'djangoRT:ticketcreate' %}">submitting a help desk ticket</a>.
+</p>
+{% endblock %}

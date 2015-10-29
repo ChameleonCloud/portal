@@ -63,7 +63,7 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
             } else if (_.isObject(appliedFilters[key])) {
                 var k2 = ky + key + '.';
                 generateFilterScript(appliedFilters[key], k2);
-            } else if (appliedFilters[key] && appliedFilters[key] === true) {
+            } else if (appliedFilters[key] && appliedFilters[key] === true && ['site.', 'cluster.'].indexOf(ky) === -1) {
                 ky = ky.substring(0, ky.length - 1);
                 $scope.scrpt += '\"=\", \"$' + ky + '\", \"' + UtilFactory.humanizedToBytes(key) + '\", ';
             }

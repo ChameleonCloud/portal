@@ -1,5 +1,29 @@
 ## Changelog
 
+### v1.7.0
+
+- GENI OpenID Authentication and Project Federation
+
+### v1.6.4
+
+- Add project counts to admin pages
+- Fix usage rendering (percentages were 0..1 instead of 0..100)
+
+### v1.6.3
+
+- Fix password policy check bug on registration form
+- Display "date requested" on pending allocations
+- Fix bug where "submit renewal" button shown on a pending allocation after submitting the renewal
+- Update allocation forms
+- Automatically create a ticket when a user submits a PI request
+
+### v1.6.1
+
+- Logging
+- Better error pages
+- Fix password policy checks
+- Performance instrumentation
+
 ### v1.6.0
 
 - Closing a ticket now requires a comment #6874
@@ -7,6 +31,8 @@
 - Improved logging of allocation admin actions #7863
 - Completely refactored Resource Discovery #7683
 - Record supplemental details and funding sources in allocation justification instead of project description #8007
+- Added detailed allocation display, usage reporting, renewal support #7811
+- Deprecate FutureGrid@Chameleon transitional support #
 
 ### v1.5.6
 

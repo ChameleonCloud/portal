@@ -1,0 +1,22 @@
+.allocation {
+  border-bottom: 1px solid #eee;
+  margin-top: 22px;
+  margin-bottom: 22px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.allocation-rejected,
+.allocation-inactive {
+  display: none;
+}
+
+.label-pending {
+  background-color: #F0AD4E;
+}
+
+.label-approved, .label-active {
+  background-color: #74A93C;
+}

@@ -3,8 +3,6 @@ portal:
   env_file:
     - .chameleon_env
   volumes:
-    - ../logs/django:/var/log/django
-    - ../logs/nginx:/var/log/nginx
     - ../media:/project/media
     - ../static:/var/www/chameleoncloud.org/static
     - .:/project
@@ -13,7 +11,6 @@ portal:
   links:
     - referenceapi:referenceapi
   command: python manage.py runserver 0.0.0.0:8888
-  restart: always
 referenceapi:
   image: referenceapi:latest
   ports:

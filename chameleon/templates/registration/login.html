@@ -2,29 +2,29 @@
 {% load bootstrap3 chameleon_openid_tags %}
 {% block title %}Log In{% endblock %}
 {% block content %}
+  {% if request.user.is_authenticated %}
+  <h2>You're already logged in!</h2>
 
-{% if request.user.is_authenticated %}
-<h2>You're already logged in!</h2>
+  <p class="lead">
+    This is odd, you are already logged in as <b>{{request.user}}</b>!
+    <a href="{% url 'dashboard' %}">Click here to head back to the User Dashboard.</a>
+  </p>
+  {% else %}
+  <h2>Login to Chameleon</h2>
 
-<p class="lead">
-  This is odd, you are already logged in as <b>{{request.user}}</b>!
-  <a href="{% url 'dashboard' %}">Click here to head back to the User Dashboard.</a>
-</p>
-{% else %}
-<h2>Login to Chameleon</h2>
+  <div class="row">
+    <div class="col-sm-6">
+      <form method="post">
+        {% csrf_token %}
 
-<div class="row">
-  <div class="col-sm-6">
-    <form method="post">
-      {% csrf_token %}
+        {% bootstrap_form form %}
 
-      {% bootstrap_form form %}
-
-      <div class="form-group">
-        <button type="submit" class="btn btn-lg btn-success">Log in</button>
-        <a class="btn btn-link" href="{% url 'tas:password_reset' %}">Forgot your password?</a>
-      </div>
-    </form>
+        <div class="form-group">
+          <button type="submit" class="btn btn-lg btn-success">Log in</button>
+          <a class="btn btn-link" href="{% url 'tas:password_reset' %}">Forgot your password?</a>
+        </div>
+      </form>
+    </div>
 
     <h3>Other login options</h3>
     {% openid_login_options %}
@@ -42,7 +42,11 @@
       </p>
     </div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
+{% endblock %}
 
+{% block scripts %}
+<script>
+jQuery(function($) { $('#id_username').focus(); });
+</script>
 {% endblock %}

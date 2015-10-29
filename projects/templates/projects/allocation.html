@@ -1,0 +1,54 @@
+<div class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
+  <h4>
+    {{ alloc.resource }}
+    <small><span class="label label-default label-{{ alloc.status|lower }}">{{ alloc.status }}</small>
+  </h4>
+  {% if project.up_for_renewal and not project.has_pending_allocations %}
+    <div class="alert alert-info">
+      <p>
+        This allocation will expire in {{project.renewal_days}} days.
+        {% if is_pi %}
+          Submit a renewal request now.
+        {% else %}
+          The project PI can submit a renewal request.
+        {% endif %}
+      </p>
+      {% if is_pi %}
+      <p>
+        <a class="btn btn-info" href="{% url 'projects:renew_allocation' project.id alloc.id %}">
+          <i class="fa fa-refresh"></i> Submit Renewal
+        </a>
+      </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if alloc.status == 'Rejected' or alloc.status == 'Pending' %}
+    <p><b>Date requested:</b> {{ alloc.dateRequested|date:"d F, Y" }}</p>
+  {% endif %}
+
+  {% if alloc.status == 'Rejected' %}
+    <p><b>Decision summary:</b> {{ alloc.decisionSummary }}</p>
+  {% endif %}
+
+  {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
+  <div class="row">
+    <div class="col-sm-4">
+      <h5>Start date</h5>
+      {{ alloc.start|date:"d F, Y" }}
+    </div>
+    <div class="col-sm-4">
+      <h5>End date</h5>
+      {{ alloc.end|date:"d F, Y" }}
+    </div>
+    <div class="col-sm-4">
+      <h5>Usage</h5>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%">
+        </div>
+      </div>
+      <div class="text-center">{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</div>
+    </div>
+  </div>
+  {% endif %}
+</div>

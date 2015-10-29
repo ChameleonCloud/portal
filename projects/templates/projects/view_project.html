@@ -1,11 +1,6 @@
 {% extends 'layout/user.html' %}
-
-{% load staticfiles %}
-
-{% load bootstrap3 %}
-
+{% load staticfiles bootstrap3 chameleon_tags %}
 {% block title %}Project - {{ project.chargeCode }}{% endblock %}
-
 {% block content %}
 <h2>
   {{ project.title }} |
@@ -34,18 +29,34 @@
         <th>Field of Science</th>
         <td>{{ project.field }}</td>
       </tr>
-      <tr>
-        <th>Allocation</th>
-        <td>
-          <ul class="list-unstyled">
-            {% for alloc in project.allocations %}
-              <li>{{ alloc.resource }} <i>{{ alloc.status }}</i></li>
-            {% endfor %}
-          </ul>
-        </td>
-      </tr>
     </tbody>
   </table>
+</div>
+
+<h3>Allocations</h3>
+<div class="allocations">
+  {% if not project.has_active_allocations and not project.has_pending_allocations %}
+    <div class="alert alert-info">
+      <h4>No active allocations</h4>
+      <p>
+        You don't have any current allocations. This could be because your allocation
+        recently expired or your project is new and you have not requested one yet.
+        Please click on the <b>Request Allocation</b> below to get started!
+      </p>
+    </div>
+    <a class="btn btn-primary btn-sm" href="{% url 'projects:create_allocation' project.id %}">
+      <i class="fa fa-plus"></i>
+      Request Allocation
+    </a>
+  {% endif %}
+
+  {% if project.has_inactive_allocations %}
+    <button class="btn btn-xs btn-default pull-right" name="allocation-display-toggle">Toggle inactive allocations</button>
+  {% endif %}
+
+  {% for alloc in project.allocations %}
+    {% include 'projects/allocation.html' %}
+  {% endfor %}
 </div>
 
 <h3>Project Users</h3>
@@ -60,54 +71,23 @@
 </form>
 {% endif %}
 
-<div class="row">
-  <div class="col-md-6">
-    <h4>Current Users</h4>
-    <ul class="list-unstyled">
-      {% for u in users %}
-      <li>
-        {{ u.username }} ({{ u.role }})
-        {% if is_pi and u.username != request.user.username %}
-          <form role="form" method="post" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="username" value="{{ u.username }}">
-            <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
-          </form>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  {% if fg_migration and is_pi %}
-  <input type="hidden" name="fg_add_user_url" value="{% url 'projects:fg_add_user' project.id %}">
-  <div class="col-md-6">
-    <div class="well">
-      <h4>Add/Invite FutureGrid Users</h4>
-      <table class="table">
-        <tbody>
-        {% for u in fg_users %}
-          <tr>
-            <td width="30%">{{ u.username }}</td>
-            <td>
-              <form role="form" name="fg-user-add">
-                {% csrf_token %}
-                <input type="hidden" name="username" value="{{ u.username }}">
-                <input type="hidden" name="email" value="{{ u.email }}">
-                <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-plus-circle"></i> Add User</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-</div>
-
+<h4>Current Users</h4>
+<ul class="list-unstyled">
+  {% for u in users %}
+  <li>
+    {{ u.username }} ({{ u.role }})
+    {% if is_pi and u.username != request.user.username %}
+      <form role="form" method="post" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ u.username }}">
+        <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
+      </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static 'projects/js/fg_user_add.js' %}" type="text/javascript"></script>
+  <script src="{% static 'projects/js/allocations.js' %}" type="text/javascript"></script>
 {% endblock %}
