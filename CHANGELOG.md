@@ -4,6 +4,11 @@
 
 - GENI OpenID Authentication and Project Federation
 
+### v1.6.4
+
+- Add project counts to admin pages
+- Fix usage rendering (percentages were 0..1 instead of 0..100)
+
 ### v1.6.3
 
 - Fix password policy check bug on registration form
