@@ -213,18 +213,15 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '[%(levelname)s] [%(asctime)s] [%(filename)s %(funcName)s, line %(lineno)d] %(message)s'
-        },
-        'simple': {
-            'format': '[%(levelname)s] [%(asctime)s] [%(filename)s %(funcName)s, line %(lineno)d] %(message)s'
+        'default': {
+            'format': '[DJANGO] %(levelname)s %(asctime)s %(module)s %(name)s.%(funcName)s: %(message)s'
         },
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'default',
         },
     },
     'loggers': {
