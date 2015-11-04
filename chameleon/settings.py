@@ -52,6 +52,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.sitemaps',
@@ -454,6 +455,23 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@chameleonclo
 
 # User News Outage Notification
 OUTAGE_NOTIFICATION_EMAIL = os.environ.get('OUTAGE_NOTIFICATION_EMAIL', '')
+
+
+#####
+#
+# GENI Federation
+#
+#####
+GENI_FEDERATION_PROJECTS = {
+    'geni': {
+        'id': '97762ef8-86ea-4212-b41a-ac5d75467c16',
+        'name': 'Chameleon-Federation',
+    },
+    'chameleon': {
+        'id': '26427',
+        'name': 'GENI-Federation',
+    },
+}
 
 
 ###
