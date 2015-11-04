@@ -19,7 +19,7 @@ from .models import OpenIDUserIdentity
 from .utils import JSONSafeSession, DBOpenIDStore
 
 from chameleon.decorators import anonymous_required
-from tas.forms import UserRegistrationForm, UserAccountForm
+from tas.forms import UserRegistrationForm
 from tas.views import _clean_registration_data
 
 
@@ -167,10 +167,9 @@ def openid_connect(request):
 def openid_register(request):
     openid = request.session['openid']
     if request.method == 'POST':
-        profile_form = UserRegistrationForm(request.POST)
-        account_form = UserAccountForm(request.POST)
-        if profile_form.is_valid() and account_form.is_valid():
-            data = dict(profile_form.cleaned_data.items() + account_form.cleaned_data.items())
+        reg_form = UserRegistrationForm(request.POST)
+        if reg_form.is_valid():
+            data = reg_form.cleaned_data
 
             if request.POST.get('request_pi_eligibility'):
                 data['piEligibility'] = 'Requested'
@@ -180,7 +179,7 @@ def openid_register(request):
             data['source'] = 'Chameleon'
             logger.info('Attempting OpenID user registration: %s' % _clean_registration_data(data))
             try:
-                from pytas.pytas import client as TASClient
+                from pytas.http import TASClient
                 tas = TASClient()
                 created_user = tas.save_user(None, data)
 
@@ -242,12 +241,12 @@ def openid_register(request):
                                    )
     else:
         full_name = openid['ax']['full_name'][0].split(' ')
-        profile_form = UserRegistrationForm(initial={
+        reg_form = UserRegistrationForm(initial={
                                                 'email': openid['sreg']['email'],
                                                 'firstName': full_name[0],
-                                                'lastName': full_name[-1]
+                                                'lastName': full_name[-1],
+                                                'username': openid['sreg']['nickname']
                                             })
-        account_form = UserAccountForm(initial={'username': openid['sreg']['nickname']})
         try:
             username_taken = get_user_model().objects.get(username=openid['sreg']['nickname'])
             if username_taken:
@@ -260,8 +259,7 @@ def openid_register(request):
             pass
 
     context = {
-        'profile_form': profile_form,
-        'account_form': account_form,
+        'registration_form': reg_form,
         }
 
     if request.method == 'POST':
