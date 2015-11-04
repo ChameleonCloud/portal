@@ -1,15 +1,126 @@
 {% extends "layout/user.html" %}
 
+{% load humanize %}
+
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h2>Dashboard</h2>
+
+<h3>Dashboard</h3>
+
+{% if geni_federation %}
+  {% if geni_federation.on_geni_project %}
+    {% if not geni_federation.on_chameleon_project %}
+      <div class="alert alert-info">
+        <h4>Activate Chameleon-GENI Federation Access</h4>
+        <p>
+          As a member of the <b>{{geni_federation.geni_project_name}}</b> project on the
+          GENI Cloud, you can access resources in the Chameleon Cloud!
+          <a href="">Click here to active your access to Chameleon Cloud resources.</a>
+        </p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-info">
+      <h4>Learn more about Chameleon-GENI Cloud Federation</h4>
+      <p>
+        Take advantage of the Chameleon-GENI Cloud Federation by joining the
+        <b>{{geni_federation.geni_project_name}}</b> project on GENI!
+        <a href="">Read more about the federation here.</a>
+      </p>
+    </div>
+  {% endif %}
+{% endif %}
 
 <div class="row">
-  {% for action in actions %}
-  <div class="col-sm-4">
-    <a href="{{ action.url }}" class="btn btn-default btn-lg btn-block">{{ action.name }}</a>
+  <div class="col-sm-6">
+    <div class="panel panel-default">
+      <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Active Projects</h4>
+        <div class="pull-right">
+          <a href="{% url 'projects:user_projects' %}"><small>Manage your Projects</small></a>
+        </div>
+      </div>
+      <div class="panel-body">
+        {% if active_projects %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th></th>
+                <th class="text-right">Usage</th>
+              </tr>
+            </thead>
+              <tbody>
+              {% for project in active_projects %}
+                <tr>
+                  <td>
+                    <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
+                  </td>
+                  <td>
+
+                  </td>
+                  <td>
+
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p>No active projects.</p>
+          {% endif %}
+        </div>
+      </div>
   </div>
-  {% endfor %}
+
+  <div class="col-sm-6">
+    <div class="panel panel-default">
+      <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Open tickets</h4>
+        <div class="pull-right">
+          <a href="{% url 'djangoRT:mytickets' %}"><small>View all Tickets</small></a>
+          &nbsp;
+          <a href="{% url 'djangoRT:ticketcreate' %}"><small><i class="fa fa-plus-circle"></i> Open a Ticket</small></a>
+        </div>
+      </div>
+      <div class="panel-body">
+        {% if open_tickets %}
+          <table class="table">
+            <thead>
+              <th>Ticket</th>
+              <th>Last Updated</th>
+              <th></th>
+            </thead>
+            <tbody>
+              {% for ticket in open_tickets %}
+                <tr>
+                <td><a href="{% url 'djangoRT:ticketdetail' ticket.id %}">#{{ticket.id}} - {{ticket.Subject}}</a></td>
+                <td>{{ticket.LastUpdated|naturaltime}}</td>
+                <td class="text-right"><a href="{% url 'djangoRT:ticketreply' ticket.id %}">Reply</a></td>
+                </tr>
+              {% endfor %}
+            <tbody>
+          </table>
+        {% else %}
+          <p>No open tickets.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
+
+{% if outages %}
+  <h3>Ongoing outages</h3>
+  <div>
+  {% for o in outages %}
+    <article>
+      <header><h4><a href="{% url 'user_news:detail' o.id %}">{{o.title}}</a></h4></header>
+      <p>{{o.summary|safe}}</p>
+    </article>
+  {% endfor %}
+  </div>
+{% endif %}
+
+
 {% endblock %}
