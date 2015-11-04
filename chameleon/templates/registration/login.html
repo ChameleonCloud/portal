@@ -24,24 +24,26 @@
           <a class="btn btn-link" href="{% url 'tas:password_reset' %}">Forgot your password?</a>
         </div>
       </form>
+
+      <h3>Other login options</h3>
+      {% openid_login_options %}
     </div>
 
-    <h3>Other login options</h3>
-    {% openid_login_options %}
-  </div>
 
-  <div class="col-sm-6">
-    <div class="well">
-      <h3>Register for an Account</h3>
-      <p class="lead">
-        Don't have a Chameleon account? <a href="{% url 'tas:register' %}" class="btn btn-default">Register for an Account</a>
-      </p>
-      <p class="lead">
-        If you have a TACC account you can use your TACC credentials to log in to
-        the Chameleon portal and activate your Chameleon account.
-      </p>
+    <div class="col-sm-6">
+      <div class="well">
+        <h3>Register for an Account</h3>
+        <p class="lead">
+          Don't have a Chameleon account? <a href="{% url 'tas:register' %}" class="btn btn-default">Register for an Account</a>
+        </p>
+        <p class="lead">
+          If you have a TACC account you can use your TACC credentials to log in to
+          the Chameleon portal and activate your Chameleon account.
+        </p>
+      </div>
     </div>
   </div>
+
   {% endif %}
 {% endblock %}
 
