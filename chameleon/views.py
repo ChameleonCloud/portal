@@ -57,7 +57,8 @@ def _check_geni_federation_status(request):
     if on_geni_project:
         try:
             fed_proj = Project(settings.GENI_FEDERATION_PROJECTS['chameleon']['id'])
-            on_chameleon_project = any(u.username == request.user for u in fed_proj.get_users())
+            on_chameleon_project = any(u.username == request.user.username \
+                                        for u in fed_proj.get_users())
         except:
             logger.warn('Could not locate Chameleon federation project: %s' % \
                 settings.GENI_FEDERATION_PROJECTS['chameleon'])

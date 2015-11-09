@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
@@ -21,6 +22,9 @@ from .utils import JSONSafeSession, DBOpenIDStore
 from chameleon.decorators import anonymous_required
 from tas.forms import UserRegistrationForm
 from tas.views import _clean_registration_data
+
+from pytas.http import TASClient
+from pytas.models import Project
 
 
 logger = logging.getLogger(__name__)
@@ -179,7 +183,6 @@ def openid_register(request):
             data['source'] = 'Chameleon'
             logger.info('Attempting OpenID user registration: %s' % _clean_registration_data(data))
             try:
-                from pytas.http import TASClient
                 tas = TASClient()
                 created_user = tas.save_user(None, data)
 
@@ -266,3 +269,25 @@ def openid_register(request):
         context['request_pi_eligibility'] = request.POST.get('request_pi_eligibility')
 
     return render(request, 'chameleon_openid/register.html', context)
+
+@login_required
+def activate_geni(request):
+    fed_proj = Project(settings.GENI_FEDERATION_PROJECTS['chameleon']['id'])
+    on_chameleon_project = any(u.username == request.user for u in fed_proj.get_users())
+    if on_chameleon_project:
+        messages.info('Your access to the Chameleon-GENI Federation Project is active.')
+        return HttpResponseRedirect(reverse('dashboard'))
+
+    if request.method == 'POST':
+        if request.POST.get('accept_user_terms') == 'on':
+            fed_proj.add_user(request.user)
+            messages.success(request, 'Your access to the Chameleon-GENI Federation Project is active.')
+            return HttpResponseRedirect(reverse('dashboard'))
+        else:
+            messages.error(request, 'Please agree to Chameleon Acceptable Use Policy before proceeding.')
+
+    context = {
+        'geni': settings.GENI_FEDERATION_PROJECTS['geni'],
+        'chameleon': settings.GENI_FEDERATION_PROJECTS['chameleon'],
+    }
+    return render(request, 'chameleon_openid/activate_geni.html', context)

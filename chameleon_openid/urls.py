@@ -5,4 +5,6 @@ urlpatterns = patterns('',
     url(r'^callback/$', 'chameleon_openid.views.openid_callback', name='openid_callback'),
     url(r'^connect/$', 'chameleon_openid.views.openid_connect', name='openid_connect'),
     url(r'^register/$', 'chameleon_openid.views.openid_register', name='openid_register'),
+
+    url(r'^geni/$', 'chameleon_openid.views.activate_geni', name='activate_geni'),
     )
