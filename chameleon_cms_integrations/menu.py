@@ -11,9 +11,13 @@ class UserMenu(CMSAttachMenu):
         nodes = []
 
         menu_id = 1
-        root_id = menu_id
+
+        n = NavigationNode('Log in', "/login/", menu_id, attr={'visible_for_authenticated':False, 'class':'navbar-btn-alt'})
+        nodes.append(n)
 
         # root node
+        menu_id += 1
+        root_id = menu_id
         greeting = 'Hello, {0}'.format(request.user.get_full_name() or request.user) if request.user.is_authenticated() else 'Users'
         title = '<i class="fa fa-user hidden-xs hidden-md hidden-lg"></i><span class="hidden-sm">{0}</span>'
         n = NavigationNode(title.format(greeting), "/user/", menu_id)
@@ -21,11 +25,7 @@ class UserMenu(CMSAttachMenu):
 
         # drop down
         menu_id += 1
-        n = NavigationNode(_('Log in'), "/login/", menu_id, root_id, attr={'visible_for_authenticated':False})
-        nodes.append(n)
-
-        menu_id += 1
-        n = NavigationNode(_('Register'), "/register/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('Register'), "/user/register/", menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
 
         menu_id += 1

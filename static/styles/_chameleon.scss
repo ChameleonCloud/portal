@@ -263,6 +263,23 @@ article {
   }
 }
 
+@media screen and (min-width:768px) {
+  .navbar-chameleon .navbar-nav > .navbar-btn-alt > a {
+    padding: 3px 10px;
+    margin: 20px 4px;
+    border: 1px solid #4564E2;
+  }
+
+  .site-header .nav > li.navbar-btn-alt.active > a {
+    background-color: inherit;
+  }
+
+  .site-header .nav > li.navbar-btn-alt > a:hover,
+  .site-header .nav > li.navbar-btn-alt > a:focus {
+    background-color: rgba(#eee, .25);
+  }
+}
+
 .btn-highlight {
   color: #fff;
   background-color: #eda711;
