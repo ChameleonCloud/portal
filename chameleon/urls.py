@@ -15,7 +15,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/impersonate/', include('impersonate.urls')),
     url(r'^admin/allocations/', include('allocations.urls', namespace='allocations_admin')),
-
+    url(r'^admin/usage/', include('usage.urls', namespace='usage_admin')),
     # contrib urls
     url(r'^ckeditor/', include('ckeditor.urls')),
     url(r'^captcha/', include('captcha.urls')),
@@ -38,7 +38,6 @@ urlpatterns = patterns('',
     url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
     url(r'^user/early-user-program/', include('cc_early_user_support.urls', namespace='cc_early_user_support')),
     url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
-
     # mailing list resource for mailman autosubscribe
     url(r'^mailman/(?P<list_name>\w+)\.txt$', 'chameleon_mailman.views.mailman_export_list', name='mailman_export_list'),
     url(r'^user/profile/subscriptions/$', 'chameleon_mailman.views.manage_mailman_subscriptions', name='mailman_manage'),
