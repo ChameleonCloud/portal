@@ -15,6 +15,7 @@ urlpatterns = patterns(
         url(r'^admin/impersonate/', include('impersonate.urls')),
         url(r'^admin/allocations/', include('allocations.urls',
                                             namespace='allocations_admin')),
+        url(r'^admin/usage/', include('usage.urls', namespace='usage_admin')),
         # url(r'^appliance-catalog/', include('appliance_catalog.urls',
         #                                     namespace='appliance_catalog')),
 
