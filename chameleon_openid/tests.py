@@ -6,8 +6,6 @@ import mock
 
 class SessionTestCase(TestCase):
     def setUp(self):
-        # http://code.djangoproject.com/ticket/10899
-        settings.SESSION_ENGINE = 'django.contrib.sessions.backends.file'
         engine = import_module(settings.SESSION_ENGINE)
         store = engine.SessionStore()
         store.save()
@@ -16,7 +14,16 @@ class SessionTestCase(TestCase):
 
 class OpenIDViewsTests(SessionTestCase):
 
-    def test_openid_register_view(self):
+    @mock.patch('tas.forms.get_country_choices')
+    @mock.patch('tas.forms.get_department_choices')
+    @mock.patch('tas.forms.get_institution_choices')
+    def test_openid_register_view(self, mock_get_institution_choices,
+                           mock_get_department_choices, mock_get_country_choices):
+
+        mock_get_institution_choices.return_value = ((1, 'The University of Texas at Austin'),)
+        mock_get_department_choices.return_value = ((127, 'Texas Advanced Computing Center'),)
+        mock_get_country_choices.return_value = ((230, 'United States'),)
+
         result = {}
         result['status'] = 'testing'
         result['url'] = 'http://example.com/openid.php?uri=testing'
@@ -28,6 +35,7 @@ class OpenIDViewsTests(SessionTestCase):
             'projects': [],
             'full_name': 'John Doe',
         }
+
         self.session['openid'] = result
         self.session.save()
 
