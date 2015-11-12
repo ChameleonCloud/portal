@@ -6,15 +6,16 @@
   $(function() {
     var tocContent = $('.enable-toc');
     if (tocContent.length > 0) {
-      var toggle = $('<button name="toggle-toc" class="btn-toggle-toc">');
-      toggle.text('Toggle Table of Contents');
-      toggle.on('click', function() {
-        $('body').addClass('with-toc');
-        $('<div id="toc">').appendTo('body').toc({
-          'container': tocContent
-        });
+      $('body').addClass('with-toc');
+      $('<div id="toc">').appendTo('body').toc({
+        'container': tocContent
       });
+      var toggle = $('<button name="toc-toggle" class="toc-toggle">');
+      toggle.html('<span>Table of Contents</span>');
       tocContent.prepend(toggle);
+      toggle.on('click', function() {
+        $('body').toggleClass('with-toc');
+      });
     }
   });
 })(window, jQuery);

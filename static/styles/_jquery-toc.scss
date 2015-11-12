@@ -1,5 +1,7 @@
+$tocWidth: 200px;
+
 body.with-toc {
-  margin-left: 200px;
+  margin-left: $tocWidth;
 }
 
 #toc {
@@ -20,11 +22,12 @@ body.with-toc {
     height: 100%;
     position: fixed;
     background: #333;
-
-    width: 200px;
+    box-shadow: inset -5px 0 5px 0px #222;
+    width: $tocWidth;
     padding-top: 20px;
     color: #fff;
     overflow-y: scroll;
+    margin-right: 30px;
 }
 
 #toc ul {
@@ -34,23 +37,75 @@ body.with-toc {
 }
 
 #toc li {
-    padding: 5px 10px;
+    padding: 5px 0.5em;
 }
 
 #toc a {
     color: #fff;
     text-decoration: none;
     display: block;
+    outline: 0;
 }
 
 #toc .toc-h2 {
-    padding-left: 10px;
+    padding-left: 1.5em;
 }
 
 #toc .toc-h3 {
-    padding-left: 20px;
+    padding-left: 2.5em;
 }
 
 #toc .toc-active {
     background: #336699;
+}
+
+.toc-toggle {
+    top: 70px;
+    left: 0px;
+    position: fixed;
+    height: 30px;
+    border: 1px solid #ccc;
+    background: #fff;
+
+    border-radius: 3px 3px 0 0;
+
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+
+    -webkit-transform-origin: left bottom 0;
+    -moz-transform-origin: left bottom 0;
+    -ms-transform-origin: left bottom 0;
+    -o-transform-origin: left bottom 0;
+    transform-origin: left bottom 0;
+}
+
+.with-toc .toc-toggle {
+    left: $tocWidth;
+}
+
+.toc-toggle::before {
+    content: "\2191";
+    padding-right: 0.25em;
+}
+
+.with-toc .toc-toggle::before {
+    content: "\2193";
+    padding-right: 0.25em;
+}
+
+.with-toc .container {
+  @include container-fixed;
+
+  @media (min-width: $screen-sm-min + 230) {
+    width: $container-sm;
+  }
+  @media (min-width: $screen-md-min + 230) {
+    width: $container-md;
+  }
+  @media (min-width: $screen-lg-min + 230) {
+    width: $container-lg;
+  }
 }
