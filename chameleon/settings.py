@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 import os
 import django
+from django.utils.translation import ugettext_lazy as _
 gettext = lambda s: s
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -292,6 +293,10 @@ CMS_PERMISSION = True
 
 CMS_PLACEHOLDER_CONF = {}
 
+CMS_STYLE_NAMES = (
+    ('enable-toc', _('Enable TOC')),
+)
+
 LANGUAGES = [
     ('en', 'English'),
 ]
@@ -363,6 +368,8 @@ PIPELINE_JS = {
         'source_filenames': (
             'bower_components/jquery/dist/jquery.js',
             'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
+            'bower_components/toc/dist/toc.js',
+            'scripts/auto-table-of-contents.js',
             'djangoRT/js/djangoRT.js',
         ),
         'output_filename': 'scripts/all.js'
