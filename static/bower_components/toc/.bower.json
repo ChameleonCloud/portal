@@ -1,0 +1,34 @@
+{
+  "name": "toc",
+  "description": "jQuery Table of Contents Plugin",
+  "version": "0.3.3",
+  "homepage": "http://projects.jga.me/toc/",
+  "license": "MIT",
+  "copyright": "Greg Allen",
+  "main": "dist/toc.bower.js",
+  "dependencies": {
+    "jquery": "*",
+    "smooth-scroller": "~0.1.0"
+  },
+  "devDependencies": {
+    "assert": "*",
+    "blanket": "*"
+  },
+  "ignore": [
+    "test",
+    "example",
+    "lib",
+    "Gruntfile.js",
+    "package.json",
+    "grunt"
+  ],
+  "_release": "0.3.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.3.3",
+    "commit": "e460223078939b30d0c9555c85d3991e6d6451a0"
+  },
+  "_source": "git://github.com/mrhanlon/toc.git",
+  "_target": "0.3.3",
+  "_originalSource": "mrhanlon/toc"
+}
