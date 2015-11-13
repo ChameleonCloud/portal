@@ -2,7 +2,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
     'usage.views',
-    url( r'^$', 'index', name='index' ),
+    url( r'^$', 'project_usage', name='project_usage' ),
     url( r'^denied/$', 'denied', name='denied' ),
     url( r'^projects/$', 'get_projects_json', name='get_projects_json' ),
     url( r'^projects/user/(?P<username>[-_.\w]+)/$', 'get_projects_json', name='get_projects_json' ),

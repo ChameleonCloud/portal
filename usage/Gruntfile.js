@@ -7,7 +7,7 @@ module.exports = function(grunt) {
     //Configurable paths for the application
     var appConfig = {
         app: require('./bower.json').appPath || '.',
-        dist: require('./bower.json').distPath || 'static/allocations'
+        dist: require('./bower.json').distPath || 'static/usage'
     };
 
     // Project configuration.
@@ -119,11 +119,14 @@ module.exports = function(grunt) {
         concat: {
             vendor: {
                 src: [
+                    'bower_components/jquery/jquery.js',
                     'bower_components/json3/lib/json3.js',
                     'bower_components/underscore/underscore.js',
                     'bower_components/momentjs/moment.js',
                     'bower_components/angular/angular.js',
                     'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+                    'bower_components/highstock/highstock.js',
+                    'bower_components/highstock/modules/exporting.js',
                     'bower_components/highcharts-ng/dist/highcharts-ng.js'
                 ],
                 dest: '.tmp/scripts/vendor.js'
@@ -138,9 +141,6 @@ module.exports = function(grunt) {
         },
 
         uglify: {
-            /*options: {
-                mangle: false
-              },*/
             dist: {
                 files: {
                     '<%= yeoman.dist %>/js/vendor.js': ['.tmp/scripts/vendor.js'],
@@ -169,6 +169,6 @@ module.exports = function(grunt) {
     grunt.registerTask('default', [
         'newer:jshint',
         'build',
-        //'karma'
+        'karma'
     ]);
 };

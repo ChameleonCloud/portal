@@ -7,9 +7,13 @@ angular.module('moment', []).factory('moment', function() {
   return window.moment; // assumes moment has already been loaded on the page
 });
 
+angular.module('highcharts', []).factory('highcharts', function() {
+  return window.Highcharts; // assumes Highcharts has already been loaded on the page
+});
+
 angular.module('usageApp.service', []);
 
-angular.module('usageApp',['underscore', 'moment', 'usageApp.service', 'ui.bootstrap', 'highcharts-ng'])
+angular.module('usageApp',['underscore', 'moment', 'highcharts', 'usageApp.service', 'ui.bootstrap', 'highcharts-ng'])
 .config(function($interpolateProvider, $httpProvider) {
     $interpolateProvider.startSymbol('[[').endSymbol(']]');
     $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

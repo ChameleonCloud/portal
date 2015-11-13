@@ -29,18 +29,18 @@ def allocation_admin_or_superuser(user):
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
-def index( request ):
+def project_usage( request ):
     user = request.user
     logger.debug( 'Serving admin usage view to: %s', user.username )
     context = {}
-    return render(request, 'usage/index.html', context)
+    return render(request, 'usage/project-usage.html', context)
 
 def denied( request ):
     user = request.user
     if user:
         logger.debug( 'Denying admin usage view to: %s', user.username )
     context = {}
-    return render(request, 'usage/denied.html', context)
+    return render(request, 'usage/permission-denied.html', context)
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
@@ -48,7 +48,7 @@ def user_select( request ):
     user = request.user
     logger.debug( 'Serving user projects view to: %s', user.username )
     context = {}
-    return render(request, 'usage/user-projects.html', context)
+    return render(request, 'usage/user-usage.html', context)
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
@@ -114,10 +114,12 @@ def get_allocation_usage_json( request, allocation_id=None, username=None, queue
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
-def get_usage_by_users_json( request, allocation_id=None, *args, **kwargs ):
-    logger.info( 'Usage by users requested.')
-    logger.info( 'args: %s', args)
-    logger.info( 'kwargs: %s', kwargs)
+def get_usage_by_users_json( request, allocation_id=None):
+    start_date = request.GET.get('from')
+    end_date = request.GET.get('to')
+    if not re.match(r'^\d{4}-\d{2}-\d{2}', start_date) or not re.match(r'^\d{4}-\d{2}-\d{2}', end_date):
+        raise Exception('Start date and end date params must be in the format: YYYY-MM-dd')
+    logger.info( 'Usage by users requested for allocation id: %s, from: %s, to: %s', allocation_id, start_date, end_date)
     resp = {}
     try:
         tas = TASClient()
