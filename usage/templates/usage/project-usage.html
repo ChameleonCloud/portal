@@ -1,13 +1,13 @@
-{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Allocation Usage | Chameleon Cloud {% endblock %}
 <!-- Custom CSS -->
 {% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'usage/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 <script src="http://code.highcharts.com/stock/highstock.js"></script>
-<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
 <script src="{% static 'usage/js/vendor.js' %}"></script>
 <script src="{% static 'usage/js/main.js' %}"></script>
 {% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
@@ -16,11 +16,11 @@
 </div>
 {% endblock %} {% endif %} {% block content %}
 <div class="usage-app">
-    <h1>Projects and Allocations</h1>
+    <h1>Allocation Usage</h1>
     <div id="content-main" ng-app="usageApp" ng-cloak>
         <div class="content" ng-controller="UsageController">
             <div class="well" ng-if="loading.allocations">
-                <h4><span class="fa fa-spinner fa-spin"></span> Loading projects and allocations...</h4>
+                <h4><span class="fa fa-spinner fa-spin"></span> Loading allocations...</h4>
             </div>
             <div ng-if="!loading.allocations">
                 <div ng-if="isEmpty(messages.allocations)">

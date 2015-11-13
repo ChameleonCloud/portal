@@ -1,5 +1,5 @@
 {
-  "name": "allocations",
+  "name": "usage",
   "version": "1.0.0",
   "authors": [
     "Ajit Gauli <agauli@tacc.utexas.edu>"
@@ -20,7 +20,9 @@
     "jasmine-jquery": "~1.7",
     "json3": "~3.3.2",
     "momentjs": "~2.6.0",
-    "underscore": "~1.8.3"
+    "underscore": "~1.8.3",
+    "jquery": "1.10",
+    "highstock": "highstock-release#~2.1.9"
   },
   "appPath": ".",
   "distPath": "static/usage"

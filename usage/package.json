@@ -1,7 +1,7 @@
 {
-  "name": "g5k_discovery",
-  "description": "G5k Resource Discovery App",
-  "homepage": "https://github.com/ChameleonCloud/portal/tree/master/g5k_discovery",
+  "name": "Usage App",
+  "description": "Chameleon Usage App",
+  "homepage": "https://github.com/ChameleonCloud/portal/tree/master/usage",
   "repository": "https://github.com/ChameleonCloud/portal.git",
   "author": "Ajit Gauli <agauli@tacc.utexas.edu>",
   "version": "1.0.0",

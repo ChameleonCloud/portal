@@ -204,6 +204,8 @@ angular
         var factory = {};
         factory.projects = [];
         factory.userProjects = [];
+
+        //this endpoint is served by allocations app
         factory.getAllocations = function() {
             var errorMsg = 'There was an error loading allocations.';
             NotificationFactory.clearMessages('allocations');
@@ -222,13 +224,14 @@ angular
                         NotificationFactory.removeLoading('allocations');
                     });
         };
+        //this endpoint is served by allocations app
         factory.getUserAllocations = function(username) {
             var errorMsg = 'There was an error loading user allocations.';
             NotificationFactory.clearMessages('userAllocations');
             NotificationFactory.addLoading('userAllocations');
             return $http({
                     method: 'GET',
-                    url: '/admin/allocations/user/' + username,
+                    url: '/admin/allocations/user/' + username + '/',
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -267,7 +270,8 @@ angular
         var factory = {};
         factory.projects = [];
         factory.userProjects = [];
-
+        
+        //merges usage that occur on same datetime
         var processData = function(project, response) {
             var usage = {};
             var curatedUsage = [];
@@ -290,22 +294,36 @@ angular
         };
 
         var processUsageByUsers = function(project, response) {
-            project.selectedAllocation.usageUsers = _.keys(response.data);
-            var usageByUsers = {};
+            var formattedUsageByUsers = {};
+            var totalUsageByAUser = [];
             var queues = [];
-            _.each(project.selectedAllocation.usageUsers, function(key) {
-                queues = _.union(queues, _.keys(response.data[key]));
-            });
-            _.each(project.selectedAllocation.usageUsers, function(key) {
+            for(var user in response.data){
+                var usage = response.data[user];
+                var totalUsage = 0.0;
+                for(var queue in usage){
+                    if(!_.contains(queues, queue)){
+                       queues.push(queue);
+                    }
+                  totalUsage += usage[queue];
+
+                }
+                totalUsageByAUser.push({'user': user, 'total': totalUsage});
+
+            }
+
+            totalUsageByAUser = _.sortBy(totalUsageByAUser, 'total').reverse();
+            var users = _.pluck(totalUsageByAUser, 'user');
+            _.each(users, function(key) {
                 _.each(queues, function(queue){
                     var val = response.data[key][queue] || 0;
-                    if(!usageByUsers.hasOwnProperty(queue)){
-                        usageByUsers[queue]= [];
+                    if(!formattedUsageByUsers.hasOwnProperty(queue)){
+                        formattedUsageByUsers[queue]= [];
                     }
-                    usageByUsers[queue].push(Math.round(val * 100) / 100);
+                    formattedUsageByUsers[queue].push(Math.round(val * 100) / 100);
                 });
             });
-            project.selectedAllocation.usageByUsers = usageByUsers;
+            project.selectedAllocation.usageUsers = users;
+            project.selectedAllocation.usageByUsers = formattedUsageByUsers;
         };
 
         factory.getAllocationUsage = function(project) {
@@ -333,10 +351,12 @@ angular
             var errorMsg = 'There was an error loading usage by users.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            var endDate = moment(project.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             return $http({
                     method: 'GET',
                     url: '/admin/usage/usage-by-users/' + project.selectedAllocation.id +
-                     '/?start=' + moment(project.from).format('YYYY-MM-DD') + '&to=' + moment(project.to).format('YYYY-MM-DD'),
+                     '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
