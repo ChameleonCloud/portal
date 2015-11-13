@@ -262,7 +262,7 @@ def openid_register(request):
             pass
 
     context = {
-        'registration_form': reg_form,
+        'register_form': reg_form,
         }
 
     if request.method == 'POST':
