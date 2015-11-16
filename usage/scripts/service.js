@@ -370,7 +370,7 @@ angular
         };
 
         factory.getAllocationUserUsage = function(project) {
-            var msgKey = 'userAllocationUsage' + project.id;
+            var msgKey = 'allocationUsage' + project.id;
             var errorMsg = 'There was an error loading user allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
@@ -390,7 +390,7 @@ angular
         };
 
         factory.getAllocationUserQueueUsage = function(project) {
-            var msgKey = 'userQueueAllocationUsage' + project.id;
+            var msgKey = 'allocationUsage' + project.id;
             var errorMsg = 'There was an error loading user queue allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
@@ -411,7 +411,7 @@ angular
         };
 
         factory.getAllocationQueueUsage = function(project) {
-            var msgKey = 'queueAllocationUsage' + project.id;
+            var msgKey = 'allocationUsage' + project.id;
             var errorMsg = 'There was an error loading queue allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);

@@ -160,7 +160,7 @@ angular.module('usageApp')
                 $location.url('/' + $scope.selections.username);
                 $scope.submitted = true;
                 if ($scope.selections.username && $scope.selections.username.length > 0) {
-                    AllocationFactory.getUserAllocations().then(function() {
+                    AllocationFactory.getUserAllocations($scope.selections.username).then(function() {
                         $scope.projects = AllocationFactory.userProjects;
                         if ($scope.projects && $scope.projects.length > 0) {
                             processAllocations($scope.projects);
