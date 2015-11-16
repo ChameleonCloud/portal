@@ -112,7 +112,7 @@ body.with-toc {
     }
 
     body.with-toc {
-      margin-left: initial;
+      margin-left: 0;
     }
 
     .with-toc .toc-toggle {
@@ -169,7 +169,7 @@ body.with-toc {
 .with-toc .navbar-chameleon {
     @media screen and (min-width:$screen-sm-min + $tocWidth + $tocMargin) and (max-width:$screen-sm-max + $tocWidth + $tocMargin) {
         .hidden-md {
-            display: initial !important;
+            display: inline !important;
         }
 
         .hidden-sm {
