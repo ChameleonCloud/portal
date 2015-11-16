@@ -148,11 +148,12 @@
                             <div class="well well-sm" ng-if="isLoading('allocationUsage', project)">
                                 <span class="fa fa-spinner fa-spin"></span> Loading allocation usage...
                             </div>
-                            <div ng-if="!isLoading('allocationUsage', project)"></div>
-                            <div ng-if="!isEmpty(getMessages('allocationUsage', project))">
-                                <alert ng-repeat="msg in getMessages('allocationUsage', project)" type="[[msg.type]]">[[msg.body]]</alert>
+                            <div ng-if="!isLoading('allocationUsage', project)">
+                                <div ng-if="!isEmpty(getMessages('allocationUsage', project))">
+                                    <alert ng-repeat="msg in getMessages('allocationUsage', project)" type="[[msg.type]]">[[msg.body]]</alert>
+                                </div>
+                                <highchart id="chart-[[project.id]]" config="project.usageChartConfig" ng-if="isEmpty(getMessages('allocationUsage', project))"></highchart>
                             </div>
-                            <highchart id="chart-[[project.id]]" config="project.usageChartConfig" ng-if="isEmpty(getMessages('allocationUsage', project))"></highchart>
                         </div>
                         <div ng-if="project.showUPUChart">
                             <br/>
@@ -168,45 +169,46 @@
                                     <td><strong>From:</strong></td>
                                     <td>
                                         <input type="text" id="startDate[[project.id]]" name="startDate[[project.id]]" datepicker-popup="[[format]]" ng-model="project.from" is-open="project.startOpened" min-date="getMinDate(project)" max-date="getMaxDate(project)" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
-                                    <button type="button" class="btn btn-default" ng-click="isOpen($event, project, 'start')"><i class="fa fa-calendar"></i>
-                                    </button>
+                                        <button type="button" class="btn btn-default" ng-click="isOpen($event, project, 'start')"><i class="fa fa-calendar"></i>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><strong>To:</strong></td>
                                     <td>
                                         <input type="text" id="endDate[[project.id]]" name="endDate[[project.id]]" datepicker-popup="[[format]]" ng-model="project.to" is-open="project.endOpened" min-date="project.from" max-date="getMaxDate(project)" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
-                                    <button type="button" class="btn btn-default" ng-click="isOpen($event, project, 'end')"><i class="fa fa-calendar"></i>
-                                    </button>
+                                        <button type="button" class="btn btn-default" ng-click="isOpen($event, project, 'end')"><i class="fa fa-calendar"></i>
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>&nbsp;</td>
-                                    <td><button type="button" class="btn btn-default" ng-click="updateUsageByUsersChart(project, 'custom')">
-                                      Reload chart
-                                    </button>
+                                    <td>
+                                        <button type="button" class="btn btn-default" ng-click="updateUsageByUsersChart(project, 'custom')">
+                                            Reload chart
+                                        </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td colspan=2>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '1m')" ng-disabled="project.dateRange === '1m'">
-                                      1m
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '3m')" ng-disabled="project.dateRange === '3m'">
-                                      3m
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '6m')" ng-disabled="project.dateRange === '6m'">
-                                      6m
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, 'ytd')" ng-disabled="project.dateRange === 'ytd'">
-                                      YTD
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '1y')" ng-disabled="project.dateRange === '1y'">
-                                      1y
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, 'all')" ng-disabled="project.dateRange === 'all'">
-                                      All
-                                    </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '1m')" ng-disabled="project.dateRange === '1m'">
+                                            1m
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '3m')" ng-disabled="project.dateRange === '3m'">
+                                            3m
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '6m')" ng-disabled="project.dateRange === '6m'">
+                                            6m
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, 'ytd')" ng-disabled="project.dateRange === 'ytd'">
+                                            YTD
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, '1y')" ng-disabled="project.dateRange === '1y'">
+                                            1y
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUsageByUsersChart(project, 'all')" ng-disabled="project.dateRange === 'all'">
+                                            All
+                                        </button>
                                     </td>
                                 </tr>
                             </table>

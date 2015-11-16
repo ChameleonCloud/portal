@@ -22,7 +22,7 @@
             <form class="form-group">
                 <label for="id_username">Username: </label>
                 <input type="text" class="" id="id_username" ng-model="selections.usernamemodel" placeholder="Username" ng-keypress="handleKeyPress($event)" /> &nbsp;
-                <button type="button" class="" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
+                <button type="button" class="link" ng-click="getUserAllocations()" ng-disabled="loading.userAllocations">
                     Get Usage
                 </button>
             </form>
@@ -119,28 +119,38 @@
                             <input type="button" value="View usage" ng-click="viewUserUsage(project)" ng-show="project.hasActiveAllocation" ng-disabled="project.showChart" />
                             <div ng-if="project.showChart">
                                 <br/>
-                                <span><strong>Allocations: </strong></span>
-                                <select ng-model="project.selectedAllocation" ng-change="updateChart(project)" ng-options="allocation.resource + ' (' + (allocation.start | date:'dd MMMM yyyy') + ' - ' + (allocation.end | date:'dd MMMM yyyy') + ')' for allocation in getAllocationsWithUsage(project)">
-                                </select>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <span><strong>Queue: </strong></span>
-                                <select ng-model="project.selectedQueue" ng-change="updateChart(project)">
-                                    <option value="">-- All queues --</option>
-                                    <option value="kvm@tacc">KVM@TACC</option>
-                                    <option value="kvm@uc">KVM@UC</option>
-                                    <option value="chi@tacc">CHI@TACC</option>
-                                    <option value="chi@uc">CHI@UC</option>
-                                </select>
+                                <table>
+                                    <tr>
+                                        <td class="name"><strong>Allocations:</strong></td>
+                                        <td>
+                                            <select ng-model="project.selectedAllocation" ng-change="updateChart(project)" ng-options="allocation.resource + ' (' + (allocation.start | date:'dd MMMM yyyy') + ' - ' + (allocation.end | date:'dd MMMM yyyy') + ')' for allocation in getAllocationsWithUsage(project)">
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="name"><strong>Queue:</strong></td>
+                                        <td>
+                                            <select ng-model="project.selectedQueue" ng-change="updateChart(project)">
+                                                <option value="">-- All queues --</option>
+                                                <option value="kvm@tacc">KVM@TACC</option>
+                                                <option value="kvm@uc">KVM@UC</option>
+                                                <option value="chi@tacc">CHI@TACC</option>
+                                                <option value="chi@uc">CHI@UC</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </table>
                                 <br/>
                                 <br/>
-                                <br/>
-                                <span class="well well-sm" ng-if="isLoading('allocationUsage', project)">
-                            <span class="fa fa-spinner fa-spin"></span> Loading allocation usage...
-                                </span>
-                                <div ng-if="!isLoading('allocationUsage', project)"></div>
-                                <div ng-if="!isEmpty(getMessages('allocationUsage', project))">
-                                    <alert ng-repeat="msg in getMessages('allocationUsage', project)" type="[[msg.type]]">[[msg.body]]</alert>
+                                <div class="well well-sm" ng-if="isLoading('allocationUsage', project)">
+                                    <span class="fa fa-spinner fa-spin"></span> Loading allocation usage...
                                 </div>
-                                <highchart id="chart-[[project.id]]" config="project.usageChartConfig" ng-if="isEmpty(getMessages('allocationUsage', project))"></highchart>
+                                <div ng-if="!isLoading('allocationUsage', project)">
+                                    <div ng-if="!isEmpty(getMessages('allocationUsage', project))">
+                                        <alert ng-repeat="msg in getMessages('allocationUsage', project)" type="[[msg.type]]">[[msg.body]]</alert>
+                                    </div>
+                                    <highchart id="chart-[[project.id]]" config="project.usageChartConfig" ng-if="isEmpty(getMessages('allocationUsage', project))"></highchart>
+                                </div>
                             </div>
                         </div>
                     </div>
