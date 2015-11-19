@@ -22,11 +22,11 @@ body.with-toc {
     left: 0px;
     height: 100%;
     position: fixed;
-    background: #333;
-    box-shadow: inset -5px 0 5px 0px #222;
+    background: #e5e5e5;
+    box-shadow: inset -5px 0 5px 0px #d5d5d5;
     width: $tocWidth;
     padding-top: 20px;
-    color: #fff;
+    color: #333;
     overflow-y: scroll;
     margin-right: $tocMargin;
 }
@@ -42,7 +42,7 @@ body.with-toc {
 }
 
 #toc a {
-    color: #fff;
+    color: #333;
     text-decoration: none;
     display: block;
     outline: 0;
@@ -57,14 +57,14 @@ body.with-toc {
 }
 
 #toc .toc-active {
-    background: #336699;
+    background: #c5c5c5;
 }
 
 .toc-toggle {
     top: 70px;
     left: 0px;
     position: fixed;
-    height: $tocMargin;
+    height: $tocMargin - 1;
     border: 1px solid #ccc;
     background: #fff;
 
