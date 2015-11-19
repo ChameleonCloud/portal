@@ -64,7 +64,7 @@ body.with-toc {
     top: 70px;
     left: 0px;
     position: fixed;
-    height: $tocMargin - 1;
+    height: $tocMargin;
     border: 1px solid #ccc;
     background: #fff;
 
@@ -84,7 +84,7 @@ body.with-toc {
 }
 
 .with-toc .toc-toggle {
-    left: $tocWidth;
+    left: $tocWidth - 1;
 }
 
 .toc-toggle::after {
