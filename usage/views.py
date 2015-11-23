@@ -10,7 +10,8 @@ from pytas.http import TASClient
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
-
+from django.core.serializers.json import DjangoJSONEncoder
+from .models import Downtime
 import re
 import logging
 import traceback
@@ -138,6 +139,38 @@ def get_usage_by_users_json( request, allocation_id=None):
         traceback.print_exc()
         raise Exception('Error fetching jobs.')
     return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+def get_downtimes_json( request):
+    logger.info( 'Downtimes requested.')
+    resp = {}
+    try:
+        downtimes = Downtime.objects.all()
+        resp['result'] = []
+        for downtime in downtimes:
+            d = {}
+            d['queue'] = downtime.queue
+            d['nodes_down'] = downtime.nodes_down
+            #d['start'] = json.dumps(downtime.start, cls=DjangoJSONEncoder)
+            d['start'] = time.mktime(downtime.start.timetuple()) * 1000
+            if downtime.end:
+                d['end'] = time.mktime(downtime.end.timetuple()) * 1000
+            else:
+                d['end'] = None
+            resp['result'].append(d)
+        resp['status'] = 'success'
+        resp['message'] = ''
+    except Exception as e:
+        traceback.print_exc()
+        raise Exception('Error fetching downtimes.')
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+def downtimes_and_usage( request):
+    logger.info( 'Downtimes and usage requested.')
+    context = {}
+    return render(request, 'usage/downtimes-and-usage.html', context)
+
 
 def usage_template(request, resource):
     logger.debug('Template requested: %s.html', resource)
