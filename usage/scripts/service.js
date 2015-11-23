@@ -429,5 +429,27 @@ angular
                         NotificationFactory.removeLoading(msgKey);
                     });
         };
+
+        factory.getDowntimes = function(params) {
+            var msgKey = 'downtimes';
+            var errorMsg = 'There was an error loading downtimes.';
+            NotificationFactory.clearMessages(msgKey);
+            NotificationFactory.addLoading(msgKey);
+            return $http({
+                    method: 'GET',
+                    url: '/admin/usage/downtimes/',
+                    params: params,
+                    cache: 'true'
+                })
+                .then(function(response) {
+                        NotificationFactory.removeLoading(msgKey);
+                        factory.downtimes = response.data.result;
+                        //processData(project, response);
+                    },
+                    function() {
+                        NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
+                        NotificationFactory.removeLoading(msgKey);
+                    });
+        };
         return factory;
     }]);

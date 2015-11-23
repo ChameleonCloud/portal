@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %} {% load i18n admin_static %} {% block extrastyle %}{{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static " admin/css/dashboard.css " %}" />{% endblock %} {% block coltype %}colMS{% endblock %} {% block bodyclass %}{{ block.super }} dashboard{% endblock %} {% block breadcrumbs %}{% endblock %} {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %} {% block coltype %}colMS{% endblock %} {% block bodyclass %}{{ block.super }} dashboard{% endblock %} {% block breadcrumbs %}{% endblock %} {% block content %}
 <div id="content-main">
     {% if request.path == '/admin/' %}
     <div class="allocations module">
@@ -22,6 +22,10 @@
                 </tr>
                 <tr class="model-row">
                     <th scope="row"><a href="{% url 'usage_admin:user_select' %}">View Usage By User</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr class="model-row">
+                    <th scope="row"><a href="{% url 'usage_admin:downtimes_and_usage' %}">Downtimes and usage</a></th>
                     <td>&nbsp;</td>
                 </tr>
             </tbody>

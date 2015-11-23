@@ -149,6 +149,36 @@ angular.module('usageApp')
                 });
             };
 
+            $scope.downtimes = {
+                from: null,
+                to: null,
+                startOpened: false,
+                endOpened: false,
+                selectedQueue: '',
+                data: []
+            };
+
+            var getDowntimes = function() {
+                $scope.downtimes.data = [];
+                var kwargs = {};
+                if ($scope.downtimes.from) {
+                    kwargs.from = moment($scope.downtimes.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                }
+                if ($scope.downtimes.to) {
+                    kwargs.to = moment($scope.downtimes.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+
+                }
+                if($scope.downtimes.selectedQueue){
+                    kwargs.queue = $scope.downtimes.selectedQueue;
+                }
+                console.log('kwargs', kwargs);
+                UsageFactory.getDowntimes(kwargs).then(function() {
+                    $scope.downtimes.data = UsageFactory.downtimes;
+                    //processAllocations($scope.projects);
+                    //$scope.updateSelected();
+                });
+            };
+
             $scope.selections = {
                 usernamemodel: '',
                 username: ''
@@ -260,6 +290,11 @@ angular.module('usageApp')
                 project.to = $scope.getMaxDate(project);
             };
 
+            var setDefaultDowntimeDates = function() {
+                $scope.downtimes.from = $scope.getMinDowntimeDate();
+                $scope.downtimes.to = $scope.getMaxDowntimeDate();
+            };
+
             $scope.viewUsagePerUser = function(project) {
                 if (!project.from || !project.to) {
                     project.dateRange = 'all';
@@ -312,6 +347,48 @@ angular.module('usageApp')
                 getUsageByUsers(project);
             };
 
+            $scope.updateDowntimesUsageChart = function(dateRange) {
+                switch (dateRange) {
+                    case '1m':
+                        $scope.downtimes.dateRange = '1m';
+                        $scope.downtimes.from = moment().startOf('day').subtract(1, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+                    case '3m':
+                        $scope.downtimes.dateRange = '3m';
+                        $scope.downtimes.from = moment().startOf('day').subtract(3, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+                    case '6m':
+                        $scope.downtimes.dateRange = '6m';
+                        $scope.downtimes.from = moment().startOf('day').subtract(6, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+                    case 'ytd':
+                        $scope.downtimes.dateRange = 'ytd';
+                        $scope.downtimes.from = moment().startOf('day').startOf('year').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+                    case '1y':
+                        $scope.downtimes.dateRange = '1y';
+                        $scope.downtimes.from = moment().startOf('day').subtract(1, 'years').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+                    case 'all':
+                        $scope.downtimes.dateRange = 'all';
+                        setDefaultDowntimeDates();
+                        break;
+                    default:
+                        $scope.downtimes.dateRange = 'custom';
+                        $scope.downtimes.from = moment($scope.downtimes.from).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.downtimes.to = moment($scope.downtimes.to).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        break;
+
+                }
+                console.log('$scope.downtimes', $scope.downtimes);
+                getDowntimes();
+            };
+
             $scope.viewUserUsage = function(project) {
                 project.showChart = true;
                 project.selectedUser = {
@@ -332,15 +409,6 @@ angular.module('usageApp')
                     $scope.getUserAllocations();
                 }
             };
-
-            //if path show user allocation usage, if not show project allocation usage
-            var path = $location.path();
-            if (path) {
-                $scope.selections.usernamemodel = path.substring(1);
-                $scope.getUserAllocations();
-            } else {
-                $scope.getAllocations();
-            }
 
             $scope.dateOptions = {
                 formatYear: 'yy',
@@ -367,6 +435,14 @@ angular.module('usageApp')
                 return moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
             };
 
+            $scope.getMaxDowntimeDate = function() {
+                return moment().format('YYYY-MM-DDTHH:mm:ssZ');
+            };
+
+            $scope.getMinDowntimeDate = function() {
+                return moment('12-01-2014', 'MM-DD-YYYY').format('YYYY-MM-DDTHH:mm:ssZ');
+            };
+
             $scope.open = {
 
             };
@@ -382,5 +458,31 @@ angular.module('usageApp')
                     project.endOpened = true;
                 }
             };
+
+            $scope.isOpen4Downtimes = function($event, caltype) {
+                $event.preventDefault();
+                $event.stopPropagation();
+                if (caltype === 'start') {
+                    $scope.downtimes.endOpened = false;
+                    $scope.downtimes.startOpened = true;
+                } else if (caltype === 'end') {
+                    $scope.downtimes.endOpened = true;
+                    $scope.downtimes.startOpened = false;
+                }
+            };
+
+            //if path show user allocation usage, if not show project allocation usage
+            var path = $location.path();
+            if (path) {
+                $scope.selections.usernamemodel = path.substring(1);
+                $scope.getUserAllocations();
+            } else {
+                if ($location.absUrl().indexOf('downtimes') !== -1) {
+                    setDefaultDowntimeDates();
+                    getDowntimes();
+                } else {
+                    $scope.getAllocations();
+                }
+            }
         }
     ]);
