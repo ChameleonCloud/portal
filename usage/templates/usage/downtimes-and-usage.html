@@ -89,7 +89,7 @@
                         <alert type="warning">Downtimes and usage not found.</alert>
                     </div>
                     <div ng-if="downtimes.data.length > 0" class="form-group module">
-                        <highchart id="downtimes-usage-chart" config="project.usageByUserChartConfig" ng-if="isEmpty(messages.downtimes)"></highchart>
+                        <highchart id="downtimes-usage-chart" config="downtimes.usageChartConfig" ng-if="isEmpty(messages.downtimes)"></highchart>
                     </div>
                 </div>
                 <div ng-if="!isEmpty(messages.downtimes)">

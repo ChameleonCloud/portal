@@ -39,7 +39,8 @@ angular.module('usageApp')
             var usageChartConfig = {
                 options: {
                     chart: {
-                        zoomType: 'x'
+                        zoomType: 'x',
+                        type: 'area'
                     },
                     rangeSelector: {
                         enabled: true,
@@ -48,9 +49,35 @@ angular.module('usageApp')
                     navigator: {
                         enabled: true
                     },
-                    colors: ['#7cb5ec'],
+                    colors: ['#7cb5ec', '#778b9e', '#acf19d'],
                     credits: {
                         enabled: false
+                    },
+                    plotOptions: {
+                        area: {
+                            dataLabels: {
+                                enabled: true,
+                                color: (highcharts.theme && highcharts.theme.dataLabelsColor) || 'white',
+                                style: {
+                                    textShadow: '0 0 3px black'
+                                }
+                            },
+                            fillOpacity: 0.5,
+                            marker: {
+                                enabled: true,
+                                radius: 3
+                            },
+                            shadow: true,
+                            tooltip: {
+                                valueDecimals: 2,
+                            }
+                        },
+                        series: {
+                            lineWidth: 1,
+                            dataLabels: {
+                                format: '{point.y:,.2f}'
+                            }
+                        }
                     },
                 },
                 series: [],
@@ -58,6 +85,26 @@ angular.module('usageApp')
                     text: ''
                 },
                 useHighStocks: true
+            };
+
+            var usageDowntimesChartConfig = angular.copy(usageChartConfig);
+            // usageDowntimesChartConfig.options.xAxis = {
+            //     type: 'datetime'
+            //     //categories: ['1750', '1800', '1850', '1900', '1950', '1999', '2050'],
+            //     tickmarkPlacement: 'on',
+            //     title: {
+            //         enabled: false
+            //     }
+            // };
+            usageDowntimesChartConfig.options.yAxis = {
+                title: {
+                    text: 'Percent'
+                }
+            };
+            usageDowntimesChartConfig.options.plotOptions.area.stacking = 'percent';
+            usageDowntimesChartConfig.options.plotOptions.area.marker = {
+                lineWidth: 1,
+                lineColor: '#ffffff'
             };
 
             var usageByUserChartConfig = {
@@ -87,7 +134,7 @@ angular.module('usageApp')
                         verticalAlign: 'top',
                         y: 25,
                         floating: true,
-                        backgroundColor: (highcharts.theme && highcharts.theme.background2) || 'white',
+                        backgroundColor: (highcharts.theme && highcharts.theme.background) || 'white',
                         borderColor: '#CCC',
                         borderWidth: 1,
                         shadow: false
@@ -168,14 +215,13 @@ angular.module('usageApp')
                     kwargs.to = moment($scope.downtimes.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
 
                 }
-                if($scope.downtimes.selectedQueue){
+                if ($scope.downtimes.selectedQueue) {
                     kwargs.queue = $scope.downtimes.selectedQueue;
                 }
-                console.log('kwargs', kwargs);
                 UsageFactory.getDowntimes(kwargs).then(function() {
                     $scope.downtimes.data = UsageFactory.downtimes;
-                    //processAllocations($scope.projects);
-                    //$scope.updateSelected();
+                    $scope.downtimes.unused = UsageFactory.unused;
+                    drawDowntimesChart();
                 });
             };
 
@@ -224,12 +270,33 @@ angular.module('usageApp')
                     data: project.selectedAllocation.usage,
                     marker: {
                         enabled: true,
-                        radius: 3
+                        radius: 2
                     },
                     shadow: true,
                     tooltip: {
                         valueDecimals: 2,
                     }
+                });
+            };
+
+            var drawDowntimesChart = function() {
+                $scope.downtimes.usageChartConfig = angular.copy(usageDowntimesChartConfig);
+                $scope.downtimes.usageChartConfig.title.text = 'Downtimes and Usage';
+                $scope.downtimes.usageChartConfig.series = [];
+                $scope.downtimes.usageChartConfig.series.push({
+                    id: 'unused',
+                    name: 'Nodes not used',
+                    data: $scope.downtimes.unused
+                });
+                $scope.downtimes.usageChartConfig.series.push({
+                    id: 'downtimes',
+                    name: 'Nodes down',
+                    data: $scope.downtimes.data
+                });
+                $scope.downtimes.usageChartConfig.series.push({
+                    id: 'usage',
+                    name: 'Nodes used',
+                    data: $scope.downtimes.data
                 });
             };
 
@@ -385,7 +452,6 @@ angular.module('usageApp')
                         break;
 
                 }
-                console.log('$scope.downtimes', $scope.downtimes);
                 getDowntimes();
             };
 

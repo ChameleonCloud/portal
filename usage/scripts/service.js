@@ -270,7 +270,8 @@ angular
         var factory = {};
         factory.projects = [];
         factory.userProjects = [];
-        
+        factory.downtimes = [];
+        factory.unused = [];
         //merges usage that occur on same datetime
         var processData = function(project, response) {
             var usage = {};
@@ -297,33 +298,62 @@ angular
             var formattedUsageByUsers = {};
             var totalUsageByAUser = [];
             var queues = [];
-            for(var user in response.data){
+            for (var user in response.data) {
                 var usage = response.data[user];
                 var totalUsage = 0.0;
-                for(var queue in usage){
-                    if(!_.contains(queues, queue)){
-                       queues.push(queue);
+                for (var queue in usage) {
+                    if (!_.contains(queues, queue)) {
+                        queues.push(queue);
                     }
-                  totalUsage += usage[queue];
+                    totalUsage += usage[queue];
 
                 }
-                totalUsageByAUser.push({'user': user, 'total': totalUsage});
+                totalUsageByAUser.push({
+                    'user': user,
+                    'total': totalUsage
+                });
 
             }
 
             totalUsageByAUser = _.sortBy(totalUsageByAUser, 'total').reverse();
             var users = _.pluck(totalUsageByAUser, 'user');
             _.each(users, function(key) {
-                _.each(queues, function(queue){
+                _.each(queues, function(queue) {
                     var val = response.data[key][queue] || 0;
-                    if(!formattedUsageByUsers.hasOwnProperty(queue)){
-                        formattedUsageByUsers[queue]= [];
+                    if (!formattedUsageByUsers.hasOwnProperty(queue)) {
+                        formattedUsageByUsers[queue] = [];
                     }
                     formattedUsageByUsers[queue].push(Math.round(val * 100) / 100);
                 });
             });
             project.selectedAllocation.usageUsers = users;
             project.selectedAllocation.usageByUsers = formattedUsageByUsers;
+        };
+
+        var processDowntimesData = function(response) {
+            var data = [];
+            angular.forEach(response.data.result, function(value) {
+                data.push(['start', value.start, value.nodes_down]);
+                if (value.end) {
+                    data.push(['end', value.end, value.nodes_down]);
+                }
+            });
+            data = _.sortBy(data, function(arr) {
+                return arr[1];
+            });
+            var cumulative_nodes_down = 0;
+            var totalnodes = 50;
+            angular.forEach(data, function(datum) {
+                factory.downtimes.push([datum[1], cumulative_nodes_down]);
+                factory.unused.push([datum[1], totalnodes - cumulative_nodes_down]);
+                if (datum[0] === 'start') {
+                    cumulative_nodes_down += datum[2];
+                } else if (datum[0] === 'end') {
+                    cumulative_nodes_down -= datum[2];
+                }
+                factory.downtimes.push([datum[1] + 1000, cumulative_nodes_down]);
+                factory.unused.push([datum[1] + 1000, totalnodes - cumulative_nodes_down]);
+            });
         };
 
         factory.getAllocationUsage = function(project) {
@@ -356,7 +386,7 @@ angular
             return $http({
                     method: 'GET',
                     url: '/admin/usage/usage-by-users/' + project.selectedAllocation.id +
-                     '/?from=' + startDate + '&to=' + endDate,
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -442,9 +472,8 @@ angular
                     cache: 'true'
                 })
                 .then(function(response) {
+                        processDowntimesData(response);
                         NotificationFactory.removeLoading(msgKey);
-                        factory.downtimes = response.data.result;
-                        //processData(project, response);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
