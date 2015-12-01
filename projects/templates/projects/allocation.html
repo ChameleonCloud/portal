@@ -3,23 +3,14 @@
     {{ alloc.resource }}
     <small><span class="label label-default label-{{ alloc.status|lower }}">{{ alloc.status }}</small>
   </h4>
-  {% if project.up_for_renewal and not project.has_pending_allocations %}
-    <div class="alert alert-info">
+  {% if alloc.up_for_renewal %}
+    <div class="alert alert-warning">
       <p>
-        This allocation will expire in {{project.renewal_days}} days.
-        {% if is_pi %}
-          Submit a renewal request now.
-        {% else %}
-          The project PI can submit a renewal request.
-        {% endif %}
+        <i class="fa fa-warning"></i>
+        This allocation will expire in {{alloc.renewal_days}} days.
+        {% if is_pi %} Submit {% else %} The project PI can submit {% endif %}
+        a recharge request to continue this allocation.
       </p>
-      {% if is_pi %}
-      <p>
-        <a class="btn btn-info" href="{% url 'projects:renew_allocation' project.id alloc.id %}">
-          <i class="fa fa-refresh"></i> Submit Renewal
-        </a>
-      </p>
-      {% endif %}
     </div>
   {% endif %}
 
@@ -33,21 +24,30 @@
 
   {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
   <div class="row">
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <h5>Start date</h5>
       {{ alloc.start|date:"d F, Y" }}
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <h5>End date</h5>
       {{ alloc.end|date:"d F, Y" }}
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
       <h5>Usage</h5>
+      <p>{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</p>
       <div class="progress">
         <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%">
         </div>
       </div>
-      <div class="text-center">{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</div>
+    </div>
+    <div class="col-sm-3">
+      {% if is_pi %}
+        <h5>Actions</h5>
+        <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
+           title="If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. An accepted request will grant up to an additional 20,000 SUs and extend the end date of the allocation for up to an additional 6 months.">
+          <i class="fa fa-refresh"></i> Recharge/extend allocation
+        </a>
+      {% endif %}
     </div>
   </div>
   {% endif %}

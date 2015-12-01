@@ -4,7 +4,7 @@
 
 {% block title %}
     {% if alloc_id != -1 %}
-        Renew
+        Recharge/Extend
     {% else %}
         Create
     {% endif %}
@@ -14,12 +14,20 @@
 {% block content %}
 <h2>
     {% if alloc_id != -1 %}
-        Renew Allocation #{{alloc_id}}
+        Recharge/Extend Allocation #{{alloc_id}}
     {% else %}
         Create a New Allocation
     {% endif %}
     for Project {{project.chargeCode}}
 </h2>
+
+{% if alloc_id != -1 %}
+<p class="lead">
+    If you are running low on SUs or your allocation period is expiring, you can submit a
+    recharge request. An accepted request will grant up to an additional 20,000 SUs and
+    extend the end date of the allocation for up to an additional 6 months.
+</p>
+{% endif %}
 
 <form method="post">
   {% csrf_token %}
@@ -27,15 +35,8 @@
   {% bootstrap_form form %}
 
   <div class="form-group">
-    <button type="submit" class="btn btn-success">
-        Submit
-        {% if alloc_id != -1 %}
-            Renewal
-        {% else %}
-            Request
-        {% endif %}
-    </button>
-    <a href="{% url 'projects:view_project' project.id %}" class="btn btn-default">Cancel</a>
+    <button type="submit" class="btn btn-success">Submit Request</button>
+    <a href="{% url 'projects:view_project' project.id %}" class="btn btn-link">Cancel</a>
   </div>
 </form>
 

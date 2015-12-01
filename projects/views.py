@@ -106,7 +106,6 @@ def view_project(request, project_id):
         raise PermissionDenied
 
     project.has_active_allocations = False
-    project.up_for_renewal = False
 
     for a in project.allocations:
         # going to make a note here that setting this on the project object is probably short sighted
@@ -131,10 +130,11 @@ def view_project(request, project_id):
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
+
             days_left = (a.end - datetime.today()).days
             if days_left >= 0 and days_left <= 90:
-                project.up_for_renewal = True
-                project.renewal_days = days_left
+                a.up_for_renewal = True
+                a.renewal_days = days_left
 
     return render(request, 'projects/view_project.html', {
         'project': project,
