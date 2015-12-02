@@ -147,6 +147,7 @@ class UserProfileForm(forms.Form):
     firstName = forms.CharField(label='First name')
     lastName = forms.CharField(label='Last name')
     email = forms.EmailField()
+    phone = forms.CharField()
     institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
     departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
     title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
@@ -173,6 +174,7 @@ class TasUserProfileAdminForm(forms.Form):
     firstName = forms.CharField(label="First name")
     lastName = forms.CharField(label="Last name")
     email = forms.EmailField()
+    phone = forms.CharField()
     piEligibility = forms.ChoiceField(
         choices=PI_ELIGIBILITY,
         label="PI Eligibility"
@@ -193,6 +195,7 @@ class UserRegistrationForm(forms.Form):
     firstName = forms.CharField(label='First name')
     lastName = forms.CharField(label='Last name')
     email = forms.EmailField()
+    phone = forms.CharField()
     institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
     departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
     institution = forms.CharField(label='Institution name',

@@ -6,7 +6,7 @@
   - Generate a ToC for html content by embedding the CMS placeholders in a
     Style element with the "Enable TOC" class name
 - Updated allocation renewals to allow a "recharge and extend" at any time
-
+- Added phone number to profile, registration form
 
 ### v1.7.1
 

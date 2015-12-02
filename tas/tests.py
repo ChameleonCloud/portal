@@ -34,6 +34,7 @@ def mock_registration_form_data():
         'firstName': 'John',
         'lastName': 'Doe',
         'email': 'jdoe1@tacc.utexas.edu',
+        'phone': '555 555 1234',
         'institutionId': 1,
         'departmentId': 127,
         'institution': '',

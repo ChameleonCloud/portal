@@ -1,0 +1,20 @@
+{
+  "username": "jdoe1",
+  "citizenshipId": 230,
+  "countryId": 230,
+  "citizenship": "United States",
+  "firstName": "John",
+  "source": "Chameleon",
+  "institutionId": 1,
+  "lastName": "Doe",
+  "title": "University Research Staff",
+  "piEligibility": "Eligible",
+  "phone": "555 555 1234",
+  "id": 98765,
+  "email": "jdoe1@tacc.utexas.edu",
+  "departmentId": 127,
+  "country": "United States",
+  "department": "Texas Advanced Computing Center",
+  "emailConfirmations": [],
+  "institution": "University of Texas at Austin"
+}
