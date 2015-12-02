@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from chameleon.decorators import terms_required
 from django.contrib import messages
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import (Http404, HttpResponse,
+                         HttpResponseRedirect, HttpResponseNotAllowed)
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
@@ -76,14 +77,17 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data['username']
                     if project.add_user(add_username):
-                        messages.success(request, 'User "%s" added to project!' % add_username)
+                        messages.success(request,
+                            'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
                 except:
                     logger.exception('Failed adding user')
                     form.add_error('username', '')
-                    form.add_error('__all__', 'Unable to add user. Confirm that the username is correct.')
+                    form.add_error('__all__', 'Unable to add user. Confirm that the '
+                        'username is correct.')
             else:
-                form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+                form.add_error('__all__', 'There were errors processing your request. '
+                    'Please see below for details.')
         else:
             form = ProjectAddUserForm()
 
@@ -95,7 +99,8 @@ def view_project(request, project_id):
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
                 logger.exception('Failed removing user')
-                messages.error(request, 'An unexpected error occurred while attempting to remove this user. Please try again')
+                messages.error(request, 'An unexpected error occurred while attempting '
+                    'to remove this user. Please try again')
 
     else:
         form = ProjectAddUserForm()
@@ -108,10 +113,6 @@ def view_project(request, project_id):
     project.has_active_allocations = False
 
     for a in project.allocations:
-        # going to make a note here that setting this on the project object is probably short sighted
-        # since it assumes projects will continue to only have one allocation. We can probably update this later.
-        # Sorry future Carrie
-        # Also note: 'Approved' shouldn't ever happen but the approval stuff isn't running in dev.
         if a.status in ['Active']:
             project.has_active_allocations = True
 
@@ -121,7 +122,6 @@ def view_project(request, project_id):
         if a.status in ['Rejected', 'Inactive']:
             project.has_inactive_allocations = True
 
-        # if the allocation end is less than 3 months from now, show the renewal button
         if a.start and isinstance(a.start, basestring):
             a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
         if a.dateRequested:
@@ -149,7 +149,9 @@ def create_allocation(request, project_id, allocation_id = -1):
 
     user = tas.get_user(username=request.user)
     if user['piEligibility'] != 'Eligible':
-        messages.error(request, 'Only PI Eligible users can request allocations. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
+        messages.error(request, 'Only PI Eligible users can request allocations. '
+            'If you would like to request PI Eligibility, please '
+            '<a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     project = Project(project_id)
@@ -177,7 +179,8 @@ def create_allocation(request, project_id, allocation_id = -1):
             allocation = form.cleaned_data.copy()
             allocation['computeRequested'] = 20000
             # Also update the project
-            allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % (allocation['supplemental_details'], allocation['funding_source'])
+            allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % \
+                (allocation['supplemental_details'], allocation['funding_source'])
             project.description = allocation['description']
 
             allocation.pop('description', None)
@@ -196,12 +199,14 @@ def create_allocation(request, project_id, allocation_id = -1):
                 updated_project = tas.edit_project(project.as_dict())
                 created_allocation = tas.create_allocation(allocation)
                 messages.success(request, 'Your allocation request has been submitted!')
-                return HttpResponseRedirect(reverse('projects:view_project', args=[ updated_project['id'] ]))
+                return HttpResponseRedirect(reverse('projects:view_project',
+                    args=[ updated_project['id'] ]))
             except:
                 logger.exception('Error creating allocation')
                 form.add_error('__all__', 'An unexpected error occurred. Please try again')
         else:
-            form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+            form.add_error('__all__', 'There were errors processing your request. '
+                'Please see below for details.')
     else:
         form = AllocationCreateForm(initial={'description': abstract,
                                              'supplemental_details': justification,
@@ -216,7 +221,10 @@ def create_project(request):
 
     user = tas.get_user(username=request.user)
     if user['piEligibility'] != 'Eligible':
-        messages.error(request, 'Only PI Eligible users can create new projects. If you would like to request PI Eligibility, please <a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
+        messages.error(request,
+            'Only PI Eligible users can create new projects. If you would like to '
+            'request PI Eligibility, please <a href="/user/profile/edit/">submit a '
+            'PI Eligibility request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     if request.POST:
@@ -233,10 +241,11 @@ def create_project(request):
             # allocations
             project['allocations'] = [
                 {
-                    'resourceId': 39,                        # chameleon
-                    'requestorId': pi_user['id'],            # initial PI requestor
-                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % (project['supplemental_details'], project['funding_source']), # reuse for now
-                    'computeRequested': 20000,               # simple request for now
+                    'resourceId': 39,
+                    'requestorId': pi_user['id'],
+                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % \
+                            (project['supplemental_details'], project['funding_source']),
+                    'computeRequested': 20000,
                 }
             ]
 
@@ -257,7 +266,8 @@ def create_project(request):
                 logger.exception('Error creating project')
                 form.add_error('__all__', 'An unexpected error occurred. Please try again')
         else:
-            form.add_error('__all__', 'There were errors processing your request. Please see below for details.')
+            form.add_error('__all__', 'There were errors processing your request. '
+                'Please see below for details.')
 
     else:
         form = ProjectCreateForm()
