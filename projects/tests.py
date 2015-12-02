@@ -31,10 +31,16 @@ class ProjectViewTests(TestCase):
         self.assertEqual(response['Location'],
             'http://testserver/login/?next=/user/projects/1234/')
 
+    @mock.patch('pytas.http.TASClient.get_project_users')
     @mock.patch('pytas.http.TASClient.project')
-    def test_view_project(self, mock_tasclient_project):
-        projects_fixture = json.loads(open('projects/test_fixtures/user_projects.json').read())
+    def test_view_project(self, mock_tasclient_project, mock_tasclient_project_users):
+        projects_fixture = json.loads(
+            open('projects/test_fixtures/user_projects.json').read())
         mock_tasclient_project.return_value = projects_fixture
+
+        project_users_fixture = json.loads(
+            open('projects/test_fixtures/project_users.json').read())
+        mock_tasclient_project_users.return_value = project_users_fixture
 
         self.client.login(username='jdoe1', password='password')
         response = self.client.get(reverse('projects:view_project', args=[1234]))
