@@ -19,6 +19,7 @@
   {% endif %}
 
   {% if alloc.status == 'Rejected' %}
+    <p><b>Date reviewed:</b> {{ alloc.dateReviewed|date:"d F, Y" }}</p>
     <p><b>Decision summary:</b> {{ alloc.decisionSummary }}</p>
   {% endif %}
 
@@ -41,7 +42,7 @@
       </div>
     </div>
     <div class="col-sm-3">
-      {% if is_pi %}
+      {% if is_pi and not project.has_pending_allocations %}
         <h5>Actions</h5>
         <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
            title="If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. An accepted request will grant up to an additional 20,000 SUs and extend the end date of the allocation for up to an additional 6 months.">

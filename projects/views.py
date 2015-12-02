@@ -127,6 +127,9 @@ def view_project(request, project_id):
         if a.dateRequested:
             if isinstance(a.dateRequested, basestring):
                 a.dateRequested = datetime.strptime(a.dateRequested, '%Y-%m-%dT%H:%M:%SZ')
+        if a.dateReviewed:
+            if isinstance(a.dateReviewed, basestring):
+                a.dateReviewed = datetime.strptime(a.dateReviewed, '%Y-%m-%dT%H:%M:%SZ')
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
