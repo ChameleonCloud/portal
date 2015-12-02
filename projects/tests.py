@@ -16,13 +16,12 @@ import json
 )
 class ProjectViewTests(TestCase):
 
-    user_fixture = json.loads(open('projects/fixtures/user.json').read())
-    projects_fixture = json.loads(open('projects/fixtures/user_projects.json').read())
 
     def setUp(self):
+        user_fixture = json.loads(open('projects/fixtures/user.json').read())
         self.test_user = get_user_model().objects.create_user(
-                self.user_fixture['username'],
-                self.user_fixture['email'],
+                user_fixture['username'],
+                user_fixture['email'],
                 'password')
         self.test_user.backend = 'tas.auth.TASBackend'
 
@@ -34,13 +33,18 @@ class ProjectViewTests(TestCase):
 
     @mock.patch('pytas.http.TASClient.project')
     def test_view_project(self, mock_tasclient_project):
-        mock_tasclient_project.return_value = self.projects_fixture
+        projects_fixture = json.loads(open('projects/fixtures/user_projects.json').read())
+        mock_tasclient_project.return_value = projects_fixture
 
         self.client.login(username='jdoe1', password='password')
         response = self.client.get(reverse('projects:view_project', args=[1234]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Chameleon Project Request Test')
-        self.assertContains(response, 'data-allocation-id="1111" data-allocation-status="inactive"')
-        self.assertContains(response, 'data-allocation-id="1112" data-allocation-status="rejected"')
-        self.assertContains(response, 'data-allocation-id="1113" data-allocation-status="active"')
+        self.assertContains(response,
+            'data-allocation-id="1111" data-allocation-status="inactive"')
+        self.assertContains(response,
+            'data-allocation-id="1112" data-allocation-status="rejected"')
+        self.assertContains(response,
+            'data-allocation-id="1113" data-allocation-status="active"')
         self.assertContains(response, 'Recharge/extend allocation')
+
