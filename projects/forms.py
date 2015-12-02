@@ -29,9 +29,13 @@ def get_fields_choices():
 
 
 def get_accept_project_terms_help_text():
-    user_terms_url = reverse_lazy('terms:tc_view_specific_version_page', args=['user-terms', '1.00'])
-    project_terms_url = reverse_lazy('terms:tc_view_specific_version_page', args=['project-terms', '1.00'])
-    return 'Please review the Chameleon <a href="%s">User Terms of Use</a> and <a href="%s">Project Lead Terms of Use</a>.' % (user_terms_url, project_terms_url)
+    user_terms_url = reverse_lazy('terms:tc_view_specific_version_page',
+                                    args=['user-terms', '1.00'])
+    project_terms_url = reverse_lazy('terms:tc_view_specific_version_page',
+                                    args=['project-terms', '1.00'])
+    return 'Please review the Chameleon <a href="%s">User Terms of Use</a> and '
+           '<a href="%s">Project Lead Terms of Use</a>.' % (user_terms_url, \
+                                                            project_terms_url)
 
 get_accept_project_terms_help_text_lazy = lazy(get_accept_project_terms_help_text, str)
 
@@ -49,13 +53,15 @@ class ProjectCreateForm( forms.Form ):
     )
     supplemental_details = forms.CharField(
         label='Resource justification',
-        help_text='Provide details for how you intend to use Chameleon to accomplish your research goals. This text will not be publicly viewable.',
+        help_text='Provide details for how you intend to use Chameleon to accomplish '
+                  'your research goals. This text will not be publicly viewable.',
         required=True,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(
         label='Source(s) of funding',
-        help_text='If the proposed research is related to a funded grant or has pending support, please include funding agency name(s) and grant name(s).',
+        help_text='If the proposed research is related to a funded grant or has pending '
+                  'support, please include funding agency name(s) and grant name(s).',
         required=False,
         widget=forms.Textarea()
     )
@@ -77,19 +83,22 @@ class ProjectCreateForm( forms.Form ):
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
         label='Abstract',
-        help_text='Your project abstract may be publicly viewable on the Chameleon website.',
+        help_text='Your project abstract may be publicly viewable on the '
+                  'Chameleon website.',
         required=True,
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
         label='Request Justification',
-        help_text='Provide a brief summary of what was achieved under the previous request, including references to papers and/or other artifacts.',
+        help_text='Provide a brief summary of what was achieved under the previous '
+                  'request, including references to papers and/or other artifacts.',
         required=True,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(
         label='Source(s) of funding',
-        help_text='If the proposed research is related to a funded grant or has pending support, please include funding agency name(s) and grant name(s).',
+        help_text='If the proposed research is related to a funded grant or has pending '
+                  'support, please include funding agency name(s) and grant name(s).',
         required=False,
         widget=forms.Textarea()
     )
@@ -130,7 +139,11 @@ class AllocationCreateForm(forms.Form):
 #     justification = forms.CharField(
 #         label='Request Justification',
 #         required=True,
-#         widget=forms.Textarea(attrs={'placeholder': 'Provide a brief summary of what was achieved under the previous request, including pointers to papers and other artifacts'}),
+#         widget=forms.Textarea(attrs={
+#                'placeholder': 'Provide a brief summary of what was achieved under the '
+#                               'previous request, including pointers to papers and '
+#                               'other artifacts'
+#                }),
 #     )
 
 class ProjectAddUserForm( forms.Form ):
