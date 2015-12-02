@@ -1,5 +1,17 @@
 ## Changelog
 
+### v1.8.0
+
+- Table of Contents for Docuementation
+  - Generate a ToC for html content by embedding the CMS placeholders in a
+    Style element with the "Enable TOC" class name
+- Updated allocation renewals to allow a "recharge and extend" at any time
+
+
+### v1.7.1
+
+- Fix template bug with GENI/OpenID Registration
+
 ### v1.7.0
 
 - GENI OpenID Authentication and Project Federation
