@@ -18,7 +18,7 @@ class ProjectViewTests(TestCase):
 
 
     def setUp(self):
-        user_fixture = json.loads(open('projects/fixtures/user.json').read())
+        user_fixture = json.loads(open('projects/test_fixtures/user.json').read())
         self.test_user = get_user_model().objects.create_user(
                 user_fixture['username'],
                 user_fixture['email'],
@@ -33,7 +33,7 @@ class ProjectViewTests(TestCase):
 
     @mock.patch('pytas.http.TASClient.project')
     def test_view_project(self, mock_tasclient_project):
-        projects_fixture = json.loads(open('projects/fixtures/user_projects.json').read())
+        projects_fixture = json.loads(open('projects/test_fixtures/user_projects.json').read())
         mock_tasclient_project.return_value = projects_fixture
 
         self.client.login(username='jdoe1', password='password')
