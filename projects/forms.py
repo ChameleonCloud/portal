@@ -33,7 +33,7 @@ def get_accept_project_terms_help_text():
                                     args=['user-terms', '1.00'])
     project_terms_url = reverse_lazy('terms:tc_view_specific_version_page',
                                     args=['project-terms', '1.00'])
-    test = 'Please review the Chameleon <a href="%s">User Terms of Use</a> and ' \
+    text = 'Please review the Chameleon <a href="%s">User Terms of Use</a> and ' \
             '<a href="%s">Project Lead Terms of Use</a>.' % \
             (user_terms_url, project_terms_url)
     return text
