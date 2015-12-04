@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
+from pytz import timezone
 from django.shortcuts import render, redirect
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core import validators
@@ -142,22 +145,77 @@ def get_usage_by_users_json( request, allocation_id=None):
 
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
 def get_downtimes_json( request):
-    logger.info( 'Downtimes requested.')
+    start_date = request.GET.get('from')
+    logger.info('start_date: %s', start_date)
+    end_date = request.GET.get('to')
+    logger.info('end_date: %s', end_date)
+    queue = request.GET.get('queue')
+    central = timezone('US/Central')
+    logger.info( 'Downtimes requested from: %s, to: %s for queue: %s', start_date, end_date, queue)
     resp = {}
     try:
-        downtimes = Downtime.objects.all()
-        resp['result'] = []
+        if start_date is None:
+            start_date = central.localize(datetime(2014, 1, 1, 0, 0, 0))
+            logger.info('start_date: %s', start_date)
+        else:
+            arr = start_date.split('-')
+            start_date = central.localize(datetime(int(arr[0]), int(arr[1]), int(arr[2]), 0, 0, 0))
+
+        if end_date is None:
+            end_date = central.localize(datetime.now()) + timedelta(days=365)
+            logger.info('end_date: %s', end_date)
+        else:
+            arr = end_date.split('-')
+            end_date = central.localize(datetime(int(arr[0]), int(arr[1]), int(arr[2]), 23, 59, 59))
+
+        
+        args = (Q(start__lte = start_date) & Q(end__gte = start_date))|(Q(start__lte = end_date) & Q(end__gte = end_date))|(Q(start__gte = start_date) & Q(end__lte = end_date))
+        if queue is not None:
+            logger.info( 'Querying downtimes from: %s, to: %s for queue: %s', start_date, end_date, queue)
+            downtimes = Downtime.objects.filter(args, queue__iexact=queue).order_by('start')
+        else:
+            logger.info( 'Querying downtimes from: %s, to: %s', start_date, end_date)
+            downtimes = Downtime.objects.filter(args).order_by('start')
+        
+        temp = {}
         for downtime in downtimes:
-            d = {}
-            d['queue'] = downtime.queue
-            d['nodes_down'] = downtime.nodes_down
-            #d['start'] = json.dumps(downtime.start, cls=DjangoJSONEncoder)
-            d['start'] = time.mktime(downtime.start.timetuple()) * 1000
-            if downtime.end:
-                d['end'] = time.mktime(downtime.end.timetuple()) * 1000
+            nodes_down = -1;
+            downtime_start = downtime.start.astimezone(central)
+            downtime_end = downtime.end.astimezone(central)
+            if downtime_start > start_date:
+                chunked_start = downtime_start
             else:
-                d['end'] = None
-            resp['result'].append(d)
+                chunked_start = start_date
+
+            if downtime_end > end_date:
+                downtime_end = end_date
+
+            #interval = downtime.end - chunked_start
+            interval = downtime_end - chunked_start
+            repeat = True
+            while (repeat):
+                date_string = chunked_start.strftime('%Y/%m/%d')
+                if interval.days > 0:
+                    chunked_end = central.localize(datetime(chunked_start.year, chunked_start.month, chunked_start.day, 23, 59, 59))
+                    chunked_interval = chunked_end - chunked_start
+                    diff_in_hours = round(chunked_interval.total_seconds()/3600, 2)
+                    nodes_down = round((downtime.nodes_down * diff_in_hours)/24, 2)
+                    chunked_start = central.localize(datetime(chunked_start.year, chunked_start.month, chunked_start.day, 0, 0, 0)) + timedelta(days=1)
+                    interval = downtime_end - chunked_start
+                else:
+                    diff_in_hours = round(interval.total_seconds()/3600, 2)
+                    nodes_down = round((downtime.nodes_down * diff_in_hours)/24, 2)
+                    repeat = False
+
+                key = date_string
+                if key in temp:
+                    temp[key]['nodes_down'] += nodes_down
+                else:
+                    if nodes_down > 0:
+                        temp[key] = {}
+                        temp[key]['nodes_down'] = nodes_down
+                        temp[key]['date'] = date_string
+        resp['result'] = temp.values()
         resp['status'] = 'success'
         resp['message'] = ''
     except Exception as e:
@@ -165,11 +223,56 @@ def get_downtimes_json( request):
         raise Exception('Error fetching downtimes.')
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
+@login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
-def downtimes_and_usage( request):
-    logger.info( 'Downtimes and usage requested.')
+def get_daily_usage_json( request):
+    logger.info( 'Daily usage requested.')
+    start_date = request.GET.get('from')
+    logger.info('start_date: %s', start_date)
+    end_date = request.GET.get('to')
+    logger.info('end_date: %s', end_date)
+    queue = request.GET.get('queue')
+    resource = 'chameleon'
+    logger.info( 'Downtimes requested from: %s, to: %s for queue: %s', start_date, end_date, queue)
+    resp = {}
+    try:
+        tas = TASClient()
+        allocation_id = 27591
+        jobs = tas.get_jobs(allocation_id)
+        logger.info( 'Total jobs: %s', len( jobs ) )
+        data = []
+        temp = {}
+        for job in jobs:
+            start_date_str = job.get('startUTC')
+            end_date_str = job.get('endUTC')
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M:%S')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M:%S')
+            interval = end_date - start_date
+            diff_in_hours = round(interval.total_seconds()/3600, 2)
+            sus = job.get('sus')
+            nodes_used = round((sus * diff_in_hours)/24, 2)
+            if end_date_str:
+                time_index = end_date_str.index('T')
+                end_date_str = end_date_str[:time_index] 
+                if end_date_str in temp:
+                    temp[end_date_str]['nodes_used'] += nodes_used
+                else:
+                    temp[end_date_str] = {}
+                    temp[end_date_str]['date'] = end_date_str
+                    temp[end_date_str]['nodes_used'] = nodes_used
+        resp['result'] = temp.values()
+        resp['status'] = 'success'
+        resp['message'] = ''
+    except Exception as e:
+        traceback.print_exc()
+        raise Exception('Error fetching jobs.')
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+def utilization( request):
+    logger.info( 'Utilization page requested.')
     context = {}
-    return render(request, 'usage/downtimes-and-usage.html', context)
+    return render(request, 'usage/utilization.html', context)
 
 
 def usage_template(request, resource):
