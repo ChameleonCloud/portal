@@ -136,39 +136,39 @@ describe('UsageController', function() {
         //1m
         scope.updateUsageByUsersChart(project, '1m');
         expect(project.dateRange).toEqual('1m');
-        expect(project.from).toEqual(_moment().startOf('day').subtract(1, 'months').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').subtract(1, 'months').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //3m
         scope.updateUsageByUsersChart(project, '3m');
         expect(project.dateRange).toEqual('3m');
-        expect(project.from).toEqual(_moment().startOf('day').subtract(3, 'months').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').subtract(3, 'months').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //1m
         scope.updateUsageByUsersChart(project, '6m');
         expect(project.dateRange).toEqual('6m');
-        expect(project.from).toEqual(_moment().startOf('day').subtract(6, 'months').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').subtract(6, 'months').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //ytd
         scope.updateUsageByUsersChart(project, 'ytd');
         expect(project.dateRange).toEqual('ytd');
-        expect(project.from).toEqual(_moment().startOf('day').startOf('year').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').startOf('year').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //1y
         scope.updateUsageByUsersChart(project, '1y');
         expect(project.dateRange).toEqual('1y');
-        expect(project.from).toEqual(_moment().startOf('day').subtract(1, 'years').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').subtract(1, 'years').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //all
         scope.updateUsageByUsersChart(project, 'all');
         expect(project.dateRange).toEqual('all');
-        expect(project.from).toEqual(_moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
         //custom
         project.from = project.to = Date();
         scope.updateUsageByUsersChart(project);
         expect(project.dateRange).toEqual('custom');
-        expect(project.from).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
-        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'));
+        expect(project.from).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
+        expect(project.to).toEqual(_moment().startOf('day').format('YYYY-MM-DD'));
 
     });
 });

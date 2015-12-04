@@ -2,11 +2,12 @@
  * author agauli
  */
 'use strict';
+/*global Highcharts */
 
 angular.module('usageApp')
-    .controller('UsageController', ['$scope', '$http', '$timeout', '$location', '$filter', 'moment', 'highcharts',
+    .controller('UsageController', ['$scope', '$http', '$timeout', '$q', '$location', '$filter', 'moment', 'highcharts',
         '_', '$modal', 'UtilFactory', 'AllocationFactory', 'NotificationFactory', 'UsageFactory',
-        function($scope, $http, $timeout, $location, $filter, moment, highcharts, _, $modal, UtilFactory,
+        function($scope, $http, $timeout, $q, $location, $filter, moment, highcharts, _, $modal, UtilFactory,
             AllocationFactory, NotificationFactory, UsageFactory) {
             $scope.messages = [];
             $scope.$on('allocation:notifyMessage', function() {
@@ -87,24 +88,45 @@ angular.module('usageApp')
                 useHighStocks: true
             };
 
-            var usageDowntimesChartConfig = angular.copy(usageChartConfig);
-            // usageDowntimesChartConfig.options.xAxis = {
-            //     type: 'datetime'
-            //     //categories: ['1750', '1800', '1850', '1900', '1950', '1999', '2050'],
-            //     tickmarkPlacement: 'on',
-            //     title: {
-            //         enabled: false
-            //     }
-            // };
-            usageDowntimesChartConfig.options.yAxis = {
+
+            var utilizationChartConfig = {
+                options: {
+                    chart: {
+                        type: 'column',
+                        alignTicks: false
+                    },
+                    rangeSelector: {
+                        enabled: true,
+                        selected: 2
+                    },
+                    navigator: {
+                        enabled: true
+                    },
+                    colors: ['#7cb5ec', '#778b9e', '#acf19d'],
+                    credits: {
+                        enabled: false
+                    },
+                    legend: {
+                        enabled: true,
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'percent',
+                            dataLabels: {
+                                enabled: true,
+                                color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                                style: {
+                                    textShadow: '0 0 3px black'
+                                }
+                            }
+                        }
+                    },
+                },
+                series: [],
                 title: {
-                    text: 'Percent'
-                }
-            };
-            usageDowntimesChartConfig.options.plotOptions.area.stacking = 'percent';
-            usageDowntimesChartConfig.options.plotOptions.area.marker = {
-                lineWidth: 1,
-                lineColor: '#ffffff'
+                    text: 'Chameleon Utilization'
+                },
+                useHighStocks: true
             };
 
             var usageByUserChartConfig = {
@@ -196,32 +218,44 @@ angular.module('usageApp')
                 });
             };
 
-            $scope.downtimes = {
+            $scope.utilization = {
                 from: null,
                 to: null,
                 startOpened: false,
                 endOpened: false,
                 selectedQueue: '',
-                data: []
+                downtimes: [],
+                usage: [],
+                unused: []
             };
 
-            var getDowntimes = function() {
-                $scope.downtimes.data = [];
+            var getUtilization = function() {
+                $scope.utilization.data = [];
                 var kwargs = {};
-                if ($scope.downtimes.from) {
-                    kwargs.from = moment($scope.downtimes.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                if ($scope.utilization.from) {
+                   // kwargs.from = moment($scope.utilization.from).utc().format('YYYY-MM-DD');
+                   kwargs.from = moment($scope.utilization.from).format('YYYY-MM-DD');
                 }
-                if ($scope.downtimes.to) {
-                    kwargs.to = moment($scope.downtimes.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+                if ($scope.utilization.to) {
+                    kwargs.to = moment($scope.utilization.to).format('YYYY-MM-DD');
 
                 }
-                if ($scope.downtimes.selectedQueue) {
-                    kwargs.queue = $scope.downtimes.selectedQueue;
+                if ($scope.utilization.selectedQueue) {
+                    kwargs.queue = $scope.utilization.selectedQueue;
                 }
-                UsageFactory.getDowntimes(kwargs).then(function() {
-                    $scope.downtimes.data = UsageFactory.downtimes;
-                    $scope.downtimes.unused = UsageFactory.unused;
-                    drawDowntimesChart();
+                var promises = [];
+                NotificationFactory.clearMessages('utilization');
+                NotificationFactory.addLoading('utilization');
+                promises.push(UsageFactory.getDowntimes(kwargs));
+                promises.push(UsageFactory.getDailyUsage(kwargs));
+                $q.all(promises).then(function(){
+                    NotificationFactory.removeLoading('utilization');
+                    $scope.utilization.downtimes = UsageFactory.downtimes;
+                    $scope.utilization.usage = UsageFactory.usage;
+                    drawUtilizationChart();
+                },
+                function(){
+                    NotificationFactory.removeLoading('utilization');
                 });
             };
 
@@ -279,24 +313,35 @@ angular.module('usageApp')
                 });
             };
 
-            var drawDowntimesChart = function() {
-                $scope.downtimes.usageChartConfig = angular.copy(usageDowntimesChartConfig);
-                $scope.downtimes.usageChartConfig.title.text = 'Downtimes and Usage';
-                $scope.downtimes.usageChartConfig.series = [];
-                $scope.downtimes.usageChartConfig.series.push({
-                    id: 'unused',
-                    name: 'Nodes not used',
-                    data: $scope.downtimes.unused
+            var drawUtilizationChart = function() {
+                $scope.utilization.usageChartConfig = angular.copy(utilizationChartConfig);
+                var downtimeData = [];
+                angular.forEach($scope.utilization.downtimes, function(downtime){
+                    downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
                 });
-                $scope.downtimes.usageChartConfig.series.push({
-                    id: 'downtimes',
-                    name: 'Nodes down',
-                    data: $scope.downtimes.data
+
+                var dailyUsageData = [];
+                angular.forEach($scope.utilization.usage, function(usage){
+                    dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
                 });
-                $scope.downtimes.usageChartConfig.series.push({
-                    id: 'usage',
-                    name: 'Nodes used',
-                    data: $scope.downtimes.data
+
+                $scope.utilization.usageChartConfig.series.push({
+                    name: 'Used',
+                    data: dailyUsageData,
+
+                }, {
+                    name: 'Downtime',
+                    data: downtimeData,
+
+                }, {
+                    name: 'Unused',
+                    data: [
+                        [moment('2015/12/01', 'YYYY/MM/DD').valueOf(), 110],
+                        [moment('2015/12/02', 'YYYY/MM/DD').valueOf(), 120],
+                        [moment('2015/12/03', 'YYYY/MM/DD').valueOf(), 130],
+                        [moment('2015/12/04', 'YYYY/MM/DD').valueOf(), 110],
+                    ],
+
                 });
             };
 
@@ -358,8 +403,8 @@ angular.module('usageApp')
             };
 
             var setDefaultDowntimeDates = function() {
-                $scope.downtimes.from = $scope.getMinDowntimeDate();
-                $scope.downtimes.to = $scope.getMaxDowntimeDate();
+                $scope.utilization.from = $scope.getMinUtilizationDate();
+                $scope.utilization.to = $scope.getMaxUtilizationDate();
             };
 
             $scope.viewUsagePerUser = function(project) {
@@ -377,28 +422,28 @@ angular.module('usageApp')
                 switch (dateRange) {
                     case '1m':
                         project.dateRange = '1m';
-                        project.from = moment().startOf('day').subtract(1, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment().subtract(1, 'months').format('YYYY-MM-DD');
+                        project.to = moment().format('YYYY-MM-DD');
                         break;
                     case '3m':
                         project.dateRange = '3m';
-                        project.from = moment().startOf('day').subtract(3, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment().subtract(3, 'months').format('YYYY-MM-DD');
+                        project.to = moment().format('YYYY-MM-DD');
                         break;
                     case '6m':
                         project.dateRange = '6m';
-                        project.from = moment().startOf('day').subtract(6, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment().subtract(6, 'months').format('YYYY-MM-DD');
+                        project.to = moment().format('YYYY-MM-DD');
                         break;
                     case 'ytd':
                         project.dateRange = 'ytd';
-                        project.from = moment().startOf('day').startOf('year').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment().startOf('year').format('YYYY-MM-DD');
+                        project.to = moment().format('YYYY-MM-DD');
                         break;
                     case '1y':
                         project.dateRange = '1y';
-                        project.from = moment().startOf('day').subtract(1, 'years').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment().subtract(1, 'years').format('YYYY-MM-DD');
+                        project.to = moment().format('YYYY-MM-DD');
                         break;
                     case 'all':
                         project.dateRange = 'all';
@@ -406,53 +451,53 @@ angular.module('usageApp')
                         break;
                     default:
                         project.dateRange = 'custom';
-                        project.from = moment(project.from).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
-                        project.to = moment(project.to).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        project.from = moment(project.from).format('YYYY-MM-DD');
+                        project.to = moment(project.to).format('YYYY-MM-DD');
                         break;
 
                 }
                 getUsageByUsers(project);
             };
 
-            $scope.updateDowntimesUsageChart = function(dateRange) {
+            $scope.updateUtilizationChart = function(dateRange) {
                 switch (dateRange) {
                     case '1m':
-                        $scope.downtimes.dateRange = '1m';
-                        $scope.downtimes.from = moment().startOf('day').subtract(1, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = '1m';
+                        $scope.utilization.from = moment().subtract(1, 'months').format('YYYY-MM-DD');
+                        $scope.utilization.to = moment().startOf('day').format('YYYY-MM-DD');
                         break;
                     case '3m':
-                        $scope.downtimes.dateRange = '3m';
-                        $scope.downtimes.from = moment().startOf('day').subtract(3, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = '3m';
+                        $scope.utilization.from = moment().subtract(3, 'months').format('YYYY-MM-DD');
+                        $scope.utilization.to = moment().format('YYYY-MM-DD');
                         break;
                     case '6m':
-                        $scope.downtimes.dateRange = '6m';
-                        $scope.downtimes.from = moment().startOf('day').subtract(6, 'months').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = '6m';
+                        $scope.utilization.from = moment().subtract(6, 'months').format('YYYY-MM-DD');
+                        $scope.utilization.to = moment().format('YYYY-MM-DD');
                         break;
                     case 'ytd':
-                        $scope.downtimes.dateRange = 'ytd';
-                        $scope.downtimes.from = moment().startOf('day').startOf('year').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = 'ytd';
+                        $scope.utilization.from = moment().startOf('year').format('YYYY-MM-DD');
+                        $scope.utilization.to = moment().format('YYYY-MM-DD');
                         break;
                     case '1y':
-                        $scope.downtimes.dateRange = '1y';
-                        $scope.downtimes.from = moment().startOf('day').subtract(1, 'years').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = '1y';
+                        $scope.utilization.from = moment().subtract(1, 'years').format('YYYY-MM-DD');
+                        $scope.utilization.to = moment().format('YYYY-MM-DD');
                         break;
                     case 'all':
-                        $scope.downtimes.dateRange = 'all';
+                        $scope.utilization.dateRange = 'all';
                         setDefaultDowntimeDates();
                         break;
                     default:
-                        $scope.downtimes.dateRange = 'custom';
-                        $scope.downtimes.from = moment($scope.downtimes.from).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
-                        $scope.downtimes.to = moment($scope.downtimes.to).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                        $scope.utilization.dateRange = 'custom';
+                        $scope.utilization.from = moment($scope.utilization.from).format('YYYY-MM-DD');
+                        $scope.utilization.to = moment($scope.utilization.to).format('YYYY-MM-DD');
                         break;
 
                 }
-                getDowntimes();
+                getUtilization();
             };
 
             $scope.viewUserUsage = function(project) {
@@ -489,24 +534,25 @@ angular.module('usageApp')
             };
 
             $scope.getMaxDate = function(project) {
-                var today = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                var today = moment().format('YYYY-MM-DD');
                 if (moment(project.selectedAllocation.end).isAfter(today, 'day')) {
                     return today;
                 } else {
-                    return moment(project.selectedAllocation.end).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                    return moment(project.selectedAllocation.end).format('YYYY-MM-DD');
                 }
             };
 
             $scope.getMinDate = function(project) {
-                return moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+               // return moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+               return moment(project.selectedAllocation.start).format('YYYY-MM-DD');
             };
 
-            $scope.getMaxDowntimeDate = function() {
-                return moment().format('YYYY-MM-DDTHH:mm:ssZ');
+            $scope.getMaxUtilizationDate = function() {
+                return moment().format('YYYY-MM-DD');
             };
 
-            $scope.getMinDowntimeDate = function() {
-                return moment('12-01-2014', 'MM-DD-YYYY').format('YYYY-MM-DDTHH:mm:ssZ');
+            $scope.getMinUtilizationDate = function() {
+                return '01-01-2014';
             };
 
             $scope.open = {
@@ -525,15 +571,15 @@ angular.module('usageApp')
                 }
             };
 
-            $scope.isOpen4Downtimes = function($event, caltype) {
+            $scope.isOpen4Utilization = function($event, caltype) {
                 $event.preventDefault();
                 $event.stopPropagation();
                 if (caltype === 'start') {
-                    $scope.downtimes.endOpened = false;
-                    $scope.downtimes.startOpened = true;
+                    $scope.utilization.endOpened = false;
+                    $scope.utilization.startOpened = true;
                 } else if (caltype === 'end') {
-                    $scope.downtimes.endOpened = true;
-                    $scope.downtimes.startOpened = false;
+                    $scope.utilization.endOpened = true;
+                    $scope.utilization.startOpened = false;
                 }
             };
 
@@ -543,9 +589,9 @@ angular.module('usageApp')
                 $scope.selections.usernamemodel = path.substring(1);
                 $scope.getUserAllocations();
             } else {
-                if ($location.absUrl().indexOf('downtimes') !== -1) {
+                if ($location.absUrl().indexOf('utilization') !== -1) {
                     setDefaultDowntimeDates();
-                    getDowntimes();
+                    getUtilization();
                 } else {
                     $scope.getAllocations();
                 }

@@ -271,8 +271,8 @@ angular
         factory.projects = [];
         factory.userProjects = [];
         factory.downtimes = [];
-        factory.unused = [];
-        //merges usage that occur on same datetime
+        factory.usage = [];
+
         var processData = function(project, response) {
             var usage = {};
             var curatedUsage = [];
@@ -328,32 +328,6 @@ angular
             });
             project.selectedAllocation.usageUsers = users;
             project.selectedAllocation.usageByUsers = formattedUsageByUsers;
-        };
-
-        var processDowntimesData = function(response) {
-            var data = [];
-            angular.forEach(response.data.result, function(value) {
-                data.push(['start', value.start, value.nodes_down]);
-                if (value.end) {
-                    data.push(['end', value.end, value.nodes_down]);
-                }
-            });
-            data = _.sortBy(data, function(arr) {
-                return arr[1];
-            });
-            var cumulative_nodes_down = 0;
-            var totalnodes = 50;
-            angular.forEach(data, function(datum) {
-                factory.downtimes.push([datum[1], cumulative_nodes_down]);
-                factory.unused.push([datum[1], totalnodes - cumulative_nodes_down]);
-                if (datum[0] === 'start') {
-                    cumulative_nodes_down += datum[2];
-                } else if (datum[0] === 'end') {
-                    cumulative_nodes_down -= datum[2];
-                }
-                factory.downtimes.push([datum[1] + 1000, cumulative_nodes_down]);
-                factory.unused.push([datum[1] + 1000, totalnodes - cumulative_nodes_down]);
-            });
         };
 
         factory.getAllocationUsage = function(project) {
@@ -460,11 +434,30 @@ angular
                     });
         };
 
+        factory.getDailyUsage = function(params) {
+            var msgKey = 'utilization';
+            var errorMsg = 'There was an error loading daily usage.';
+            return $http({
+                    method: 'GET',
+                    url: '/admin/usage/daily-usage/',
+                    params: params,
+                    cache: 'true',
+                })
+                .then(function(response) {
+                        factory.usage = response.data.result;
+                        factory.usage = _.sortBy(factory.usage, function(obj) {
+                            return moment(obj.date, 'YYYY-MM-DD');
+                        });
+                        console.log('factory.usage', factory.usage);
+                    },
+                    function() {
+                        NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
+                    });
+        };
+
         factory.getDowntimes = function(params) {
-            var msgKey = 'downtimes';
+            var msgKey = 'utilization';
             var errorMsg = 'There was an error loading downtimes.';
-            NotificationFactory.clearMessages(msgKey);
-            NotificationFactory.addLoading(msgKey);
             return $http({
                     method: 'GET',
                     url: '/admin/usage/downtimes/',
@@ -472,12 +465,14 @@ angular
                     cache: 'true'
                 })
                 .then(function(response) {
-                        processDowntimesData(response);
-                        NotificationFactory.removeLoading(msgKey);
+                        factory.downtimes = response.data.result;
+                        factory.downtimes = _.sortBy(factory.downtimes, function(obj) {
+                            return moment(obj.date, 'YYYY-MM-DD');
+                        });
+                        console.log('factory.downtimes', factory.downtimes);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
-                        NotificationFactory.removeLoading(msgKey);
                     });
         };
         return factory;

@@ -157,7 +157,7 @@ else:
 
 LANGUAGE_CODE = 'en'
 
-#TIME_ZONE = 'UTC'
+TIME_ZONE = 'US/Central'
 
 USE_TZ = True
 
