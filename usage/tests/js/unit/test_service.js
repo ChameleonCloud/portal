@@ -193,6 +193,12 @@ describe('AllocationFactory', function() {
         allocations: []
     }];
 
+    var response = {
+        status: 'success',
+        msg: '',
+        result: projects
+    };
+
     var users = [{
         id: 1,
         username: 'test1'
@@ -222,7 +228,7 @@ describe('AllocationFactory', function() {
     });
 
     it('should get user allocations', function() {
-        $httpBackend.when('GET', '/admin/allocations/user/test/').respond(200, projects);
+        $httpBackend.when('GET', '/admin/allocations/user/test/').respond(200, response);
         AllocationFactory.getUserAllocations('test');
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();

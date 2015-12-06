@@ -96,11 +96,18 @@ angular.module('usageApp')
                         alignTicks: false
                     },
                     rangeSelector: {
-                        enabled: true,
-                        selected: 2
+                        enabled: false,
+                        //selected: 2
                     },
                     navigator: {
                         enabled: true
+                    },
+                    yAxis: {
+                        labels: {
+                            formatter: function() {
+                                return this.value + '%';
+                            }
+                        }
                     },
                     colors: ['#7cb5ec', '#778b9e', '#acf19d'],
                     credits: {
@@ -120,6 +127,10 @@ angular.module('usageApp')
                                 }
                             }
                         }
+                    },
+                    tooltip: {
+                        pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+                        shared: true
                     },
                 },
                 series: [],
@@ -225,16 +236,15 @@ angular.module('usageApp')
                 endOpened: false,
                 selectedQueue: '',
                 downtimes: [],
-                usage: [],
-                unused: []
+                usage: []
             };
 
             var getUtilization = function() {
                 $scope.utilization.data = [];
                 var kwargs = {};
                 if ($scope.utilization.from) {
-                   // kwargs.from = moment($scope.utilization.from).utc().format('YYYY-MM-DD');
-                   kwargs.from = moment($scope.utilization.from).format('YYYY-MM-DD');
+                    // kwargs.from = moment($scope.utilization.from).utc().format('YYYY-MM-DD');
+                    kwargs.from = moment($scope.utilization.from).format('YYYY-MM-DD');
                 }
                 if ($scope.utilization.to) {
                     kwargs.to = moment($scope.utilization.to).format('YYYY-MM-DD');
@@ -248,15 +258,15 @@ angular.module('usageApp')
                 NotificationFactory.addLoading('utilization');
                 promises.push(UsageFactory.getDowntimes(kwargs));
                 promises.push(UsageFactory.getDailyUsage(kwargs));
-                $q.all(promises).then(function(){
-                    NotificationFactory.removeLoading('utilization');
-                    $scope.utilization.downtimes = UsageFactory.downtimes;
-                    $scope.utilization.usage = UsageFactory.usage;
-                    drawUtilizationChart();
-                },
-                function(){
-                    NotificationFactory.removeLoading('utilization');
-                });
+                $q.all(promises).then(function() {
+                        NotificationFactory.removeLoading('utilization');
+                        $scope.utilization.downtimes = UsageFactory.downtimes;
+                        $scope.utilization.usage = UsageFactory.usage;
+                        drawUtilizationChart();
+                    },
+                    function() {
+                        NotificationFactory.removeLoading('utilization');
+                    });
             };
 
             $scope.selections = {
@@ -316,13 +326,23 @@ angular.module('usageApp')
             var drawUtilizationChart = function() {
                 $scope.utilization.usageChartConfig = angular.copy(utilizationChartConfig);
                 var downtimeData = [];
-                angular.forEach($scope.utilization.downtimes, function(downtime){
-                    downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
-                });
-
                 var dailyUsageData = [];
-                angular.forEach($scope.utilization.usage, function(usage){
+                var unusedNodesData = [];
+                var totalNodes = 100;
+                angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
+                     var downtime = _.findWhere($scope.utilization.downtimes, {date: usage.date});
+                     var unusedNodes = 0;
+                     if(downtime){console.log('downtime', downtime);
+                        downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
+                        unusedNodes = totalNodes - usage.nodes_used - downtime.nodes_down;
+                        unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
+                     }
+                     else{
+                        unusedNodes = totalNodes - usage.nodes_used;
+                        unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
+                     }
+                     
                 });
 
                 $scope.utilization.usageChartConfig.series.push({
@@ -335,12 +355,7 @@ angular.module('usageApp')
 
                 }, {
                     name: 'Unused',
-                    data: [
-                        [moment('2015/12/01', 'YYYY/MM/DD').valueOf(), 110],
-                        [moment('2015/12/02', 'YYYY/MM/DD').valueOf(), 120],
-                        [moment('2015/12/03', 'YYYY/MM/DD').valueOf(), 130],
-                        [moment('2015/12/04', 'YYYY/MM/DD').valueOf(), 110],
-                    ],
+                    data: unusedNodesData,
 
                 });
             };
@@ -402,7 +417,12 @@ angular.module('usageApp')
                 project.to = $scope.getMaxDate(project);
             };
 
-            var setDefaultDowntimeDates = function() {
+            var setDefaultDateRange = function() {
+                $scope.utilization.from = moment().subtract(7, 'days').format('YYYY-MM-DD');
+                $scope.utilization.to = $scope.getMaxUtilizationDate();
+            };
+
+            var setMaximumDateRange = function() {
                 $scope.utilization.from = $scope.getMinUtilizationDate();
                 $scope.utilization.to = $scope.getMaxUtilizationDate();
             };
@@ -488,7 +508,7 @@ angular.module('usageApp')
                         break;
                     case 'all':
                         $scope.utilization.dateRange = 'all';
-                        setDefaultDowntimeDates();
+                        setMaximumDateRange();
                         break;
                     default:
                         $scope.utilization.dateRange = 'custom';
@@ -543,8 +563,8 @@ angular.module('usageApp')
             };
 
             $scope.getMinDate = function(project) {
-               // return moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
-               return moment(project.selectedAllocation.start).format('YYYY-MM-DD');
+                // return moment(project.selectedAllocation.start).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+                return moment(project.selectedAllocation.start).format('YYYY-MM-DD');
             };
 
             $scope.getMaxUtilizationDate = function() {
@@ -552,7 +572,7 @@ angular.module('usageApp')
             };
 
             $scope.getMinUtilizationDate = function() {
-                return '01-01-2014';
+                return moment('12-01-2014').format('YYYY-MM-DD');
             };
 
             $scope.open = {
@@ -590,7 +610,7 @@ angular.module('usageApp')
                 $scope.getUserAllocations();
             } else {
                 if ($location.absUrl().indexOf('utilization') !== -1) {
-                    setDefaultDowntimeDates();
+                    setDefaultDateRange();
                     getUtilization();
                 } else {
                     $scope.getAllocations();

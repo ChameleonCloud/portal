@@ -236,7 +236,12 @@ angular
                 })
                 .then(function(response) {
                         NotificationFactory.removeLoading('userAllocations');
-                        factory.userProjects = response.data;
+                        if(response.data.status.toLowerCase() === 'error'){
+                           NotificationFactory.addMessage('userAllocations', response.data.msg, 'danger');
+                        }
+                        else{
+                           factory.userProjects = response.data.result;
+                        }
                     },
                     function() {
                         NotificationFactory.addMessage('userAllocations', errorMsg, 'danger');

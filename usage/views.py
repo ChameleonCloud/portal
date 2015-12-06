@@ -194,7 +194,7 @@ def get_downtimes_json( request):
             interval = downtime_end - chunked_start
             repeat = True
             while (repeat):
-                date_string = chunked_start.strftime('%Y/%m/%d')
+                date_string = chunked_start.strftime('%Y-%m-%d')
                 if interval.days > 0:
                     chunked_end = central.localize(datetime(chunked_start.year, chunked_start.month, chunked_start.day, 23, 59, 59))
                     chunked_interval = chunked_end - chunked_start
@@ -226,40 +226,51 @@ def get_downtimes_json( request):
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
 def get_daily_usage_json( request):
-    logger.info( 'Daily usage requested.')
-    start_date = request.GET.get('from')
-    logger.info('start_date: %s', start_date)
-    end_date = request.GET.get('to')
-    logger.info('end_date: %s', end_date)
+    start_date_str = request.GET.get('from')
+    end_date_str = request.GET.get('to')
+    resp = {}
+    resp['result'] = None
+    resp['status'] = 'error'
+    if start_date_str is None or end_date_str is None:
+        resp['message'] = 'Start and end date must are required.'
+
     queue = request.GET.get('queue')
     resource = 'chameleon'
-    logger.info( 'Downtimes requested from: %s, to: %s for queue: %s', start_date, end_date, queue)
-    resp = {}
+    logger.info( 'Daily usage requested from: %s, to: %s for queue: %s', start_date_str, end_date_str, queue)
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    if start_date > end_date:
+        resp['message'] = 'Start date must be before end date.'
+    temp = {}
+    while(end_date >= start_date):
+        str_start_date = start_date.strftime('%Y-%m-%d')
+        temp[str_start_date] = {}
+        temp[str_start_date]['date'] = str_start_date
+        temp[str_start_date]['nodes_used'] = 0
+        start_date += timedelta(days=1)
     try:
         tas = TASClient()
         allocation_id = 27591
+        # use start, end date and queue here to get jobs
         jobs = tas.get_jobs(allocation_id)
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
-        temp = {}
         for job in jobs:
-            start_date_str = job.get('startUTC')
-            end_date_str = job.get('endUTC')
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M:%S')
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%dT%H:%M:%S')
-            interval = end_date - start_date
+            job_start_date_str = job.get('startUTC')
+            job_end_date_str = job.get('endUTC')
+            job_start_date = datetime.strptime(job_start_date_str, '%Y-%m-%dT%H:%M:%S')
+            job_end_date = datetime.strptime(job_end_date_str, '%Y-%m-%dT%H:%M:%S')
+            interval = job_end_date - job_start_date
+            logger.info('Job start date: %s, end date: %s, interval %s', job_start_date, job_end_date, interval)
             diff_in_hours = round(interval.total_seconds()/3600, 2)
             sus = job.get('sus')
             nodes_used = round((sus * diff_in_hours)/24, 2)
-            if end_date_str:
-                time_index = end_date_str.index('T')
-                end_date_str = end_date_str[:time_index] 
-                if end_date_str in temp:
-                    temp[end_date_str]['nodes_used'] += nodes_used
-                else:
-                    temp[end_date_str] = {}
-                    temp[end_date_str]['date'] = end_date_str
-                    temp[end_date_str]['nodes_used'] = nodes_used
+            logger.info('Diff in hours: %s, sus: %s, Nodes used: %s', diff_in_hours, sus, nodes_used)
+            if job_end_date_str:
+                time_index = job_end_date_str.index('T')
+                job_end_date_str = job_end_date_str[:time_index] 
+                temp[job_end_date_str]['nodes_used'] += nodes_used
+
         resp['result'] = temp.values()
         resp['status'] = 'success'
         resp['message'] = ''
