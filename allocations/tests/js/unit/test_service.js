@@ -192,6 +192,13 @@ describe('AllocationFactory', function() {
         id: 2,
         allocations: []
     }];
+
+    var response = {
+        status: 'success',
+        msg: '',
+        result: projects
+    };
+    
     beforeEach(function() {
         module('allocationsApp.service');
         module('underscore');
@@ -213,7 +220,7 @@ describe('AllocationFactory', function() {
     });
 
     it('should get user allocations', function() {
-        $httpBackend.when('GET', '/admin/allocations/user/test').respond(200, projects);
+        $httpBackend.when('GET', '/admin/allocations/user/test').respond(200, response);
         AllocationFactory.getUserAllocations('test');
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
