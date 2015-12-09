@@ -1,63 +1,12 @@
 $tocWidth: 200px;
 $tocMargin: 30px;
 
-body.with-toc {
+body.with-sidebar-toc {
   margin-left: $tocWidth;
 }
 
 #toc {
     display: none;
-}
-
-.with-toc #toc {
-    display: inherit;
-}
-
-.cms-toolbar-expanded #toc {
-    margin-top: $tocMargin;
-}
-
-#toc {
-    top: 0px;
-    left: 0px;
-    height: 100%;
-    position: fixed;
-    background: #e5e5e5;
-    box-shadow: inset -5px 0 5px 0px #d5d5d5;
-    width: $tocWidth;
-    padding-top: 20px;
-    color: #333;
-    overflow-y: scroll;
-    margin-right: $tocMargin;
-}
-
-#toc ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-#toc li {
-    padding: 5px 0.5em;
-}
-
-#toc a {
-    color: #333;
-    text-decoration: none;
-    display: block;
-    outline: 0;
-}
-
-#toc .toc-h2 {
-    padding-left: 1.5em;
-}
-
-#toc .toc-h3 {
-    padding-left: 2.5em;
-}
-
-#toc .toc-active {
-    background: #c5c5c5;
 }
 
 .toc-toggle {
@@ -83,23 +32,11 @@ body.with-toc {
     transform-origin: left bottom 0;
 }
 
-.with-toc .toc-toggle {
-    left: $tocWidth - 1;
-}
-
-.toc-toggle::after {
-    content: "\25b2";
-    padding-left: 0.25em;
-    font-size: 0.75em;
-}
-
-.with-toc .toc-toggle::after {
-    content: "\25bc";
-    padding-left: 0.25em;
-    font-size: 0.75em;
-}
-
 @media screen and (max-width: $screen-xs-max + $tocWidth + $tocMargin) {
+    body.with-sidebar-toc {
+      margin-left: 0;
+    }
+
     .toc-toggle {
         position: static;
         border-radius: 3px;
@@ -110,18 +47,157 @@ body.with-toc {
         -o-transform: none;
         transform: none;
     }
+}
 
-    body.with-toc {
-      margin-left: 0;
-    }
+.toc-toggle::after {
+    content: "\25b2";
+    padding-left: 0.25em;
+    font-size: 0.75em;
+}
 
-    .with-toc .toc-toggle {
-        border-radius: 3px 3px 0 0;
-        margin-bottom: -1px;
-        border-bottom: 0;
+.with-sidebar-toc {
+    #toc {
+        display: inherit;
     }
 
     #toc {
+        top: 0px;
+        left: 0px;
+        height: 100%;
+        position: fixed;
+        background: #e5e5e5;
+        box-shadow: inset -5px 0 5px 0px #d5d5d5;
+        width: $tocWidth;
+        padding-top: 20px;
+        color: #333;
+        overflow-y: scroll;
+        margin-right: $tocMargin;
+    }
+
+    #toc ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc li {
+        padding: 5px 0.5em;
+    }
+
+    #toc a {
+        color: #333;
+        text-decoration: none;
+        display: block;
+        outline: 0;
+    }
+
+    #toc .toc-h2 {
+        padding-left: 1.5em;
+    }
+
+    #toc .toc-h3 {
+        padding-left: 2.5em;
+    }
+
+    #toc .toc-active {
+        background: #c5c5c5;
+    }
+
+    .toc-toggle {
+        left: $tocWidth - 1;
+    }
+
+    .toc-toggle::after {
+        content: "\25bc";
+        padding-left: 0.25em;
+        font-size: 0.75em;
+    }
+
+    @media screen and (max-width: $screen-xs-max + $tocWidth + $tocMargin) {
+        .toc-toggle {
+            border-radius: 3px 3px 0 0;
+            margin-bottom: -1px;
+            border-bottom: 0;
+        }
+
+        #toc {
+            position: static;
+            margin-right: 0;
+            margin-bottom: $tocMargin;
+            width: auto;
+            background: #fff;
+            box-shadow: none;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        #toc ul li:first-child {
+            display: none;
+        }
+
+        #toc a {
+            color: #333;
+        }
+
+        #toc a:hover::after,
+        #toc a:focus::after {
+            content: "";
+            display: block;
+            border-bottom: 2px solid #336699;
+            margin-bottom:-2px;
+        }
+
+        #toc .toc-active {
+            background: none;
+        }
+    }
+
+    /* overrides for bootstrap breakpoints with TOC sidebar */
+    .container {
+      @media (min-width: $screen-sm-min + $tocWidth + $tocMargin) {
+        width: $container-sm;
+      }
+      @media (min-width: $screen-md-min + $tocWidth + $tocMargin) {
+        width: $container-md;
+      }
+      @media (min-width: $screen-lg-min + $tocWidth + $tocMargin) {
+        width: $container-lg;
+      }
+    }
+
+    .navbar-chameleon {
+        @media screen and (min-width:$screen-sm-min + $tocWidth + $tocMargin) and (max-width:$screen-sm-max + $tocWidth + $tocMargin) {
+            .hidden-md {
+                display: inline !important;
+            }
+
+            .hidden-sm {
+                display: none !important;
+            }
+
+            .navbar-brand {
+              width: 175px;
+              img {
+                margin-top: -16px;
+              }
+            }
+        }
+    }
+}
+
+.cms-toolbar-expanded #toc {
+    margin-top: $tocMargin;
+}
+
+@media screen and (max-width: $screen-xs-max + $tocWidth + $tocMargin) {
+    .cms-toolbar-expanded #toc {
+        margin-top: 0;
+    }
+}
+
+.with-header-toc {
+    #toc {
+        display: inherit;
         position: static;
         margin-right: 0;
         margin-bottom: $tocMargin;
@@ -132,55 +208,43 @@ body.with-toc {
         color: #333;
     }
 
-    .cms-toolbar-expanded #toc {
-        margin-top: 0;
+    #toc ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc li {
+        padding: 5px 0.5em;
+    }
+
+    #toc a {
+        color: #333;
+        display: block;
+        outline: 0;
+    }
+
+    #toc ul li:first-child {
+        display: none;
+    }
+
+    #toc .toc-h2 {
+        padding-left: 1.5em;
+    }
+
+    #toc .toc-h3 {
+        padding-left: 2.5em;
+    }
+
+    #toc .toc-h4 {
+        padding-left: 3.5em;
     }
 
     #toc a {
         color: #333;
     }
 
-    #toc a:hover::after,
-    #toc a:focus::after {
-        content: "";
-        display: block;
-        border-bottom: 2px solid #336699;
-        margin-bottom:-2px;
-    }
-
     #toc .toc-active {
         background: none;
-    }
-}
-
-/* overrides for bootstrap breakpoints with TOC sidebar */
-.with-toc .container {
-  @media (min-width: $screen-sm-min + $tocWidth + $tocMargin) {
-    width: $container-sm;
-  }
-  @media (min-width: $screen-md-min + $tocWidth + $tocMargin) {
-    width: $container-md;
-  }
-  @media (min-width: $screen-lg-min + $tocWidth + $tocMargin) {
-    width: $container-lg;
-  }
-}
-
-.with-toc .navbar-chameleon {
-    @media screen and (min-width:$screen-sm-min + $tocWidth + $tocMargin) and (max-width:$screen-sm-max + $tocWidth + $tocMargin) {
-        .hidden-md {
-            display: inline !important;
-        }
-
-        .hidden-sm {
-            display: none !important;
-        }
-
-        .navbar-brand {
-          width: 175px;
-          img {
-            margin-top: -16px;
-          }
-        }
     }
 }

@@ -294,7 +294,9 @@ CMS_PERMISSION = True
 CMS_PLACEHOLDER_CONF = {}
 
 CMS_STYLE_NAMES = (
-    ('enable-toc', _('Enable TOC')),
+    ('enable-toc', _('Enable TOC (sidebar)')),
+    ('sidebar-toc', _('Sidebar TOC')),
+    ('header-toc', _('Header TOC')),
 )
 
 LANGUAGES = [
