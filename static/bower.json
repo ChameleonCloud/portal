@@ -12,7 +12,7 @@
     "bootstrap-sass-official": "~3.3.0",
     "jquery": "~2.1.1",
     "fontawesome": "~4.2.0",
-    "toc": "mrhanlon/toc#0.3.3"
+    "toc": "mrhanlon/toc#0.3.4"
   },
   "resolutions": {
     "jquery": "~2.1.1"

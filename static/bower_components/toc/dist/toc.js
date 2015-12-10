@@ -1,35 +1,37 @@
 /*!
  * toc - jQuery Table of Contents Plugin
- * v0.3.2
+ * v0.3.4
  * http://projects.jga.me/toc/
  * copyright Greg Allen 2015
  * MIT License
 */
 /*!
  * smooth-scroller - Javascript lib to handle smooth scrolling
- * v0.1.2
+ * v0.1.3
  * https://github.com/firstandthird/smooth-scroller
- * copyright First+Third 2014
+ * copyright First+Third 2015
  * MIT License
 */
 //smooth-scroller.js
 
-(function($) {
+(function(window, $) {
   $.fn.smoothScroller = function(options) {
     options = $.extend({}, $.fn.smoothScroller.defaults, options);
     var el = $(this);
+    var hash = el.attr('id');
+    var historySupport = window.history && window.history.pushState;
+
+    if (hash.length && historySupport) {
+      window.history.pushState(null, null, '#' + hash);
+    }
 
     $(options.scrollEl).animate({
       scrollTop: el.offset().top - $(options.scrollEl).offset().top - options.offset
-    }, options.speed, options.ease, function() {
+    }, options.speed, options.ease).promise().done(function() {
       var hash = el.attr('id');
 
-      if(hash.length) {
-        if(history.pushState) {
-          history.pushState(null, null, '#' + hash);
-        } else {
-          document.location.hash = hash;
-        }
+      if(hash.length && !historySupport) {
+        document.location.hash = hash;
       }
 
       el.trigger('smoothScrollerComplete');
@@ -53,7 +55,7 @@
       $(href).smoothScroller();
     }
   });
-}(jQuery));
+}(window, jQuery));
 
 (function($) {
 var verboseIdCache = {};
