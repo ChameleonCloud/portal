@@ -1,0 +1,13 @@
+[Unit]
+Description=Chameleon Portal
+Requires=docker.service
+After=docker.service
+
+[Service]
+User=portal
+ExecStart=/opt/chameleon/docker-compose -f /opt/chameleon/docker-compose.yml up
+ExecStop=/opt/chameleon/docker-compose stop
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
