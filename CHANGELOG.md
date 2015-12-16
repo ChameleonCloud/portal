@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.8.1
+
+- New Table of Contents style
+  - ToC can be configured as "sidebar" or "header"
+
 ### v1.8.0
 
 - Table of Contents for Docuementation
