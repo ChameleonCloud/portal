@@ -229,15 +229,23 @@ body.with-sidebar-toc {
     }
 
     #toc .toc-h2 {
-        padding-left: 1.5em;
+        padding-left: 0;
     }
 
     #toc .toc-h3 {
-        padding-left: 2.5em;
+        padding-left: 0;
+        font-size: 1.2em;
+        text-decoration: underline;
     }
 
     #toc .toc-h4 {
-        padding-left: 3.5em;
+        padding: 3px 20px;
+
+        &:before {
+          content: "\02022";
+          padding-right: 5px;
+          float: left;
+        }
     }
 
     #toc a {
