@@ -1,0 +1,20 @@
+{% extends 'layout/user.html' %}
+{% load bootstrap3 %}
+
+{% block title %}Create Appliance{% endblock %}
+
+{% block content %}
+<h2>Create Appliance</h2>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {% bootstrap_form appliance_form %}
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-success">Create Appliance</button>
+    <a href="{% url 'appliance_catalog:list' %}" class="btn btn-default">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}
