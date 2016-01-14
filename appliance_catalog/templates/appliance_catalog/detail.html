@@ -5,11 +5,11 @@
     <h2>{{ appliance.name }}</h2>
     {% if appliance %}
         <div class="detail">
-            <img src="http://apps.openstack.org/static/images/logo-kubernetes.png" alt="App Icon">
+            <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon">
             <div>{{ appliance.description }}</div>
         </div>
         <a class="btn btn-warning" href="{% url 'appliance_catalog:edit' appliance.id %}">Edit</a>
-        <a class="btn btn-danger" href="{% url 'appliance_catalog:delete' appliance.id %}">Remove</a>
+        <a class="btn btn-danger" href="{% url 'appliance_catalog:delete' appliance.id %}">Delete</a>
     {% else %}
         <div class="alert alert-info">No appliance found. Please check if the url is correct.</div>
     {% endif %}

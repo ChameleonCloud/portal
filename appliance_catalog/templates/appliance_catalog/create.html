@@ -4,15 +4,22 @@
 {% block title %}Create Appliance{% endblock %}
 
 {% block content %}
-<h2>Create Appliance</h2>
-
+{% if edit %}
+     <h2>Edit Appliance</h2>
+{% else %}
+     <h2>Create Appliance</h2>
+{% endif %}
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
 
   {% bootstrap_form appliance_form %}
 
   <div class="form-group">
-    <button type="submit" class="btn btn-success">Create Appliance</button>
+      {% if edit %}
+             <button type="submit" class="btn btn-success">Save Changes</button>
+      {% else %}
+             <button type="submit" class="btn btn-success">Create an Appliance</button>
+      {% endif %}
     <a href="{% url 'appliance_catalog:list' %}" class="btn btn-default">Cancel</a>
   </div>
 </form>
