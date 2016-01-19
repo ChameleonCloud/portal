@@ -4,7 +4,11 @@
 
 {% block title %}
     {% if alloc_id != -1 %}
-        Recharge/Extend
+        {% if project.status == 'Rejected' %}
+            Resubmit
+        {% else %}
+            Recharge/Extend
+        {% endif %}
     {% else %}
         Create
     {% endif %}
@@ -14,7 +18,11 @@
 {% block content %}
 <h2>
     {% if alloc_id != -1 %}
-        Recharge/Extend Allocation #{{alloc_id}}
+        {% if alloc.status == 'Rejected' %}
+            Resubmit Allocation #{{alloc_id}}
+        {% else %}
+            Recharge/Extend Allocation #{{alloc_id}}
+        {% endif %}
     {% else %}
         Create a New Allocation
     {% endif %}
@@ -22,6 +30,12 @@
 </h2>
 
 {% if alloc_id != -1 %}
+
+    {% if alloc.status == 'Rejected' %}
+        <p class = "lead">
+            {{alloc.decisionSummary}}
+        </p>
+    {% endif %}
 <p class="lead">
     If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. Please, add a paragraph to the
     Request Justification window briefly describing work done to date (or pointing to posters, papers or other artifacts) and briefly

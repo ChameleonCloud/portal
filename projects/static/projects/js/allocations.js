@@ -4,4 +4,8 @@
       e.preventDefault();
       $('.allocation').toggleClass('show');
     });
+
+    if ($('.allocation-active').length != 0 || $('.allocation-pending').length != 0) {
+            $('.allocation-rejected').toggleClass('hide');
+    }
 })( this, $ );

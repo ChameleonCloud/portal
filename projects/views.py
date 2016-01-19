@@ -110,17 +110,25 @@ def view_project(request, project_id):
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
-    project.has_active_allocations = False
+    project.active_allocations = []
+    project.pending_allocations = []
+    project.rejected_allocations = []
+    project.inactive_allocations = []
 
     for a in project.allocations:
-        if a.status in ['Active']:
+        if a.status == 'Active':
+            project.active_allocations.append(a)
             project.has_active_allocations = True
-
-        if a.status in ['Pending', 'Approved']:
+        if a.status == 'Pending':
+            project.pending_allocations.append(a)
             project.has_pending_allocations = True
-
-        if a.status in ['Rejected', 'Inactive']:
+        if a.status == 'Inactive':
+            project.inactive_allocations.append(a)
             project.has_inactive_allocations = True
+        if a.status == 'Rejected':
+            project.rejected_allocations.append(a)
+            project.has_rejected_allocations = True
+
 
         if a.start and isinstance(a.start, basestring):
             a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
@@ -158,6 +166,12 @@ def create_allocation(request, project_id, allocation_id = -1):
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     project = Project(project_id)
+
+    allocation = []
+    if allocation_id > 0:
+        for a in project.allocations:
+            if a.id == allocation_id:
+                allocation = a
 
     # goofiness that we should clean up later; requires data cleansing
     abstract = project.description
@@ -215,7 +229,7 @@ def create_allocation(request, project_id, allocation_id = -1):
                                              'supplemental_details': justification,
                                              'funding_source': funding_source})
 
-    return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id })
+    return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id, 'alloc': allocation })
 
 @login_required
 @terms_required('project-terms')

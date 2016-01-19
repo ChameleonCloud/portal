@@ -1,7 +1,13 @@
 <div class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
   <h4>
     {{ alloc.resource }}
-    <small><span class="label label-default label-{{ alloc.status|lower }}">{{ alloc.status }}</small>
+    <small><span class="label label-default label-{{ alloc.status|lower }}">
+      {% if alloc.status == 'Rejected' %}
+        Not Approved
+      {% else %}
+        {{ alloc.status }}
+      {% endif %}
+    </small>
   </h4>
   {% if alloc.up_for_renewal %}
     <div class="alert alert-warning">
@@ -51,5 +57,17 @@
       {% endif %}
     </div>
   </div>
+  {% else %}
+    <div class="row">
+      <div class="col-sm-3">
+      {% if is_pi and not project.has_pending_allocations and not project.has_active_allocations %}
+        <h5>Actions</h5>
+        <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
+           title="">
+          <i class="fa fa-refresh"></i> Resubmit allocation
+        </a>
+        {% endif %}
+        </div>
+      </div>
   {% endif %}
 </div>

@@ -36,25 +36,47 @@
 <h3>Allocations</h3>
 <div class="allocations">
   {% if not project.has_active_allocations and not project.has_pending_allocations %}
-    <div class="alert alert-info">
-      <h4>No current allocations</h4>
-      <p>
-        You don't have any current allocations. This could be because your allocation
-        recently expired or your project is new and you have not requested one yet.
-        Please click on the <b>Request Allocation</b> below to get started!
-      </p>
-    </div>
-    <a class="btn btn-primary btn-sm" href="{% url 'projects:create_allocation' project.id %}">
-      <i class="fa fa-plus"></i>
-      Request Allocation
-    </a>
+    {% if project.has_rejected_allocations %}
+      {% for alloc in project.rejected_allocations %}
+        {% include 'projects/allocation.html' %}
+      {% endfor %}
+    {% else %}
+      <div class="alert alert-info">
+        <h4>No current allocations</h4>
+        <p>
+          You don't have any current allocations. This could be because your allocation
+          recently expired or your project is new and you have not requested one yet.
+          Please click on the <b>Request Allocation</b> below to get started!
+        </p>
+      </div>
+      <a class="btn btn-primary btn-sm" href="{% url 'projects:create_allocation' project.id %}">
+        <i class="fa fa-plus"></i>
+        Request Allocation
+      </a>
+    {% endif %}
+
+  {% else %}
+    {% for alloc in project.active_allocations %}
+      {% include 'projects/allocation.html' %}
+    {% endfor %}
+    {% for alloc in project.pending_allocations %}
+      {% include 'projects/allocation.html' %}
+    {% endfor %}
   {% endif %}
 
   {% if project.has_inactive_allocations %}
     <button class="btn btn-xs btn-default pull-right" name="allocation-display-toggle">Toggle inactive allocations</button>
   {% endif %}
 
-  {% for alloc in project.allocations %}
+  {% if project.has_active_allocations or project.has_pending_allocations %}
+     {% if project.has_rejected_allocations %}
+       {% for alloc in project.rejected_allocations %}
+         {% include 'projects/allocation.html' %}
+       {% endfor %}
+     {% endif %}
+  {% endif %}
+
+  {% for alloc in project.inactive_allocations %}
     {% include 'projects/allocation.html' %}
   {% endfor %}
 </div>
