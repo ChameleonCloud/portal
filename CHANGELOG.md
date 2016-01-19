@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.9.0
+
+- Improved allocation request workflow
+- Updated allocation request form instructions
+- Updated help desk categories
+
 ### v1.8.1
 
 - New Table of Contents style
