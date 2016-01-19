@@ -4,7 +4,7 @@
 
 {% block title %}
     {% if alloc_id != -1 %}
-        {% if project.status == 'Rejected' %}
+        {% if alloc.status == 'Rejected' %}
             Resubmit
         {% else %}
             Recharge/Extend
@@ -30,18 +30,27 @@
 </h2>
 
 {% if alloc_id != -1 %}
-
     {% if alloc.status == 'Rejected' %}
-        <p class = "lead">
+        <p class="lead">
+            Your initial allocation request was not approved. You can update your request
+            according to the decision summary (below) and resubmit your request for
+            additional review.
+        </p>
+        <p class="lead">
+            <em>Decision summary:</em>
             {{alloc.decisionSummary}}
         </p>
+    {% else %}
+        <p class="lead">
+            If you are running low on SUs or your allocation period is expiring, you can
+            submit a recharge request. Please, add a paragraph to the Request
+            Justification window briefly describing work done to date (or pointing to
+            posters, papers or other artifacts) and briefly explaining why you need a
+            recharge/extension. An accepted request will grant up to an additional 20,000
+            SUs and extend the end date of the allocation for up to an additional 6
+            months.
+        </p>
     {% endif %}
-<p class="lead">
-    If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. Please, add a paragraph to the
-    Request Justification window briefly describing work done to date (or pointing to posters, papers or other artifacts) and briefly
-    explaining why you need a recharge/extension. An accepted request will grant up to an additional 20,000 SUs and extend the end
-    date of the allocation for up to an additional 6 months.
-</p>
 {% endif %}
 
 <form method="post">
