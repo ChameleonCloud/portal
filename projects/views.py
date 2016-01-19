@@ -166,11 +166,10 @@ def create_allocation(request, project_id, allocation_id = -1):
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     project = Project(project_id)
-
-    allocation = []
+    allocation = None
     if allocation_id > 0:
         for a in project.allocations:
-            if a.id == allocation_id:
+            if a.id == int(allocation_id):
                 allocation = a
 
     # goofiness that we should clean up later; requires data cleansing
@@ -185,8 +184,13 @@ def create_allocation(request, project_id, allocation_id = -1):
         else:
             funding_source = ''
     else:
-        justification = ''
-        funding_source = ''
+        justification = allocation.justification
+        if '--- Funding source(s) ---' in justification:
+            parts = justification.split('\n\n--- Funding source(s) ---\n\n')
+            justification = parts[0]
+            funding_source = parts[1]
+        else:
+            funding_source = ''
 
     if request.POST:
         form = AllocationCreateForm(request.POST, initial={'description': abstract,
