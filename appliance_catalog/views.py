@@ -1,24 +1,59 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
+from .serializers import MyJSONSerialiser
 import logging
+import json
 
 logger = logging.getLogger('default')
 
-def list(request):
+def app_list(request):
 	appliances = Appliance.objects.all()
 	logger.info(appliances)
 	return render(request, 'appliance_catalog/list.html', {'appliances': appliances})
 
+def get_appliances(request):
+	keywords = request.GET.getlist('keywords')
+	search = request.GET.get('search')
+	appliances = None
+	if keywords:
+		appliances = Appliance.objects.filter(keywords__in=keywords)
+		if appliances and search:
+			appliances = appliances.filter(
+					Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
+	elif search:
+		appliances = Appliance.objects.filter(
+		Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
+	else:
+		appliances = Appliance.objects.all()
+	response = {}
+	response['status'] = 'success'
+	response['message'] = ''
+	serializer = MyJSONSerialiser()
+	response['result'] = json.loads(serializer.serialize(appliances))
+	return HttpResponse(json.dumps(response), content_type="application/json")
 
-def detail(request, pk):
+def app_detail(request, pk):
 	appliance = get_object_or_404(Appliance, pk=pk)
 	logger.info(appliance)
 	return render(request, 'appliance_catalog/detail.html', {'appliance': appliance})
 
+def get_appliance(request, pk):
+	response = {}
+	response['status'] = 'success'
+	try:
+		serializer = MyJSONSerialiser()
+		response['message'] = ''
+		response['result'] = json.loads(serializer.serialize(Appliance.objects.filter(pk=pk)))
+	except Appliance.DoesNotExist:
+		response['message'] = 'Does not exist.'
+		response['result'] = None
+	return HttpResponse(json.dumps(response), content_type="application/json")
 
 def _add_keywords(cleaned_data, appliance):
 	keywords = cleaned_data['keywords']
@@ -42,7 +77,7 @@ def _add_keywords(cleaned_data, appliance):
 				appliance_tagging.save()
 
 @login_required
-def create(request):
+def app_create(request):
 	if request.method == 'POST':
 		form = ApplianceForm(request.user, request.POST, request.FILES)
 		logger.info(form.is_valid())
@@ -51,33 +86,48 @@ def create(request):
 			appliance.created_user = request.user.username
 			appliance.save()
 			_add_keywords(form.cleaned_data, appliance)
-			return HttpResponseRedirect(reverse('appliance_catalog:list'))
+			return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
 	else:
 		form = ApplianceForm(request.user)
 	return render(request, 'appliance_catalog/create.html', {'appliance_form': form})
 
 @login_required
-def edit(request, pk):
+def app_edit(request, pk):
+	appliance = get_object_or_404(Appliance, pk=pk)
 	if request.method == 'POST':
-		appliance = get_object_or_404(Appliance, pk=pk)
 		form = ApplianceForm(request.user, request.POST, instance=appliance)
 		if form.is_valid():
 			post = form.save(commit=False)
 			post.updated_user = request.user.username
 			logger.info(post.appliance_icon)
 			if not post.appliance_icon:
-				post.appliance_icon = 'appliance_catalog/icons/default.png'
+				post.appliance_icon = 'appliance_catalog/icons/default.svg'
 			post.save()
 			_add_keywords(form.cleaned_data, appliance)
-			return HttpResponseRedirect(reverse('appliance_catalog:list'))
+			return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
 	else:
-		appliance = get_object_or_404(Appliance, pk=pk)
 		form = ApplianceForm(request.user, instance=appliance)
 	return render(request, 'appliance_catalog/create.html', {'appliance_form': form, 'edit': True})
 
 @login_required
-def delete(request, pk):
+@staff_member_required
+def app_delete(request, pk):
 	appliance = get_object_or_404(Appliance, pk=pk)
-	logger.info(appliance)
 	appliance.delete()
-	return HttpResponseRedirect(reverse('appliance_catalog:list'))
+	return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
+
+
+def get_keywords(request, appliance_id=None):
+	response = {}
+	response['status'] = 'success'
+	response['message'] = ''
+	keywords = None
+	if appliance_id is not None:
+		appliance = get_object_or_404(Appliance, pk=appliance_id)
+		keywords = appliance.keywords.all()
+	else:
+		keywords = Keyword.objects.all()
+	serializer = MyJSONSerialiser()
+	response['result'] = json.loads(serializer.serialize(keywords))
+	return HttpResponse(json.dumps(response), content_type="application/json")
+

@@ -7,16 +7,16 @@
         <div class="row" style="text-align:center">
             {% for appliance in appliances %}
                 <div class="thumbnail col-sm-2">
-                    <div><a href="{% url 'appliance_catalog:detail' appliance.id %}">
+                    <div><a href="{% url 'appliance_catalog:app_detail' appliance.id %}">
                         <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon">
                          </a>
                     </div>
-                    <div><a href="{% url 'appliance_catalog:detail' appliance.id %}">{{ appliance.name }}</a></div>
+                    <div><a href="{% url 'appliance_catalog:app_detail' appliance.id %}">{{ appliance.name }}</a></div>
                     <div>{{ appliance.description|truncatewords:20 }}</div>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
     <div class="btn btn-success">
-        <a href="{% url 'appliance_catalog:create' %}">Add an appliance</a></div>
+        <a href="{% url 'appliance_catalog:app_create' %}">Add an appliance</a></div>
 {% endblock %}
