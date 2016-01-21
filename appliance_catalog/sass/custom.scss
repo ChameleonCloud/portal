@@ -17,6 +17,14 @@
       height: 200px;
       overflow: hidden;
     }
+    &.supported {
+      background: #fff url(../images/mini_logo.png) no-repeat;
+      background-position: top left;
+    }
+    &.flagged {
+      background: #fff url(../images/flagged.png) no-repeat;
+      background-position: top left;
+    }
   }
   .thumbnail:last-child {
     margin-right: 0;
@@ -47,5 +55,13 @@
   }
   .ats-switch {
     margin-top: 10px;
+  }
+  .app-title{
+    margin-left:10px;
+    vertical-align:bottom;
+  }
+  hr{
+    margin-top: 15px;
+    margin-bottom: 15px;
   }
 }

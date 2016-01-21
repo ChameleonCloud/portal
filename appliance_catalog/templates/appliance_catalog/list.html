@@ -8,7 +8,6 @@
 {% endblock %}
 {% block scripts %}
     {{ block.super }}
-    {% compressed_js 'all' %}
     <script src="{% static 'appliance_catalog/js/vendor.js' %}"></script>
     <script src="{% static 'appliance_catalog/js/main.js' %}"></script>
 {% endblock %}
@@ -44,7 +43,8 @@
                         </alert>
                     </div>
                     <div ng-show="appliances && appliances.length > 0">
-                        <div class="col col-sm-2 thumbnail" ng-repeat="appliance in appsThisPage">
+                        <div class="col col-sm-2 thumbnail" ng-repeat="appliance in appsThisPage"
+                             ng-class="{'supported': appliance.project_supported, 'flagged': appliance.project_flagged}">
                             <div class="thumbnail-content">
                                 <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">
                                     <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
@@ -53,7 +53,7 @@
                                 </div>
                                 <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">[[appliance.name]]</a>
                                 </div>
-                                <div>[[appliance.description|limitTo:40]]</div>
+                                <div>[[appliance.description | characters:40 ]]</div>
                             </div>
                         </div>
                         <h4 ng-show="filteredAppliances && filteredAppliances.length > appsPerPage"
@@ -64,9 +64,9 @@
                                         class="pagination-sm"
                                         previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;"
                                         last-text="&raquo;"></pagination>
-                            <!--<small class="pagination-summary">Showing [[getPageIndex()]] of [[filteredAppliances.length]]
+                            <small class="pagination-summary">Showing [[getPageIndex()]] of [[filteredAppliances.length]]
                                 appliances
-                            </small>-->
+                            </small>
                         </h4>
                     </div>
                 </div>

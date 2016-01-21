@@ -120,7 +120,8 @@ module.exports = function(grunt) {
                     'bower_components/angular/angular.js',
                     'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
                     'bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.js',
-                    'scripts/customized_vendor/angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js'
+                    'scripts/customized_vendor/angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js',
+                    'scripts/customized_vendor/truncate/truncate.js'
                 ],
                 dest: '.tmp/scripts/vendor.js'
             },
