@@ -15,12 +15,12 @@ class ApplianceForm(ModelForm):
 	class Meta:
 		model = Appliance
 		fields = ['name', 'description', 'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id', 'kvm_tacc_appliance_id', 'author_name',
-		          'author_url', 'support_contact_name', 'support_contact_url', 'project_supported', 'keywords', 'new_keywords', 'version']
+		          'author_url', 'support_contact_name', 'support_contact_url', 'project_supported', 'project_flagged', 'keywords', 'new_keywords', 'version']
 
 	def __init__(self, user, *args, **kwargs):
 		super(ApplianceForm, self).__init__(*args, **kwargs)
 		if not user.is_staff:
-			del self.fields['project_supported']
+			del self.fields['project_supported', 'project_flagged']
 
 	def _is_valid_email_or_url(self, text):
 		valid_email = True
@@ -41,14 +41,19 @@ class ApplianceForm(ModelForm):
 
 	def validate_picture(self, cleaned_data):
 		picture = cleaned_data['appliance_icon']
+		logger.info('Picture------------------')
+		logger.info(picture)
 		if picture and picture != 'appliance_catalog/icons/default.svg':
 			w, h = get_image_dimensions(picture)
 			if (w > 150) or (h > 150):
 				self.add_error('appliance_icon', 'Icon must be 150px by 150px or smaller.')
+		elif not picture:
+			cleaned_data['appliance_icon'] = 'appliance_catalog/icons/default.svg'
 
 
 	def clean(self):
 		cleaned_data = super(ApplianceForm, self).clean()
+		logger.info(cleaned_data)
 		author_url = cleaned_data.get('author_url')
 		support_contact_url = cleaned_data.get('support_contact_url')
 		chi_tacc_appliance_id = cleaned_data.get('chi_tacc_appliance_id')

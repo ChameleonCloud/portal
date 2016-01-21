@@ -1,22 +1,82 @@
 {% extends 'layout/user.html' %}
-{% load bootstrap3 %}
-{% block title %}Appliance Catalog{% endblock %}
+{% load i18n cms_tags staticfiles compressed bootstrap3 %}
+{% block title %}Appliance Catalog | Chameleon Cloud {% endblock %}
+{% block styles %}
+    {{ block.super }}
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">
+{% endblock %}
+{% block scripts %}
+    {{ block.super }}
+    {% compressed_js 'all' %}
+    <script src="{% static 'appliance_catalog/js/vendor.js' %}"></script>
+    <script src="{% static 'appliance_catalog/js/main.js' %}"></script>
+{% endblock %}
 {% block content %}
-    <h2>Appliance Catalog</h2>
-    {% if appliances %}
-        <div class="row" style="text-align:center">
-            {% for appliance in appliances %}
-                <div class="thumbnail col-sm-2">
-                    <div><a href="{% url 'appliance_catalog:app_detail' appliance.id %}">
-                        <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon">
-                         </a>
+    <div id="content-main" class="appCatalog" ng-app="appCatalogApp" ng-cloak>
+        <div class="content" ng-controller="AppCatalogController">
+            <h2>Appliance Catalog</h2>
+            <div><a class="btn btn-success" href="/appliance-catalog/create/">Add an appliance</a></div>
+            <div class="form-group"><input class="form-control" type="text"
+                                           placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
+                <div class="form-group">
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default active">
+                            <input type="radio" checked="checked" ng-model="filter.searchType" id="andSearch" value="and"> AND
+                        </label>
+                        <label class="btn btn-default">
+                            <input type="radio" ng-model="searchType" id="orSearch" value="or"> OR
+                        </label>
                     </div>
-                    <div><a href="{% url 'appliance_catalog:app_detail' appliance.id %}">{{ appliance.name }}</a></div>
-                    <div>{{ appliance.description|truncatewords:20 }}</div>
                 </div>
-            {% endfor %}
+                <div class="form-group">
+                    <div ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
+                         extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts"></div>
+                </div>
+                <div class="form-group"><input type="button" value="Search" ng-click="updateFiltered()"
+                                               class="btn btn-primary"/></div>
+            </div>
+
+            <div class="well spinner" ng-show="loading.appCatalog">
+                <h4><span class="fa fa-spinner fa-spin"></span> Loading appliances...</h4>
+            </div>
+            <div ng-show="!loading.appCatalog">
+                <div ng-show="isEmpty(messages.appCatalog)">
+                    <div ng-show="!appliances || appliances.length < 1">
+                        <alert type="warning">There are no appliances. You can create one <a
+                                href="/appliance-catalog/create/">here</a>.
+                        </alert>
+                    </div>
+                    <div ng-show="appliances && appliances.length > 0">
+                        <div class="col col-sm-2 thumbnail" ng-repeat="appliance in appsThisPage">
+                            <div class="thumbnail-content">
+                                <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">
+                                    <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
+                                         alt="App Icon">
+                                </a>
+                                </div>
+                                <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">[[appliance.name]]</a>
+                                </div>
+                                <div>[[appliance.description|limitTo:40]]</div>
+                            </div>
+                        </div>
+                        <h4 ng-show="appliances && appliances.length > appsPerPage" class="pagination-header">
+                            <pagination boundary-links="true" total-items="appliances.length"
+                                        items-per-page="appsPerPage"
+                                        ng-model="appsCurrentPage" ng-change="appsPageChanged(appsCurrentPage)"
+                                        class="pagination-sm"
+                                        previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;"
+                                        last-text="&raquo;"></pagination>
+                            <small class="pagination-summary">Showing [[getPageIndex()]] of [[appliances.length]]
+                                appliances
+                            </small>
+                        </h4>
+                    </div>
+                </div>
+                <div ng-show="!isEmpty(messages.appCatalog)">
+                    <alert ng-repeat="msg in messages.appCatalog" type="[[msg.type]]">[[msg.body]]</alert>
+                </div>
+            </div>
         </div>
-    {% endif %}
-    <div class="btn btn-success">
-        <a href="{% url 'appliance_catalog:app_create' %}">Add an appliance</a></div>
+    </div>
 {% endblock %}

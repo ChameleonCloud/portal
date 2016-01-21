@@ -95,13 +95,10 @@ def app_create(request):
 def app_edit(request, pk):
 	appliance = get_object_or_404(Appliance, pk=pk)
 	if request.method == 'POST':
-		form = ApplianceForm(request.user, request.POST, instance=appliance)
+		form = ApplianceForm(request.user, request.POST, request.FILES, instance=appliance)
 		if form.is_valid():
 			post = form.save(commit=False)
 			post.updated_user = request.user.username
-			logger.info(post.appliance_icon)
-			if not post.appliance_icon:
-				post.appliance_icon = 'appliance_catalog/icons/default.svg'
 			post.save()
 			_add_keywords(form.cleaned_data, appliance)
 			return HttpResponseRedirect(reverse('appliance_catalog:app_list'))

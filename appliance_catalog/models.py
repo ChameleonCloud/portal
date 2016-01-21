@@ -8,7 +8,7 @@ class Keyword(models.Model):
 class Appliance(models.Model):
 	name = models.CharField(max_length=100)
 	description = models.TextField(max_length=5000)
-	appliance_icon = models.ImageField(upload_to='appliance_catalog/icons/', default='appliance_catalog/icons/default.svg', blank=True)
+	appliance_icon = models.ImageField(upload_to='appliance_catalog/icons/', blank=True)
 	chi_tacc_appliance_id = models.IntegerField(null=True, blank=True, unique=True)
 	chi_uc_appliance_id = models.IntegerField(null=True, blank=True, unique=True)
 	kvm_tacc_appliance_id = models.IntegerField(null=True, blank=True, unique=True)
@@ -17,6 +17,7 @@ class Appliance(models.Model):
 	support_contact_name = models.CharField(max_length=100)
 	support_contact_url = models.CharField(max_length=500)
 	project_supported = models.BooleanField(default=False, blank=True)
+	project_flagged = models.BooleanField(default=False, blank=True)
 	keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', null=True, blank=True)
 	version = models.CharField(max_length=100)
 	created_user = models.CharField(max_length=100, editable=False)
