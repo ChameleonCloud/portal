@@ -18,26 +18,26 @@ angular.module('appCatalogApp')
         $scope.isLoading = UtilFactory.isLoading;
         $scope.getMessages = UtilFactory.getMessages;
         $scope.getClass = UtilFactory.getClass;
-        $scope.filter = {
-            active: false,
-            inactive: false,
-            pending: false,
-            rejected: false,
-            search: ''
-        };
 
-         $scope.reset = function(){
-             $scope.filter = {
+        $scope.filterInit = function () {
+            $scope.filter = {
                 selectedKeywords: [],
                 searchKey: '',
-                searchType: 'and'
+                andSearch: true
             };
-         };
-        $scope.reset();
+        };
+        $scope.filterInit();
+
+        $scope.reset = function () {
+            $scope.filterInit();
+            $scope.filteredAppliances = angular.copy($scope.appliances);
+            setupPagination();
+        };
 
         var setupPagination = function () {
             $scope.appsPerPage = 15;
             $scope.totalPages = Math.ceil($scope.filteredAppliances.length / $scope.appsPerPage);
+            console.log('totalPages', $scope.totalPages);
             $scope.appsCurrentPage = 1;
             $scope.appsPageChanged($scope.appsCurrentPage);
         };
@@ -54,8 +54,8 @@ angular.module('appCatalogApp')
         $scope.filteredAppliances = [];
         $scope.getAppliances = function () {
             ApplianceFactory.getAppliances().then(function () {
-                $scope.appliances = ApplianceFactory.appliances;
-                $scope.filteredAppliances = angular.copy($scope.appliances);
+                $scope.appliances = angular.copy(ApplianceFactory.appliances);
+                $scope.filteredAppliances = angular.copy(ApplianceFactory.appliances);
                 setupPagination();
             });
         };
@@ -65,7 +65,6 @@ angular.module('appCatalogApp')
             $scope.keywords = [];
             ApplianceFactory.getKeywords().then(function () {
                 $scope.keywords = ApplianceFactory.keywords;
-                console.log('$scope.keywords', $scope.keywords);
             });
         };
         $scope.getKeywords();
@@ -84,7 +83,6 @@ angular.module('appCatalogApp')
                 if (itemText.length > 20) {
                     return itemText.substring(0, 17) + '...';
                 }
-
                 return itemText;
             }
         };
@@ -93,8 +91,24 @@ angular.module('appCatalogApp')
         };
         $scope.updateFiltered = function () {
             console.log($scope.filter);
-            $scope.filteredAppliances = UtilFactory.updateFiltered($scope.appliances, $scope.filteredAppliances, $scope.filter);
-            setupPagination();
-        };
+            if ($scope.filter.selectedKeywords) {
+                ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
+                    if($scope.filter.andSearch){
+                        $scope.filteredAppliances = UtilFactory.search(ApplianceFactory.appliances, $scope.filter.searchKey);
+                        console.log('filteredAppliances1', $scope.filteredAppliances);
+                    }
+                    else{
+                         $scope.filteredAppliances = _.union(UtilFactory.search($scope.appliances, $scope.filter.searchKey), ApplianceFactory.appliances);
+                        console.log('filteredAppliances2', $scope.filteredAppliances);
+                    }
+                    setupPagination();
 
+                });
+            }
+            else {
+                $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
+                setupPagination();
+                console.log('filteredAppliances3', $scope.filteredAppliances);
+            }
+        };
     }]);

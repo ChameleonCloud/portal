@@ -12,32 +12,31 @@
     &:hover {
       box-shadow: 5px 5px 5px #888888;
     }
-    .thumbnail-content{
-      width:200px;
+    .thumbnail-content {
+      width: 200px;
       height: 200px;
-      overflow:hidden;
+      overflow: hidden;
     }
   }
   .thumbnail:last-child {
-      margin-right: 0;
-    }
+    margin-right: 0;
+  }
   .form-group {
     margin-top: 10px;
     margin-right: 12px;
-}
+  }
   .app-icon {
     padding: 3px;
   }
-  .dropdown-multiselect>.dropdown-toggle{
-    white-space:normal;
+  .dropdown-multiselect > .dropdown-toggle {
+    white-space: normal;
   }
-  .btn-default.active{
+  .btn-default.active {
     background-color: #888;
-    &:hover{
+    &:hover {
       background-color: #666;
     }
   }
-
   .pagination-summary {
     float: right;
     margin-top: 40px;
@@ -45,5 +44,8 @@
   }
   .pagination-header {
     clear: both;
+  }
+  .ats-switch {
+    margin-top: 10px;
   }
 }

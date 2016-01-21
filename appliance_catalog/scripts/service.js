@@ -163,11 +163,6 @@ angular
             }
         };
 
-        factory.updateFiltered = function(appliances, filteredAppliances, filter) {
-            filteredAppliances = factory.search(appliances, filter.searchKey);
-            return filteredAppliances;
-        };
-
         return factory;
     }])
     .factory('ApplianceFactory', ['$http', '_', 'moment', 'NotificationFactory', function($http, _, moment, NotificationFactory) {
@@ -175,13 +170,24 @@ angular
         factory.appliances = [];
         factory.appliance = null;
         factory.keywords = [];
-        factory.getAppliances = function() {
+        factory.getAppliances = function(keywords) {
+            var url = '/appliance-catalog/api/appliances/';
+
+            if(keywords){
+                url += '?';
+                for(var i in keywords){
+                    url += 'keywords=' +keywords[i].id;
+                    if(i < keywords.length-1){
+                        url += '&';
+                    }
+                }
+            }
             var errorMsg = 'There was an error loading appliance catalog.';
             NotificationFactory.clearMessages('appCatalog');
             NotificationFactory.addLoading('appCatalog');
             return $http({
                     method: 'GET',
-                    url: '/appliance-catalog/api/appliances/',
+                    url: url,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -235,5 +241,6 @@ angular
                         NotificationFactory.removeLoading('appliance');
                     });
         };
+
         return factory;
     }]);

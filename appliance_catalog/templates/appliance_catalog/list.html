@@ -17,24 +17,20 @@
         <div class="content" ng-controller="AppCatalogController">
             <h2>Appliance Catalog</h2>
             <div><a class="btn btn-success" href="/appliance-catalog/create/">Add an appliance</a></div>
-            <div class="form-group"><input class="form-control" type="text"
-                                           placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
-                <div class="form-group">
-                    <div class="btn-group" data-toggle="buttons">
-                        <label class="btn btn-default active">
-                            <input type="radio" checked="checked" ng-model="filter.searchType" id="andSearch" value="and"> AND
-                        </label>
-                        <label class="btn btn-default">
-                            <input type="radio" ng-model="searchType" id="orSearch" value="or"> OR
-                        </label>
-                    </div>
-                </div>
+            <div class="form-group">
+                <input class="form-control" type="text"
+                       ng-keypress="($event.which === 13)?updateFiltered():angular.noop()"
+                       placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
+                <toggle-switch ng-model="filter.andSearch" on-label="AND" off-label="OR" knob-label="">
+                </toggle-switch>
                 <div class="form-group">
                     <div ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
                          extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts"></div>
                 </div>
-                <div class="form-group"><input type="button" value="Search" ng-click="updateFiltered()"
-                                               class="btn btn-primary"/></div>
+                <div class="form-group">
+                    <input type="button" value="Search" ng-click="updateFiltered()" class="btn btn-primary"/>
+                    <input type="button" value="Reset" ng-click="reset()" class="btn btn-warning"/>
+                </div>
             </div>
 
             <div class="well spinner" ng-show="loading.appCatalog">
@@ -60,16 +56,17 @@
                                 <div>[[appliance.description|limitTo:40]]</div>
                             </div>
                         </div>
-                        <h4 ng-show="appliances && appliances.length > appsPerPage" class="pagination-header">
-                            <pagination boundary-links="true" total-items="appliances.length"
+                        <h4 ng-show="filteredAppliances && filteredAppliances.length > appsPerPage"
+                            class="pagination-header">
+                            <pagination boundary-links="true" total-items="filteredAppliances.length"
                                         items-per-page="appsPerPage"
                                         ng-model="appsCurrentPage" ng-change="appsPageChanged(appsCurrentPage)"
                                         class="pagination-sm"
                                         previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;"
                                         last-text="&raquo;"></pagination>
-                            <small class="pagination-summary">Showing [[getPageIndex()]] of [[appliances.length]]
+                            <!--<small class="pagination-summary">Showing [[getPageIndex()]] of [[filteredAppliances.length]]
                                 appliances
-                            </small>
+                            </small>-->
                         </h4>
                     </div>
                 </div>
