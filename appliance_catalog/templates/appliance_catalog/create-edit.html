@@ -17,10 +17,12 @@
   <div class="form-group">
       {% if edit %}
              <button type="submit" class="btn btn-success">Save Changes</button>
+             <a href="{% url 'appliance_catalog:app_detail' pk %}" class="btn btn-default">Cancel</a>
       {% else %}
              <button type="submit" class="btn btn-success">Create an Appliance</button>
+             <a href="{% url 'appliance_catalog:app_list' %}" class="btn btn-default">Cancel</a>
       {% endif %}
-    <a href="{% url 'appliance_catalog:app_list' %}" class="btn btn-default">Cancel</a>
+
   </div>
 </form>
 

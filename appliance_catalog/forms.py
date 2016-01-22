@@ -41,14 +41,16 @@ class ApplianceForm(ModelForm):
 
 	def validate_picture(self, cleaned_data):
 		picture = cleaned_data['appliance_icon']
-		logger.info('Picture------------------')
-		logger.info(picture)
-		if picture and picture != 'appliance_catalog/icons/default.svg':
+		logger.debug('Icon uploaded: %s', picture)
+		if picture:
 			w, h = get_image_dimensions(picture)
 			if (w > 150) or (h > 150):
 				self.add_error('appliance_icon', 'Icon must be 150px by 150px or smaller.')
+				logger.debug('Icon uploaded is larger than 150px by 150px.')
+			logger.debug('Icon uploaded is valid.')
 		elif not picture:
-			cleaned_data['appliance_icon'] = 'appliance_catalog/icons/default.svg'
+			logger.debug('Icon not uploaded.')
+			#cleaned_data['appliance_icon'] = 'appliance_catalog/icons/default.svg'
 
 
 	def clean(self):

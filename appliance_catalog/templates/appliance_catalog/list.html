@@ -48,7 +48,9 @@
                             <div class="thumbnail-content">
                                 <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">
                                     <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
-                                         alt="App Icon">
+                                         alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
+                                    <img src="/static/appliance_catalog/images/default.svg" class="app-icon"
+                                         alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
                                 </a>
                                 </div>
                                 <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">[[appliance.name]]</a>
