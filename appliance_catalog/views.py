@@ -15,9 +15,7 @@ logger = logging.getLogger('default')
 
 def app_list(request):
 	logger.info('App catalog requested.')
-	appliances = Appliance.objects.all()
-	logger.debug('Total appliances fetched: %d', appliances.count())
-	return render(request, 'appliance_catalog/list.html', {'appliances': appliances})
+	return render(request, 'appliance_catalog/list.html')
 
 def get_appliances(request):
 	logger.info('Get appliances json endpoint requested.')
