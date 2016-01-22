@@ -37,7 +37,6 @@ angular.module('appCatalogApp')
         var setupPagination = function () {
             $scope.appsPerPage = 15;
             $scope.totalPages = Math.ceil($scope.filteredAppliances.length / $scope.appsPerPage);
-            console.log('totalPages', $scope.totalPages);
             $scope.appsCurrentPage = 1;
             $scope.appsPageChanged($scope.appsCurrentPage);
         };
@@ -90,25 +89,20 @@ angular.module('appCatalogApp')
             buttonDefaultText: 'Search by keywords'
         };
         $scope.updateFiltered = function () {
-            console.log($scope.filter);
             if ($scope.filter.selectedKeywords) {
                 ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
                     if($scope.filter.andSearch){
                         $scope.filteredAppliances = UtilFactory.search(ApplianceFactory.appliances, $scope.filter.searchKey);
-                        console.log('filteredAppliances1', $scope.filteredAppliances);
                     }
                     else{
                          $scope.filteredAppliances = _.union(UtilFactory.search($scope.appliances, $scope.filter.searchKey), ApplianceFactory.appliances);
-                        console.log('filteredAppliances2', $scope.filteredAppliances);
                     }
                     setupPagination();
-
                 });
             }
             else {
                 $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
                 setupPagination();
-                console.log('filteredAppliances3', $scope.filteredAppliances);
             }
         };
     }]);
