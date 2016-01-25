@@ -25,3 +25,9 @@ class ResourceDiscoveryApphook(CMSApp):
     name = _('Resource Discovery Apphook')
     urls = ['g5k_discovery.urls']
     app_name = 'g5k_discovery'
+
+@apphook_pool.register
+class ApplianceCatalogApphook(CMSApp):
+    name = _('Appliance Catalog Apphook')
+    urls = ['appliance_catalog.urls']
+    app_name = 'appliance_catalog'
