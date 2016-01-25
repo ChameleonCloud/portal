@@ -1,0 +1,67 @@
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
+}
+
+.appCatalog {
+  .thumbnail {
+    height: 213px;
+    width: 213px;
+    margin-right: 15px;
+    border-radius: 7px;
+    text-align: center;
+    &:hover {
+      box-shadow: 5px 5px 5px #888888;
+    }
+    .thumbnail-content {
+      width: 200px;
+      height: 200px;
+      overflow: hidden;
+    }
+    &.supported {
+      background: #fff url(../images/mini_logo.png) no-repeat;
+      background-position: top left;
+    }
+    &.flagged {
+      background: #fff url(../images/flagged.png) no-repeat;
+      background-position: top left;
+    }
+  }
+  .thumbnail:last-child {
+    margin-right: 0;
+  }
+  .form-group {
+    margin-top: 10px;
+    margin-right: 12px;
+  }
+  .app-icon {
+    padding: 3px;
+  }
+  .dropdown-multiselect > .dropdown-toggle {
+    white-space: normal;
+  }
+  .btn-default.active {
+    background-color: #888;
+    &:hover {
+      background-color: #666;
+    }
+  }
+  .pagination-summary {
+    float: right;
+    margin-top: 40px;
+    margin-right: 16px;
+  }
+  .pagination-header {
+    clear: both;
+  }
+  .ats-switch {
+    margin-top: 10px;
+  }
+  .app-title{
+    margin-left:10px;
+    vertical-align:bottom;
+  }
+  hr{
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+}

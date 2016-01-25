@@ -104,7 +104,8 @@ INSTALLED_APPS = (
     'djangular',
     'g5k_discovery',
     'cc_early_user_support',
-    'allocations'
+    'allocations',
+    'appliance_catalog'
 )
 
 MIDDLEWARE_CLASSES = (
