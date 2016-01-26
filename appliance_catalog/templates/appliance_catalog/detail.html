@@ -1,114 +1,128 @@
 {% extends 'layout/default.html' %}
-{% load bootstrap3 staticfiles %}
+{% load bootstrap3 staticfiles markdown_deux_tags %}
 {% block title %}Appliance Detail {% endblock %}
+
 {% block styles %}
     {{ block.super }}
     <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">
 {% endblock %}
+
 {% block content %}
     <div class="appCatalog">
-        {% if appliance %}
-            <h2>{% if appliance.appliance_icon %}
-                <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon" height="5%" width="5%">
-            {% else %}
-                <img src="{{ STATIC_URL }}appliance_catalog/images/default.svg" alt="App Icon" height="5%" width="5%">
-            {% endif %}
-                <span class="app-title">{{ appliance.name }}</span></h2>
-            <h4>Description</h4>
-            <div>{{ appliance.description }}</div>
-            <hr/>
-            {% if appliance.chi_tacc_appliance_id %}
-                <a target="_blank" class="btn btn-primary"
-                   href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_tacc_appliance_id }}/">Launch
-                    at CHI@TACC</a>&nbsp;
-            {% endif %}
-            {% if appliance.chi_uc_appliance_id %}
-                <a target="_blank" class="btn btn-primary"
-                   href="https://chi.uc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_uc_appliance_id }}/">Launch
-                    at CHI@UC</a>&nbsp;
-            {% endif %}
-            {% if appliance.kvm_tacc_appliance_id %}
-                <a target="_blank" class="btn btn-primary"
-                   href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
-                    at KVM@TACC</a>
-            {% endif %}
-            <hr/>
-            {% if appliance.project_supported %}
-                <img src="{{ STATIC_URL }}appliance_catalog/images/mini_logo.png" alt="Project Supported">&nbsp;
-                <span class="label label-success">Chameleon Supported</span>
-                <hr/>
-            {% endif %}
-            {% if appliance.project_flagged %}
-                <img src="{{ STATIC_URL }}appliance_catalog/images/flagged.png" alt="Project Flagged">&nbsp;
-                <span class="label label-danger">This project is flagged</span>
-                <hr/>
-            {% endif %}
-            <h4>Image IDs</h4>
-            <table>
-                <tr>
-                    <td><strong>CHI@TACC:</strong></td>
-                    <td>{{ appliance.chi_tacc_appliance_id }}</td>
-                </tr>
-                <tr>
-                    <td><strong>CHI@UC: </strong></td>
-                    <td>{{ appliance.chi_uc_appliance_id }}</td>
-                </tr>
-                <tr>
-                    <td><strong>KVM@TACC:&nbsp;</strong></td>
-                    <td>{{ appliance.kvm_tacc_appliance_id }}</td>
-                </tr>
-            </table>
-            <hr/>
-            <h4>Author</h4>
-            <table>
-                <tr>
-                    <td><strong>Name: </strong></td>
-                    <td>{{ appliance.author_name }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Contact:&nbsp;</strong></td>
-                    <td>{{ appliance.author_url }}</td>
-                </tr>
-            </table>
-            <hr/>
-            <h4>Support</h4>
-            <table>
-                <tr>
-                    <td><strong>Name: </strong></td>
-                    <td>{{ appliance.support_contact_name }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Contact:&nbsp;</strong></td>
-                    <td>{{ appliance.support_contact_url }}</td>
-                </tr>
-            </table>
-            <hr/>
-            <table>
-                <tr>
-                    <td><strong>Version: </strong></td>
-                    <td>{{ appliance.version }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Created By: </strong></td>
-                    <td>{{ appliance.created_user }} on {{ appliance.created_date }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Updated By:&nbsp;</strong></td>
-                    <td>{{ appliance.updated_user }} on {{ appliance.updated_date }}</td>
-                </tr>
-            </table>
-            <hr/>
+        <h2>{% if appliance.appliance_icon %}
+            <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon" height="5%" width="5%">
+        {% else %}
+            <img src="{{ STATIC_URL }}appliance_catalog/images/default.svg" alt="App Icon" height="5%" width="5%">
+        {% endif %}
+            <span class="app-title">{{ appliance.name }}</span></h2>
+
+        {% if appliance.chi_tacc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_tacc_appliance_id }}/">Launch
+                at CHI@TACC</a>&nbsp;
+        {% endif %}
+        {% if appliance.chi_uc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://chi.uc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_uc_appliance_id }}/">Launch
+                at CHI@UC</a>&nbsp;
+        {% endif %}
+        {% if appliance.kvm_tacc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
+                at KVM@TACC</a>
+        {% endif %}
+        <hr>
+
+        <h4>Description</h4>
+        <div>{{ appliance.description|markdown }}</div>
+
+        {% if keywords %}
+            <br>
             <h4>Keywords</h4>
             {% for keyword in keywords %}
                 <span class="badge">{{ keyword.name }}</span>
             {% endfor %}
-            <br/><br/>
-            <a class="btn btn-warning" href="{% url 'appliance_catalog:app_edit' appliance.id %}">Edit</a>&nbsp;
-            <a class="btn btn-danger" href="{% url 'appliance_catalog:app_delete' appliance.id %}">Delete</a>&nbsp;
-            <a class="btn btn-default" href="{% url 'appliance_catalog:app_list' %}">Back</a>
-        {% else %}
-            <div class="alert alert-info">No appliance found. Please check if the url is correct.</div>
+        {% endif %}
+
+        <hr/>
+        {% if appliance.project_supported %}
+            <img src="{{ STATIC_URL }}appliance_catalog/images/mini_logo.png" alt="Project Supported">&nbsp;
+            <span class="label label-success">Chameleon Supported</span>
+            <hr/>
+        {% endif %}
+        {% if appliance.project_flagged %}
+            <img src="{{ STATIC_URL }}appliance_catalog/images/flagged.png" alt="Project Flagged">&nbsp;
+            <span class="label label-danger">This project is flagged</span>
+            <hr/>
+        {% endif %}
+        <h4>Image IDs</h4>
+        <table>
+            {% if appliance.chi_tacc_appliance_id %}
+            <tr>
+                <td><strong>CHI@TACC:</strong></td>
+                <td>{{ appliance.chi_tacc_appliance_id }}</td>
+            </tr>
+            {% endif %}
+            {% if appliance.chi_uc_appliance_id %}
+            <tr>
+                <td><strong>CHI@UC: </strong></td>
+                <td>{{ appliance.chi_uc_appliance_id }}</td>
+            </tr>
+            {% endif %}
+            {% if appliance.kvn_tacc_appliance_id %}
+            <tr>
+                <td><strong>KVM@TACC:&nbsp;</strong></td>
+                <td>{{ appliance.kvm_tacc_appliance_id }}</td>
+            </tr>
+            {% endif %}
+        </table>
+        <hr/>
+        <h4>Author</h4>
+        <table>
+            <tr>
+                <td><strong>Name: </strong></td>
+                <td>{{ appliance.author_name }}</td>
+            </tr>
+            <tr>
+                <td><strong>Contact:&nbsp;</strong></td>
+                <td>{{ appliance.author_url }}</td>
+            </tr>
+        </table>
+        <hr/>
+        <h4>Support</h4>
+        <table>
+            <tr>
+                <td><strong>Name: </strong></td>
+                <td>{{ appliance.support_contact_name }}</td>
+            </tr>
+            <tr>
+                <td><strong>Contact:&nbsp;</strong></td>
+                <td>{{ appliance.support_contact_url }}</td>
+            </tr>
+        </table>
+        <hr/>
+        <table>
+            <tr>
+                <td><strong>Version: </strong></td>
+                <td>{{ appliance.version }}</td>
+            </tr>
+            <tr>
+                <td><strong>Created By: </strong></td>
+                <td>{{ appliance.created_user }} on {{ appliance.created_date }}</td>
+            </tr>
+            <tr>
+                <td><strong>Updated By:&nbsp;</strong></td>
+                <td>{{ appliance.updated_user }} on {{ appliance.updated_date }}</td>
+            </tr>
+        </table>
+
+        {% if editable %}
+        <hr>
+        <h4>Actions</h4>
+        <a class="btn btn-warning" href="{% url 'appliance_catalog:app_edit' appliance.id %}">Edit</a>&nbsp;
+        <a class="btn btn-danger" href="{% url 'appliance_catalog:app_delete' appliance.id %}">Delete</a>&nbsp;
+        <a class="btn btn-default" href="{% url 'appliance_catalog:app_list' %}">Back</a>
         {% endif %}
     </div>
 {% endblock %}
