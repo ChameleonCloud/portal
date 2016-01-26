@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'bootstrap3',
     'termsandconditions',
     'impersonate',
+    'markdown_deux',
 
     ##
     # custom
