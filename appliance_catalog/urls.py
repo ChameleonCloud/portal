@@ -7,6 +7,7 @@ urlpatterns = patterns(
     url( r'^detail/(?P<pk>\d+)/$', 'app_detail', name='app_detail' ),
     url( r'^edit/(?P<pk>\d+)/$', 'app_edit', name='app_edit' ),
     url( r'^delete/(?P<pk>\d+)/$', 'app_delete', name='app_delete' ),
+    url(r'^template/(?P<resource>.+?)\.html/$', 'app_template', name='app_template'),
 	url( r'^api/appliances/$', 'get_appliances', name='get_appliances' ),
 	url( r'^api/appliances/(?P<pk>\d+)/$', 'get_appliance', name='get_appliance' ),
 	url( r'^api/keywords/$', 'get_keywords', name='get_keywords' ),

@@ -36,14 +36,29 @@
   .app-icon {
     padding: 3px;
   }
+  .app-icon-table {
+    max-height: 80px;
+  }
   .dropdown-multiselect > .dropdown-toggle {
     white-space: normal;
+  }
+  .btn {
+    margin-bottom: 5px;
   }
   .btn-default.active {
     background-color: #888;
     &:hover {
       background-color: #666;
     }
+  }
+  .name-column {
+    text-align: center;
+    min-width: 125px;
+    padding: 15px;
+  }
+  .pseudo-link {
+    cursor: hand;
+    cursor: pointer;
   }
   .pagination-summary {
     float: right;
@@ -56,12 +71,30 @@
   .ats-switch {
     margin-top: 10px;
   }
-  .app-title{
-    margin-left:10px;
-    vertical-align:bottom;
+  .app-title {
+    margin-left: 10px;
+    vertical-align: bottom;
   }
-  hr{
+  hr {
     margin-top: 15px;
     margin-bottom: 15px;
+  }
+  .view-switch {
+    float: right;
+    text-decoration: underline;
+    margin-top: 15px;
+  }
+  .fa-list {
+    text-decoration: underline;
+  }
+  .fa-table {
+    text-decoration: underline;
+  }
+  .table {
+    width: 99%;
+  }
+  .dropdown-multiselect {
+    margin-top: 8px;
+    margin-bottom: 3px;
   }
 }

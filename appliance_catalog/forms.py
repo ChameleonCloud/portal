@@ -3,6 +3,7 @@ from django.core.validators import validate_email, URLValidator
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
+from django import forms
 from .models import Appliance
 import logging
 
@@ -13,7 +14,7 @@ class ApplianceForm(ModelForm):
     new_keywords = CharField(
             label="Assign new keywords",
             widget=TextInput(attrs={'placeholder': 'Provide comma separated keywords that'
-                                                   'are not in the list above.'}),
+                                                   ' are not in the list above.'}),
             required=False)
     appliance_icon = ImageField(
             label="Upload icon. <small>Must be 150px by 150px or less.</small>",
@@ -39,6 +40,11 @@ class ApplianceForm(ModelForm):
             'author_url': 'Author: Contact URL or Email',
             'support_contact_name': 'Support: Contact Name',
             'support_contact_url': 'Support: Contact URL or Email',
+        }
+        widgets = {
+            'chi_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+            'chi_uc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+            'kvm_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
         }
         help_texts = {
             'description': markdown_allowed()
@@ -77,13 +83,15 @@ class ApplianceForm(ModelForm):
             logger.debug('Icon uploaded is valid.')
         elif not picture:
             logger.debug('Icon not uploaded.')
-            # cleaned_data['appliance_icon'] = 'appliance_catalog/icons/default.svg'
 
     def clean(self):
         cleaned_data = super(ApplianceForm, self).clean()
         logger.info(cleaned_data)
         author_url = cleaned_data.get('author_url')
         support_contact_url = cleaned_data.get('support_contact_url')
+        cleaned_data['chi_tacc_appliance_id'] = cleaned_data.get('chi_tacc_appliance_id') or None
+        cleaned_data['chi_uc_appliance_id'] = cleaned_data.get('chi_uc_appliance_id') or None
+        cleaned_data['kvm_tacc_appliance_id'] = cleaned_data.get('kvm_tacc_appliance_id') or None
         chi_tacc_appliance_id = cleaned_data.get('chi_tacc_appliance_id')
         chi_uc_appliance_id = cleaned_data.get('chi_uc_appliance_id')
         kvm_tacc_appliance_id = cleaned_data.get('kvm_tacc_appliance_id')

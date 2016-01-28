@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
+from django.shortcuts import render_to_response
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import MyJSONSerialiser
@@ -44,11 +45,11 @@ def get_appliances(request):
 
 
 def app_detail(request, pk):
-    # logger.info('Detail requested for appliance id: %s.', pk)
+    logger.info('Detail requested for appliance id: %s.', pk)
     appliance = get_object_or_404(Appliance, pk=pk)
-    # logger.debug('Appliance found. Fetching it\'s keywords.')
+    logger.debug('Appliance found. Fetching it\'s keywords.')
     keywords = appliance.keywords.all()
-    # logger.debug('This appliance has %d keywords.', keywords.count())
+    logger.debug('This appliance has %d keywords.', keywords.count())
     editable = request.user.is_staff or request.user == appliance.created_user
     context = {
         'appliance': appliance,
@@ -176,4 +177,9 @@ def get_keywords(request, appliance_id=None):
     logger.debug('Total keywords found: %d', keywords.count())
     response['result'] = json.loads(serializer.serialize(keywords))
     return HttpResponse(json.dumps(response), content_type="application/json")
+
+def app_template(request, resource):
+    logger.debug('Template requested: %s.html', resource)
+    templateUrl = 'appliance_catalog/%s.html' %resource
+    return render_to_response(templateUrl)
 
