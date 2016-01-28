@@ -1,0 +1,62 @@
+<table class="table table-striped table-bordered">
+    <tr>
+        <th class="name-column pseudo-link" ng-click="changeOrder('name')"> Name
+            <span class="fa fa-caret-up" ng-if="predicate=='name' && !reverse"></span>
+            <span class="fa fa-caret-down" ng-if="predicate=='name' && reverse"></span>
+        </th>
+        <th>Description</th>
+        <th class="pseudo-link" ng-click="changeOrder('author_name')"> Author
+            <span class="fa fa-caret-up" ng-if="predicate=='author_name' && !reverse"></span>
+            <span class="fa fa-caret-down" ng-if="predicate=='author_name' && reverse"></span>
+        </th>
+        <th>Support</th>
+        <th>Version</th>
+        <th>Launch</th>
+    </tr>
+    <tr ng-repeat="appliance in appsThisPage">
+        <td class="name-column">
+            <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">
+                <img ng-src="/media/[[appliance.appliance_icon]]"
+                     class="app-icon app-icon-table"
+                     alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
+                <img src="/static/appliance_catalog/images/default.svg"
+                     class="app-icon app-icon-table"
+                     alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
+            </a>
+            </div>
+            <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">[[appliance.name]]</a>
+            </div>
+        </td>
+        <td>
+            [[ appliance.description | words:40 ]]
+        </td>
+        <td>
+            <div>[[appliance.author_name]]</div>
+            <div>[[appliance.author_url]]</div>
+        </td>
+        <td>
+            <div>[[appliance.support_contact_name]]</div>
+            <div>[[appliance.support_contact_url]]</div>
+        </td>
+        <td>
+            [[ appliance.version ]]
+        </td>
+        <td>
+            <div ng-if="appliance.chi_tacc_appliance_id">
+                <a target="_blank" class="btn btn-sm btn-block btn-primary"
+                   ng-href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/[[ appliance.chi_tacc_appliance_id]]/">
+                    At CHI@TACC</a>
+            </div>
+            <div ng-if="appliance.chi_uc_appliance_id">
+                <a target="_blank" class="btn btn-sm btn-block btn-primary"
+                   ng-href="https://chi.uc.chameleoncloud.org/dashboard/project/images/[[appliance.chi_uc_appliance_id]]/">
+                    At CHI@UC</a>
+            </div>
+            <div ng-if="appliance.kvm_tacc_appliance_id">
+                <a target="_blank" class="btn btn-sm btn-block btn-primary"
+                   ng-href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/[[appliance.kvm_tacc_appliance_id]]/">
+                    At KVM@TACC</a>
+            </div>
+        </td>
+    </tr>
+</table>
