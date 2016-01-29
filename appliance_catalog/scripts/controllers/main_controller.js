@@ -9,10 +9,12 @@ angular.module('appCatalogApp')
       $scope.$on('appliance:notifyMessage', function () {
         $scope.messages = NotificationFactory.getMessages();
       });
+
       $scope.loading = {};
       $scope.$on('appliance:notifyLoading', function () {
         $scope.loading = NotificationFactory.getLoading();
       });
+
       $scope.close = UtilFactory.closeMessage;
       $scope.isEmpty = UtilFactory.isEmpty;
       $scope.hasMessage = UtilFactory.hasMessage;
@@ -21,6 +23,7 @@ angular.module('appCatalogApp')
       $scope.getClass = UtilFactory.getClass;
 
       $scope.viewType = 'grid';
+
       $scope.filterInit = function () {
         $scope.filter = {
           selectedKeywords: [],
@@ -30,20 +33,19 @@ angular.module('appCatalogApp')
       };
       $scope.filterInit();
 
-      $scope.reset = function () {
-        $scope.filterInit();
-        $scope.filteredAppliances = angular.copy($scope.appliances);
-        $scope.orderInit();
-        sortAppliances($scope.predicate);
-        setupPagination();
+      $scope.sortAppliances = function (predicate) {
+        if ($scope.reverse) {
+          $scope.filteredAppliances = _.sortBy($scope.filteredAppliances, function (app) {
+            return app[predicate].toLowerCase();
+          });
+        }
+        else {
+          $scope.filteredAppliances = _.sortBy($scope.filteredAppliances, function (app) {
+            return app[predicate].toLowerCase();
+          }).reverse();
+        }
       };
 
-      var setupPagination = function () {
-        $scope.appsPerPage = 15;
-        $scope.totalPages = Math.ceil($scope.filteredAppliances.length / $scope.appsPerPage);
-        $scope.appsCurrentPage = 1;
-        $scope.appsPageChanged($scope.appsCurrentPage);
-      };
       $scope.appsPageChanged = function (pageNum) {
         var startIndex = (pageNum - 1) * $scope.appsPerPage;
         var endIndex = startIndex + $scope.appsPerPage;
@@ -53,21 +55,39 @@ angular.module('appCatalogApp')
         $scope.appsThisPage = $scope.filteredAppliances.slice(startIndex, endIndex);
       };
 
-      $scope.orderInit = function(){
+      $scope.setupPagination = function () {
+        $scope.appsPerPage = 15;
+        $scope.totalPages = Math.ceil($scope.filteredAppliances.length / $scope.appsPerPage);
+        $scope.appsCurrentPage = 1;
+        $scope.appsPageChanged($scope.appsCurrentPage);
+      };
+
+      $scope.reset = function () {
+        $scope.filterInit();
+        $scope.filteredAppliances = angular.copy($scope.appliances);
+        $scope.orderInit();
+        $scope.sortAppliances($scope.predicate);
+        $scope.setupPagination();
+      };
+
+      $scope.orderInit = function () {
         $scope.predicate = 'name';
         $scope.reverse = true;
       };
+
       $scope.orderInit();
       $scope.appliances = [];
       $scope.filteredAppliances = [];
+
       $scope.getAppliances = function () {
         ApplianceFactory.getAppliances().then(function () {
           $scope.appliances = angular.copy(ApplianceFactory.appliances);
           $scope.filteredAppliances = angular.copy(ApplianceFactory.appliances);
-          sortAppliances($scope.predicate);
-          setupPagination();
+          $scope.sortAppliances($scope.predicate);
+          $scope.setupPagination();
         });
       };
+
       $scope.getAppliances();
 
       $scope.getKeywords = function () {
@@ -76,13 +96,16 @@ angular.module('appCatalogApp')
           $scope.keywords = ApplianceFactory.keywords;
         });
       };
+
       $scope.getKeywords();
 
       $scope.getPageIndex = function () {
         var x = ($scope.appsCurrentPage - 1) * $scope.appsPerPage + 1;
-        var y = ($scope.appsCurrentPage * $scope.appsPerPage < $scope.filteredAppliances.length) ? $scope.appsCurrentPage * $scope.appsPerPage : $scope.filteredAppliances.length;
+        var y = ($scope.appsCurrentPage * $scope.appsPerPage < $scope.filteredAppliances.length) ? $scope.appsCurrentPage *
+        $scope.appsPerPage : $scope.filteredAppliances.length;
         return x + '-' + y;
       };
+
       $scope.multiselectSettings = {
         smartButtonMaxItems: 15,
         scrollableHeight: '400px',
@@ -95,9 +118,11 @@ angular.module('appCatalogApp')
           return itemText;
         }
       };
+
       $scope.multiselectCustomTexts = {
         buttonDefaultText: 'Search by keywords'
       };
+
       $scope.updateFiltered = function () {
         if ($scope.filter.selectedKeywords) {
           ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
@@ -107,47 +132,35 @@ angular.module('appCatalogApp')
             else {
               $scope.filteredAppliances = _.union(UtilFactory.search($scope.appliances, $scope.filter.searchKey), ApplianceFactory.appliances);
             }
-            sortAppliances($scope.predicate);
-            setupPagination();
+            $scope.sortAppliances($scope.predicate);
+            $scope.setupPagination();
           });
         }
         else {
           $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
-          sortAppliances($scope.predicate);
-          setupPagination();
+          $scope.sortAppliances($scope.predicate);
+          $scope.setupPagination();
         }
       };
 
       // list view ordering
 
-      var  sortAppliances = function(predicate){
-        if($scope.reverse){
-          $scope.filteredAppliances = _.sortBy($scope.filteredAppliances, function(app){
-            return app[predicate].toLowerCase();
-          });
+      $scope.changeOrder = function (predicate) {
+        if ($scope.predicate === predicate) {
+          $scope.reverse = !$scope.reverse;
         }
-        else{
-          $scope.filteredAppliances = _.sortBy($scope.filteredAppliances, function(app){
-            return app[predicate].toLowerCase();
-          }).reverse();
+        else {
+          $scope.predicate = predicate;
         }
-      };
-      $scope.changeOrder = function(predicate){
-         if($scope.predicate === predicate){
-           $scope.reverse = !$scope.reverse;
-         }
-        else{
-            $scope.predicate = predicate;
-         }
-        sortAppliances(predicate);
-        setupPagination();
+        $scope.sortAppliances(predicate);
+        $scope.setupPagination();
       };
 
-      $scope.changeViewType = function(){
-        if($scope.viewType === 'grid'){
+      $scope.changeViewType = function () {
+        if ($scope.viewType === 'grid') {
           $scope.viewType = 'table';
         }
-        else{
+        else {
           $scope.viewType = 'grid';
         }
       };

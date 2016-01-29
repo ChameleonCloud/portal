@@ -234,7 +234,7 @@ angular
                 })
                 .then(function(response) {
                         NotificationFactory.removeLoading('appliance');
-                        factory.appliances = response.data;
+                        factory.appliances = response.data.result;
                     },
                     function() {
                         NotificationFactory.addMessage('appliance', errorMsg, 'danger');
