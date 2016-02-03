@@ -38,24 +38,22 @@
             <div ng-show="!loading.appCatalog">
                 <div ng-show="isEmpty(messages.appCatalog)">
                     <div ng-show="!appliances || appliances.length < 1">
-                        <alert type="warning">There are no appliances. You can create one <a
-                                href="/appliance-catalog/create/">here</a>.
+                        <alert type="warning">There are no appliances. You can create one
+                            <a href="/appliance-catalog/create/">here</a>.
                         </alert>
                     </div>
-                    <div ng-show="appliances && appliances.length > 0">
-                        <div class="col col-sm-2 thumbnail" ng-repeat="appliance in appsThisPage"
-                             ng-class="{'supported': appliance.project_supported, 'flagged': appliance.project_flagged}">
-                            <div class="thumbnail-content">
-                                <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">
-                                    <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
-                                         alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
-                                    <img src="/static/appliance_catalog/images/default.svg" class="app-icon"
-                                         alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
-                                </a>
+                    <div ng-show="appliances && appliances.length > 0" class="row">
+                        <div class="col col-sm-2" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
+                            <div class="thumbnail corner-ribbon-container">
+                                <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
+                                     alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
+                                <img src="/static/appliance_catalog/images/default.svg" class="app-icon"
+                                     alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
+                                <div class="caption">
+                                    <h4><a ng-href="detail/[[appliance.id]]">[[appliance.name]]</a></h4>
+                                    <p>[[appliance.description | characters:80 ]]</p>
                                 </div>
-                                <div><a ng-href="/appliance-catalog/detail/[[appliance.id]]">[[appliance.name]]</a>
-                                </div>
-                                <div>[[appliance.description | characters:40 ]]</div>
+                                <div ng-if="appliance.project_supported" class="corner-ribbon chameleon-logo" title="Chameleon Official Image">Chameleon Official Image</div>
                             </div>
                         </div>
                         <h4 ng-show="filteredAppliances && filteredAppliances.length > appsPerPage"

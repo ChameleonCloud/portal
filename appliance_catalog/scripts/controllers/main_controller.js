@@ -85,6 +85,9 @@ angular.module('appCatalogApp')
                 return itemText;
             }
         };
+        $scope.viewDetail = function(appId) {
+          window.location = 'detail/' + appId + '/';
+        };
         $scope.multiselectCustomTexts = {
             buttonDefaultText: 'Search by keywords'
         };
