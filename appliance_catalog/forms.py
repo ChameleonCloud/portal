@@ -25,8 +25,8 @@ class ApplianceForm(ModelForm):
         fields = ['name', 'description', 'appliance_icon', 'chi_tacc_appliance_id',
                   'chi_uc_appliance_id', 'kvm_tacc_appliance_id', 'author_name',
                   'author_url', 'support_contact_name', 'support_contact_url',
-                  'project_supported', 'project_flagged', 'keywords', 'new_keywords',
-                  'version']
+                  'keywords', 'new_keywords', 'version',
+                  'project_supported']
         labels = {
             'chi_tacc_appliance_id':
                 'Appliance ID for '
@@ -53,7 +53,7 @@ class ApplianceForm(ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(ApplianceForm, self).__init__(*args, **kwargs)
         if not user.is_staff:
-            del self.fields['project_supported', 'project_flagged']
+            del self.fields['project_supported']
 
     def _is_valid_email_or_url(self, text):
         valid_email = True
