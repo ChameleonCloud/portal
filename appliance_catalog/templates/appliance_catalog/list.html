@@ -22,13 +22,19 @@
                        placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
                 <toggle-switch ng-model="filter.andSearch" on-label="AND" off-label="OR" knob-label="">
                 </toggle-switch>
-                <div class="form-group">
-                    <div ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
-                         extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts"></div>
-                </div>
-                <div class="form-group">
+                <div ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
+                     extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts"></div>
+                <div>
                     <input type="button" value="Search" ng-click="updateFiltered()" class="btn btn-primary"/>
                     <input type="button" value="Reset" ng-click="reset()" class="btn btn-warning"/>
+                    <span class="view-switch pseudo-link" ng-show="viewType=='grid'" tooltip="Switch to list view"  
+                          tooltip-trigger="mouseenter" tooltip-placement="top" ng-click="changeViewType()">Table View &nbsp;
+                        <span class="fa fa-list"></span>
+                    </span>
+                    <span class="view-switch pseudo-link" ng-show="viewType=='table'" tooltip="Switch to grid view"  
+                          tooltip-trigger="mouseenter" tooltip-placement="top" ng-click="changeViewType()">Grid View &nbsp;
+                        <span class="fa fa-table"></span>
+                    </span>
                 </div>
             </div>
 
@@ -42,20 +48,9 @@
                             <a href="/appliance-catalog/create/">here</a>.
                         </alert>
                     </div>
-                    <div ng-show="appliances && appliances.length > 0" class="row">
-                        <div class="col col-sm-2" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
-                            <div class="thumbnail corner-ribbon-container">
-                                <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
-                                     alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
-                                <img src="/static/appliance_catalog/images/default.svg" class="app-icon"
-                                     alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
-                                <div class="caption">
-                                    <h4><a ng-href="detail/[[appliance.id]]">[[appliance.name]]</a></h4>
-                                    <p>[[appliance.description | characters:80 ]]</p>
-                                </div>
-                                <div ng-if="appliance.project_supported" class="corner-ribbon chameleon-logo" title="Chameleon Official Image">Chameleon Official Image</div>
-                            </div>
-                        </div>
+                    <div ng-show="appliances && appliances.length > 0">
+                        <div ng-show="viewType=='grid'" ng-include="'template/grid.html/'"></div>
+                        <div ng-show="viewType=='table'" ng-include="'template/table.html/'"></div>
                         <h4 ng-show="filteredAppliances && filteredAppliances.length > appsPerPage"
                             class="pagination-header">
                             <pagination boundary-links="true" total-items="filteredAppliances.length"
@@ -64,7 +59,8 @@
                                         class="pagination-sm"
                                         previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;"
                                         last-text="&raquo;"></pagination>
-                            <small class="pagination-summary">Showing [[getPageIndex()]] of [[filteredAppliances.length]]
+                            <small class="pagination-summary">Showing [[getPageIndex()]] of
+                                [[filteredAppliances.length]]
                                 appliances
                             </small>
                         </h4>

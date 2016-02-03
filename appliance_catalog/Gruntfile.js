@@ -59,7 +59,8 @@ module.exports = function(grunt) {
                 files: {
                     '<%= yeoman.dist %>/css/main.css': [
                         '.tmp/css/custom.css',
-                        'bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css'
+                        'bower_components/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css',
+                        'bower_components/ng-table/dist/ng-table.css'
                     ]
                 }
             }
@@ -121,7 +122,8 @@ module.exports = function(grunt) {
                     'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
                     'bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.js',
                     'scripts/customized_vendor/angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js',
-                    'scripts/customized_vendor/truncate/truncate.js'
+                    'scripts/customized_vendor/truncate/truncate.js',
+                    'bower_components/ng-table/dist/ng-table.js'
                 ],
                 dest: '.tmp/scripts/vendor.js'
             },
@@ -166,6 +168,6 @@ module.exports = function(grunt) {
     grunt.registerTask('default', [
         'newer:jshint',
         'build',
-        //'karma'
+        'karma'
     ]);
 };

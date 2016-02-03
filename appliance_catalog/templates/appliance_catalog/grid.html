@@ -1,0 +1,13 @@
+<div class="col col-sm-2" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
+    <div class="thumbnail corner-ribbon-container">
+        <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
+             alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
+        <img src="/static/appliance_catalog/images/default.svg" class="app-icon"
+             alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
+        <div class="caption">
+            <h4><a ng-href="detail/[[appliance.id]]">[[appliance.name]]</a></h4>
+            <p>[[appliance.description | characters:80 ]]</p>
+        </div>
+        <div ng-if="appliance.project_supported" class="corner-ribbon chameleon-logo" title="Chameleon Official Image">Chameleon Official Image</div>
+    </div>
+</div>
