@@ -360,6 +360,7 @@ PIPELINE_CSS = {
     'main': {
         'source_filenames': (
             'styles/main.scss',
+            'styles/corner-ribbon.css',
             'djangoRT/css/djangoRT.css',
             'projects/css/projects.scss',
             ),
