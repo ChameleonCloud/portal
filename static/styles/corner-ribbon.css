@@ -12,7 +12,7 @@
   text-align: center;
   text-transform: lowercase;
   font-variant: small-caps;
-  line-height: 2.5;
+  line-height: 1.5;
   letter-spacing: 1px;
   color: #f0f0f0;
   transform: rotate(-45deg);
@@ -65,3 +65,17 @@
 .corner-ribbon.red{background: #e43;}
 .corner-ribbon.orange{background: #e82;}
 .corner-ribbon.yellow{background: #ec0;}
+.corner-ribbon.chameleon{background: #39B54A;}
+.corner-ribbon.chameleon-logo{
+    background: #f0f0f0;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    top: 0;
+    left: -32px;
+    height: 32px;
+    width: 96px;
+    font-size: 0;
+    background-image: url('/static/images/logo-small.png');
+    background-position: center;
+    background-repeat: no-repeat;
+}
