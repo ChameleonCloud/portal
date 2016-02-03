@@ -10,6 +10,7 @@
     {{ block.super }}
     <script src="{% static 'appliance_catalog/js/vendor.js' %}"></script>
     <script src="{% static 'appliance_catalog/js/main.js' %}"></script>
+    <script src="{% static 'djangular/js/django-angular.js' %}"></script>
 {% endblock %}
 {% block content %}
     <div id="content-main" class="appCatalog" ng-app="appCatalogApp" ng-cloak>
@@ -66,7 +67,7 @@
                 <div ng-show="isEmpty(messages.appCatalog)">
                     <div ng-show="!appliances || appliances.length < 1">
                         <alert type="warning">There are no appliances. You can create one
-                            <a href="/appliance-catalog/create/">here</a>.
+                            <a href="create/">here</a>.
                         </alert>
                     </div>
                     <div ng-show="appliances && appliances.length > 0">

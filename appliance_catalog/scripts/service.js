@@ -165,13 +165,13 @@ angular
 
         return factory;
     }])
-    .factory('ApplianceFactory', ['$http', '_', 'moment', 'NotificationFactory', function($http, _, moment, NotificationFactory) {
+    .factory('ApplianceFactory', ['$http', '_', 'moment', 'NotificationFactory', 'djangoUrl', function($http, _, moment, NotificationFactory, djangoUrl) {
         var factory = {};
         factory.appliances = [];
         factory.appliance = null;
         factory.keywords = [];
         factory.getAppliances = function(keywords) {
-            var url = '/appliance-catalog/api/appliances/';
+            var url = djangoUrl.reverse('appliance_catalog:get_appliances');
 
             if(keywords){
                 url += '?';
@@ -205,7 +205,7 @@ angular
             NotificationFactory.addLoading('keywords');
             return $http({
                     method: 'GET',
-                    url: '/appliance-catalog/api/keywords/',
+                    url: djangoUrl.reverse('appliance_catalog:get_keywords'),
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -229,7 +229,7 @@ angular
             NotificationFactory.addLoading('appliance');
             return $http({
                     method: 'GET',
-                    url: '/appliance-catalog/api/appliances/' + appliance_id + '/',
+                    url: djangoUrl.reverse('appliance_catalog:get_appliance', [appliance_id]),
                     cache: 'true'
                 })
                 .then(function(response) {

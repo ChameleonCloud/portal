@@ -7,7 +7,7 @@ angular.module('moment', []).factory('moment', function() {
   return window.moment; // assumes moment has already been loaded on the page
 });
 
-angular.module('appCatalogApp.service', []);
+angular.module('appCatalogApp.service', ['ng.django.urls']);
 
 angular.module('appCatalogApp',['underscore', 'moment', 'appCatalogApp.service', 'ui.bootstrap',
   'toggle-switch', 'angularjs-dropdown-multiselect', 'truncate', 'ngSanitize'])
