@@ -15,8 +15,8 @@ urlpatterns = patterns(
         url(r'^admin/impersonate/', include('impersonate.urls')),
         url(r'^admin/allocations/', include('allocations.urls',
                                             namespace='allocations_admin')),
-        url(r'^appliance-catalog/', include('appliance_catalog.urls',
-                                            namespace='appliance_catalog')),
+        # url(r'^appliance-catalog/', include('appliance_catalog.urls',
+        #                                     namespace='appliance_catalog')),
 
         # contrib urls
         url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
