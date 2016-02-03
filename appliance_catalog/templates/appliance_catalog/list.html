@@ -15,7 +15,14 @@
     <div id="content-main" class="appCatalog" ng-app="appCatalogApp" ng-cloak>
         <div class="content" ng-controller="AppCatalogController">
             <h2>Appliance Catalog</h2>
-            <div><a class="btn btn-success" href="/appliance-catalog/create/">Add an appliance</a></div>
+            {% if request.user.is_authenticated %}
+            <div class="add-appliance-link">
+                <a class="btn btn-success" href="create/">
+                    <i class="fa fa-plus-circle"></i>
+                    Add an appliance
+                </a>
+            </div>
+            {% endif %}
             <div class="form-group">
                 <input class="form-control" type="text"
                        ng-keypress="($event.which === 13)?updateFiltered():angular.noop()"
@@ -27,14 +34,28 @@
                 <div>
                     <input type="button" value="Search" ng-click="updateFiltered()" class="btn btn-primary"/>
                     <input type="button" value="Reset" ng-click="reset()" class="btn btn-warning"/>
-                    <span class="view-switch pseudo-link" ng-show="viewType=='grid'" tooltip="Switch to list view"  
-                          tooltip-trigger="mouseenter" tooltip-placement="top" ng-click="changeViewType()">Table View &nbsp;
-                        <span class="fa fa-list"></span>
-                    </span>
-                    <span class="view-switch pseudo-link" ng-show="viewType=='table'" tooltip="Switch to grid view"  
-                          tooltip-trigger="mouseenter" tooltip-placement="top" ng-click="changeViewType()">Grid View &nbsp;
-                        <span class="fa fa-table"></span>
-                    </span>
+                    <div class="btn-group pull-right" role="group" aria-label="View options">
+                        <button type="button" class="btn btn-default view-switch"
+                                ng-class="{'active': viewType=='grid'}"
+                                ng-click="changeViewType();"
+                                tooltip="Switch to grid view"
+                                tooltip-placement="top"
+                                tooltip-trigger="mouseenter"
+                                tooltip-append-to-body="true"
+                        >
+                            <i class="fa fa-th-large"></i><span class="sr-only">Grid View</span>
+                        </button>
+                        <button type="button" class="btn btn-default view-switch"
+                                ng-class="{'active': viewType=='table'}"
+                                ng-click="changeViewType();"
+                                tooltip="Switch to table view"
+                                tooltip-placement="top"
+                                tooltip-trigger="mouseenter"
+                                tooltip-append-to-body="true"
+                        >
+                            <i class="fa fa-table"></i><span class="sr-only">Table View</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

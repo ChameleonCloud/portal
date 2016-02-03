@@ -119,6 +119,7 @@ module.exports = function(grunt) {
                     'bower_components/momentjs/moment.js',
                     'bower_components/lodash/dist/lodash.js',
                     'bower_components/angular/angular.js',
+                    'bower_components/angular-sanitize/angular-sanitize.js',
                     'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
                     'bower_components/angular-bootstrap-toggle-switch/angular-toggle-switch.js',
                     'scripts/customized_vendor/angularjs-dropdown-multiselect/src/angularjs-dropdown-multiselect.js',
@@ -137,9 +138,9 @@ module.exports = function(grunt) {
         },
 
         uglify: {
-            /*options: {
+            options: {
                 mangle: false
-              },*/
+            },
             dist: {
                 files: {
                     '<%= yeoman.dist %>/js/vendor.js': ['.tmp/scripts/vendor.js'],

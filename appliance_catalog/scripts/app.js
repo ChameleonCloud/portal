@@ -10,7 +10,7 @@ angular.module('moment', []).factory('moment', function() {
 angular.module('appCatalogApp.service', []);
 
 angular.module('appCatalogApp',['underscore', 'moment', 'appCatalogApp.service', 'ui.bootstrap',
-  'toggle-switch', 'angularjs-dropdown-multiselect', 'truncate'])
+  'toggle-switch', 'angularjs-dropdown-multiselect', 'truncate', 'ngSanitize'])
 .config(function($interpolateProvider, $httpProvider) {
     $interpolateProvider.startSymbol('[[').endSymbol(']]');
     $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

@@ -1,6 +1,8 @@
-from django.core.serializers import json
+from django.core.serializers.json import Serializer
 
-class MyJSONSerialiser(json.Serializer):
-	def get_dump_object(self, obj):
-		self._current['id'] = obj.pk
-		return self._current
+
+class MyJSONSerialiser(Serializer):
+
+    def get_dump_object(self, obj):
+        self._current['id'] = obj.pk
+        return self._current

@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import MyJSONSerialiser
+import markdown_deux
 import logging
 import json
 
@@ -34,12 +35,17 @@ def get_appliances(request):
             Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
     else:
         appliances = Appliance.objects.all()
+
+    for appliance in appliances:
+        appliance.description = markdown_deux.markdown(appliance.description)
     logger.debug('Total matching appliances found: %d.', appliances.count())
-    response = {}
-    response['status'] = 'success'
-    response['message'] = ''
+    response = {
+        'status': 'success',
+        'message': ''
+    }
     serializer = MyJSONSerialiser()
     response['result'] = json.loads(serializer.serialize(appliances))
+
     logger.info('Returning json response.')
     return HttpResponse(json.dumps(response), content_type="application/json")
 
