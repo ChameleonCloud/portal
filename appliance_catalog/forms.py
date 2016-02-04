@@ -22,7 +22,7 @@ class ApplianceForm(ModelForm):
 
     class Meta:
         model = Appliance
-        fields = ['name', 'description', 'appliance_icon', 'chi_tacc_appliance_id',
+        fields = ['name', 'description', 'documentation', 'appliance_icon', 'chi_tacc_appliance_id',
                   'chi_uc_appliance_id', 'kvm_tacc_appliance_id', 'author_name',
                   'author_url', 'support_contact_name', 'support_contact_url',
                   'keywords', 'new_keywords', 'version',
@@ -47,7 +47,8 @@ class ApplianceForm(ModelForm):
             'kvm_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
         }
         help_texts = {
-            'description': markdown_allowed()
+            'description': markdown_allowed(),
+            'documentation': markdown_allowed()
         }
 
     def __init__(self, user, *args, **kwargs):

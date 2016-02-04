@@ -1,0 +1,22 @@
+{% extends 'layout/default.html' %}
+{% load bootstrap3 staticfiles markdown_deux_tags %}
+{% block title %}Appliance Documentation {% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="appCatalog">
+        <h2>{% if appliance.appliance_icon %}
+            <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon" height="5%" width="5%">
+        {% else %}
+            <img src="{{ STATIC_URL }}appliance_catalog/images/default.svg" alt="App Icon" height="5%" width="5%">
+        {% endif %}
+            <span class="app-title">Documentation: {{ appliance.name }}</span></h2>
+        <hr>
+        <div>{{ appliance.documentation|markdown }}</div>
+    </div>
+{% endblock %}

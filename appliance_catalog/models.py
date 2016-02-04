@@ -12,6 +12,7 @@ class Keyword(models.Model):
 class Appliance(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=5000)
+    documentation = models.TextField(null=True, blank=True)
     appliance_icon = models.ImageField(upload_to='appliance_catalog/icons/', blank=True)
     chi_tacc_appliance_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
     chi_uc_appliance_id = models.CharField(max_length=100, null=True, blank=True, unique=True)

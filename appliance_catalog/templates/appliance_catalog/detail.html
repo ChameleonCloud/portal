@@ -36,7 +36,7 @@
 
         <h4>Description</h4>
         <div>{{ appliance.description|markdown }}</div>
-
+        <div><a target="_blank" href="{% url 'appliance_catalog:app_documentation' appliance.id %}"><span class="fa fa-book"></span>&nbsp;Documentation</a></div>
         {% if keywords %}
             <br>
             <h4>Keywords</h4>
@@ -59,22 +59,29 @@
         <h4>Image IDs</h4>
         <table>
             {% if appliance.chi_tacc_appliance_id %}
-            <tr>
-                <td><strong>CHI@TACC:&nbsp;</strong></td>
-                <td>{{ appliance.chi_tacc_appliance_id }}</td>
-            </tr>
+                <tr>
+                    <td><strong>CHI@TACC:&nbsp;</strong></td>
+                    <td><a target="_blank" title="Lauch at CHI@TACC"
+                           href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_tacc_appliance_id }}/">
+                        {{ appliance.chi_tacc_appliance_id }}</a></td>
+                </tr>
             {% endif %}
             {% if appliance.chi_uc_appliance_id %}
-            <tr>
-                <td><strong>CHI@UC:&nbsp;</strong></td>
-                <td>{{ appliance.chi_uc_appliance_id }}</td>
-            </tr>
+                <tr>
+                    <td><strong>CHI@UC:&nbsp;</strong></td>
+                    <td><a target="_blank" title="Lauch at CHI@UC"
+                           href="https://chi.uc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_uc_appliance_id }}/">
+                        {{ appliance.chi_uc_appliance_id }}</a>
+                    </td>
+                </tr>
             {% endif %}
-            {% if appliance.kvn_tacc_appliance_id %}
-            <tr>
-                <td><strong>KVM@TACC:&nbsp;</strong></td>
-                <td>{{ appliance.kvm_tacc_appliance_id }}</td>
-            </tr>
+            {% if appliance.kvm_tacc_appliance_id %}
+                <tr>
+                    <td><strong>KVM@TACC:&nbsp;</strong></td>
+                    <td><a target="_blank" title="Lauch at KVM@TACC"
+                           href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">
+                        {{ appliance.kvm_tacc_appliance_id }}</a></td>
+                </tr>
             {% endif %}
         </table>
         <hr/>
@@ -86,7 +93,11 @@
             </tr>
             <tr>
                 <td><strong>Contact:&nbsp;</strong></td>
-                <td>{{ appliance.author_url }}</td>
+                <td>{% if appliance.author_contact_type == 'url' %}
+                    <a target="_blank" href="{{ appliance.author_url }}">{{ appliance.author_url }}</a>
+                {% else %}
+                    <a href="mailto:{{ appliance.author_url }}">{{ appliance.author_url }}</a>
+                {% endif %}</td>
             </tr>
         </table>
         <hr/>
@@ -98,7 +109,11 @@
             </tr>
             <tr>
                 <td><strong>Contact:&nbsp;</strong></td>
-                <td>{{ appliance.support_contact_url }}</td>
+                <td>{% if appliance.support_contact_type == 'url' %}
+                    <a target="_blank" href="{{ appliance.support_contact_url }}">{{ appliance.support_contact_url }}</a>
+                {% else %}
+                    <a href="mailto:{{ appliance.support_contact_url }}">{{ appliance.support_contact_url }}</a>
+                {% endif %}</td>
             </tr>
         </table>
         <hr/>
@@ -108,21 +123,23 @@
                 <td>{{ appliance.version }}</td>
             </tr>
             <tr>
-                <td><strong>Created By: </strong></td>
+                <td><strong>Created By:&nbsp;</strong></td>
                 <td>{{ appliance.created_user }} on {{ appliance.created_date }}</td>
             </tr>
-            <tr>
-                <td><strong>Updated By:&nbsp;</strong></td>
-                <td>{{ appliance.updated_user }} on {{ appliance.updated_date }}</td>
-            </tr>
+            {% if appliance.updated_user and  appliance.updated_date %}
+                <tr>
+                    <td><strong>Updated By:&nbsp;</strong></td>
+                    <td>{{ appliance.updated_user }} on {{ appliance.updated_date }}</td>
+                </tr>
+            {% endif %}
         </table>
 
         {% if editable %}
-        <hr>
-        <h4>Actions</h4>
-        <a class="btn btn-warning" href="{% url 'appliance_catalog:app_edit' appliance.id %}">Edit</a>&nbsp;
-        <a class="btn btn-danger" href="{% url 'appliance_catalog:app_delete' appliance.id %}">Delete</a>&nbsp;
-        <a class="btn btn-default" href="{% url 'appliance_catalog:app_list' %}">Back</a>
+            <hr>
+            <h4>Actions</h4>
+            <a class="btn btn-warning" href="{% url 'appliance_catalog:app_edit' appliance.id %}">Edit</a>&nbsp;
+            <a class="btn btn-danger" href="{% url 'appliance_catalog:app_delete' appliance.id %}">Delete</a>&nbsp;
+            <a class="btn btn-default" href="{% url 'appliance_catalog:app_list' %}">Back</a>
         {% endif %}
     </div>
 {% endblock %}

@@ -7,6 +7,8 @@ from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.shortcuts import render_to_response
 from django.views.generic.edit import DeleteView
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import MyJSONSerialiser
@@ -59,12 +61,31 @@ def app_detail(request, pk):
     keywords = appliance.keywords.all()
     logger.debug('This appliance has %d keywords.', keywords.count())
     editable = request.user.is_staff or request.user == appliance.created_user
+    try:
+        validate_email(appliance.author_url)
+        appliance.author_contact_type = 'email'
+    except ValidationError:
+        appliance.author_contact_type = 'url'
+    try:
+        validate_email(appliance.support_contact_url)
+        appliance.support_contact_type = 'email'
+    except ValidationError:
+        appliance.support_contact_type = 'url'
     context = {
         'appliance': appliance,
         'keywords': keywords,
         'editable': editable
     }
     return render(request, 'appliance_catalog/detail.html', context)
+
+def app_documentation(request, pk):
+    logger.info('Documentation requested for appliance id: %s.', pk)
+    appliance = get_object_or_404(Appliance, pk=pk)
+    logger.debug('Appliance found.')
+    context = {
+        'appliance': appliance,
+    }
+    return render(request, 'appliance_catalog/documentation.html', context)
 
 
 def get_appliance(request, pk):
