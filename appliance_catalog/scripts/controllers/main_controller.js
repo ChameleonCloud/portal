@@ -129,7 +129,7 @@ angular.module('appCatalogApp')
       };
 
       $scope.updateFiltered = function () {
-        if ($scope.filter.selectedKeywords) {
+        if ($scope.filter.selectedKeywords && $scope.filter.selectedKeywords.length > 0) {
           ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
             if ($scope.filter.andSearch) {
               $scope.filteredAppliances = UtilFactory.search(ApplianceFactory.appliances, $scope.filter.searchKey);

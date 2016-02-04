@@ -5,6 +5,7 @@ describe('NotificationFactory', function () {
 
   beforeEach(function () {
     module('underscore');
+    module('ng.django.urls');
     module('appCatalogApp.service');
     inject(function (_NotificationFactory_) {
       NotificationFactory = _NotificationFactory_;
@@ -58,6 +59,7 @@ describe('UtilFactory', function () {
   beforeEach(function () {
     module('moment');
     module('underscore');
+    module('ng.django.urls');
     module('appCatalogApp.service');
     jasmine.getJSONFixtures().fixturesPath = 'base/unit/fixtures';
     module(function ($provide) {
@@ -183,6 +185,7 @@ describe('ApplianceFactory', function () {
   var keywords = {result: [{id: '64-bit'}, {id: '32-bit'}]};
   var keywordsFormatted = [{id: '64-bit', label: '64-bit'}, {id: '32-bit', label: '32-bit'}];
   beforeEach(function () {
+    module('ng.django.urls');
     module('appCatalogApp.service');
     module('underscore');
     module('moment');
@@ -194,7 +197,7 @@ describe('ApplianceFactory', function () {
   });
 
   it('should get appliances', function () {
-    $httpBackend.when('GET', '/appliance-catalog/api/appliances/').respond(200, appliances);
+    $httpBackend.when('GET', '/angular/reverse/?djng_url_name=appliance_catalog%3Aget_appliances').respond(200, appliances);
     ApplianceFactory.getAppliances();
     $httpBackend.flush();
     $httpBackend.verifyNoOutstandingExpectation();
@@ -203,7 +206,7 @@ describe('ApplianceFactory', function () {
   });
 
   it('should get an appliance', function () {
-    $httpBackend.when('GET', '/appliance-catalog/api/appliances/1/').respond(200, appliance);
+    $httpBackend.when('GET', '/angular/reverse/?djng_url_name=appliance_catalog%3Aget_appliance&djng_url_args=1').respond(200, appliance);
     ApplianceFactory.getAppliance(1);
     $httpBackend.flush();
     $httpBackend.verifyNoOutstandingExpectation();
@@ -212,7 +215,7 @@ describe('ApplianceFactory', function () {
   });
 
   it('should get keywords', function () {
-    $httpBackend.when('GET', '/appliance-catalog/api/keywords/').respond(200, keywords);
+    $httpBackend.when('GET', '/angular/reverse/?djng_url_name=appliance_catalog%3Aget_keywords').respond(200, keywords);
     ApplianceFactory.getKeywords();
     $httpBackend.flush();
     $httpBackend.verifyNoOutstandingExpectation();

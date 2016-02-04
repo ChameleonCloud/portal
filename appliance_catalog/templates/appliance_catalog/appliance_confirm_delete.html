@@ -1,0 +1,20 @@
+{% extends 'layout/default.html' %}
+{% load bootstrap3 staticfiles markdown_deux_tags %}
+{% block title %}Appliance Detail {% endblock %}
+
+{% block styles %}
+    {{ block.super }}
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="appCatalog">
+        <form action="" method="post">{% csrf_token %}
+            <p>Are you sure you want to delete "{{ object.name }}"?</p>
+            <input type="submit" class="btn btn-danger" value="Confirm"/>
+            <a class="btn btn-default" href="{% url 'appliance_catalog:app_detail' object.id %}">Cancel</a>
+        </form>
+    </div>
+{% endblock %}
+

@@ -174,7 +174,7 @@ angular
             var url = djangoUrl.reverse('appliance_catalog:get_appliances');
 
             if(keywords){
-                url += '?';
+                url += '&';
                 for(var i in keywords){
                     url += 'keywords=' +keywords[i].id;
                     if(i < keywords.length-1){

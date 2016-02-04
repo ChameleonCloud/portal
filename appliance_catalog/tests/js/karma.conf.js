@@ -18,6 +18,7 @@ module.exports = function(config) {
         files: [
             '../../../static/bower_components/jquery/dist/jquery.js',
             '../../static/appliance_catalog/js/vendor.js',
+            '../../scripts/customized_vendor/django-angular/django-angular.js',
             '../../bower_components/angular-mocks/angular-mocks.js',
             '../../bower_components/jasmine-jquery/lib/jasmine-jquery.js',
             '../../static/appliance_catalog/js/main.js',

@@ -1,10 +1,12 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 from django.shortcuts import render_to_response
+from django.views.generic.edit import DeleteView
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import MyJSONSerialiser
@@ -153,17 +155,6 @@ def app_edit(request, pk):
     return render(request, 'appliance_catalog/create-edit.html', {'appliance_form': form, 'edit': True, 'pk': pk})
 
 
-@login_required
-@staff_member_required
-def app_delete(request, pk):
-    logger.info('Appliance delete requested for appliance id: %s by user: %s', pk, request.user.username)
-    appliance = get_object_or_404(Appliance, pk=pk)
-    logger.debug('Appliance found.')
-    appliance.delete()
-    logger.info('Appliance deleted successfully.')
-    return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
-
-
 def get_keywords(request, appliance_id=None):
     if appliance_id:
         logger.info('Get keywords requested for appliance id: %s', appliance_id)
@@ -188,4 +179,36 @@ def app_template(request, resource):
     logger.debug('Template requested: %s.html', resource)
     templateUrl = 'appliance_catalog/%s.html' %resource
     return render_to_response(templateUrl)
+
+@login_required
+@staff_member_required
+def app_delete(request, pk):
+    response = {}
+    response['result'] = None
+    if request.method == 'DELETE':
+        logger.info('Appliance delete requested for appliance id: %s by user: %s', pk, request.user.username)
+        try:
+            appliance = Appliance.objects.get(pk=pk)
+            appliance.delete()
+            logger.info('Appliance deleted successfully.')
+            logger.debug('Appliance found.')
+            response['status'] = 'success'
+            response['message'] = 'Deleted Successfully'
+        except Appliance.DoesNotExist:
+            appliance = None;
+            response['status'] = 'error'
+            response['message'] = 'Appliance with id %s, not found' %pk
+        return HttpResponse(json.dumps(response), content_type="application/json")
+    else:
+        response['status'] = 'error'
+        response['message'] = 'Invalid method'
+        return HttpResponse(json.dumps(response), content_type="application/json", status=405)
+
+class ApplianceDeleteView(DeleteView):
+    model = Appliance
+    success_url = reverse_lazy('appliance_catalog:app_list')
+    @method_decorator(login_required)
+    @method_decorator(staff_member_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ApplianceDeleteView, self).dispatch(*args, **kwargs)
 
