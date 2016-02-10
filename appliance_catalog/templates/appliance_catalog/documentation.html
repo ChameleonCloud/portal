@@ -9,14 +9,42 @@
 {% endblock %}
 
 {% block content %}
+    <ol class="breadcrumb">
+        <li><a href="../../">Appliances</a></li>
+        <li><a href="../">{{appliance.name}}</a></li>
+        <li class="active">Documentation</li>
+    </ol>
+
     <div class="appCatalog">
         <h2>{% if appliance.appliance_icon %}
             <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon" height="5%" width="5%">
         {% else %}
             <img src="{{ STATIC_URL }}appliance_catalog/images/default.svg" alt="App Icon" height="5%" width="5%">
         {% endif %}
-            <span class="app-title">Documentation: {{ appliance.name }}</span></h2>
+            <span class="app-title">{{ appliance.name }}: Documentation</span>
+        </h2>
+
+        <a href="{% url 'appliance_catalog:app_detail' appliance.id %}" class="btn btn-info">
+            Appliance Details
+        </a>
+        {% if appliance.chi_tacc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_tacc_appliance_id }}/">Launch
+                at CHI@TACC</a>&nbsp;
+        {% endif %}
+        {% if appliance.chi_uc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://chi.uc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_uc_appliance_id }}/">Launch
+                at CHI@UC</a>&nbsp;
+        {% endif %}
+        {% if appliance.kvm_tacc_appliance_id %}
+            <a target="_blank" class="btn btn-primary"
+               href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
+                at KVM@TACC</a>
+        {% endif %}
+
         <hr>
+
         <div>{{ appliance.documentation|markdown }}</div>
     </div>
 {% endblock %}
