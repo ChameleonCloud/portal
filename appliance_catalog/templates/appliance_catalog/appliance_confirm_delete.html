@@ -1,6 +1,6 @@
 {% extends 'layout/default.html' %}
 {% load bootstrap3 staticfiles markdown_deux_tags %}
-{% block title %}Appliance Detail {% endblock %}
+{% block title %}Confirm Delete {{object.name}}{% endblock %}
 
 {% block styles %}
     {{ block.super }}
@@ -10,9 +10,11 @@
 
 {% block content %}
     <div class="appCatalog">
-        <form action="" method="post">{% csrf_token %}
-            <p>Are you sure you want to delete "{{ object.name }}"?</p>
-            <input type="submit" class="btn btn-danger" value="Confirm"/>
+        <h2>Delete Appliance {{object.name}}?</h2>
+        <p class="lead">Are you sure you want to delete the appliance "{{ object.name }}"?</p>
+        <form action="" method="post">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-danger" value="Yes, Delete"/>
             <a class="btn btn-default" href="{% url 'appliance_catalog:app_detail' object.id %}">Cancel</a>
         </form>
     </div>
