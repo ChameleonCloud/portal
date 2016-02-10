@@ -22,12 +22,13 @@ class ApplianceForm(ModelForm):
 
     class Meta:
         model = Appliance
-        fields = ['name', 'description', 'documentation', 'appliance_icon', 'chi_tacc_appliance_id',
-                  'chi_uc_appliance_id', 'kvm_tacc_appliance_id', 'author_name',
-                  'author_url', 'support_contact_name', 'support_contact_url',
-                  'keywords', 'new_keywords', 'version',
-                  'project_supported']
+        fields = ['name', 'short_description', 'description', 'documentation',
+                  'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id',
+                  'kvm_tacc_appliance_id', 'author_name', 'author_url',
+                  'support_contact_name', 'support_contact_url', 'keywords',
+                  'new_keywords', 'version', 'project_supported']
         labels = {
+            'short_description': 'Short description (140 characters)',
             'chi_tacc_appliance_id':
                 'Appliance ID for '
                 '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
