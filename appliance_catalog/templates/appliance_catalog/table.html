@@ -22,7 +22,7 @@
             <div><a ng-href="detail/[[appliance.id]]">[[appliance.name]]</a>
             </div>
         </td>
-        <td ng-bind-html="appliance.description|words: 40"></td>
+        <td ng-bind="appliance.short_description"></td>
         <td>
             <div>[[appliance.support_contact_name]]</div>
             <div>

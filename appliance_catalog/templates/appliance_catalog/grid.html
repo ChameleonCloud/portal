@@ -1,5 +1,5 @@
-<div class="row">
-    <div class="col col-xs-6 col-sm-4 col-md-3" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
+<div class="appliance-grid">
+    <div class="appliance-grid-item corner-ribbon-container" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
         <div class="thumbnail corner-ribbon-container text-center">
             <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
                  alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
@@ -7,7 +7,7 @@
                  alt="App Icon" ng-if="!appliance.appliance_icon.length > 0">
             <div class="caption">
                 <h4><a ng-href="[[appliance.id]]/">[[appliance.name]]</a></h4>
-                <p ng-bind-html="appliance.description|words: 15"></p>
+                <p ng-bind="appliance.short_description"></p>
             </div>
             <div ng-if="appliance.project_supported" class="corner-ribbon chameleon-logo" title="Chameleon Official Image">Chameleon Official Image</div>
         </div>

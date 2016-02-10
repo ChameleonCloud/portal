@@ -18,9 +18,34 @@
     cursor: pointer;
   }
 
-  .form-group {
-    margin-top: 10px;
-    margin-right: 12px;
+  .appliance-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+
+  .appliance-grid-item {
+    display: flex;
+    width: 50%;
+    padding: 10px;
+  }
+
+  .appliance-grid-item .thumbnail {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 768px) {
+    .appliance-grid-item {
+      width: 33.33333%;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .appliance-grid-item {
+      width: 25%;
+    }
   }
 
   .app-icon {
