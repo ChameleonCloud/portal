@@ -9,6 +9,11 @@
 {% endblock %}
 
 {% block content %}
+    <ol class="breadcrumb">
+        <li><a href="../">Appliances</a></li>
+        <li class="active">{{appliance.name}}</li>
+    </ol>
+
     <div class="appCatalog">
         <h2>{% if appliance.appliance_icon %}
             <img src="{{ MEDIA_URL }}{{ appliance.appliance_icon }}" alt="App Icon" height="5%" width="5%">
@@ -17,6 +22,11 @@
         {% endif %}
             <span class="app-title">{{ appliance.name }}</span></h2>
 
+        {% if appliance.documentation %}
+            <a href="{% url 'appliance_catalog:app_documentation' appliance.id %}" class="btn btn-info">
+                <span class="fa fa-book"></span>&nbsp;Documentation
+            </a>
+        {% endif %}
         {% if appliance.chi_tacc_appliance_id %}
             <a target="_blank" class="btn btn-primary"
                href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.chi_tacc_appliance_id }}/">Launch
@@ -32,11 +42,15 @@
                href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
                 at KVM@TACC</a>
         {% endif %}
+        {% if editable %}
+            <a class="btn btn-warning pull-right" href="{% url 'appliance_catalog:app_edit' appliance.id %}">
+                <i class="fa fa-edit"></i> Edit
+            </a>
+        {% endif %}
         <hr>
 
         <h4>Description</h4>
         <div>{{ appliance.description|markdown }}</div>
-        <div><a target="_blank" href="{% url 'appliance_catalog:app_documentation' appliance.id %}"><span class="fa fa-book"></span>&nbsp;Documentation</a></div>
         {% if keywords %}
             <br>
             <h4>Keywords</h4>
@@ -133,13 +147,5 @@
                 </tr>
             {% endif %}
         </table>
-
-        {% if editable %}
-            <hr>
-            <h4>Actions</h4>
-            <a class="btn btn-warning" href="{% url 'appliance_catalog:app_edit' appliance.id %}">Edit</a>&nbsp;
-            <a class="btn btn-danger" href="{% url 'appliance_catalog:app_delete' appliance.id %}">Delete</a>&nbsp;
-            <a class="btn btn-default" href="{% url 'appliance_catalog:app_list' %}">Back</a>
-        {% endif %}
     </div>
 {% endblock %}
