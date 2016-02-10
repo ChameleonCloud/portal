@@ -266,6 +266,11 @@ article {
 }
 
 @media screen and (min-width:768px) {
+  .navbar-nav>li>a {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
   .navbar-chameleon .navbar-nav > .navbar-btn-alt > a {
     padding: 3px 10px;
     margin: 20px 4px;
