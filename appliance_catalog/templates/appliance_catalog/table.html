@@ -5,17 +5,12 @@
             <span class="fa fa-caret-down" ng-if="predicate=='name' && reverse"></span>
         </th>
         <th>Description</th>
-        <th class="pseudo-link" ng-click="changeOrder('author_name')"> Author
-            <span class="fa fa-caret-up" ng-if="predicate=='author_name' && !reverse"></span>
-            <span class="fa fa-caret-down" ng-if="predicate=='author_name' && reverse"></span>
-        </th>
         <th>Support</th>
-        <th>Version</th>
-        <th>Launch</th>
+        <th>Links</th>
     </tr>
     <tr ng-repeat="appliance in appsThisPage">
         <td class="name-column">
-            <div><a ng-href="detail/[[appliance.id]]">
+            <div><a ng-href="[[appliance.id]]/">
                 <img ng-src="/media/[[appliance.appliance_icon]]"
                      class="app-icon app-icon-table"
                      alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
@@ -29,13 +24,6 @@
         </td>
         <td ng-bind-html="appliance.description|words: 40"></td>
         <td>
-            <div>[[appliance.author_name]]</div>
-            <div>
-                <a ng-if="appliance.author_url.indexOf('http') === 0" href="[[appliance.author_url]]">[[appliance.author_url]]</a>
-                <a ng-if="appliance.author_url.indexOf('http') !== 0" href="mailto:[[appliance.author_url]]">[[appliance.author_url]]</a>
-            </div>
-        </td>
-        <td>
             <div>[[appliance.support_contact_name]]</div>
             <div>
                 <a ng-if="appliance.support_contact_url.indexOf('http') === 0" href="[[appliance.support_contact_url]]">[[appliance.support_contact_url]]</a>
@@ -43,9 +31,9 @@
             </div>
         </td>
         <td>
-            [[ appliance.version ]]
-        </td>
-        <td>
+            <div ng-if="appliance.documentation">
+                <a href="[[ appliance.id ]]/docs" class="btn btn-sm btn-block btn-info">Docs</a>
+            </div>
             <div ng-if="appliance.chi_tacc_appliance_id">
                 <a target="_blank" class="btn btn-sm btn-block btn-primary"
                    ng-href="https://chi.tacc.chameleoncloud.org/dashboard/project/images/[[ appliance.chi_tacc_appliance_id]]/">

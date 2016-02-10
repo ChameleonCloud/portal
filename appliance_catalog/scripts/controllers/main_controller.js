@@ -121,7 +121,7 @@ angular.module('appCatalogApp')
 
 
       $scope.viewDetail = function(appId) {
-        window.location = 'detail/' + appId + '/';
+        window.location = appId + '/';
       };
 
       $scope.multiselectCustomTexts = {
