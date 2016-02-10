@@ -1,7 +1,7 @@
 {% extends 'layout/default.html' %}
 {% load bootstrap3 %}
 
-{% block title %}Create Appliance{% endblock %}
+{% block title %}{% if edit %}Edit{% else %}Create{% endif %} Appliance{% endblock %}
 
 {% block content %}
 {% if edit %}
@@ -10,20 +10,19 @@
      <h2>Create Appliance</h2>
 {% endif %}
 <form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
+    {% csrf_token %}
+    {% bootstrap_form appliance_form %}
+    <div class="form-group">
+        {% if edit %}
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'appliance_catalog:app_detail' pk %}" class="btn btn-default">Cancel</a>
+            <a href="{% url 'appliance_catalog:app_delete' pk %}" class="btn btn-danger pull-right">Delete</a>
+        {% else %}
+            <button type="submit" class="btn btn-success">Create an Appliance</button>
+            <a href="{% url 'appliance_catalog:app_list' %}" class="btn btn-default">Cancel</a>
+        {% endif %}
 
-  {% bootstrap_form appliance_form %}
-
-  <div class="form-group">
-      {% if edit %}
-             <button type="submit" class="btn btn-success">Save Changes</button>
-             <a href="{% url 'appliance_catalog:app_detail' pk %}" class="btn btn-default">Cancel</a>
-      {% else %}
-             <button type="submit" class="btn btn-success">Create an Appliance</button>
-             <a href="{% url 'appliance_catalog:app_list' %}" class="btn btn-default">Cancel</a>
-      {% endif %}
-
-  </div>
+    </div>
 </form>
 
 {% endblock %}
