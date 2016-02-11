@@ -20,6 +20,7 @@ import json
 
 logger = logging.getLogger('projects')
 
+
 def project_pi_or_admin_or_superuser(user, project):
     if user.is_superuser:
         return True
@@ -32,6 +33,7 @@ def project_pi_or_admin_or_superuser(user, project):
 
     return False
 
+
 def project_member_or_admin_or_superuser(user, project, project_user):
     if project_pi_or_admin_or_superuser(user, project):
         return True
@@ -41,7 +43,6 @@ def project_member_or_admin_or_superuser(user, project, project_user):
             return True
 
     return False
-
 
 
 @login_required
@@ -58,6 +59,7 @@ def user_projects(request):
     context['projects'] = projects
 
     return render(request, 'projects/user_projects.html', context)
+
 
 @login_required
 def view_project(request, project_id):
@@ -154,15 +156,19 @@ def view_project(request, project_id):
         'form': form,
     })
 
+
 @login_required
-def create_allocation(request, project_id, allocation_id = -1):
+@terms_required('project-terms')
+def create_allocation(request, project_id, allocation_id=-1):
     tas = TASClient()
 
     user = tas.get_user(username=request.user)
     if user['piEligibility'] != 'Eligible':
-        messages.error(request, 'Only PI Eligible users can request allocations. '
-            'If you would like to request PI Eligibility, please '
-            '<a href="/user/profile/edit/">submit a PI Eligibility request</a>.')
+        messages.error(request,
+                       'Only PI Eligible users can request allocations. If you would '
+                       'like to request PI Eligibility, please '
+                       '<a href="/user/profile/edit/">submit a PI Eligibility '
+                       'request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     project = Project(project_id)
@@ -183,7 +189,7 @@ def create_allocation(request, project_id, allocation_id = -1):
             funding_source = additional[1]
         else:
             funding_source = ''
-    else:
+    elif allocation:
         justification = allocation.justification
         if '--- Funding source(s) ---' in justification:
             parts = justification.split('\n\n--- Funding source(s) ---\n\n')
@@ -193,7 +199,8 @@ def create_allocation(request, project_id, allocation_id = -1):
             funding_source = ''
 
     if request.POST:
-        form = AllocationCreateForm(request.POST, initial={'description': abstract,
+        form = AllocationCreateForm(request.POST,
+                                    initial={'description': abstract,
                                              'supplemental_details': justification,
                                              'funding_source': funding_source})
         if form.is_valid():
@@ -216,38 +223,46 @@ def create_allocation(request, project_id, allocation_id = -1):
                 allocation['id'] = allocation_id
 
             try:
-                logger.info('Submitting allocation request for project %s: %s' % (project.id, allocation))
+                logger.info('Submitting allocation request for project %s: %s' %
+                            (project.id, allocation))
                 updated_project = tas.edit_project(project.as_dict())
-                created_allocation = tas.create_allocation(allocation)
+                tas.create_allocation(allocation)
                 messages.success(request, 'Your allocation request has been submitted!')
-                return HttpResponseRedirect(reverse('projects:view_project',
-                    args=[ updated_project['id'] ]))
+                return HttpResponseRedirect(
+                    reverse('projects:view_project', args=[updated_project['id']]))
             except:
                 logger.exception('Error creating allocation')
-                form.add_error('__all__', 'An unexpected error occurred. Please try again')
+                form.add_error('__all__',
+                               'An unexpected error occurred. Please try again')
         else:
-            form.add_error('__all__', 'There were errors processing your request. '
-                'Please see below for details.')
+            form.add_error('__all__',
+                           'There were errors processing your request. '
+                           'Please see below for details.')
     else:
         form = AllocationCreateForm(initial={'description': abstract,
                                              'supplemental_details': justification,
                                              'funding_source': funding_source})
+    context = {
+        'form': form,
+        'project': project,
+        'alloc_id': allocation_id,
+        'alloc': allocation
+    }
+    return render(request, 'projects/create_allocation.html', context)
 
-    return render(request, 'projects/create_allocation.html', { 'form': form, 'project': project, 'alloc_id': allocation_id, 'alloc': allocation })
 
 @login_required
 @terms_required('project-terms')
 def create_project(request):
     tas = TASClient()
-
     user = tas.get_user(username=request.user)
     if user['piEligibility'] != 'Eligible':
         messages.error(request,
-            'Only PI Eligible users can create new projects. If you would like to '
-            'request PI Eligibility, please <a href="/user/profile/edit/">submit a '
-            'PI Eligibility request</a>.')
+                       'Only PI Eligible users can create new projects. '
+                       'If you would like to request PI Eligibility, please '
+                       '<a href="/user/profile/edit/">submit a PI Eligibility '
+                       'request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
-
     if request.POST:
         form = ProjectCreateForm(request.POST)
         if form.is_valid():
@@ -264,8 +279,8 @@ def create_project(request):
                 {
                     'resourceId': 39,
                     'requestorId': pi_user['id'],
-                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % \
-                            (project['supplemental_details'], project['funding_source']),
+                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % (
+                        project['supplemental_details'], project['funding_source']),
                     'computeRequested': 20000,
                 }
             ]
@@ -282,22 +297,25 @@ def create_project(request):
             try:
                 created_project = tas.create_project(project)
                 messages.success(request, 'Your project has been created!')
-                return HttpResponseRedirect(reverse('projects:view_project', args=[ created_project['id'] ]))
+                return HttpResponseRedirect(
+                    reverse('projects:view_project', args=[created_project['id']]))
             except:
                 logger.exception('Error creating project')
-                form.add_error('__all__', 'An unexpected error occurred. Please try again')
+                form.add_error('__all__',
+                               'An unexpected error occurred. Please try again')
         else:
-            form.add_error('__all__', 'There were errors processing your request. '
-                'Please see below for details.')
+            form.add_error('__all__',
+                           'There were errors processing your request. '
+                           'Please see below for details.')
 
     else:
         form = ProjectCreateForm()
 
-    return render(request, 'projects/create_project.html', { 'form': form })
+    return render(request, 'projects/create_project.html', {'form': form})
+
 
 @login_required
 def edit_project(request):
     context = {}
-
     return render(request, 'projects/edit_project.html', context)
 
