@@ -197,6 +197,9 @@ def create_allocation(request, project_id, allocation_id=-1):
             funding_source = parts[1]
         else:
             funding_source = ''
+    else:
+        justification = ''
+        funding_source = ''
 
     if request.POST:
         form = AllocationCreateForm(request.POST,
