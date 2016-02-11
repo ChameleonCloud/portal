@@ -7,14 +7,13 @@ from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-
+from django.views.decorators.csrf import csrf_exempt
 import logging
 import re
 
 from openid.consumer import consumer
 from openid.consumer.discover import DiscoveryFailure
-from openid.extensions import ax, pape, sreg
-from openid.store.filestore import FileOpenIDStore
+from openid.extensions import ax, sreg
 
 from .models import OpenIDUserIdentity
 from .utils import JSONSafeSession, DBOpenIDStore
@@ -26,8 +25,8 @@ from tas.views import _clean_registration_data
 from pytas.http import TASClient
 from pytas.models import Project
 
-
 logger = logging.getLogger(__name__)
+
 
 def _get_openid_store():
     return DBOpenIDStore()
@@ -68,6 +67,7 @@ def openid_login(request):
 
 
 @anonymous_required
+@csrf_exempt
 def openid_callback(request):
 
     request_args = dict(request.GET.items())
@@ -79,8 +79,6 @@ def openid_callback(request):
         return_to = request.build_absolute_uri(reverse('chameleon_openid:openid_callback'))
         response = c.complete(request_args, return_to)
 
-        sreg_response = {}
-        ax_items = {}
         if response.status == consumer.SUCCESS:
             sreg_response = sreg.SRegResponse.fromSuccessResponse(response)
 
@@ -90,15 +88,16 @@ def openid_callback(request):
                     'projects': ax_response.get('http://geni.net/projects'),
                     'full_name': ax_response.get('http://geni.net/user/prettyname'),
                 }
+            else:
+                ax_items = {}
 
-
-            result = {}
-            result['status'] = response.status
-            result['url'] = response.getDisplayIdentifier()
-            result['sreg'] = sreg_response and dict(sreg_response.items())
-            result['ax'] = ax_items
+            result = {
+                'status': response.status,
+                'url': response.getDisplayIdentifier(),
+                'sreg': sreg_response and dict(sreg_response.items()),
+                'ax': ax_items
+            }
             request.session['openid'] = result
-
             user = authenticate(openid_identity=result['url'])
             if user:
                 if user.is_active:
@@ -126,7 +125,6 @@ def openid_callback(request):
 def openid_connect(request):
     if 'openid' not in request.session:
         return HttpResponseRedirect(reverse('chameleon_openid:openid_login'))
-
 
     openid = request.session['openid']
 
@@ -214,7 +212,7 @@ def openid_register(request):
                                   'Please choose another. If you already have an ' \
                                   'account with TACC, please log in using those ' \
                                   'credentials.'
-                        errors = account_form._errors.setdefault('username', ErrorList())
+                        errors = reg_form._errors.setdefault('username', ErrorList())
                         errors.append(message)
                         messages.error(request, message)
                     elif re.search('DuplicateEmailException', e.args[1]):
@@ -225,12 +223,12 @@ def openid_register(request):
                                   % forgot_password_url
 
                         messages.error(request, message)
-                        errors = profile_form._errors.setdefault('email', ErrorList())
+                        errors = reg_form._errors.setdefault('email', ErrorList())
                         errors.append(message)
                     elif re.search('PasswordInvalidException', e.args[1]):
                         message = 'The password you provided did not meet the complexity requirements.'
                         messages.error(request, message)
-                        errors = account_form._errors.setdefault('password', ErrorList())
+                        errors = reg_form._errors.setdefault('password', ErrorList())
                         errors.append(message)
                     else:
                         messages.error(request,
