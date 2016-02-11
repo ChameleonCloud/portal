@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.10.0
+
+- New appliance marketplace
+- Fix bug with creating new allocations on existing projects
+- Fix OpenID CSRF
+
 ### v1.9.0
 
 - Improved allocation request workflow
