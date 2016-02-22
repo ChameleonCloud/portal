@@ -11,7 +11,7 @@ django-bootstrap3==5.4.0
 django-termsandconditions==0.1.4
 django-angular==0.7.13
 django-impersonate==0.9.1
-django-reversion>=1.8
+django-reversion==1.8
 
 django-cms==3.0.10
 djangocms-admin-style==0.2.5
