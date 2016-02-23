@@ -57,6 +57,7 @@ def user_projects(request):
     projects = list(p for p in projects if p.source == 'Chameleon')
 
     context['projects'] = projects
+    context['test'] = "Carrie Test"
 
     return render(request, 'projects/user_projects.html', context)
 
