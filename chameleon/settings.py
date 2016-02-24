@@ -423,6 +423,10 @@ DJANGO_RT = {
 #####
 BOOTSTRAP3 = {
     'required_css_class': 'required',
+
+     'field_renderers': {
+        'default': 'util.forms.renderers.ChameleonFieldRenderer',
+     }
 }
 
 

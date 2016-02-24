@@ -47,17 +47,19 @@ class ProjectCreateForm( forms.Form ):
         widget=forms.TextInput(attrs={'placeholder': 'Research into how...'}),
     )
     description = forms.CharField(
-        label='Abstract',
-        help_text='Your project abstract may be publicly viewable on the Chameleon website.',
+        label='Abstract (~200 words)',
+        help_text='An application for a project has to include a description of the research or education project to be performed using the testbed and the type of resources needed. It should address the following questions: What are the research challenges or educational objectives of the project? How are they relevant to cloud computing research? Why are they important? What types of experiments or educational activities will be carried out? '
+                  'Please, make sure that the abstract is self-contained; eventually it t may be published on Chameleon website. Please note your project '
+                  'abstract may be publicly viewable on the Chameleon website.',
         required=True,
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Resource justification',
-        help_text='Provide details for how you intend to use Chameleon to accomplish '
-                  'your research goals. This text will not be publicly viewable.',
+        label='Resource Justification (~500 words max)',
+        help_text='Provide supplemental detail on how you intend to use Chameleon to accomplish your research goals. '
+                  'This text will not be publicly viewable and may include detail that you do not wish to publish',
         required=True,
-        widget=forms.Textarea(),
+        widget=forms.Textarea(attrs={'placeholder': 'Resource Justification'}),
     )
     funding_source = forms.CharField(
         label='Source(s) of funding',
@@ -83,7 +85,7 @@ class ProjectCreateForm( forms.Form ):
 
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
-        label='Abstract',
+        label='Abstract (~200 words)',
         help_text='Your project abstract may be publicly viewable on the '
                   'Chameleon website.',
         required=True,
