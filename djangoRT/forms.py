@@ -1,6 +1,7 @@
 from django import forms
 from django.core.validators import validate_email
 from captcha.fields import CaptchaField
+from .models import TicketCategories
 
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):
@@ -21,18 +22,22 @@ class MultiEmailField(forms.Field):
         for email in value:
             validate_email(email.strip())
 
-TICKET_CATEGORIES = (
-    ('','Choose one'),
-    ('ACCTS_PRJ_ALLOC', 'Accounts, Projects, and Allocations'),
-    ('BARE_METAL','Bare Metal'),
-    ('OPENSTACK_KVM_CLOUD','OpenStack KVM Cloud'),
-    ('OTHER','Other'),
-)
+# I'm a model now just like an adult
+#TICKET_CATEGORIES = (
+#    ('','Choose one'),
+#    ('ACCTS_PRJ_ALLOC', 'Accounts, Projects, and Allocations'),
+#    ('BARE_METAL','Bare Metal'),
+#    ('OPENSTACK_KVM_CLOUD','OpenStack KVM Cloud'),
+#    ('OTHER','Other'),
+#)
 
 class BaseTicketForm(forms.Form):
     """
     Base form class for Tickets.
     """
+
+    TICKET_CATEGORIES = TicketCategories.objects.order_by('category_display_name').values_list('category_field_name', 'category_display_name')
+
     first_name = forms.CharField(widget=forms.TextInput(), label='First name', max_length=100, required=True)
     last_name = forms.CharField(widget=forms.TextInput(), label='Last name', max_length=100, required=True)
     email = forms.EmailField(widget=forms.EmailInput(), label='Email', required=True)
