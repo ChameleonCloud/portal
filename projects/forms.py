@@ -40,6 +40,7 @@ def get_accept_project_terms_help_text():
 
 get_accept_project_terms_help_text_lazy = lazy(get_accept_project_terms_help_text, str)
 
+
 class ProjectCreateForm( forms.Form ):
     title = forms.CharField(
         label='Title',
@@ -48,16 +49,23 @@ class ProjectCreateForm( forms.Form ):
     )
     description = forms.CharField(
         label='Abstract (~200 words)',
-        help_text='An application for a project has to include a description of the research or education project to be performed using the testbed and the type of resources needed. It should address the following questions: What are the research challenges or educational objectives of the project? How are they relevant to cloud computing research? Why are they important? What types of experiments or educational activities will be carried out? '
-                  'Please, make sure that the abstract is self-contained; eventually it t may be published on Chameleon website. Please note your project '
-                  'abstract may be publicly viewable on the Chameleon website.',
+        help_text='An application for a project has to include a description of the '
+                  'research or education project to be performed using the testbed and '
+                  'the type of resources needed. It should address the following '
+                  'questions: What are the research challenges or educational objectives '
+                  'of the project? How are they relevant to cloud computing research? '
+                  'Why are they important? What types of experiments or educational '
+                  'activities will be carried out? Please, make sure that the abstract '
+                  'is self-contained; eventually it may be published on the Chameleon '
+                  'website.',
         required=True,
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
         label='Resource Justification (~500 words max)',
-        help_text='Provide supplemental detail on how you intend to use Chameleon to accomplish your research goals. '
-                  'This text will not be publicly viewable and may include detail that you do not wish to publish',
+        help_text='Provide supplemental detail on how you intend to use Chameleon to '
+                  'accomplish your research goals. This text will not be publicly '
+                  'viewable and may include details that you do not wish to publish.',
         required=True,
         widget=forms.Textarea(attrs={'placeholder': 'Resource Justification'}),
     )
@@ -72,16 +80,17 @@ class ProjectCreateForm( forms.Form ):
         label='Field of Science',
         choices=(),
         initial='3',
-        help_text='Please indicate a primary field of science for this research',
+        help_text='Please indicate a primary field of science for this research.',
     )
     accept_project_terms = forms.BooleanField(
-        label='I agree to abide by Chameleon Acceptable Use Policies',
+        label='I agree to abide by Chameleon Acceptable Use Policies.',
         help_text=get_accept_project_terms_help_text_lazy(),
     )
 
     def __init__(self, *args, **kwargs):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
         self.fields['fieldId'].choices = get_fields_choices()
+
 
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
@@ -148,6 +157,7 @@ class AllocationCreateForm(forms.Form):
 #                               'other artifacts'
 #                }),
 #     )
+
 
 class ProjectAddUserForm( forms.Form ):
     username = forms.CharField(
