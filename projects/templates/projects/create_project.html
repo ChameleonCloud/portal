@@ -10,9 +10,11 @@
 <form method="post">
   {% csrf_token %}
 
-  <p>
-    To find out more about applying for projects please visit our FAQ at [where ever this FAQ page is? /docs/getting-started/ ?]
+  <p class="lead">
+    To find out more about applying for projects please
+    <a target="_blank" href="/docs/user-faq/#toc-project-and-allocation-management">visit our FAQ</a>.
   </p>
+
   {% bootstrap_form form %}
 
   <div class="form-group">
