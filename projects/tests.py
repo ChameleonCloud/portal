@@ -123,9 +123,9 @@ class ProjectViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Chameleon Project Request Test')
         self.assertContains(response,
-            'data-allocation-id="1114" data-allocation-status="active"')
+            'data-allocation-id="1113" data-allocation-status="active"')
         self.assertContains(response,
-            'data-allocation-id="1115" data-allocation-status="pending"')
+            'data-allocation-id="1111" data-allocation-status="inactive"')
         self.assertContains(response,
             'data-allocation-id="1112" data-allocation-status="rejected"')
         self.assertNotContains(response, 'Resubmit allocation')
