@@ -73,29 +73,33 @@ docker-compose build
 
 #### Production
 
-There are a few additional requirements for running the composition in production. We want to run Django with uWSGI and Nginx in production (not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!) so the ports and command are different. We also need to mount in SSL certificates and log file directories.
+There are a few additional requirements for running the composition in production. We want 
+to run Django with uWSGI and Nginx in production 
+(not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!) 
+so the ports and command are different. We also need to mount in certificates and sensitive
+configuration for SSL/TLS and the media directory for Django.
 
 The Production `docker-compose.yml` would look more like the following:
 
 ```yaml
 portal:
-  image: mrhanlon/chameleon_portal:release
+  image: mrhanlon/chameleon_portal:v#.#.#
   env_file:
-    - .chameleon_env
+    - /path/to/chameleon.env
   volumes:
-    - logs/nginx_access_chameleoncloud.log:/var/log/nginx/access_chameleoncloud.log
-    - logs/nginx_error_chameleoncloud.log:/var/log/nginx/error_chameleoncloud.log
-    - logs/django_chameleon_auth.log:/tmp/chameleon_auth.log
-    - logs/django_chameleon.log:/tmp/chameleon.log
-    - certs/certs0:/etc/ssl/chameleoncloud.org
-    - certs/certs1:/etc/ssl/www.chameleon.tacc.utexas.edu
-    - certs/certs2:/etc/ssl/api.chameleoncloud.org
-    - media:/project/media
+    - /path/to/certs/certs0:/etc/ssl/chameleoncloud.org
+    - /path/to/certs/certs1:/etc/ssl/www.chameleon.tacc.utexas.edu
+    - /path/to/certs/certs2:/etc/ssl/api.chameleoncloud.org
+    - /path/to/dhparams.pem:/etc/ssl/dhparams.pem
+    - /path/to//media:/project/media
   ports:
     - 80:80
     - 443:443
   links:
     - referenceapi:referenceapi
+  log_driver: syslog
+  log_opt:
+    syslog-tag: portal
 referenceapi:
   image: referenceapi:latest
   ports:
