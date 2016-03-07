@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.11.0
+
+- Fixed permissions issue for users editing own appliances
+- Updated project request requirements
+- Updated Nginx configuration
+
 ### v1.10.0
 
 - New appliance marketplace
