@@ -104,6 +104,9 @@ referenceapi:
   image: referenceapi:latest
   ports:
     - 8000:8000
+  log_driver: syslog
+  log_opt:
+    syslog-tag: referenceapi
 ```
 
 ## Release History
