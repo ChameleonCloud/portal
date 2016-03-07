@@ -210,14 +210,21 @@ def create_allocation(request, project_id, allocation_id=-1):
         if form.is_valid():
             allocation = form.cleaned_data.copy()
             allocation['computeRequested'] = 20000
-            # Also update the project
-            allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % \
-                (allocation['supplemental_details'], allocation['funding_source'])
-            project.description = allocation['description']
 
-            allocation.pop('description', None)
-            allocation.pop('supplemental_details', None)
-            allocation.pop('funding_source', None)
+            # Also update the project
+            project.description = allocation.pop('description', None)
+
+            supplemental_details = allocation.pop('supplemental_details', '(none)')
+            funding_source = allocation.pop('funding_source', None)
+
+            if not supplemental_details:
+                supplemental_details = '(none)'
+
+            if funding_source:
+                allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % (
+                    supplemental_details, funding_source)
+            else:
+                allocation['justification'] = supplemental_details
 
             allocation['projectId'] = project_id
             allocation['requestorId'] = tas.get_user(username=request.user)['id']
@@ -279,18 +286,24 @@ def create_project(request):
             project['piId'] = pi_user['id']
 
             # allocations
-            project['allocations'] = [
-                {
-                    'resourceId': 39,
-                    'requestorId': pi_user['id'],
-                    'justification': '%s\n\n--- Funding Source(s) ---\n\n%s' % (
-                        project['supplemental_details'], project['funding_source']),
-                    'computeRequested': 20000,
-                }
-            ]
+            allocation = {
+                'resourceId': 39,
+                'requestorId': pi_user['id'],
+                'computeRequested': 20000,
+            }
+            supplemental_details = allocation.pop('supplemental_details', '(none)')
+            funding_source = allocation.pop('funding_source', None)
 
-            project.pop('supplemental_details', None)
-            project.pop('funding_source', None)
+            if not supplemental_details:
+                supplemental_details = '(none)'
+
+            if funding_source:
+                allocation['justification'] = '%s\n\n--- Funding source(s) ---\n\n%s' % (
+                    supplemental_details, funding_source)
+            else:
+                allocation['justification'] = supplemental_details
+
+            project['allocations'] = [allocation]
 
             # startup
             project['typeId'] = 2

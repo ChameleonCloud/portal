@@ -66,7 +66,7 @@ class ProjectCreateForm( forms.Form ):
         help_text='Provide supplemental detail on how you intend to use Chameleon to '
                   'accomplish your research goals. This text will not be publicly '
                   'viewable and may include details that you do not wish to publish.',
-        required=True,
+        required=False,
         widget=forms.Textarea(attrs={'placeholder': 'Resource Justification'}),
     )
     funding_source = forms.CharField(
@@ -95,16 +95,24 @@ class ProjectCreateForm( forms.Form ):
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
         label='Abstract (~200 words)',
-        help_text='Your project abstract may be publicly viewable on the '
-                  'Chameleon website.',
+        help_text='An application for a project has to include a description of the '
+                  'research or education project to be performed using the testbed and '
+                  'the type of resources needed. It should address the following '
+                  'questions: What are the research challenges or educational objectives '
+                  'of the project? How are they relevant to cloud computing research? '
+                  'Why are they important? What types of experiments or educational '
+                  'activities will be carried out? Please, make sure that the abstract '
+                  'is self-contained; eventually it may be published on the Chameleon '
+                  'website.',
         required=True,
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Request Justification',
-        help_text='Provide a brief summary of what was achieved under the previous '
-                  'request, including references to papers and/or other artifacts.',
-        required=True,
+        label='Resource Justification (~500 words max)',
+        help_text='Provide supplemental detail on how you intend to use Chameleon to '
+                  'accomplish your research goals. This text will not be publicly '
+                  'viewable and may include details that you do not wish to publish.',
+        required=False,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(
@@ -159,7 +167,7 @@ class AllocationCreateForm(forms.Form):
 #     )
 
 
-class ProjectAddUserForm( forms.Form ):
+class ProjectAddUserForm(forms.Form):
     username = forms.CharField(
         label='Add a User to Project',
         required=True,
