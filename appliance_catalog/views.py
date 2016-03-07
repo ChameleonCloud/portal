@@ -78,6 +78,7 @@ def app_detail(request, pk):
     }
     return render(request, 'appliance_catalog/detail.html', context)
 
+
 def app_documentation(request, pk):
     logger.info('Documentation requested for appliance id: %s.', pk)
     appliance = get_object_or_404(Appliance, pk=pk)
@@ -90,8 +91,9 @@ def app_documentation(request, pk):
 
 def get_appliance(request, pk):
     logger.info('Get appliance json endpoint requested for id: %s.', pk)
-    response = {}
-    response['status'] = 'success'
+    response = {
+        'status': 'success'
+    }
     try:
         serializer = MyJSONSerialiser()
         response['message'] = ''
