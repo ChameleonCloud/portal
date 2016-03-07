@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.shortcuts import render_to_response
@@ -60,7 +62,8 @@ def app_detail(request, pk):
     logger.debug('Appliance found. Fetching it\'s keywords.')
     keywords = appliance.keywords.all()
     logger.debug('This appliance has %d keywords.', keywords.count())
-    editable = request.user.is_staff or request.user == appliance.created_user
+    editable = request.user.is_staff or request.user == appliance.created_by or \
+        request.user.has_perm('appliance_catalog.change_appliance')
     try:
         validate_email(appliance.author_url)
         appliance.author_contact_type = 'email'
@@ -143,7 +146,8 @@ def app_create(request):
         if form.is_valid():
             logger.debug('Applicate create form is valid. Creating new appliance...')
             appliance = form.save(commit=False)
-            appliance.created_user = request.user.username
+            appliance.created_by = request.user
+            appliance.updated_by = request.user
             appliance.save()
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
@@ -159,14 +163,20 @@ def app_create(request):
 def app_edit(request, pk):
     logger.info('Appliance edit requested for appliance id: %s', pk)
     appliance = get_object_or_404(Appliance, pk=pk)
-    logger.debug('Appliance found.')
+
+    editable = request.user.is_staff or request.user == appliance.created_by or \
+        request.user.has_perm('appliance_catalog.change_appliance')
+    if not editable:
+        messages.error(request, 'You do not have permission to edit this appliance.')
+        raise PermissionDenied()
+
     if request.method == 'POST':
         logger.info('Appliance edit posted by user %s with data %s and files %s', request.user.username, request.POST, request.FILES)
         form = ApplianceForm(request.user, request.POST, request.FILES, instance=appliance)
         if form.is_valid():
             logger.debug('Appliance edit form is valid. Updating this appliance...')
             post = form.save(commit=False)
-            post.updated_user = request.user.username
+            post.updated_by = request.user
             post.save()
             logger.debug('Appliance successfully updated. Updating keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
@@ -183,10 +193,10 @@ def get_keywords(request, appliance_id=None):
         logger.info('Get keywords requested for appliance id: %s', appliance_id)
     else:
         logger.info('Get keywords requested')
-    response = {}
-    response['status'] = 'success'
-    response['message'] = ''
-    keywords = None
+    response = {
+        'status': 'success',
+        'message': ''
+    }
     if appliance_id is not None:
         appliance = get_object_or_404(Appliance, pk=appliance_id)
         logger.debug('Appliance found.')
@@ -198,10 +208,12 @@ def get_keywords(request, appliance_id=None):
     response['result'] = json.loads(serializer.serialize(keywords))
     return HttpResponse(json.dumps(response), content_type="application/json")
 
+
 def app_template(request, resource):
     logger.debug('Template requested: %s.html', resource)
     templateUrl = 'appliance_catalog/%s.html' %resource
     return render_to_response(templateUrl)
+
 
 @login_required
 @staff_member_required
@@ -226,6 +238,7 @@ def app_delete(request, pk):
         response['status'] = 'error'
         response['message'] = 'Invalid method'
         return HttpResponse(json.dumps(response), content_type="application/json", status=405)
+
 
 class ApplianceDeleteView(DeleteView):
     model = Appliance

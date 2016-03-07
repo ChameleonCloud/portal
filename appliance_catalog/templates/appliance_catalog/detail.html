@@ -138,12 +138,12 @@
             </tr>
             <tr>
                 <td><strong>Created By:&nbsp;</strong></td>
-                <td>{{ appliance.created_user }} on {{ appliance.created_date }}</td>
+                <td>{{ appliance.created_by }} on {{ appliance.created_date }}</td>
             </tr>
-            {% if appliance.updated_user and  appliance.updated_date %}
+            {% if appliance.updated_by and  appliance.updated_date %}
                 <tr>
                     <td><strong>Updated By:&nbsp;</strong></td>
-                    <td>{{ appliance.updated_user }} on {{ appliance.updated_date }}</td>
+                    <td>{{ appliance.updated_by }} on {{ appliance.updated_date }}</td>
                 </tr>
             {% endif %}
         </table>
