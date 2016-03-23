@@ -1,0 +1,1156 @@
+{
+    "project_jobs": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+                        {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+                        {
+                "endUTC": "2015-10-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2015-10-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-10-11T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2015-10-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2015-10-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-10-12T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2015-06-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2015-06-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-06-13T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2015-06-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2015-06-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-06-14T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2015-12-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2015-12-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-11T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2015-12-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2015-12-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-12T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2015-12-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2015-12-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-13T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2015-12-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2015-12-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            },
+                        {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-20T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-20T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-20T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-03-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    },
+    "allocation_jobs": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+                        {
+                "endUTC": "2015-12-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2015-12-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            },
+                        {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-20T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-20T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-20T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-03-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    },
+    "agauli": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            }
+        ],
+        "status": "success"
+    },
+    "mrojas": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            }
+        ],
+        "status": "success"
+    },
+        "cmarnold": {
+        "message": "",
+        "result": [
+                {
+                "endUTC": "2015-12-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2015-12-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-20T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-20T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-20T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-03-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            }
+                ],
+        "status": "success"
+    },
+    "kvm@tacc": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-11T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-11T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-11T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-02-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-03-17T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@tacc",
+                "queueUTC": "2016-03-17T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-17T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    },
+    "kvm@uc": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-12T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-12T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-12T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-03-15T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-15T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-15T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "kvm@uc",
+                "queueUTC": "2016-03-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-18T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    },
+    "chi@tacc": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-13T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-13T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-13T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-18T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-02-18T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-18T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-03-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 0.6414583333333334,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-20T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@tacc",
+                "queueUTC": "2016-03-20T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-20T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    },
+    "chi@uc": {
+        "message": "",
+        "result": [
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "agauli"
+            },
+            {
+                "endUTC": "2016-02-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-02-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "mrojas"
+            },
+            {
+                "endUTC": "2015-12-14T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2015-12-14T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2015-12-14T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-02-16T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-02-16T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-16T16:51:46",
+                "sus": 1.6414583333333335,
+                "username": "cmarnold"
+            },
+            {
+                "endUTC": "2016-03-19T19:25:43",
+                "project": "CH-816773",
+                "queueName": "chi@uc",
+                "queueUTC": "2016-03-19T16:51:34",
+                "resource": "Chameleon",
+                "schedulerId": "4d0e935a-c353-4071-aca7-72beb5ed2c73",
+                "startUTC": "2016-03-19T16:51:46",
+                "sus": 2.6414583333333335,
+                "username": "cmarnold"
+            }
+        ],
+        "status": "success"
+    }
+}

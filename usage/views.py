@@ -268,8 +268,9 @@ def get_daily_usage_json( request):
             logger.info('Diff in hours: %s, sus: %s, Nodes used: %s', diff_in_hours, sus, nodes_used)
             if job_end_date_str:
                 time_index = job_end_date_str.index('T')
-                job_end_date_str = job_end_date_str[:time_index] 
-                temp[job_end_date_str]['nodes_used'] += nodes_used
+                job_end_date_str = job_end_date_str[:time_index]
+                if job_end_date_str in temp:
+                    temp[job_end_date_str]['nodes_used'] += nodes_used
 
         resp['result'] = temp.values()
         resp['status'] = 'success'

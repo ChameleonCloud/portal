@@ -1,0 +1,6 @@
+{
+  "/v1/jobs/allocations/:id": "/allocation_jobs",
+  "/v1/jobs/allocations/:id/username/:username": "/agauli",
+  "/v1/jobs/allocations/:id/username/:username/queue/:queue_type": "/:queue_type",
+  "/v1/jobs/allocations/:id/queue/:queue_type": "/:queue_type"
+}
