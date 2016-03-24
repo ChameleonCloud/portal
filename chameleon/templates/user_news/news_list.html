@@ -16,7 +16,7 @@
       <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
     </div>
   </header>
-  <section class="news-item-summary">
+  <section class="news-item-summary clearfix">
     {{ news.summary|safe }}
   </section>
   <div class="read-more">
