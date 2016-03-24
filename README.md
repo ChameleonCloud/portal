@@ -5,7 +5,7 @@
 Most dependencies are specified in [requirements.txt](requirements.txt) and can
 be installed via pip. External depdencies not available via pip:
 
-- https://bitbucket.org/mrhanlon/pytas.git
+- https://bitbucket.org/taccaci/pytas.git
 - https://gitlab.labs.nic.cz/labs/python-rt.git
 
 These are configured as git submodules and can be checked out using
