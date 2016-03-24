@@ -1,5 +1,15 @@
 ## Changelog
 
+### v1.12.0
+
+- Bug fixes
+    - Force `www` subdomain on `https`
+    - Fix broken link to appliance detail in table view
+
+- Enhancements
+    - Improve styles on News list view
+    - Add outage start/end dates to email notifications
+
 ### v1.11.0
 
 - Fixed permissions issue for users editing own appliances
