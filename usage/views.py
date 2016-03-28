@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pytz import timezone
 from django.shortcuts import render, redirect
 from django.db.models import Q
@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django import forms
-from pytas.http import TASClient
+from pytas.http import TASClient, JobsClient
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -102,8 +102,12 @@ def get_allocation_usage_json( request, allocation_id=None, username=None, queue
     logger.info( 'Allocations requested.')
     data = []
     try:
-        tas = TASClient()
-        jobs = tas.get_jobs(allocation_id, username, queue)
+        #tas = TASClient()
+        tas = JobsClient()
+        start_date = datetime.strptime(date.today(), '%Y-%m-%d')
+        week = timedelta(days=5)
+        end_date = datetime.strptime(date.today() - week, '%Y-%m-%d')
+        jobs = tas.get_jobs('chameleon', allocation_id, username, queue)
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
         for job in jobs:
@@ -126,8 +130,9 @@ def get_usage_by_users_json( request, allocation_id=None):
     logger.info( 'Usage by users requested for allocation id: %s, from: %s, to: %s', allocation_id, start_date, end_date)
     resp = {}
     try:
-        tas = TASClient()
-        jobs = tas.get_jobs(allocation_id)
+        #tas = TASClient()
+        tas = JobsClient()
+        jobs = tas.get_jobs('chameleon', start_date, end_date, allocation_id)
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
             username = job.get('username')
@@ -232,7 +237,7 @@ def get_daily_usage_json( request):
     resp['result'] = None
     resp['status'] = 'error'
     if start_date_str is None or end_date_str is None:
-        resp['message'] = 'Start and end date must are required.'
+        resp['message'] = 'Start and end date are required.'
 
     queue = request.GET.get('queue')
     resource = 'chameleon'
@@ -249,10 +254,11 @@ def get_daily_usage_json( request):
         temp[str_start_date]['nodes_used'] = 0
         start_date += timedelta(days=1)
     try:
-        tas = TASClient()
+        #tas = TASClient()
+        tas = JobsClient()
         allocation_id = 27591
         # use start, end date and queue here to get jobs
-        jobs = tas.get_jobs(allocation_id)
+        jobs = tas.get_jobs(resource, start_date, end_date, allocation_id)
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
         for job in jobs:
