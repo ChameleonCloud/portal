@@ -9,6 +9,7 @@
 - Enhancements
     - Improve styles on News list view
     - Add outage start/end dates to email notifications
+    - Added Ticket Categories to RT Admin
 
 ### v1.11.0
 

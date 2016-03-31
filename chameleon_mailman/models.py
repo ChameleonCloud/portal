@@ -32,7 +32,9 @@ def send_outage_notification(sender, instance, using, **kwargs):
         if instance.resolved:
             subject = 'RESOLVED: %s' % subject
 
-        body = instance.body
+        body = "<b>Outage Start:</b> " + instance.start_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
+        body += "<b>Outage End:</b> " + instance.end_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
+        body += instance.body
         sender = settings.DEFAULT_FROM_EMAIL
         recipients = settings.OUTAGE_NOTIFICATION_EMAIL.split(',')
 
