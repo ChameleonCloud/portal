@@ -102,18 +102,24 @@ def get_allocation_usage_json( request, allocation_id=None, username=None, queue
     logger.info( 'Allocations requested.')
     data = []
     try:
-        #tas = TASClient()
-        tas = JobsClient()
-        start_date = datetime.strptime(date.today(), '%Y-%m-%d')
-        week = timedelta(days=5)
-        end_date = datetime.strptime(date.today() - week, '%Y-%m-%d')
-        jobs = tas.get_jobs('chameleon', allocation_id, username, queue)
+        jobsClient = JobsClient()
+        start_date = request.GET.get('from')
+        end_date = request.GET.get('to')
+        logger.debug("Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date)
+        if allocation_id is not None:
+            logger.debug("allocation=" + allocation_id)
+        if username is not None:
+            logger.debug("username=" + username)
+        if queue is not None:
+            logger.debug("queue=" + queue)
+        jobs = jobsClient.get_jobs('chameleon', start_date, end_date, allocation_id, username, queue)
+        logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
         for job in jobs:
-            logger.info('endUTC: %s', job.get('endUTC'))
-            endDate = calendar.timegm(time.strptime( job.get('endUTC'), "%Y-%m-%dT%H:%M:%S" )) * 1000
-            sus = job.get('sus')
+            logger.info('endDate: %s', job.get('endDate'))
+            endDate = calendar.timegm(time.strptime( job.get('endDate'), "%Y-%m-%dT%H:%M:%S" )) * 1000
+            sus = job.get('suCharge')
             item = [endDate, sus]
             data.append(item)
     except Exception as e:
@@ -132,17 +138,20 @@ def get_usage_by_users_json( request, allocation_id=None):
     try:
         #tas = TASClient()
         tas = JobsClient()
+        logger.debug(
+            "Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date + ", allocation=" + allocation_id)
         jobs = tas.get_jobs('chameleon', start_date, end_date, allocation_id)
+        logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
-            username = job.get('username')
+            username = job.get('userLogin')
             queueName = job.get('queueName')
             if username not in resp:
                 resp[username] = {}
             if queueName not in resp[username]:
-                resp[username][queueName] = job.get('sus')
+                resp[username][queueName] = job.get('suCharge')
             else:
-                resp[username][queueName] += job.get('sus')
+                resp[username][queueName] += job.get('suCharge')
     except Exception as e:
         traceback.print_exc()
         raise Exception('Error fetching jobs.')
@@ -258,25 +267,25 @@ def get_daily_usage_json( request):
         tas = JobsClient()
         allocation_id = 27591
         # use start, end date and queue here to get jobs
-        jobs = tas.get_jobs(resource, start_date, end_date, allocation_id)
+        jobs = tas.get_jobs(resource, start_date_str, end_date_str, allocation_id)
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
         for job in jobs:
-            job_start_date_str = job.get('startUTC')
-            job_end_date_str = job.get('endUTC')
+            job_start_date_str = job.get('start')
+            job_end_date_str = job.get('end')
             job_start_date = datetime.strptime(job_start_date_str, '%Y-%m-%dT%H:%M:%S')
             job_end_date = datetime.strptime(job_end_date_str, '%Y-%m-%dT%H:%M:%S')
             interval = job_end_date - job_start_date
             logger.info('Job start date: %s, end date: %s, interval %s', job_start_date, job_end_date, interval)
             diff_in_hours = round(interval.total_seconds()/3600, 2)
-            sus = job.get('sus')
+            sus = job.get('suCharge')
             nodes_used = round((sus * diff_in_hours)/24, 2)
             logger.info('Diff in hours: %s, sus: %s, Nodes used: %s', diff_in_hours, sus, nodes_used)
             if job_end_date_str:
                 time_index = job_end_date_str.index('T')
                 job_end_date_str = job_end_date_str[:time_index]
                 if job_end_date_str in temp:
-                    temp[job_end_date_str]['nodes_used'] += nodes_used
+                    temp[job_end_date_str]['nodes'] += nodes_used
 
         resp['result'] = temp.values()
         resp['status'] = 'success'

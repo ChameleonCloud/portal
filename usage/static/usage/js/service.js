@@ -340,9 +340,12 @@ angular
             var errorMsg = 'There was an error loading allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.selectedAllocation.start).utc().format('YYYY-MM-DD');
+            var endDate = moment(project.selectedAllocation.end).utc().format('YYYY-MM-DD');
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/',
+                    url: '/admin/usage/allocation/' + project.selectedAllocation.id +
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -360,8 +363,8 @@ angular
             var errorMsg = 'There was an error loading usage by users.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
-            var startDate = moment(project.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            var endDate = moment(project.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            var startDate = moment(project.from).utc().format('YYYY-MM-DD');
+            var endDate = moment(project.to).utc().format('YYYY-MM-DD');
             return $http({
                     method: 'GET',
                     url: '/admin/usage/usage-by-users/' + project.selectedAllocation.id +
@@ -383,9 +386,12 @@ angular
             var errorMsg = 'There was an error loading user allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.selectedAllocation.start).utc().format('YYYY-MM-DD');
+            var endDate = moment(project.selectedAllocation.end).utc().format('YYYY-MM-DD');
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/username/' + project.selectedUser.username + '/',
+                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/username/' + project.selectedUser.username +
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -403,10 +409,13 @@ angular
             var errorMsg = 'There was an error loading user queue allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.selectedAllocation.start).utc().format('YYYY-MM-DD');
+            var endDate = moment(project.selectedAllocation.end).utc().format('YYYY-MM-DD');
             return $http({
                     method: 'GET',
                     url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/username/' +
-                        project.selectedUser.username + '/queue/' + project.selectedQueue + '/',
+                        project.selectedUser.username + '/queue/' + project.selectedQueue +
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -424,9 +433,12 @@ angular
             var errorMsg = 'There was an error loading queue allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.selectedAllocation.start).utc().format('YYYY-MM-DD');
+            var endDate = moment(project.selectedAllocation.end).utc().format('YYYY-MM-DD');
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/queue/' + project.selectedQueue + '/',
+                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/queue/' + project.selectedQueue +
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {

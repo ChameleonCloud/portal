@@ -9,7 +9,10 @@
 <script src="http://code.highcharts.com/stock/highstock.js"></script>
 <script src="http://code.highcharts.com/modules/exporting.js"></script>-->
 <script src="{% static 'usage/js/vendor.js' %}"></script>
-<script src="{% static 'usage/js/main.js' %}"></script>
+<script src="{% static 'usage/js/app.js' %}"></script>
+<script src="{% static 'usage/js/directive.js' %}"></script>
+<script src="{% static 'usage/js/service.js' %}"></script>
+<script src="{% static 'usage/js/controllers/main_controller.js' %}"></script>
 {% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
