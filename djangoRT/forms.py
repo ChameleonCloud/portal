@@ -2,6 +2,9 @@ from django import forms
 from django.core.validators import validate_email
 from captcha.fields import CaptchaField
 from .models import TicketCategories
+import logging
+
+logger = logging.getLogger(__name__)
 
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):
@@ -31,20 +34,27 @@ class MultiEmailField(forms.Field):
 #    ('OTHER','Other'),
 #)
 
+def get_ticket_categories():
+    return (('', 'Choose one'),) + tuple(TicketCategories.objects.order_by('category_display_name').values_list('category_field_name', 'category_display_name'))
+
+
 class BaseTicketForm(forms.Form):
     """
     Base form class for Tickets.
     """
 
-    TICKET_CATEGORIES = TicketCategories.objects.order_by('category_display_name').values_list('category_field_name', 'category_display_name')
-
     first_name = forms.CharField(widget=forms.TextInput(), label='First name', max_length=100, required=True)
     last_name = forms.CharField(widget=forms.TextInput(), label='Last name', max_length=100, required=True)
     email = forms.EmailField(widget=forms.EmailInput(), label='Email', required=True)
     subject = forms.CharField(widget=forms.TextInput(), label='Subject', max_length=100, required=True)
-    category = forms.CharField(widget=forms.Select(choices=TICKET_CATEGORIES), required=True)
+    category = forms.ChoiceField(required=True)
     problem_description = forms.CharField(widget=forms.Textarea(), label='Problem description', required=True)
     attachment = forms.FileField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(BaseTicketForm, self).__init__(*args, **kwargs)
+        self.fields['category'].choices = get_ticket_categories()
+
 
 class TicketForm(BaseTicketForm):
     """

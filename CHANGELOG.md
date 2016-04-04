@@ -1,5 +1,13 @@
 ## Changelog
 
+### v1.12.1
+
+- Bug fixes
+    - Fixed Ticket Categories preventing form from being submitted
+    
+- Enhancements
+    - Ticket Categories choices are dynamically updated
+
 ### v1.12.0
 
 - Bug fixes

@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import logging
 import mimetypes
+from .models import TicketCategories
 
 logger = logging.getLogger('default')
 
