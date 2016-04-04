@@ -50,7 +50,7 @@ def ticketcreate(request):
             requestor_meta = '%s %s &lt;%s&gt;' % ( form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['email'] )
             meta = (
                 ('Opened by', request.user),
-                ('Category', dict(forms.TICKET_CATEGORIES)[form.cleaned_data['category']]),
+                ('Category', form.cleaned_data['category']),
                 ('Resource', 'Chameleon'),
             )
 
