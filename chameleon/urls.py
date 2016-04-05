@@ -7,7 +7,6 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
-
 urlpatterns = patterns(
         '',
         # admin urls
@@ -53,7 +52,6 @@ urlpatterns = patterns(
         url(r'^user/profile/subscriptions/$',
             'chameleon_mailman.views.manage_mailman_subscriptions',
             name='mailman_manage'),
-
         # cms urls
         url(r'^', include('cms.urls')),
 )
