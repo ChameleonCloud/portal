@@ -140,6 +140,43 @@ angular.module('usageApp')
                 useHighStocks: true
             };
 
+            var utilizationUserBreakdownChartConfig = {
+                options: {
+                    chart: {
+                        type: 'bar',
+                        alignTicks: false
+                    },
+                    colors: ['#7cb5ec', '#778b9e', '#acf19d'],
+                    credits: {
+                        enabled: false
+                    },
+                    xAxis: {
+                      categories: []
+                    },
+                    plotOptions: {
+                        column: {
+                            //stacking: 'percent',
+                            dataLabels: {
+                                enabled: true,
+                                color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                                style: {
+                                    textShadow: '0 0 3px black'
+                                }
+                            }
+                        }
+                    },
+                    tooltip: {
+                        pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> <br/>',
+                        shared: true
+                    },
+                },
+                series: [],
+                title: {
+                    text: 'Chameleon Utilization - User Breakdown'
+                },
+                useHighStocks: true
+            };
+
             var usageByUserChartConfig = {
                 options: {
                     chart: {
@@ -236,7 +273,8 @@ angular.module('usageApp')
                 endOpened: false,
                 selectedQueue: '',
                 downtimes: [],
-                usage: []
+                usage: [],
+                user_usage: [],
             };
 
             var getUtilization = function() {
@@ -258,10 +296,12 @@ angular.module('usageApp')
                 NotificationFactory.addLoading('utilization');
                 promises.push(UsageFactory.getDowntimes(kwargs));
                 promises.push(UsageFactory.getDailyUsage(kwargs));
+                promises.push(UsageFactory.getDailyUsageUserBreakdown(kwargs));
                 $q.all(promises).then(function() {
                         NotificationFactory.removeLoading('utilization');
                         $scope.utilization.downtimes = UsageFactory.downtimes;
                         $scope.utilization.usage = UsageFactory.usage;
+                        $scope.utilization.user_usage = UsageFactory.user_usage;
                         drawUtilizationChart();
                     },
                     function() {
@@ -325,10 +365,12 @@ angular.module('usageApp')
 
             var drawUtilizationChart = function() {
                 $scope.utilization.usageChartConfig = angular.copy(utilizationChartConfig);
+                $scope.utilization.usageUserBreakdownChartConfig = angular.copy(utilizationUserBreakdownChartConfig);
                 var downtimeData = [];
                 var dailyUsageData = [];
                 var unusedNodesData = [];
-                var totalNodes = 100;
+                var userUsageBreakdownData = [];
+                var totalNodes = 556;
                 angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
                      var downtime = _.findWhere($scope.utilization.downtimes, {date: usage.date});
@@ -336,13 +378,22 @@ angular.module('usageApp')
                      if(downtime){console.log('downtime', downtime);
                         downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
                         unusedNodes = totalNodes - usage.nodes_used - downtime.nodes_down;
+                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used + ", Downtimes: " + downtime.nodes_down);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      else{
                         unusedNodes = totalNodes - usage.nodes_used;
+                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      
+                });
+
+                angular.forEach($scope.utilization.user_usage, function(user_usage) {
+                  $scope.utilization.usageUserBreakdownChartConfig.data.push({
+                    name: user_usage.username,
+                    data: [user_usage.username, user_usage.nodes_used],
+                  });
                 });
 
                 $scope.utilization.usageChartConfig.series.push({
@@ -358,6 +409,7 @@ angular.module('usageApp')
                     data: unusedNodesData,
 
                 });
+
             };
 
             var getData = function(project) {

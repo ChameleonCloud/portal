@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y gettext
 COPY requirements.txt /setup/requirements.txt
 
 ### REMOVE THIS AFTER INTEGRATION IS COMPLETE
-COPY deps /setup/deps
+#COPY deps /setup/deps
 ###
 
 COPY docker-conf /setup/docker-conf
@@ -33,7 +33,7 @@ RUN pip install -r /setup/requirements.txt
 
 # install non-pip dependencies
 ### REMOVE THIS AFTER INTEGRATION IS COMPLETE
-RUN cd /setup/deps/pytas && python setup.py install
+#RUN cd /setup/deps/pytas && python setup.py install
 ###
 
 # configure nginx, uwsgi, supervisord

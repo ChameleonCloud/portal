@@ -329,6 +329,7 @@ angular.module('usageApp')
                 var dailyUsageData = [];
                 var unusedNodesData = [];
                 var totalNodes = 100;
+                console.log("Draw utilization Chart");
                 angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
                      var downtime = _.findWhere($scope.utilization.downtimes, {date: usage.date});
@@ -336,10 +337,12 @@ angular.module('usageApp')
                      if(downtime){console.log('downtime', downtime);
                         downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
                         unusedNodes = totalNodes - usage.nodes_used - downtime.nodes_down;
+                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used + ", Downtimes: " + downtime.nodes_down);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      else{
                         unusedNodes = totalNodes - usage.nodes_used;
+                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      

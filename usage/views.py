@@ -243,6 +243,7 @@ def get_downtimes_json( request):
 def get_daily_usage_json( request):
     start_date_str = request.GET.get('from')
     end_date_str = request.GET.get('to')
+
     resp = {}
     resp['result'] = None
     resp['status'] = 'error'
@@ -252,41 +253,93 @@ def get_daily_usage_json( request):
     queue = request.GET.get('queue')
     resource = 'chameleon'
     logger.info( 'Daily usage requested from: %s, to: %s for queue: %s', start_date_str, end_date_str, queue)
-    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-    end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+
+    if start_date_str is not None:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    else:
+        start_date = datetime.now() - timedelta(days=7)
+        start_date_str = start_date.strftime('%Y-%m-%d')
+
+    if end_date_str is not None:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    else:
+        end_date = datetime.now()
+        end_date_str = end_date.strftime('%Y-%m-%d')
     if start_date > end_date:
         resp['message'] = 'Start date must be before end date.'
     temp = {}
     while(end_date >= start_date):
-        str_start_date = start_date.strftime('%Y-%m-%d')
-        temp[str_start_date] = {}
-        temp[str_start_date]['date'] = str_start_date
-        temp[str_start_date]['nodes_used'] = 0
+        index = start_date.strftime('%Y-%m-%d')
+        temp[index] = {}
+        temp[index]['date'] = index
+        temp[index]['nodes_used'] = 0
         start_date += timedelta(days=1)
     try:
         #tas = TASClient()
         tas = JobsClient()
-        allocation_id = 27591
         # use start, end date and queue here to get jobs
-        jobs = tas.get_jobs(resource, start_date_str, end_date_str, allocation_id)
-        logger.info( 'Total jobs: %s', len( jobs ) )
-        data = []
+        jobs = tas.get_jobs(resource, start_date_str, end_date_str)
         for job in jobs:
-            job_start_date_str = job.get('start')
-            job_end_date_str = job.get('end')
+            job_start_date_str = job.get('startDate')
+            job_end_date_str = job.get('endDate')
             job_start_date = datetime.strptime(job_start_date_str, '%Y-%m-%dT%H:%M:%S')
             job_end_date = datetime.strptime(job_end_date_str, '%Y-%m-%dT%H:%M:%S')
             interval = job_end_date - job_start_date
-            logger.info('Job start date: %s, end date: %s, interval %s', job_start_date, job_end_date, interval)
             diff_in_hours = round(interval.total_seconds()/3600, 2)
             sus = job.get('suCharge')
             nodes_used = round((sus * diff_in_hours)/24, 2)
-            logger.info('Diff in hours: %s, sus: %s, Nodes used: %s', diff_in_hours, sus, nodes_used)
             if job_end_date_str:
                 time_index = job_end_date_str.index('T')
                 job_end_date_str = job_end_date_str[:time_index]
                 if job_end_date_str in temp:
-                    temp[job_end_date_str]['nodes'] += nodes_used
+                    temp[job_end_date_str]['nodes_used'] += math.ceil(nodes_used)
+
+        resp['result'] = temp.values()
+        resp['status'] = 'success'
+        resp['message'] = ''
+    except Exception as e:
+        traceback.print_exc()
+        raise Exception('Error fetching jobs.')
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+def get_daily_usage_user_breakdown_json( request):
+    start_date_str = request.GET.get('from')
+    end_date_str = request.GET.get('to')
+
+    resp = {}
+    resp['result'] = None
+    resp['status'] = 'error'
+    if start_date_str is None or end_date_str is None:
+        resp['message'] = 'Start and end date are required.'
+
+    queue = request.GET.get('queue')
+    resource = 'chameleon'
+    logger.info( 'Daily usage requested from: %s, to: %s for queue: %s', start_date_str, end_date_str, queue)
+
+    temp = {}
+    try:
+        #tas = TASClient()
+        tas = JobsClient()
+        # use start, end date and queue here to get jobs
+        jobs = tas.get_jobs(resource, start_date_str, end_date_str)
+        logger.debug(jobs)
+        for job in jobs:
+            username = job.get('userLogin')
+            job_start_date = datetime.strptime(job.get('startDate'), '%Y-%m-%dT%H:%M:%S')
+            job_end_date = datetime.strptime(job.get('endDate'), '%Y-%m-%dT%H:%M:%S')
+            interval = job_end_date - job_start_date
+            diff_in_hours = round(interval.total_seconds()/3600, 2)
+            sus = job.get('suCharge')
+            nodes_used = round((sus * diff_in_hours)/24, 2)
+            if username:
+                if username in temp:
+                    temp[username]['nodes_used'] += math.ceil(nodes_used)
+                else:
+                    temp[username] = {}
+                    temp[username]['username'] = username
+                    temp[username]['nodes_used'] = math.ceil(nodes_used)
 
         resp['result'] = temp.values()
         resp['status'] = 'success'

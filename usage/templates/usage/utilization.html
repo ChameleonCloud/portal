@@ -6,7 +6,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'usage/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
 <script src="{% static 'usage/js/vendor.js' %}"></script>
-<script src="{% static 'usage/js/main.js' %}"></script>
+<script src="{% static 'usage/js/app.js' %}"></script>
+<script src="{% static 'usage/js/directive.js' %}"></script>
+<script src="{% static 'usage/js/service.js' %}"></script>
+<script src="{% static 'usage/js/controllers/main_controller.js' %}"></script>
 {% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
@@ -90,6 +93,9 @@
                     </div>
                     <div ng-if="utilization.downtimes.length > 0 || utilization.usage.length > 0" class="form-group module">
                         <highchart id="utilization-usage-chart" config="utilization.usageChartConfig" ng-if="isEmpty(messages.utilization)"></highchart>
+                    </div>
+                    <div ng-if="utilization.downtimes.length > 0 || utilization.usage.length > 0" class="form-group module">
+                        <highchart id="utilization-usage-chart" config="utilization.usageUserBreakdownChartConfig" ng-if="isEmpty(messages.utilization)"></highchart>
                     </div>
                 </div>
                 <div ng-if="!isEmpty(messages.utilization)">

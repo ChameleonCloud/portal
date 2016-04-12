@@ -465,7 +465,31 @@ angular
                         factory.usage = _.sortBy(factory.usage, function(obj) {
                             return moment(obj.date, 'YYYY-MM-DD');
                         });
+                        console.log('response', response);
                         console.log('factory.usage', factory.usage);
+                    },
+                    function() {
+                        NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
+                    });
+        };
+
+        factory.getDailyUsageUserBreakdown = function(params) {
+            var msgKey = 'utilization';
+            var errorMsg = 'There was an error loading daily usage.';
+            return $http({
+                    method: 'GET',
+                    url: '/admin/usage/daily-usage-user-breakdown/',
+                    params: params,
+                    cache: 'true',
+                })
+                .then(function(response) {
+                        factory.user_usage = response.data.result;
+                        // TODO figure out how to sort by alpha
+                        //factory.user_usage = _.sortBy(factory.user_usage, function(obj) {
+                        //    return moment(obj.date, 'YYYY-MM-DD');
+                        //});
+                        console.log('response', response);
+                        console.log('factory.user_usage', factory.user_usage);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');

@@ -254,9 +254,11 @@ angular
             var errorMsg = 'There was an error loading project users.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            var endDate = moment(project.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/projects/' + project.id + '/users/',
+                    url: '/admin/usage/projects/' + project.id + '/users/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -340,9 +342,12 @@ angular
             var errorMsg = 'There was an error loading allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            var endDate = moment(project.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/',
+                    url: '/admin/usage/allocation/' + project.selectedAllocation.id +
+                        '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -383,9 +388,11 @@ angular
             var errorMsg = 'There was an error loading user allocation usage.';
             NotificationFactory.clearMessages(msgKey);
             NotificationFactory.addLoading(msgKey);
+            var startDate = moment(project.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            var endDate = moment(project.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             return $http({
                     method: 'GET',
-                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/username/' + project.selectedUser.username + '/',
+                    url: '/admin/usage/allocation/' + project.selectedAllocation.id + '/username/' + project.selectedUser.username + '/?from=' + startDate + '&to=' + endDate,
                     cache: 'true'
                 })
                 .then(function(response) {
@@ -442,6 +449,7 @@ angular
         factory.getDailyUsage = function(params) {
             var msgKey = 'utilization';
             var errorMsg = 'There was an error loading daily usage.';
+
             return $http({
                     method: 'GET',
                     url: '/admin/usage/daily-usage/',
