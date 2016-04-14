@@ -143,22 +143,41 @@ angular.module('usageApp')
             var utilizationUserBreakdownChartConfig = {
                 options: {
                     chart: {
-                        type: 'bar',
-                        alignTicks: false
-                    },
-                    colors: ['#7cb5ec', '#778b9e', '#acf19d'],
-                    credits: {
-                        enabled: false
+                        type: 'column'
                     },
                     xAxis: {
-                      categories: []
+                        categories: []
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: 'Total SUs Used'
+                        },
+                        stackLabels: {
+                            enabled: true,
+                            style: {
+                                fontWeight: 'bold',
+                                color: (highcharts.theme && highcharts.theme.textColor) || 'gray'
+                            }
+                        }
+                    },
+                    legend: {
+                        align: 'right',
+                        x: -30,
+                        verticalAlign: 'top',
+                        y: 25,
+                        floating: true,
+                        backgroundColor: (highcharts.theme && highcharts.theme.background) || 'white',
+                        borderColor: '#CCC',
+                        borderWidth: 1,
+                        shadow: false
                     },
                     plotOptions: {
                         column: {
-                            //stacking: 'percent',
+                            stacking: 'normal',
                             dataLabels: {
                                 enabled: true,
-                                color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                                color: (highcharts.theme && highcharts.theme.dataLabelsColor) || 'white',
                                 style: {
                                     textShadow: '0 0 3px black'
                                 }
@@ -166,15 +185,20 @@ angular.module('usageApp')
                         }
                     },
                     tooltip: {
-                        pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> <br/>',
-                        shared: true
+                        formatter: function() {
+                            return '<b>' + this.x + '</b><br/>' +
+                                this.series.name + ': ' + this.y + '<br/>' +
+                                'Total: ' + this.point.stackTotal;
+                        }
+                    },
+                    credits: {
+                        enabled: false
                     },
                 },
-                series: [],
                 title: {
                     text: 'Chameleon Utilization - User Breakdown'
                 },
-                useHighStocks: true
+                series: []
             };
 
             var usageByUserChartConfig = {
@@ -390,10 +414,8 @@ angular.module('usageApp')
                 });
 
                 angular.forEach($scope.utilization.user_usage, function(user_usage) {
-                  $scope.utilization.usageUserBreakdownChartConfig.data.push({
-                    name: user_usage.username,
-                    data: [user_usage.username, user_usage.nodes_used],
-                  });
+                  userUsageBreakdownData.push(user_usage.nodes_used);
+                  $scope.utilization.usageUserBreakdownChartConfig.options.xAxis.categories.push(user_usage.username);
                 });
 
                 $scope.utilization.usageChartConfig.series.push({
@@ -409,6 +431,21 @@ angular.module('usageApp')
                     data: unusedNodesData,
 
                 });
+
+                $scope.utilization.usageUserBreakdownChartConfig.series.push({
+                      name: 'kvm@tacc',
+                      data: userUsageBreakdownData,
+                      }, {
+                      name: 'kvm@uc',
+                      data: userUsageBreakdownData,
+                      }, {
+                      name: 'chi@tacc',
+                      data: userUsageBreakdownData,
+                      }, {
+                      name: 'chi@uc',
+                      data: userUsageBreakdownData,
+
+                    });
 
             };
 
