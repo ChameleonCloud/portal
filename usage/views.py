@@ -340,6 +340,7 @@ def get_daily_usage_user_breakdown_json( request):
                     temp[username] = {}
                     temp[username]['username'] = username
                     temp[username]['nodes_used'] = math.ceil(nodes_used)
+                    temp[username]['queue'] = job.get('queueName').lower()
 
         resp['result'] = temp.values()
         resp['status'] = 'success'

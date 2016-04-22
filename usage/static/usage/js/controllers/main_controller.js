@@ -393,7 +393,7 @@ angular.module('usageApp')
                 var downtimeData = [];
                 var dailyUsageData = [];
                 var unusedNodesData = [];
-                var userUsageBreakdownData = [];
+                var userBreakdownData = {};
                 var totalNodes = 556;
                 angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
@@ -414,7 +414,11 @@ angular.module('usageApp')
                 });
 
                 angular.forEach($scope.utilization.user_usage, function(user_usage) {
-                  userUsageBreakdownData.push(user_usage.nodes_used);
+                  if (user_usage.queue in userBreakdownData) {
+                    userBreakdownData[user_usage.queue].push(user_usage.nodes_used)
+                  } else {
+                    userBreakdownData[user_usage.queue] = [user_usage.nodes_used]
+                  }
                   $scope.utilization.usageUserBreakdownChartConfig.options.xAxis.categories.push(user_usage.username);
                 });
 
@@ -434,16 +438,16 @@ angular.module('usageApp')
 
                 $scope.utilization.usageUserBreakdownChartConfig.series.push({
                       name: 'kvm@tacc',
-                      data: userUsageBreakdownData,
+                      data: userBreakdownData['kvm@tacc'],
                       }, {
                       name: 'kvm@uc',
-                      data: userUsageBreakdownData,
+                      data: userBreakdownData['kvm@uc'],
                       }, {
                       name: 'chi@tacc',
-                      data: userUsageBreakdownData,
+                      data: userBreakdownData['chi@tacc'],
                       }, {
                       name: 'chi@uc',
-                      data: userUsageBreakdownData,
+                      data: userBreakdownData['chi@uc'],
 
                     });
 
