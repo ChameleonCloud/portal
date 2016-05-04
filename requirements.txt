@@ -49,5 +49,8 @@ mock
 #-e git+https://bitbucket.org/taccaci/pytas.git@v1.0.3#egg=pytas-1.0.3
 
 # Working on a feature branch
--e git+https://bitbucket.org/taccaci/pytas.git@cmarnold/jobs-information#egg=pytas-1.0.3
+#-e git+https://bitbucket.org/taccaci/pytas.git@cmarnold/jobs-information#egg=pytas-1.0.3
+
+# Trying a specific commit because pip is garbage
+-e git+https://bitbucket.org/taccaci/pytas.git@899c7b2#egg=pytas-899c7b2
 
