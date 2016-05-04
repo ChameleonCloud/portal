@@ -113,7 +113,7 @@ def get_allocation_usage_json( request, allocation_id=None, username=None, queue
             logger.debug("username=" + username)
         if queue is not None:
             logger.debug("queue=" + queue)
-        jobs = jobsClient.get_jobs('chameleon', start_date, end_date, allocation_id, username, queue)
+        jobs = jobsClient.get_jobs(resource='chameleon', start=start_date, end=end_date, allocation_id=allocation_id, username=username, queue=queue)
         logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         data = []
@@ -141,7 +141,7 @@ def get_usage_by_users_json( request, allocation_id=None):
         tas = JobsClient()
         logger.debug(
             "Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date + ", allocation=" + allocation_id)
-        jobs = tas.get_jobs('chameleon', start_date, end_date, allocation_id)
+        jobs = tas.get_jobs(resource='chameleon', start=start_date, end=end_date, allocation_id=allocation_id)
         logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
@@ -278,7 +278,7 @@ def get_daily_usage_json( request):
         #tas = TASClient()
         tas = JobsClient()
         # use start, end date and queue here to get jobs
-        jobs = tas.get_jobs(resource, start_date_str, end_date_str)
+        jobs = tas.get_jobs(resource=resource, start=start_date_str, end=end_date_str, queue=queue)
         for job in jobs:
             job_start_date_str = job.get('startDate')
             job_end_date_str = job.get('endDate')
@@ -323,7 +323,7 @@ def get_daily_usage_user_breakdown_json( request):
         #tas = TASClient()
         tas = JobsClient()
         # use start, end date and queue here to get jobs
-        jobs = tas.get_jobs(resource, start_date_str, end_date_str)
+        jobs = tas.get_jobs(resource=resource, start=start_date_str, end=end_date_str, queue=queue)
         logger.debug(jobs)
         for job in jobs:
             username = job.get('userLogin')
