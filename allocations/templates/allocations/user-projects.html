@@ -139,7 +139,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow">
+                                    <tr ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow && allocation.resource == 'Chameleon'">
                                         <td>[[ allocation.resource ]]</td>
                                         <td>[[ allocation.requestor ]]</td>
                                         <td><span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span></td>
