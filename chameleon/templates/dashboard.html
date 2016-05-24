@@ -58,7 +58,7 @@
               <tbody>
               {% for project in active_projects %}
                 {% for alloc in project.allocations %}
-                  {% if alloc.status == 'Active' or alloc.status == 'Approved' or alloc.status == 'Pending' %}
+                  {% if alloc.status == 'Active' %}
                     <tr>
                       <td>
                         <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
@@ -67,24 +67,31 @@
                         <span class="label label-default label-{{alloc.status|lower}}">{{alloc.status}}</span>
                       </td>
                       <td>
-                        {% if alloc.status == 'Active' %}
                         <div class="progress">
                           <div class="progress-bar progress-bar-info" role="progressbar"
                             style="width: {{ alloc.percentComputeUsed }}%; max-width:100%">
                             {{ alloc.percentComputeUsed|floatformat:"0" }}%
                           </div>
                         </div>
-                        {% elif alloc.status == 'Approved' %}
-                          <p>
-                            <b>Approval date:</b>
-                            {{ alloc.dateReviewed }}
-                          </p>
-                        {% elif alloc.status == 'Pending' %}
-                          <p>
-                            <b>Date requested:</b>
-                            {{ alloc.dateRequested }}
-                          </p>
-                        {% endif %}
+                        {% for a in project.allocations %}
+                          {% if a.resourceId == alloc.resourceId %}
+                            {% if  alloc.status == 'Approved' or alloc.status == 'Pending' %}
+                              {% if alloc.status == 'Approved' %}
+                                <p>
+                                  <i>Allocation has an approved request</i>
+                                  <b>Approval date:</b>
+                                  {{ alloc.dateReviewed }}
+                                </p>
+                              {% elif alloc.status == 'Pending' %}
+                                <p>
+                                  <i>Allocation has a pending request</i>
+                                  <b>Date requested:</b>
+                                  {{ alloc.dateRequested }}
+                                </p>
+                              {% endif %}
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
                       </td>
                     </tr>
                   {% endif %}
