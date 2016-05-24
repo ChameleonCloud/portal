@@ -75,21 +75,19 @@
                         </div>
                         {% for a in project.allocations %}
                           {% if a.resourceId == alloc.resourceId %}
-                            {% if  alloc.status == 'Approved' or alloc.status == 'Pending' %}
-                              {% if alloc.status == 'Approved' %}
+                              {% if a.status == 'Approved' %}
                                 <p>
                                   <i>Allocation has an approved request</i>
                                   <b>Approval date:</b>
-                                  {{ alloc.dateReviewed }}
+                                  {{ a.dateReviewed }}
                                 </p>
-                              {% elif alloc.status == 'Pending' %}
+                              {% elif a.status == 'Pending' %}
                                 <p>
                                   <i>Allocation has a pending request</i>
                                   <b>Date requested:</b>
-                                  {{ alloc.dateRequested }}
+                                  {{ a.dateRequested }}
                                 </p>
                               {% endif %}
-                            {% endif %}
                           {% endif %}
                         {% endfor %}
                       </td>
