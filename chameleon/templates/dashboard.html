@@ -51,7 +51,7 @@
             <thead>
               <tr>
                 <th style="width:30%">Project</th>
-                <th style="width:30%">Status</th>
+                <th style="width:30%"></th>
                 <th style="width:40%">Usage/Info</th>
               </tr>
             </thead>
@@ -64,15 +64,6 @@
                         <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
                       </td>
                       <td>
-                        <span class="label label-default label-{{alloc.status|lower}}">{{alloc.status}}</span>
-                      </td>
-                      <td>
-                        <div class="progress">
-                          <div class="progress-bar progress-bar-info" role="progressbar"
-                            style="width: {{ alloc.percentComputeUsed }}%; max-width:100%">
-                            {{ alloc.percentComputeUsed|floatformat:"0" }}%
-                          </div>
-                        </div>
                         {% for a in project.allocations %}
                           {% if a.resourceId == alloc.resourceId %}
                               {% if a.status == 'Approved' %}
@@ -83,13 +74,21 @@
                                 </p>
                               {% elif a.status == 'Pending' %}
                                 <p>
-                                  <i>Allocation has a pending request</i>
+                                  <i>Allocation has a pending request</i><br />
                                   <b>Date requested:</b>
-                                  {{ a.dateRequested }}
+                                  {{ a.dateRequested|date:"m/d/Y" }}
                                 </p>
                               {% endif %}
                           {% endif %}
                         {% endfor %}
+                      </td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar progress-bar-info" role="progressbar"
+                            style="width: {{ alloc.percentComputeUsed }}%; max-width:100%">
+                            {{ alloc.percentComputeUsed|floatformat:"0" }}%
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   {% endif %}
