@@ -1,0 +1,42 @@
+from django.conf import settings
+from django.db import models
+from datetime import datetime
+import pytz
+
+class Webinar(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    registration_open = models.DateTimeField()
+    registration_closed = models.DateTimeField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def is_registration_open(self):
+        utc=pytz.UTC
+        return self.registration_open <= utc.localize(datetime.now())
+
+    def is_registration_closed(self):
+        utc = pytz.UTC
+        return self.registration_closed >= utc.localize(datetime.now())
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Webinar'
+        verbose_name_plural = 'Webinars'
+
+
+class WebinarRegistrant(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, )
+    webinar = models.ForeignKey(Webinar, )
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return self.user.username
+
+    class Meta:
+        verbose_name = 'Webinar Registrant'
+        verbose_name_plural = 'Webinar Registrants'

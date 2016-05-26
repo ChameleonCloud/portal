@@ -106,7 +106,8 @@ INSTALLED_APPS = (
     'g5k_discovery',
     'cc_early_user_support',
     'allocations',
-    'appliance_catalog'
+    'appliance_catalog',
+    'webinar_registration'
 )
 
 MIDDLEWARE_CLASSES = (

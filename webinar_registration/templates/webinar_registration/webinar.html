@@ -1,0 +1,33 @@
+{% extends "layout/default.html" %}
+{% load i18n %}
+{% load cms_tags %}
+{% block title %}{{ webinar.name }} | Webinar{% endblock %}
+{% block content %}
+
+<h1>{{ webinar.name }} <small>Webinar</small></h1>
+
+<p>{{ webinar.description|safe }}</p>
+<p>
+    {% if webinar.is_registration_open %}
+      {% if participant %}
+      <p class="alert alert-success">
+        You are registered for this webinar!
+      </p>
+      {% else %}
+      <p>
+        {% if user.is_authenticated %}
+          <a class="btn btn-info" href="{% url 'webinar_registration:register' webinar.id %}">
+            Register
+          </a>
+        {% else %}
+          <a class="btn btn-info" href="{% url 'login' %}?next={% url 'webinar_registration:register' webinar.id %}">
+            Log in to Register
+          </a>
+        {% endif %}
+      </p>
+      {% endif %}
+    {% else %}
+  <p>Registration is closed.</p>
+{% endif %}
+</p>
+{% endblock %}
