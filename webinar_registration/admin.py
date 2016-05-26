@@ -6,15 +6,15 @@ from . import forms
 @admin.register(models.Webinar)
 class WebinarAdmin(admin.ModelAdmin):
     form = forms.WebinarAdminForm
-    list_display = ('name', 'start_date', 'end_date', 'registration_open', 'registration_closed')
+    list_display = ('name', 'start_date', 'end_date', 'registration_open', 'registration_closed', 'registrants')
     list_filter = ('name', 'registration_open', 'registration_closed')
 
     # TODO get this worked out
-    def participants(self, obj):
-        url = reverse('admin:webinar_registrant_changelist')#, kwargs={'program__id__exact':obj.id})
+    def registrants(self, obj):
+        url = reverse('admin:webinar_registration_webinarregistrant_changelist')#, kwargs={'program__id__exact':obj.id})
         return '<a href=%s?webinar__id__exact=%s>View Participants</a>' % (url, obj.id)
 
-    participants.allow_tags = True
+    registrants.allow_tags = True
 
 
 @admin.register(models.WebinarRegistrant)

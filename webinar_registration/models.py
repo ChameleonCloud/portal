@@ -19,6 +19,10 @@ class Webinar(models.Model):
         utc = pytz.UTC
         return self.registration_closed >= utc.localize(datetime.now())
 
+    def is_registration_future(self):
+        utc = pytz.UTC
+        return self.registration_open > utc.localize(datetime.now())
+
     def __unicode__(self):
         return self.name
 

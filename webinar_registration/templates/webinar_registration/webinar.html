@@ -4,7 +4,9 @@
 {% block title %}{{ webinar.name }} | Webinar{% endblock %}
 {% block content %}
 
-<h1>{{ webinar.name }} <small>Webinar</small></h1>
+<h1>{{ webinar.name }} </h1>
+
+<p><i>{{ webinar.start_date }} to {{ webinar.end_date }}</i></p>
 
 <p>{{ webinar.description|safe }}</p>
 <p>
@@ -27,7 +29,11 @@
       </p>
       {% endif %}
     {% else %}
-  <p>Registration is closed.</p>
-{% endif %}
+      {% if webinar.is_registration_future %}
+        <p><i>Registration will open {{ webinar.registration_open }}.</i></p>
+      {% else %}
+        <p>Registration closed {{ webinar.registration_closed }}.</p>
+      {% endif %}
+    {% endif %}
 </p>
 {% endblock %}

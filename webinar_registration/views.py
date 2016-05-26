@@ -8,17 +8,27 @@ from . import forms, models
 from datetime import datetime
 
 def index(request):
-    webinars = models.Webinar.objects.filter(registration_open__lte=datetime.now(), registration_closed__gte=datetime.now())
+    webinars = models.Webinar.objects.filter(registration_closed__gte=datetime.now())
 
     if len(webinars) == 1:
         return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinars[0].id,)))
 
-    return render(request, 'webinar_registration/index.html', {'webinars': webinars})
+    # check if user has registered
+
+    participant = []
+    for w in webinars:
+        try:
+            p = models.WebinarRegistrant.objects.get(webinar=w, user=request.user)
+            participant[w.id] = p
+        except:
+            p = None
+
+    return render(request, 'webinar_registration/index.html', {'webinars': webinars })
 
 def webinar(request, id):
     webinar = models.Webinar.objects.get(id=id)
 
-    # check if user has requested to participate
+    # check if user has registered
     try:
         participant = models.WebinarRegistrant.objects.get(webinar=webinar, user=request.user)
     except:
@@ -49,14 +59,14 @@ def register(request, id):
         form = forms.WebinarRegistrantForm(request.POST)
         if form.is_valid():
             join_request = form.save(commit=False)
-            join_request.user = request.user
-            join_request.webinar = webinar
+            join_request.user = form.cleaned_data['user']
+            join_request.webinar = form.cleaned_data['webinar']
             join_request.save()
             messages.success(request, 'You have been registered.')
             return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
         context['form'] = form
     else:
-        context['form'] = forms.WebinarRegistrantForm()
+        context['form'] = forms.WebinarRegistrantForm(initial={'user': request.user, 'webinar' : webinar})
 
 
     return render(request, 'webinar_registration/register.html', context)
