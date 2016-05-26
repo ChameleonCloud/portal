@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.12.2
+
+- Bug fix
+    - Rolled back django-reversions due to known bug that breaks ability to view the history of a page
+
 ### v1.12.1
 
 - Bug fixes
