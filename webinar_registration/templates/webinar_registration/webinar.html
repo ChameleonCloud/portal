@@ -18,9 +18,13 @@
       {% else %}
       <p>
         {% if user.is_authenticated %}
+          {% if not is_full %}
           <a class="btn btn-info" href="{% url 'webinar_registration:register' webinar.id %}">
             Register
           </a>
+          {% else %}
+            This webinar is full.
+          {% endif %}
         {% else %}
           <a class="btn btn-info" href="{% url 'login' %}?next={% url 'webinar_registration:register' webinar.id %}">
             Log in to Register

@@ -10,6 +10,7 @@ class Webinar(models.Model):
     registration_closed = models.DateTimeField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+    registration_limit = models.IntegerField(default=0)
 
     def is_registration_open(self):
         utc=pytz.UTC
@@ -25,6 +26,9 @@ class Webinar(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def is_registered(self, is_registered):
+        self.is_registered = is_registered
 
     class Meta:
         verbose_name = 'Webinar'

@@ -1,9 +1,10 @@
-from chameleon_token.decorators import token_required
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.core.mail import send_mail
 from . import forms, models
 from datetime import datetime
 
@@ -13,15 +14,15 @@ def index(request):
     if len(webinars) == 1:
         return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinars[0].id,)))
 
-    # check if user has registered
-
-    participant = []
+    # TODO check if user has registered
     for w in webinars:
         try:
             p = models.WebinarRegistrant.objects.get(webinar=w, user=request.user)
-            participant[w.id] = p
+            w.is_registered(True)
         except:
             p = None
+
+    # TODO check if webinar is full
 
     return render(request, 'webinar_registration/index.html', {'webinars': webinars })
 
@@ -34,8 +35,14 @@ def webinar(request, id):
     except:
         participant = None
 
+    num_registrants = models.WebinarRegistrant.objects.filter(webinar=webinar).count()
 
-    return render(request, 'webinar_registration/webinar.html', {'webinar': webinar, 'participant': participant})
+    if webinar.registration_limit > 0:
+        is_full = num_registrants  == webinar.registration_limit
+    else:
+        is_full = False
+
+    return render(request, 'webinar_registration/webinar.html', {'webinar': webinar, 'participant': participant, 'is_full': is_full})
 
 @login_required
 def register(request, id):
@@ -43,6 +50,12 @@ def register(request, id):
 
     # Ensure program is accepting participants
     if not webinar.is_registration_open():
+        return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
+
+    # Make sure the registration limit hasn't been reached yet
+    num_registrants = models.WebinarRegistrant.objects.filter(webinar=webinar).count()
+
+    if webinar.registration_limit > 0 and num_registrants == webinar.registration_limit:
         return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
 
     # Ensure that the user has not already requested to participate in this program.
@@ -63,6 +76,12 @@ def register(request, id):
             join_request.webinar = form.cleaned_data['webinar']
             join_request.save()
             messages.success(request, 'You have been registered.')
+            num_registrants = num_registrants + 1
+            if num_registrants == webinar.registration_limit:
+                send_mail('Registration limit reached for webinar ' + webinar.name,
+                          'The registration limit for your webinar, ' + webinar.name + ', has been reached.',
+                          'help@chameleoncloud.org',
+                          ['help@chameleoncloud.org'], fail_silently=False)
             return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
         context['form'] = form
     else:
@@ -71,21 +90,8 @@ def register(request, id):
 
     return render(request, 'webinar_registration/register.html', context)
 
-@token_required
-def participants_export_list(request, id, list_type='uids'):
-    """
-    Returns a text file listing Early User Participants, one per line.
-    """
-    try:
-        participants = models.WebinarRegistrant.objects.filter(webinar__id=id)
-        if list_type == 'uids':
-            content = list(p.user.username for p in participants)
-        elif list_type == 'emails':
-            content = list(p.user.email for p in participants)
-        response = HttpResponse('\n'.join(content), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="webinar_%s_participants.txt"' % id
-    except Exception as e:
-        response = HttpResponse('Error: %s' % e)
-        response.status_code = 400
-
-    return response
+@login_required
+def unregster(request, id, username):
+    webinar = models.Webinar.objects.get(id=id)
+    user = User.objects.get(username=username)
+    participant = models.WebinarRegistrant.objects.get(webinar=webinar, user=user)
