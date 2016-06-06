@@ -57,7 +57,6 @@ def user_projects(request):
     projects = list(p for p in projects if p.source == 'Chameleon')
 
     context['projects'] = projects
-    context['test'] = "Carrie Test"
 
     return render(request, 'projects/user_projects.html', context)
 
@@ -119,16 +118,16 @@ def view_project(request, project_id):
     project.inactive_allocations = []
 
     for a in project.allocations:
-        if a.status == 'Active':
+        if a.status == 'Active' and a.resource == 'Chameleon':
             project.active_allocations.append(a)
             project.has_active_allocations = True
-        if a.status == 'Pending':
+        if a.status == 'Pending' and a.resource == 'Chameleon':
             project.pending_allocations.append(a)
             project.has_pending_allocations = True
-        if a.status == 'Inactive':
+        if a.status == 'Inactive' and a.resource == 'Chameleon':
             project.inactive_allocations.append(a)
             project.has_inactive_allocations = True
-        if a.status == 'Rejected':
+        if a.status == 'Rejected' and a.resource == 'Chameleon':
             project.rejected_allocations.append(a)
             project.has_rejected_allocations = True
 
