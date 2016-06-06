@@ -51,40 +51,44 @@
             <thead>
               <tr>
                 <th style="width:30%">Project</th>
-                <th style="width:30%">Status</th>
+                <th style="width:30%"></th>
                 <th style="width:40%">Usage/Info</th>
               </tr>
             </thead>
               <tbody>
               {% for project in active_projects %}
                 {% for alloc in project.allocations %}
-                  {% if alloc.status == 'Active' or alloc.status == 'Approved' or alloc.status == 'Pending' %}
+                  {% if alloc.status == 'Active' %}
                     <tr>
                       <td>
                         <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
                       </td>
                       <td>
-                        <span class="label label-default label-{{alloc.status|lower}}">{{alloc.status}}</span>
+                        {% for a in project.allocations %}
+                          {% if a.resourceId == alloc.resourceId %}
+                              {% if a.status == 'Approved' %}
+                                <p>
+                                  <i>Allocation has an approved request</i>
+                                  <b>Approval date:</b>
+                                  {{ a.dateReviewed }}
+                                </p>
+                              {% elif a.status == 'Pending' %}
+                                <p>
+                                  <i>Allocation has a pending request</i><br />
+                                  <b>Date requested:</b>
+                                  {{ a.dateRequested }}
+                                </p>
+                              {% endif %}
+                          {% endif %}
+                        {% endfor %}
                       </td>
                       <td>
-                        {% if alloc.status == 'Active' %}
                         <div class="progress">
                           <div class="progress-bar progress-bar-info" role="progressbar"
                             style="width: {{ alloc.percentComputeUsed }}%; max-width:100%">
                             {{ alloc.percentComputeUsed|floatformat:"0" }}%
                           </div>
                         </div>
-                        {% elif alloc.status == 'Approved' %}
-                          <p>
-                            <b>Approval date:</b>
-                            {{ alloc.dateReviewed }}
-                          </p>
-                        {% elif alloc.status == 'Pending' %}
-                          <p>
-                            <b>Date requested:</b>
-                            {{ alloc.dateRequested }}
-                          </p>
-                        {% endif %}
                       </td>
                     </tr>
                   {% endif %}
