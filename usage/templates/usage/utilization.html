@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Utilization | Chameleon Cloud {% endblock %}
+<!-- Custom CSS -->
+{% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'usage/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
+<script src="{% static 'usage/js/vendor.js' %}"></script>
+<script src="{% static 'usage/js/app.js' %}"></script>
+<script src="{% static 'usage/js/directive.js' %}"></script>
+<script src="{% static 'usage/js/service.js' %}"></script>
+<script src="{% static 'usage/js/controllers/main_controller.js' %}"></script>
+{% endblock %} {% block coltype %}colM{% endblock %} {% block bodyclass %}{{ block.super }} change-form{% endblock %} {% if not is_popup %} {% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Manage Allocations' %}
+</div>
+{% endblock %} {% endif %} {% block content %}
+<div class="usage-app">
+    <h1>Utilization</h1>
+    <div id="content-main" ng-app="usageApp" ng-cloak>
+        <div class="content" ng-controller="UsageController">
+            <table>
+                <tr>
+                    <td class="name"><strong>Queue:</strong></td>
+                    <td>
+                        <select ng-model="utilization.selectedQueue" ng-change="updateUtilizationChart()">
+                            <option value="">-- All queues --</option>
+                            <option value="kvm@tacc">KVM@TACC</option>
+                            <option value="kvm@uc">KVM@UC</option>
+                            <option value="CHI@TACC">CHI@TACC</option>
+                            <option value="CHI@UC">CHI@UC</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="name"><strong>From:</strong></td>
+                    <td>
+                        <input type="text" id="startDate" name="startDate" datepicker-popup="[[format]]" ng-model="utilization.from" is-open="utilization.startOpened" min-date="getMinUtilizationDate()" max-date="getMaxUtilizationDate()" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
+                        <button type="button" class="btn btn-default" ng-click="isOpen4Utilization($event, 'start')"><i class="fa fa-calendar"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="name"><strong>To:</strong></td>
+                    <td>
+                        <input type="text" id="endDate" name="endDate" datepicker-popup="[[format]]" ng-model="utilization.to" is-open="utilization.endOpened" min-date="utilization.from" max-date="getMaxUtilizationDate()" datepicker-options="dateOptions" date-disabled="disabled(date, mode)" ng-required="true" ng-disabled="true" close-text="Close" />
+                        <button type="button" class="btn btn-default" ng-click="isOpen4Utilization($event, 'end')"><i class="fa fa-calendar"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>
+                        <button type="button" class="btn btn-default" ng-click="updateUtilizationChart('custom')">
+                            Reload chart
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan=2>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('1m')" ng-disabled="utilization.dateRange === '1m'">
+                            1m
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('3m')" ng-disabled="utilization.dateRange === '3m'">
+                            3m
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('6m')" ng-disabled="utilization.dateRange === '6m'">
+                            6m
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('ytd')" ng-disabled="utilization.dateRange === 'ytd'">
+                            YTD
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('1y')" ng-disabled="utilization.dateRange === '1y'">
+                            1y
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" ng-click="updateUtilizationChart('all')" ng-disabled="utilization.dateRange === 'all'">
+                            All
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <div class="well" ng-if="loading.utilization">
+                <span class="fa fa-spinner fa-spin"></span> Loading utilization chart...
+            </div>
+            <div ng-if="!loading.utilization">
+                <div ng-if="isEmpty(messages.utilization)">
+                    <div ng-if="utilization.downtimes.length === 0">
+                        <alert type="warning">Downtimes not found.</alert>
+                    </div>
+                    <div ng-if="utilization.used.length === 0">
+                        <alert type="warning">Usage not found.</alert>
+                    </div>
+                    <div ng-if="utilization.downtimes.length > 0 || utilization.usage.length > 0" class="form-group module">
+                        <highchart id="utilization-usage-chart" config="utilization.usageChartConfig" ng-if="isEmpty(messages.utilization)"></highchart>
+                    </div>
+                    <div ng-if="utilization.downtimes.length > 0 || utilization.usage.length > 0" class="form-group module">
+                        <highchart id="utilization-usage-chart" config="utilization.usageUserBreakdownChartConfig" ng-if="isEmpty(messages.utilization)"></highchart>
+                    </div>
+                </div>
+                <div ng-if="!isEmpty(messages.utilization)">
+                    <alert ng-repeat="msg in messages.utilization" type="[[msg.type]]">[[msg.body]]</alert>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

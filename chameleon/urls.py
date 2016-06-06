@@ -7,7 +7,6 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
-
 urlpatterns = patterns(
         '',
         # admin urls
@@ -15,6 +14,7 @@ urlpatterns = patterns(
         url(r'^admin/impersonate/', include('impersonate.urls')),
         url(r'^admin/allocations/', include('allocations.urls',
                                             namespace='allocations_admin')),
+        url(r'^admin/usage/', include('usage.urls', namespace='usage_admin')),
         # url(r'^appliance-catalog/', include('appliance_catalog.urls',
         #                                     namespace='appliance_catalog')),
 
@@ -54,7 +54,6 @@ urlpatterns = patterns(
         url(r'^user/profile/subscriptions/$',
             'chameleon_mailman.views.manage_mailman_subscriptions',
             name='mailman_manage'),
-
         # cms urls
         url(r'^', include('cms.urls')),
 )

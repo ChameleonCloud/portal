@@ -46,5 +46,11 @@ mock
 
 
 # these modules aren't in PIP
--e git+https://bitbucket.org/taccaci/pytas.git@v1.0.3#egg=pytas-1.0.3
+#-e git+https://bitbucket.org/taccaci/pytas.git@v1.0.3#egg=pytas-1.0.3
+
+# Working on a feature branch
+#-e git+https://bitbucket.org/taccaci/pytas.git@cmarnold/jobs-information#egg=pytas-1.0.3
+
+# Trying a specific commit because pip is garbage
+-e git+https://bitbucket.org/taccaci/pytas.git@e9fc42d#egg=pytas-e9fc42d
 

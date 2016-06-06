@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 
 import re
 import logging
+import traceback
 import json
 import math
 import time
@@ -66,20 +67,30 @@ def user_select( request ):
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def user_projects( request, username ):
     logger.info( 'User projects requested by admin: %s for user %s', request.user, username )
-    resp = []
-    try:
-        if username:
-            tas = TASClient()
-            userProjects = tas.projects_for_user( username=username )
-            chameleonProjects = tas.projects_for_group('Chameleon');
-            if (chameleonProjects and userProjects):
-                for project in userProjects:
-                    if project in chameleonProjects:
-                        resp.append(project)
-                        logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
-    except Exception as e:
-        logger.exception('Error loading projects for user: %s', username)
-        raise Exception('Error loading projects for user: %s', username)
+    resp = {
+        'status': 'error',
+        'msg': '',
+        'result': []
+    }
+    if username:
+        tas = TASClient()
+        try:
+            userData = tas.get_user(username=username)
+            try:
+                userProjects = tas.projects_for_user( username=username )
+                chameleonProjects = tas.projects_for_group('Chameleon');
+                if (chameleonProjects and userProjects):
+                    for project in userProjects:
+                        if project in chameleonProjects:
+                            resp['status'] = 'success'
+                            resp['result'].append(project)
+                            logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
+            except Exception as e:
+                logger.debug('Error loading projects for user: %s', username)
+                resp['msg'] = 'Error loading projects for user: %s' %username
+        except Exception as e:
+            logger.debug('User not found with username: %s', username)
+            resp['msg'] = 'User not found.'
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required

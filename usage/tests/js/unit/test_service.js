@@ -5,7 +5,7 @@ describe('NotificationFactory', function() {
 
     beforeEach(function() {
         module('underscore');
-        module('allocationsApp.service');
+        module('usageApp.service');
         inject(function(_NotificationFactory_) {
             NotificationFactory = _NotificationFactory_;
         });
@@ -58,7 +58,7 @@ describe('UtilFactory', function() {
     beforeEach(function() {
         module('moment');
         module('underscore');
-        module('allocationsApp.service');
+        module('usageApp.service');
         jasmine.getJSONFixtures().fixturesPath = 'base/unit/fixtures';
         module(function($provide) {
             $provide.value('Liferay', {});
@@ -198,9 +198,17 @@ describe('AllocationFactory', function() {
         msg: '',
         result: projects
     };
-    
+
+    var users = [{
+        id: 1,
+        username: 'test1'
+    }, {
+        id: 2,
+        username: 'test2'
+    }];
+
     beforeEach(function() {
-        module('allocationsApp.service');
+        module('usageApp.service');
         module('underscore');
         module('moment');
         inject(function(_AllocationFactory_, _NotificationFactory_, _$httpBackend_) {
@@ -220,7 +228,7 @@ describe('AllocationFactory', function() {
     });
 
     it('should get user allocations', function() {
-        $httpBackend.when('GET', '/admin/allocations/user/test').respond(200, response);
+        $httpBackend.when('GET', '/admin/allocations/user/test/').respond(200, response);
         AllocationFactory.getUserAllocations('test');
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
@@ -228,67 +236,118 @@ describe('AllocationFactory', function() {
         expect(AllocationFactory.userProjects).toEqual(projects);
     });
 
-    it('should reject an allocation successfully', function() {
-        var response = {
-            status: 'success',
-            result: projects
-        };
-        var allocation = projects[0].allocations[0];
-        $httpBackend.when('POST', '/admin/allocations/approval/', allocation).respond(201,
-            response);
-        AllocationFactory.rejectAllocation(allocation);
+    it('should get project users', function() {
+        $httpBackend.when('GET', '/admin/usage/projects/1/users/').respond(200, users);
+        var project = projects[0];
+        AllocationFactory.getProjectUsers(project);
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
         $httpBackend.verifyNoOutstandingRequest();
-        expect(NotificationFactory.getMessages().rejectAllocation1[0].body).toEqual(
-            'This allocation request is rejected successfully.');
+        expect(project.users).toEqual(users);
+    });
+});
+
+describe('UsageFactory', function() {
+    var UsageFactory, NotificationFactory, $httpBackend;
+    var project = {
+        id: 1,
+        selectedAllocation: {
+            id: 1
+        },
+        selectedUser: {
+            username: 'test1'
+        },
+        selectedQueue: 'chi@tacc'
+    };
+
+    var usage = [
+        [456, 19.99],
+        [123, 9.90],
+        [456, 20.01],
+        [123, 10.10]
+    ];
+    var processedUsage = [
+        [123, 20.00],
+        [456, 40.00]
+    ];
+    var usageByUsers = {
+        test1: {
+            'chi@uc': 2.6414583333333335,
+            'kvm@uc': 0.6414583333333334,
+            'chi@tacc': 1.6414583333333335
+        },
+        test2: {
+            'chi@uc': 1.6414583333333335,
+            'kvm@uc': 1.6414583333333335,
+            'chi@tacc': 0.6414583333333334,
+            'kvm@tacc': 3.341458333333333
+        }
+    };
+    var processedUsageByUsers = {
+        'chi@uc': [1.64, 2.64],
+        'kvm@uc': [1.64, 0.64],
+        'chi@tacc': [0.64, 1.64],
+        'kvm@tacc': [3.34, 0]
+    };
+    var usageUsers = ['test2', 'test1'];
+
+    beforeEach(function() {
+        module('usageApp.service');
+        module('underscore');
+        module('moment');
+        inject(function(_UsageFactory_, _NotificationFactory_, _$httpBackend_) {
+            UsageFactory = _UsageFactory_;
+            NotificationFactory = _NotificationFactory_;
+            $httpBackend = _$httpBackend_;
+        });
     });
 
-    it('should approve an allocation successfully', function() {
-        var response = {
-            status: 'success',
-            result: projects
-        };
-        var allocation = projects[0].allocations[0];
-        $httpBackend.when('POST', '/admin/allocations/approval/', allocation).respond(201,
-            response);
-        AllocationFactory.approveAllocation(allocation);
+    it('should get allocation usage', function() {
+        $httpBackend.when('GET', '/admin/usage/allocation/1/').respond(200, usage);
+        UsageFactory.getAllocationUsage(project);
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
         $httpBackend.verifyNoOutstandingRequest();
-        expect(NotificationFactory.getMessages().approveAllocation1[0].body).toEqual(
-            'This allocation request is approved successfully.');
+        expect(project.selectedAllocation.usage).toEqual(processedUsage);
     });
 
-    it('fail rejecting an allocation', function() {
-        var response = {
-            status: 'error',
-            result: null
-        };
-        var allocation = projects[0].allocations[0];
-        $httpBackend.when('POST', '/admin/allocations/approval/', allocation).respond(201,
-            response);
-        AllocationFactory.rejectAllocation(allocation);
+    it('should get allocation user usage', function() {
+        $httpBackend.when('GET', '/admin/usage/allocation/1/username/test1/').respond(200, usage);
+        UsageFactory.getAllocationUserUsage(project);
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
         $httpBackend.verifyNoOutstandingRequest();
-        expect(NotificationFactory.getMessages().rejectAllocation1[0].body).toEqual(
-            'There was an error rejecting this allocation. Please try again or file a ticket if this seems persistent.');
+        expect(project.selectedAllocation.usage).toEqual(processedUsage);
     });
 
-    it('fail approving an allocation', function() {
-        var response = {
-            status: 'error',
-            result: null
-        };
-        var allocation = projects[0].allocations[0];
-        $httpBackend.when('POST', '/admin/allocations/approval/', allocation).respond(201,
-            response);
-        AllocationFactory.approveAllocation(allocation);
+    it('should get allocation user queue usage', function() {
+        $httpBackend.when('GET', '/admin/usage/allocation/1/username/test1/queue/chi@tacc/').respond(200, usage);
+        UsageFactory.getAllocationUserQueueUsage(project);
         $httpBackend.flush();
         $httpBackend.verifyNoOutstandingExpectation();
         $httpBackend.verifyNoOutstandingRequest();
-        expect(NotificationFactory.getMessages().approveAllocation1[0].body).toEqual(
-            'There was an error approving this allocation. Please try again or file a ticket if this seems persistent.');
+        expect(project.selectedAllocation.usage).toEqual(processedUsage);
     });
+
+    it('should get allocation queue usage', function() {
+        $httpBackend.when('GET', '/admin/usage/allocation/1/queue/chi@tacc/').respond(200, usage);
+        UsageFactory.getAllocationQueueUsage(project);
+        $httpBackend.flush();
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+        expect(project.selectedAllocation.usage).toEqual(processedUsage);
+    });
+
+    it('should get allocation usage by users', function() {
+        project.from = '2015-01-01T00:00:00';
+        project.to = '2015-11-10T00:00:00';
+        $httpBackend.when('GET', '/admin/usage/usage-by-users/1/?from=2015-01-01T06:00:00Z&to=2015-11-10T06:00:00Z').respond(200, usageByUsers);
+        UsageFactory.getUsageByUsers(project);
+        $httpBackend.flush();
+        $httpBackend.verifyNoOutstandingExpectation();
+        $httpBackend.verifyNoOutstandingRequest();
+        expect(project.selectedAllocation.usageUsers).toEqual(usageUsers);
+        expect(project.selectedAllocation.usageByUsers).toEqual(processedUsageByUsers);
+    });
+
 });

@@ -97,6 +97,7 @@ INSTALLED_APPS = (
     'chameleon_cms_integrations',
     'chameleon_mailman',
     'chameleon_token',
+    'usage',
     'util',
     'tas',
     'djangoRT',
@@ -163,7 +164,7 @@ else:
 
 LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'US/Central'
 
 USE_TZ = True
 
