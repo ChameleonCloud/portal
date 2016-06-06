@@ -15,6 +15,7 @@
       <p class="alert alert-success">
         You are registered for this webinar!
       </p>
+        <a href="{% url 'webinar_registration:unregister' webinar.id %}" class="btn btn-danger">Cancel registration</a>
       {% else %}
       <p>
         {% if user.is_authenticated %}

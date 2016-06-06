@@ -91,7 +91,27 @@ def register(request, id):
     return render(request, 'webinar_registration/register.html', context)
 
 @login_required
-def unregster(request, id, username):
+def unregister(request, id):
     webinar = models.Webinar.objects.get(id=id)
-    user = User.objects.get(username=username)
-    participant = models.WebinarRegistrant.objects.get(webinar=webinar, user=user)
+    try:
+        participant = models.WebinarRegistrant.objects.get(webinar=webinar, user=request.user)
+    except:
+        participant = None
+    if participant == None:
+        return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
+
+    context = { 'webinar': webinar, 'user' : request.user }
+
+    if request.POST:
+        form = forms.WebinarRegistrantForm(request.POST)
+        if form.is_valid():
+            cancel_object = models.WebinarRegistrant.objects.get(user=form.cleaned_data['user'],webinar=form.cleaned_data['webinar'])
+            cancel_object.delete()
+            messages.success(request, 'You have cancelled your registration.')
+            return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinar.id,)))
+        context['form'] = form
+    else:
+        context['form'] = forms.WebinarRegistrantForm(initial={'user': request.user, 'webinar' : webinar})
+
+
+    return render(request, 'webinar_registration/unregister.html', context)

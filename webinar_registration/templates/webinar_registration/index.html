@@ -20,9 +20,9 @@
       <a href="{% url 'webinar_registration:webinar' w.id %}" class="btn btn-default">View</a>
       {% if w.is_registration_open and user.is_authenticated %}
         {% if w.is_registered %}
-          <a href="{% url 'webinar_registration:register' w.id user.username %}" class="btn btn-danger">Cancel registration</a>
+          <a href="{% url 'webinar_registration:unregister' w.id %}" class="btn btn-danger">Cancel registration</a>
         {% else %}
-        <a href="{% url 'webinar_registration:register' w.id user.username %}" class="btn btn-info">Register</a>
+        <a href="{% url 'webinar_registration:register' w.id %}" class="btn btn-info">Register</a>
         {% endif %}
       {% endif %}
       {% if w.is_registration_future %}

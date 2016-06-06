@@ -8,7 +8,6 @@ class WebinarRegistrantForm(forms.ModelForm):
         fields = ['user', 'webinar']
         widgets = {'user': forms.HiddenInput(), 'webinar': forms.HiddenInput()}
 
-
 class WebinarAdminForm(forms.ModelForm):
 
     class Meta:
