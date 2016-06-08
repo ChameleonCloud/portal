@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
-from datetime import datetime
+#from datetime import datetime
+from django.utils import timezone
 import pytz
 
 class Webinar(models.Model):
@@ -14,15 +15,15 @@ class Webinar(models.Model):
 
     def is_registration_open(self):
         utc=pytz.UTC
-        return self.registration_open <= utc.localize(datetime.now())
+        return self.registration_open <= timezone.now()
 
     def is_registration_closed(self):
         utc = pytz.UTC
-        return self.registration_closed >= utc.localize(datetime.now())
+        return self.registration_closed >= timezone.now()
 
     def is_registration_future(self):
         utc = pytz.UTC
-        return self.registration_open > utc.localize(datetime.now())
+        return self.registration_open > timezone.now()
 
     def __unicode__(self):
         return self.name

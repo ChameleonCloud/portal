@@ -6,10 +6,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.core.mail import send_mail
 from . import forms, models
-from datetime import datetime
+#from datetime import datetime
+from django.utils import timezone
 
 def index(request):
-    webinars = models.Webinar.objects.filter(registration_closed__gte=datetime.now())
+    webinars = models.Webinar.objects.filter(registration_closed__gte=timezone.now())
 
     if len(webinars) == 1:
         return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinars[0].id,)))
