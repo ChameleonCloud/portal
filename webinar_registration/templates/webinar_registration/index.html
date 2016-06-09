@@ -25,6 +25,9 @@
         <a href="{% url 'webinar_registration:register' w.id %}" class="btn btn-info">Register</a>
         {% endif %}
       {% endif %}
+      {% if w.is_registration_closed %}
+        {% trans 'Registration is closed' %}
+      {% endif %}
       {% if w.is_registration_future %}
           <p><i>Webinar will open for registration on {{ w.registration_open }}</i></p>
       {% endif %}

@@ -10,12 +10,11 @@ from . import forms, models
 from django.utils import timezone
 
 def index(request):
-    webinars = models.Webinar.objects.filter(registration_closed__gte=timezone.now())
+    webinars = models.Webinar.objects.filter(end_date__gte=timezone.now())
 
     if len(webinars) == 1:
         return HttpResponseRedirect(reverse('webinar_registration:webinar', args=(webinars[0].id,)))
 
-    # TODO check if user has registered
     for w in webinars:
         try:
             p = models.WebinarRegistrant.objects.get(webinar=w, user=request.user)
