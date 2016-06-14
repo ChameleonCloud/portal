@@ -136,16 +136,9 @@ angular.module('discoveryApp')
                     delete filtersOrg[ky];
                 }
             }
-
-            console.log("After prune in Main Controller");
-            console.log(filters);
         };
 
         var makeChunks = function() {
-                    // TODO REMOVE ME
-                    console.log("Make Chunks - No GPU here!");
-            console.log($scope.filters);
-            // TODO ^^^^
             $scope.filterSite = $scope.filters['site'];
             delete $scope.filters['site'];
             $scope.filterCluster = $scope.filters['cluster'];
@@ -163,9 +156,6 @@ angular.module('discoveryApp')
                  delete storage['size'];
             });
             $scope.advancedFiltersOrg = angular.copy($scope.filters);
-
-            console.log("GPU filter after make chunks");
-            console.log($scope.filterGpu);
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -175,8 +165,6 @@ angular.module('discoveryApp')
             ResourceFactory.processNodes($scope.allNodes);
             $scope.filtersOrg = angular.copy(ResourceFactory.filters);
             $scope.filters = angular.copy(ResourceFactory.filters);
-            console.log("Filters from Resource Factory");
-            console.log($scope.filters);
             $scope.appliedFiltersOrg = angular.copy(ResourceFactory.filters);
             $scope.booleanizeFilter($scope.appliedFiltersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
