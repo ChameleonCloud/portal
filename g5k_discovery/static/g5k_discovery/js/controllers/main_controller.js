@@ -176,7 +176,7 @@ angular.module('discoveryApp')
             $scope.filtersOrg = angular.copy(ResourceFactory.filters);
             $scope.filters = angular.copy(ResourceFactory.filters);
             console.log("Filters from Resource Factory");
-            console.log(filters);
+            console.log($scope.filters);
             $scope.appliedFiltersOrg = angular.copy(ResourceFactory.filters);
             $scope.booleanizeFilter($scope.appliedFiltersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
