@@ -447,10 +447,8 @@ angular.module('discoveryApp')
             _.each(nodes, function(node) {
                 processNode(node, node['uid']);
             });
-            console.log("Before prune");
-            console.log(factory.filters);
             factory.pruneFilters();
-            console.log("After prune");
+            console.log("Resource factory After prune");
             console.log(factory.filters);
         };
         return factory;

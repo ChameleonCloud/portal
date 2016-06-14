@@ -100,6 +100,8 @@ angular.module('discoveryApp')
             }
         };
         $scope.prune = function(filters, ky, preserveArray) {
+            console.log("In the Main Controller prune");
+            console.log(filters);
             var filtersOrg = filters;
             filters = (ky === null) ? filters : filters[ky];
             for (var key in filters) {
@@ -134,9 +136,16 @@ angular.module('discoveryApp')
                     delete filtersOrg[ky];
                 }
             }
+
+            console.log("After prune in Main Controller");
+            console.log(filters);
         };
 
         var makeChunks = function() {
+                    // TODO REMOVE ME
+                    console.log("Make Chunks - No GPU here!");
+            console.log($scope.filters);
+            // TODO ^^^^
             $scope.filterSite = $scope.filters['site'];
             delete $scope.filters['site'];
             $scope.filterCluster = $scope.filters['cluster'];
@@ -144,11 +153,6 @@ angular.module('discoveryApp')
             $scope.filterArchitecture = $scope.filters['architecture'];
             delete $scope.filters['architecture'];
             $scope.filterGpu = $scope.filters['gpu'];
-
-            // TODO REMOVE ME
-            console.log($scope.filters);
-            // TODO ^^^^
-
             delete $scope.filters['gpu'];
             //$scope.filterInfiniband = $scope.filters['infiniband'];
             delete $scope.filters['infiniband'];
@@ -159,6 +163,9 @@ angular.module('discoveryApp')
                  delete storage['size'];
             });
             $scope.advancedFiltersOrg = angular.copy($scope.filters);
+
+            console.log("GPU filter after make chunks");
+            console.log($scope.filterGpu);
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -168,6 +175,8 @@ angular.module('discoveryApp')
             ResourceFactory.processNodes($scope.allNodes);
             $scope.filtersOrg = angular.copy(ResourceFactory.filters);
             $scope.filters = angular.copy(ResourceFactory.filters);
+            console.log("Filters from Resource Factory");
+            console.log(filters);
             $scope.appliedFiltersOrg = angular.copy(ResourceFactory.filters);
             $scope.booleanizeFilter($scope.appliedFiltersOrg);
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
