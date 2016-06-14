@@ -156,6 +156,9 @@ angular.module('discoveryApp')
                  delete storage['size'];
             });
             $scope.advancedFiltersOrg = angular.copy($scope.filters);
+
+            console.log("GPU filters");
+            console.log($scope.filterGpu);
         };
 
         ResourceFactory.getResources($scope, function() {
@@ -170,6 +173,10 @@ angular.module('discoveryApp')
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
             makeChunks();
             $scope.advancedFilters = angular.copy($scope.advancedFiltersOrg);
+
+            console.log("Applied filters");
+            console.log($scope.appliedFilters);
+
 
         }, function(errorMsg) {
             console.error(errorMsg);
