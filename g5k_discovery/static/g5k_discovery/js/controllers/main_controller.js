@@ -68,8 +68,8 @@ angular.module('discoveryApp')
         };
         $scope.shouldDisable = function(keyArr, count) {
         // TODO remove me later
-            console.log(keyArr);
-            console.log(count);
+            //console.log(keyArr); ['gpu', 'gpu', 'true']
+            //console.log(count); undefined
             var val = null;
             for (var i = 0; i < keyArr.length; i++) {
                 var k = keyArr[i];
@@ -151,7 +151,7 @@ angular.module('discoveryApp')
             // TODO REMOVE ME
             console.log($scope.filters);
             // TODO ^^^^
-            
+
             delete $scope.filters['gpu'];
             //$scope.filterInfiniband = $scope.filters['infiniband'];
             delete $scope.filters['infiniband'];
