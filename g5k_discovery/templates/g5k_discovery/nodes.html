@@ -21,9 +21,9 @@
                 <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3" ng-if="ky.indexOf('humanized') === -1">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
-                <div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
+                <!--<div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
-                </div>
+                </div>-->
                 <div ng-repeat="(ky, vl) in node.monitoring track by $index" class="col col-sm-3">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
@@ -31,7 +31,7 @@
                     <strong>Version: </strong>[[node.version]]
                 </div>
             </div>
-            <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'gpu', 'monitoring'], key)">
+            <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'monitoring'], key)">
                 <div ng-if="!isObject(value) && !isArray(value) && value !== null && value !== ''" class="row">
                     <div class="col col-sm-3">
                         <strong>[[snakeToReadable(key)]]: </strong>[[value]]
