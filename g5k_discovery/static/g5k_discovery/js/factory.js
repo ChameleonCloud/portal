@@ -437,6 +437,8 @@ angular.module('discoveryApp')
                     }
                 }
             }
+            console.log("After processing nodes");
+            console.log(filters);
         };
 
         factory.processNodes = function(nodes) {

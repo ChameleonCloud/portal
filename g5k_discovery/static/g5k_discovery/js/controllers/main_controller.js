@@ -67,9 +67,6 @@ angular.module('discoveryApp')
             }
         };
         $scope.shouldDisable = function(keyArr, count) {
-        // TODO remove me later
-            //console.log(keyArr); ['gpu', 'gpu', 'true']
-            //console.log(count); undefined
             var val = null;
             for (var i = 0; i < keyArr.length; i++) {
                 var k = keyArr[i];
