@@ -449,8 +449,6 @@ angular.module('discoveryApp')
                 processNode(node, node['uid']);
             });
             factory.pruneFilters();
-            console.log("Resource factory After prune");
-            console.log(factory.filters);
         };
         return factory;
     }])
