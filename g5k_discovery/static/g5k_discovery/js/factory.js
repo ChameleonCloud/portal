@@ -145,7 +145,10 @@ angular.module('discoveryApp')
             if(opt && opt.length > 0){
                str += ':' + opt;
             }
-            var name = factory.nameMap[str];
+            if (strOrg == 'gpu~gpu') {
+              console.log("NEW STR: " + str)
+            }
+            var name = factory.nameMap[strOrg];
             if (strOrg == 'gpu~gpu') {
             console.log(factory.nameMap);
             console.log("NAME: " + name);
