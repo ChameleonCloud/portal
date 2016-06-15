@@ -38,6 +38,7 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
     $scope.scrpt = '';
     $scope.generateScript = function() {
         var appliedFilters = ResourceFactory.prunedAppliedFilters;
+        console.log(appliedFilters);
         generateFilterScript(appliedFilters);
         if ($scope.scrpt) {
             $scope.scrpt = $scope.scrpt.substring(0, $scope.scrpt.length - 2);
@@ -65,7 +66,8 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
                 generateFilterScript(appliedFilters[key], k2);
             } else if (appliedFilters[key] && appliedFilters[key] === true && ['site.', 'cluster.'].indexOf(ky) === -1) {
                 ky = ky.substring(0, ky.length - 1);
-                $scope.scrpt += '\"=\", \"$' + ky + '\", \"' + UtilFactory.humanizedToBytes(key) + '\", ';
+                //$scope.scrpt += '\"=\", \"$' + ky + '\", \"' + UtilFactory.humanizedToBytes(key) + '\", ';
+                $scope.scrpt += '\"=\", \"$' + ky + '\", \"' + key + '\", ';
             }
         }
     };
