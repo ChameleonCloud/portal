@@ -36,7 +36,7 @@ angular.module('discoveryApp')
         factory.tagMap = {
             'architecture~smt_size:48': 'Compute Nodes',
             'storage_devices~16~device:sdq': 'Storage Nodes',
-            'gpu~gpu': 'With GPU',
+            'gpu~gpu:yes': 'With GPU',
             'infiniband': 'With Infiniband Support',
             'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
         };
@@ -138,21 +138,11 @@ angular.module('discoveryApp')
         };
 
         factory.snakeToReadable = function(str, opt) {
-            if (str == 'gpu~gpu') {
-            console.log("STR: " + str);
-            }
             var strOrg = str;
             if(opt && opt.length > 0){
                str += ':' + opt;
             }
-            if (strOrg == 'gpu~gpu') {
-              console.log("NEW STR: " + str)
-            }
-            var name = factory.nameMap[strOrg];
-            if (strOrg == 'gpu~gpu') {
-            console.log(factory.nameMap);
-            console.log("NAME: " + name);
-            }
+            var name = factory.nameMap[str];
             if (name) {
                 return name;
             }
