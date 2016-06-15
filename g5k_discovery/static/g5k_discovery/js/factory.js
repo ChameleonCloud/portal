@@ -147,6 +147,7 @@ angular.module('discoveryApp')
             }
             var name = factory.nameMap[str];
             if (str == 'gpu~gpu') {
+            console.log(nameMap);
             console.log("NAME: " + name);
             }
             if (name) {
