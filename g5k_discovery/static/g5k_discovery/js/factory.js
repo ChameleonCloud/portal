@@ -138,6 +138,7 @@ angular.module('discoveryApp')
         };
 
         factory.snakeToReadable = function(str, opt) {
+            console.log(str);
             var strOrg = str;
             if(opt && opt.length > 0){
                str += ':' + opt;
