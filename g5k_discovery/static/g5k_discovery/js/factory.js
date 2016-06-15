@@ -36,7 +36,7 @@ angular.module('discoveryApp')
         factory.tagMap = {
             'architecture~smt_size:48': 'Compute Nodes',
             'storage_devices~16~device:sdq': 'Storage Nodes',
-            'gpu~gpu': 'With GPU',
+            'gpu': 'With GPU',
             'infiniband': 'With Infiniband Support',
             'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
         };
