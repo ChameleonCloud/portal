@@ -38,7 +38,6 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
     $scope.scrpt = '';
     $scope.generateScript = function() {
         var appliedFilters = ResourceFactory.prunedAppliedFilters;
-        console.log(appliedFilters);
         generateFilterScript(appliedFilters);
         if ($scope.scrpt) {
             $scope.scrpt = $scope.scrpt.substring(0, $scope.scrpt.length - 2);
