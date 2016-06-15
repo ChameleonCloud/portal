@@ -147,7 +147,7 @@ angular.module('discoveryApp')
             }
             var name = factory.nameMap[str];
             if (strOrg == 'gpu~gpu') {
-            console.log(nameMap);
+            console.log(factory.nameMap);
             console.log("NAME: " + name);
             }
             if (name) {
