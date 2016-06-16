@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.13.1
+
+- Enhancements
+    - Added user email to webinar registrant admin view
+    - Added timezone to user webinar view
+
 ### v1.13.0
 
 - Bug Fix

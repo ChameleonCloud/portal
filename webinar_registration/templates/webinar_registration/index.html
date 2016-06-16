@@ -14,7 +14,7 @@
   <li class="list-group-item">
     <h4>{{ w.name }}
     </h4>
-    <p><i>{{ w.start_date }} to {{ w.end_date }}</i></p>
+    <p><i>{{ w.start_date|date:"F j, Y P"  }} to {{ w.end_date|date:"F j, Y P (e)"  }}</i></p>
     <p>{{ w.description|safe }}</p>
     <p>
       <a href="{% url 'webinar_registration:webinar' w.id %}" class="btn btn-default">View</a>
