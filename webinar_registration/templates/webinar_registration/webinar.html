@@ -6,7 +6,8 @@
 
 <h1>{{ webinar.name }} </h1>
 
-<p><i>{{ webinar.start_date }} to {{ webinar.end_date }}</i></p>
+{% load tz %}
+<p><i>{{ webinar.start_date|date:"F j, Y P" }} to {{ webinar.end_date|date:"F j, Y P (e)" }}</i></p>
 
 <p>{{ webinar.description|safe }}</p>
 <p>

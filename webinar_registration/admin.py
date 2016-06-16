@@ -59,7 +59,7 @@ class WebinarAdmin(admin.ModelAdmin):
 @admin.register(models.WebinarRegistrant)
 class WebinarRegistrantAdmin(admin.ModelAdmin):
     form = forms.WebinarRegistrantAdminForm
-    list_display = ('user_nice_name', 'username', 'webinar', 'created')
+    list_display = ('user_nice_name', 'username', 'email', 'webinar', 'created')
     list_filter = ('webinar',)
 
     def user_nice_name(self, obj):
@@ -67,5 +67,8 @@ class WebinarRegistrantAdmin(admin.ModelAdmin):
 
     def username(self, obj):
         return obj.user.get_username()
+
+    def email(self, obj):
+        return obj.user.email
 
     user_nice_name.short_description = 'Name'

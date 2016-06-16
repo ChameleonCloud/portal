@@ -14,15 +14,12 @@ class Webinar(models.Model):
     registration_limit = models.IntegerField(default=0)
 
     def is_registration_open(self):
-        utc=pytz.UTC
         return self.registration_open <= timezone.now() and self.registration_closed >= timezone.now()
 
     def is_registration_closed(self):
-        utc = pytz.UTC
         return self.registration_closed <= timezone.now()
 
     def is_registration_future(self):
-        utc = pytz.UTC
         return self.registration_open > timezone.now()
 
     def __unicode__(self):
