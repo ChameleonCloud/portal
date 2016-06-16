@@ -1,5 +1,20 @@
 ## Changelog
 
+### v1.13.0
+
+- Bug Fix
+    - Changed "Core" to "Threads" in resource discovery
+    - Updated dashboard panel to not show "pending" allocations as a seperate allocation
+    - Ensured only Chameleon allocations are being displayed in Admin view
+    - Fixed issue with resource discovery script generation
+    - Fixed issue with resource discovery GPU filtering
+    
+- Enhancements
+    - Created basic training registration module for Chameleon webinars
+    - Added usage visualization to Chameleon allocations
+    - Added support for heterogeneous hardware in resource discovery
+    
+
 ### v1.12.2
 
 - Bug fix
