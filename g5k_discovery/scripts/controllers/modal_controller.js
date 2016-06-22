@@ -65,7 +65,12 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
                 generateFilterScript(appliedFilters[key], k2);
             } else if (appliedFilters[key] && appliedFilters[key] === true && ['site.', 'cluster.'].indexOf(ky) === -1) {
                 ky = ky.substring(0, ky.length - 1);
-                $scope.scrpt += '\"=\", \"$' + ky + '\", \"' + UtilFactory.humanizedToBytes(key) + '\", ';
+                if (key === 'yes') {
+                    key = 'True';
+                } else if (key === 'no') {
+                    key = 'False';
+                }
+                $scope.scrpt += '\"=\", \"$' + ky + '\", \"' + key + '\", ';
             }
         }
     };
