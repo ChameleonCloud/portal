@@ -1,10 +1,15 @@
 ## Changelog
 
+### v1.13.3
+
+-Fixes:
+    - Fixed bug in generated reservation script for storage hierarchy nodes
+
 ### v1.13.2
 
 - Fixes:
     - Fixed bug in generated reservation script for GPU nodes
-    
+
 - Enhancements:
     - Added "smart filter" button for Storage Hierarchy nodes to resource discovery
 
