@@ -108,8 +108,16 @@
   </li>
   {% endfor %}
 </ul>
+
+<h3>Usage</h3>
+{% for alloc in project.active_allocations %}
+<div id="usageChart" start="{{alloc.start|date:'Y-m-d'}}" end="{{alloc.end|date:'Y-m-d'}}" allocation-id="{{alloc.id}}"></div>
+{% endfor %}
+
 {% endblock %}
 
+
 {% block scripts %}
-  <script src="{% static 'projects/js/allocations.js' %}" type="text/javascript"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="{% static 'projects/js/allocations.js' %}" type="text/javascript"></script>
 {% endblock %}

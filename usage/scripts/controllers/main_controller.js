@@ -328,7 +328,7 @@ angular.module('usageApp')
                 var downtimeData = [];
                 var dailyUsageData = [];
                 var unusedNodesData = [];
-                var totalNodes = 100;
+                var totalNodes = 556;
                 console.log("Draw utilization Chart");
                 angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);

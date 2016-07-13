@@ -280,19 +280,13 @@ def get_daily_usage_json( request):
         # use start, end date and queue here to get jobs
         jobs = tas.get_jobs(resource=resource, start=start_date_str, end=end_date_str, queue=queue)
         for job in jobs:
-            job_start_date_str = job.get('startDate')
             job_end_date_str = job.get('endDate')
-            job_start_date = datetime.strptime(job_start_date_str, '%Y-%m-%dT%H:%M:%S')
-            job_end_date = datetime.strptime(job_end_date_str, '%Y-%m-%dT%H:%M:%S')
-            interval = job_end_date - job_start_date
-            diff_in_hours = round(interval.total_seconds()/3600, 2)
             sus = job.get('suCharge')
-            nodes_used = round((sus * diff_in_hours)/24, 2)
             if job_end_date_str:
                 time_index = job_end_date_str.index('T')
                 job_end_date_str = job_end_date_str[:time_index]
                 if job_end_date_str in temp:
-                    temp[job_end_date_str]['nodes_used'] += math.ceil(nodes_used)
+                    temp[job_end_date_str]['nodes_used'] += math.ceil(sus)
 
         resp['result'] = temp.values()
         resp['status'] = 'success'
@@ -327,19 +321,14 @@ def get_daily_usage_user_breakdown_json( request):
         logger.debug(jobs)
         for job in jobs:
             username = job.get('userLogin')
-            job_start_date = datetime.strptime(job.get('startDate'), '%Y-%m-%dT%H:%M:%S')
-            job_end_date = datetime.strptime(job.get('endDate'), '%Y-%m-%dT%H:%M:%S')
-            interval = job_end_date - job_start_date
-            diff_in_hours = round(interval.total_seconds()/3600, 2)
             sus = job.get('suCharge')
-            nodes_used = round((sus * diff_in_hours)/24, 2)
             if username:
                 if username in temp:
-                    temp[username]['nodes_used'] += math.ceil(nodes_used)
+                    temp[username]['nodes_used'] += math.ceil(sus)
                 else:
                     temp[username] = {}
                     temp[username]['username'] = username
-                    temp[username]['nodes_used'] = math.ceil(nodes_used)
+                    temp[username]['nodes_used'] = math.ceil(sus)
                     temp[username]['queue'] = job.get('queueName').lower()
 
         resp['result'] = temp.values()

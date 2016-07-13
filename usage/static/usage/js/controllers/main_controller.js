@@ -109,7 +109,9 @@ angular.module('usageApp')
                             }
                         }
                     },
-                    colors: ['#7cb5ec', '#778b9e', '#acf19d'],
+                    // unused: gray, downtime: yellow, used: blue
+                    //colors: ['#cccccc','#ffff66','#0000ff'],
+                    colors: ['#b4c0ca', '#acf19d', '#368fe2'],
                     credits: {
                         enabled: false
                     },
@@ -135,7 +137,7 @@ angular.module('usageApp')
                 },
                 series: [],
                 title: {
-                    text: 'Chameleon Utilization'
+                    text: 'Chameleon Utilization (SUs)'
                 },
                 useHighStocks: true
             };
@@ -196,7 +198,7 @@ angular.module('usageApp')
                     },
                 },
                 title: {
-                    text: 'Chameleon Utilization - User Breakdown'
+                    text: 'Chameleon Utilization (SUs) - User Breakdown'
                 },
                 series: []
             };
@@ -394,20 +396,22 @@ angular.module('usageApp')
                 var dailyUsageData = [];
                 var unusedNodesData = [];
                 var userBreakdownData = {};
-                var totalNodes = 556;
+                // nodes are fixed at 556, so this is node hours
+                var totalNodes = 556 * 24;
                 angular.forEach($scope.utilization.usage, function(usage) {
                     dailyUsageData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), usage.nodes_used]);
                      var downtime = _.findWhere($scope.utilization.downtimes, {date: usage.date});
                      var unusedNodes = 0;
-                     if(downtime){console.log('downtime', downtime);
+                     if(downtime){
+                        //console.log('downtime', downtime);
                         downtimeData.push([moment(downtime.date, 'YYYY-MM-DD').valueOf(), downtime.nodes_down]);
                         unusedNodes = totalNodes - usage.nodes_used - downtime.nodes_down;
-                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used + ", Downtimes: " + downtime.nodes_down);
+                        //console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used + ", Downtimes: " + downtime.nodes_down);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      else{
                         unusedNodes = totalNodes - usage.nodes_used;
-                        console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used);
+                        //console.log("Total: " + totalNodes + ", Used: " + usage.nodes_used);
                         unusedNodesData.push([moment(usage.date, 'YYYY-MM-DD').valueOf(), unusedNodes]);
                      }
                      
@@ -422,17 +426,17 @@ angular.module('usageApp')
                   $scope.utilization.usageUserBreakdownChartConfig.options.xAxis.categories.push(user_usage.username);
                 });
 
-                $scope.utilization.usageChartConfig.series.push({
-                    name: 'Used',
-                    data: dailyUsageData,
+                $scope.utilization.usageChartConfig.series.push( {
+                    name: 'Unused',
+                    data: unusedNodesData,
 
-                }, {
+                },{
                     name: 'Downtime',
                     data: downtimeData,
 
-                }, {
-                    name: 'Unused',
-                    data: unusedNodesData,
+                },{
+                    name: 'Used',
+                    data: dailyUsageData,
 
                 });
 

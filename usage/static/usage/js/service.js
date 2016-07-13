@@ -465,8 +465,8 @@ angular
                         factory.usage = _.sortBy(factory.usage, function(obj) {
                             return moment(obj.date, 'YYYY-MM-DD');
                         });
-                        console.log('response', response);
-                        console.log('factory.usage', factory.usage);
+                        //console.log('response', response);
+                        //console.log('factory.usage', factory.usage);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
@@ -488,8 +488,8 @@ angular
                         //factory.user_usage = _.sortBy(factory.user_usage, function(obj) {
                         //    return moment(obj.date, 'YYYY-MM-DD');
                         //});
-                        console.log('response', response);
-                        console.log('factory.user_usage', factory.user_usage);
+                        //console.log('response', response);
+                        //console.log('factory.user_usage', factory.user_usage);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
@@ -510,7 +510,7 @@ angular
                         factory.downtimes = _.sortBy(factory.downtimes, function(obj) {
                             return moment(obj.date, 'YYYY-MM-DD');
                         });
-                        console.log('factory.downtimes', factory.downtimes);
+                        //console.log('factory.downtimes', factory.downtimes);
                     },
                     function() {
                         NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
