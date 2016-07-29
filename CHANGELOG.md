@@ -1,5 +1,13 @@
 ## Changelog
 
+### v1.13.4
+
+- Fixes:
+    - Fixed bug with usage chart where it was showing negative utilization
+
+- Enhancements:
+    - Added utilization chart to user project pages, but currently only for active allocations
+
 ### v1.13.3
 
 -Fixes:
