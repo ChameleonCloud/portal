@@ -11,6 +11,8 @@ urlpatterns = patterns(
     url(r'^template/(?P<resource>.+?)\.html/$', 'app_template', name='app_template'),
 	url(r'^api/appliances/$', 'get_appliances', name='get_appliances'),
 	url(r'^api/appliances/(?P<pk>\d+)/$', 'get_appliance', name='get_appliance'),
+    url(r'^api/appliances/(?P<pk>\d+)/template$', 'get_appliance_template', name='get_appliance_template'),
 	url(r'^api/keywords/$', 'get_keywords', name='get_keywords'),
 	url(r'^api/keywords/(?P<appliance_id>\d+)/$', 'get_keywords', name='get_keywords'),
+
 )

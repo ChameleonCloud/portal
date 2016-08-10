@@ -111,6 +111,12 @@ def get_appliance(request, pk):
         response['result'] = None
     return HttpResponse(json.dumps(response), content_type="application/json")
 
+def get_appliance_template(request, pk):
+    logger.info('Getting and displaying YAML template for appliance')
+
+    appliance = Appliance.objects.filter(pk=pk).get()
+    return HttpResponse(appliance.template, content_type="text/yaml")
+
 
 def _add_keywords(request, cleaned_data, appliance):
     logger.info('Add keyword requested by user %s with data: %s. Appliance %s will be tagged with this keyword.', request.user.username, cleaned_data, appliance)
