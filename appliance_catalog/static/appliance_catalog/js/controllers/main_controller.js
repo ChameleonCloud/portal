@@ -147,7 +147,13 @@ angular.module('appCatalogApp')
         }
         else {
           console.log("Running the else instead! ");
-          $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
+          console.log($scope.filteredAppliances);
+          console.log($scope.filter.searchKey);
+          if (!$scope.filter.searchKey) {
+            $scope.filteredAppliances = $scope.getAppliances();
+          } else {
+            $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
+          }
           $scope.sortAppliances($scope.predicate);
           $scope.setupPagination();
         }

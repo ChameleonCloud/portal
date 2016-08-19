@@ -9,7 +9,10 @@
 {% block scripts %}
     {{ block.super }}
     <script src="{% static 'appliance_catalog/js/vendor.js' %}"></script>
-    <script src="{% static 'appliance_catalog/js/main.js' %}"></script>
+  <!--  <script src="{% static 'appliance_catalog/js/main.js' %}"></script> -->
+    <script src="{% static 'appliance_catalog/js/app.js' %}"></script>
+    <script src="{% static 'appliance_catalog/js/service.js' %}"></script>
+    <script src="{% static 'appliance_catalog/js/controllers/main_controller.js' %}"></script>
     <script src="{% static 'djangular/js/django-angular.js' %}"></script>
 {% endblock %}
 {% block content %}
