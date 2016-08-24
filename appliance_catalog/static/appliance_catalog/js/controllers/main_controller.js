@@ -146,10 +146,12 @@ angular.module('appCatalogApp')
           });
         }
         else {
+          // issue here is the get appliances is still getting filtered appliances...need to figure out how to get *all*
           console.log("Running the else instead! ");
           console.log($scope.filteredAppliances);
           console.log($scope.filter.searchKey);
           if (!$scope.filter.searchKey) {
+            $scope.reset();
             $scope.filteredAppliances = $scope.getAppliances();
           } else {
             $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
