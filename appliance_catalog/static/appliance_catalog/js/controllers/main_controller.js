@@ -130,26 +130,19 @@ angular.module('appCatalogApp')
 
       $scope.updateFiltered = function () {
         if ($scope.filter.selectedKeywords && $scope.filter.selectedKeywords.length > 0) {
-          console.log("Running the select keywords! ");
           ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
             if ($scope.filter.andSearch) {
-              console.log("Running the ANDSEARCH! ");
               $scope.filteredAppliances = UtilFactory.search(ApplianceFactory.appliances, $scope.filter.searchKey);
             }
             else {
-              console.log("Running the NOTANDSEARCH! ");
               $scope.filteredAppliances = _.union(UtilFactory.search($scope.appliances, $scope.filter.searchKey), ApplianceFactory.appliances);
             }
-            console.log("Sort that nonsense and paginate!! ");
             $scope.sortAppliances($scope.predicate);
             $scope.setupPagination();
           });
         }
         else {
           // issue here is the get appliances is still getting filtered appliances...need to figure out how to get *all*
-          console.log("Running the else instead! ");
-          console.log($scope.filteredAppliances);
-          console.log($scope.filter.searchKey);
           if (!$scope.filter.searchKey) {
             $scope.reset();
             $scope.filteredAppliances = $scope.getAppliances();
