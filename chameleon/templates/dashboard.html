@@ -157,6 +157,25 @@
     </div>
   </div>
 {% endif %}
+  {% if webinars %}
+  <div class="col-md-6">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">Upcoming Webinars</h4>
+      </div>
+      <div class="panel-body">
+        {% for w in webinars %}
+          <article>
+            <header><h4><a href="{% url 'webinar_registration:webinar' w.id %}">{{w.name}}</a></h4></header>
+            <p>{{w.description|safe}}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+</div>
+
 </div>
 
 {% endblock %}

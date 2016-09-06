@@ -7,6 +7,8 @@ from djangoRT import rtUtil
 
 import logging
 from pytas.models import Project
+from webinar_registration.models import Webinar
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,9 @@ def dashboard(request):
     # ongoing outages...
     outages = [o for o in Outage.objects.order_by('-end_date', '-start_date') if not o.resolved] # silly ORM quirk
     context['outages'] = outages
+
+    webinars = models.Webinar.objects.filter(end_date__gte=timezone.now())
+    context['webinars'] = webinars
 
     # federation status...
     if 'openid' in request.session:
