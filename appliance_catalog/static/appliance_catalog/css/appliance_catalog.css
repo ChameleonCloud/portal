@@ -1,0 +1,110 @@
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
+}
+
+.appCatalog .add-appliance-link {
+    position: absolute;
+    top: 0;
+    right: 15px;
+}
+
+@media (max-width:767px) {
+    .appCatalog .app-appliance-link{
+        position: static;
+    }
+}
+
+.appCatalog .thumbnail {
+    cursor: pointer;
+}
+
+.appCatalog .appliance-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -10px;
+    margin-right: -10px;
+ }
+
+.appCatalog .appliance-grid-item {
+    display: flex;
+    width: 50%;
+    padding: 10px;
+ }
+
+.appCatalog .appliance-grid-item .thumbnail {
+    flex: 1;
+    margin-bottom: 0;
+ }
+
+@media (min-width: 768px) {
+    .appCatalog .appliance-grid-item {
+        width: 33.33333%;
+    }
+}
+
+@media (min-width: 992px) {
+    .appCatalog .appliance-grid-item {
+        width: 25%;
+    }
+}
+
+.appCatalog .app-icon {
+    height: 80px;
+}
+
+.appCatalog .app-icon-table {
+    max-height: 80px;
+}
+
+.appCatalog .dropdown-multiselect > .dropdown-toggle {
+    white-space: normal;
+}
+
+.appCatalog .btn {
+    margin-bottom: 5px;
+}
+
+.appCatalog .name-column {
+    text-align: center;
+    min-width: 125px;
+    padding: 15px;
+}
+
+.appCatalog .pseudo-link {
+    cursor: hand;
+    cursor: pointer;
+}
+
+.appCatalog .pagination-summary {
+    float: right;
+    margin-top: 40px;
+    margin-right: 16px;
+}
+
+.appCatalog .pagination-header {
+    clear: both;
+}
+
+.appCatalog .ats-switch {
+    margin-top: 10px;
+}
+
+.appCatalog .app-title {
+    margin-left: 10px;
+    vertical-align: bottom;
+}
+
+.appCatalog hr {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.appCatalog .table {
+    width: 100%;
+    background-color: white;
+}
+
+.appCatalog .dropdown-multiselect {
+    margin-top: 8px;
+    margin-bottom: 3px;
+}
