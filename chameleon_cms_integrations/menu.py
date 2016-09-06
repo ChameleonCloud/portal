@@ -37,9 +37,9 @@ class UserMenu(CMSAttachMenu):
         n = NavigationNode(_('Experiment'), "/docs/getting-started/experiment-quickstart/", menu_id, root_id)
         nodes.append(n)
 
-        menu_id += 1
-        n = NavigationNode(_('Early User Program'), "/user/early-user-program/", menu_id, root_id)
-        nodes.append(n)
+        #menu_id += 1
+        #n = NavigationNode(_('Early User Program'), "/user/early-user-program/", menu_id, root_id)
+        #nodes.append(n)
 
         menu_id += 1
         n = NavigationNode(_('Help'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
