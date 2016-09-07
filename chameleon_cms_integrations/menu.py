@@ -79,6 +79,10 @@ class UserMenu(CMSAttachMenu):
         n = NavigationNode(_('Profile'), "/user/profile/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
+        menu_id += 1
+        n = NavigationNode(_('Webinars'), "/user/webinar/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        nodes.append(n)
+
         return nodes
 
 menu_pool.register_menu(UserMenu)
