@@ -108,3 +108,14 @@
     margin-top: 8px;
     margin-bottom: 3px;
 }
+
+.corner-ribbon.complex-logo {
+    background: #f0f0f0 no-repeat scroll center center;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    font-size: 0;
+    height: 32px;
+    right: -32px;
+    top: 0;
+    width: 96px;
+}
