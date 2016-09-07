@@ -30,7 +30,7 @@ def dashboard(request):
     outages = [o for o in Outage.objects.order_by('-end_date', '-start_date') if not o.resolved] # silly ORM quirk
     context['outages'] = outages
 
-    webinars = models.Webinar.objects.filter(end_date__gte=timezone.now())
+    webinars = Webinar.objects.filter(end_date__gte=timezone.now())
     context['webinars'] = webinars
 
     # federation status...
