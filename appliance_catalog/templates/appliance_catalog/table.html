@@ -49,6 +49,21 @@
                    ng-href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/[[appliance.kvm_tacc_appliance_id]]/">
                     KVM@TACC</a>
             </div>
+            <div ng-if="appliance.template">
+                <a class="btn btn-sm btn-block btn-primary"
+                   ng-href="/appliances/api/appliances/[[appliance.id]]/template"><i class="fa fa-download"></i> Get Template</a>
+            </div>
+            <div ng-if="appliance.template">
+           <!-- <a target="_blank" class="btn btn-sm btn-block btn-primary"
+               ng-href="https://chi.uc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
+                at CHI@UC</a>&nbsp;
+            &nbsp;&nbsp;
+            <a target="_blank" class="btn btn-sm btn-block btn-primary"
+               ng-href="https://openstack.tacc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
+                at CHI@TACC</a>-->
+            <a target="_blank" class="btn btn-sm btn-block btn-primary"
+               ng-href="https://qa.tacc.chameleoncloud.org/dashboard/project/stacks/">QA</a>
+            </div>
         </td>
     </tr>
 </table>

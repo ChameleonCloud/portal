@@ -4,13 +4,15 @@
 {% block styles %}
     {{ block.super }}
     <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/appliance_catalog.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/vendor/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css' %}">
 {% endblock %}
 {% block scripts %}
     {{ block.super }}
-    <script src="{% static 'appliance_catalog/js/vendor.js' %}"></script>
-    <script src="{% static 'appliance_catalog/js/main.js' %}"></script>
-    <script src="{% static 'djangular/js/django-angular.js' %}"></script>
+    {% include "appliance_catalog/includes.html" %}
+    <script src="{% static 'appliance_catalog/js/app.js' %}"></script>
+    <script src="{% static 'appliance_catalog/js/service.js' %}"></script>
+    <script src="{% static 'appliance_catalog/js/controllers/main_controller.js' %}"></script>
 {% endblock %}
 {% block content %}
     <div id="content-main" class="appCatalog" ng-app="appCatalogApp" ng-cloak>

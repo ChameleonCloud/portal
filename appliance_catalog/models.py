@@ -24,6 +24,7 @@ class Appliance(models.Model):
                                            unique=True)
     kvm_tacc_appliance_id = models.CharField(max_length=100, null=True, blank=True,
                                              unique=True)
+    template = models.TextField(null=True, blank=True)
     author_name = models.CharField(max_length=1000)
     author_url = models.CharField(max_length=500)
     support_contact_name = models.CharField(max_length=100)

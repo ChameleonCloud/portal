@@ -24,7 +24,7 @@ class ApplianceForm(ModelForm):
         model = Appliance
         fields = ['name', 'short_description', 'description', 'documentation',
                   'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id',
-                  'kvm_tacc_appliance_id', 'author_name', 'author_url',
+                  'kvm_tacc_appliance_id', 'template', 'author_name', 'author_url',
                   'support_contact_name', 'support_contact_url', 'keywords',
                   'new_keywords', 'version', 'project_supported']
         labels = {
@@ -38,6 +38,7 @@ class ApplianceForm(ModelForm):
             'kvm_tacc_appliance_id':
                 'Appliance ID for '
                 '<a href="https://openstack.tacc.chameleoncloud.org">KVM@TACC</a>',
+            'template': 'Template (Complex Appliances Only)',
             'author_url': 'Author: Contact URL or Email',
             'support_contact_name': 'Support: Contact Name',
             'support_contact_url': 'Support: Contact URL or Email',
@@ -97,6 +98,7 @@ class ApplianceForm(ModelForm):
         chi_tacc_appliance_id = cleaned_data.get('chi_tacc_appliance_id')
         chi_uc_appliance_id = cleaned_data.get('chi_uc_appliance_id')
         kvm_tacc_appliance_id = cleaned_data.get('kvm_tacc_appliance_id')
+        template = cleaned_data.get('template')
         self.validate_picture(cleaned_data)
 
         if not self._is_valid_email_or_url(author_url):
@@ -105,8 +107,10 @@ class ApplianceForm(ModelForm):
         if not self._is_valid_email_or_url(support_contact_url):
             msg = 'Please enter a valid email or url.'
             self.add_error('support_contact_url', msg)
-        if not (chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id):
-            msg = 'At least one form of appliance id is required.'
-            self.add_error('chi_tacc_appliance_id', '')
-            self.add_error('chi_uc_appliance_id', '')
-            self.add_error('kvm_tacc_appliance_id', msg)
+        if not template:
+            if not (chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id):
+                msg = 'At least one form of appliance id is required.'
+                self.add_error('chi_tacc_appliance_id', '')
+                self.add_error('chi_uc_appliance_id', '')
+                self.add_error('kvm_tacc_appliance_id', msg)
+
