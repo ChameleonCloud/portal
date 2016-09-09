@@ -34,8 +34,8 @@ def get_accept_project_terms_help_text():
     project_terms_url = reverse_lazy('terms:tc_view_specific_version_page',
                                     args=['project-terms', '1.00'])
     text = 'Please review the Chameleon <a href="%s">User Terms of Use</a> and ' \
-            '<a href="%s">Project Lead Terms of Use</a>.' % \
-            (user_terms_url, project_terms_url)
+           '<a href="%s">Project Lead Terms of Use</a>.' % \
+           (user_terms_url, project_terms_url)
     return text
 
 get_accept_project_terms_help_text_lazy = lazy(get_accept_project_terms_help_text, str)
@@ -62,11 +62,11 @@ class ProjectCreateForm( forms.Form ):
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Resource Justification (~500 words max)',
+        label='Resource Justification',
         help_text='Provide supplemental detail on how you intend to use Chameleon to '
                   'accomplish your research goals. This text will not be publicly '
                   'viewable and may include details that you do not wish to publish.',
-        required=False,
+        required=True,
         widget=forms.Textarea(attrs={'placeholder': 'Resource Justification'}),
     )
     funding_source = forms.CharField(
@@ -108,11 +108,13 @@ class AllocationCreateForm(forms.Form):
         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
     )
     supplemental_details = forms.CharField(
-        label='Resource Justification (~500 words max)',
-        help_text='Provide supplemental detail on how you intend to use Chameleon to '
-                  'accomplish your research goals. This text will not be publicly '
-                  'viewable and may include details that you do not wish to publish.',
-        required=False,
+        label='Resource Justification',
+        help_text='Please provide an update on the use of your current allocation - any '
+                  'success stories, publications, presentations, or just a general '
+                  'update on the progress of your research on Chameleon. This is helpful '
+                  'for us as we communicate with NSF regarding the value Chameleon is '
+                  'bringing to the research community.',
+        required=True,
         widget=forms.Textarea(),
     )
     funding_source = forms.CharField(

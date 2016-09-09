@@ -1,0 +1,945 @@
+[
+  {
+    "id": 1,
+    "name": "Non Chosen",
+    "children": []
+  },
+  {
+    "id": 2,
+    "name": "MATHEMATICAL AND PHYSICAL SCIENCES (MPS)",
+    "children": [
+      {
+        "id": 9,
+        "name": "Mathematical Sciences (DMS)",
+        "children": [
+          {
+            "id": 48,
+            "name": "Classical Analysis",
+            "children": []
+          },
+          {
+            "id": 49,
+            "name": "Computational Mathematics",
+            "children": []
+          },
+          {
+            "id": 50,
+            "name": "Applied Mathematics",
+            "children": []
+          },
+          {
+            "id": 51,
+            "name": "Algebra and Number Theory",
+            "children": []
+          },
+          {
+            "id": 52,
+            "name": "Statistics and Probability",
+            "children": []
+          },
+          {
+            "id": 53,
+            "name": "Geometric Analysis",
+            "children": []
+          },
+          {
+            "id": 54,
+            "name": "Modern Analysis",
+            "children": []
+          },
+          {
+            "id": 55,
+            "name": "Topology and Foundations",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "name": "Astronomical Sciences (AST)",
+        "children": [
+          {
+            "id": 56,
+            "name": "Extragalactic Astronomy and Cosmology",
+            "children": []
+          },
+          {
+            "id": 57,
+            "name": "Planetary Astronomy",
+            "children": []
+          },
+          {
+            "id": 58,
+            "name": "Stellar Astronomy and Astrophysics",
+            "children": []
+          },
+          {
+            "id": 59,
+            "name": "Galactic Astronomy",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "name": "Physics (PHY)",
+        "children": [
+          {
+            "id": 60,
+            "name": "Gravitational Physics",
+            "children": []
+          },
+          {
+            "id": 61,
+            "name": "Theoretical Physics",
+            "children": []
+          },
+          {
+            "id": 62,
+            "name": "Atomic, Molecular, and Optical Physics",
+            "children": []
+          },
+          {
+            "id": 63,
+            "name": "Nuclear Physics",
+            "children": []
+          },
+          {
+            "id": 64,
+            "name": "Elementary Particle Physics",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "name": "Chemistry (CHE)",
+        "children": [
+          {
+            "id": 65,
+            "name": "Analytical and Surface Chemistry",
+            "children": []
+          },
+          {
+            "id": 66,
+            "name": "Inorganic, Bioinorganic and Organometallic Chemistry",
+            "children": []
+          },
+          {
+            "id": 67,
+            "name": "Organic and Macromolecular Chemistry",
+            "children": []
+          },
+          {
+            "id": 68,
+            "name": "Physical Chemistry",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "name": "Materials Research (DMR)",
+        "children": [
+          {
+            "id": 69,
+            "name": "Polymers",
+            "children": []
+          },
+          {
+            "id": 70,
+            "name": "Metals, Ceramics, and Electronic Materials",
+            "children": []
+          },
+          {
+            "id": 71,
+            "name": "Metallurgy",
+            "children": []
+          },
+          {
+            "id": 72,
+            "name": "Solid State Chemistry and Polymers",
+            "children": []
+          },
+          {
+            "id": 73,
+            "name": "Low Temperature Physics",
+            "children": []
+          },
+          {
+            "id": 74,
+            "name": "Solid State Physics",
+            "children": []
+          },
+          {
+            "id": 75,
+            "name": "Condensed Matter Physics",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "COMPUTER AND INFORMATION SCIENCE AND ENGINEERING (CISE)",
+    "children": [
+      {
+        "id": 14,
+        "name": "Cross-Disciplinary Activities (CDA)",
+        "children": [
+          {
+            "id": 95,
+            "name": "Special Projects",
+            "children": []
+          },
+          {
+            "id": 96,
+            "name": "Research Instrumentation",
+            "children": []
+          },
+          {
+            "id": 97,
+            "name": "Institutional Infrastructure",
+            "children": []
+          },
+          {
+            "id": 98,
+            "name": "Educational Infrastructure",
+            "children": []
+          },
+          {
+            "id": 99,
+            "name": "Cross-Directorate Activities",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "name": "Networking and Communications Research (NCR)",
+        "children": []
+      },
+      {
+        "id": 16,
+        "name": "Advanced Scientific Computing (ASC)",
+        "children": [
+          {
+            "id": 90,
+            "name": "Distributed and Parallel Processing, Vectorization",
+            "children": []
+          },
+          {
+            "id": 91,
+            "name": "Visualization, Graphics and Image Processing",
+            "children": []
+          },
+          {
+            "id": 92,
+            "name": "Software Development",
+            "children": []
+          },
+          {
+            "id": 93,
+            "name": "Performance Evaluation and Benchmarking",
+            "children": []
+          },
+          {
+            "id": 94,
+            "name": "Algorithm Development",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "name": "Information, Robotics and Intelligent Systems (IRI)",
+        "children": [
+          {
+            "id": 81,
+            "name": "Knowledge Models and Cognitive Systems",
+            "children": []
+          },
+          {
+            "id": 82,
+            "name": "Robotics and Machine Intelligence",
+            "children": []
+          },
+          {
+            "id": 83,
+            "name": "Interactive Systems",
+            "children": []
+          },
+          {
+            "id": 84,
+            "name": "Information Technology and Organizations",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "name": "Computer and Computation Research (CCR)",
+        "children": [
+          {
+            "id": 76,
+            "name": "Software Engineering",
+            "children": []
+          },
+          {
+            "id": 77,
+            "name": "Computer Systems Architecture",
+            "children": []
+          },
+          {
+            "id": 78,
+            "name": "Software Systems",
+            "children": []
+          },
+          {
+            "id": 79,
+            "name": "Computer and Computation Theory",
+            "children": []
+          },
+          {
+            "id": 80,
+            "name": "Numeric and Symbolic Computation",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "name": "Microelectronic Information Processing Systems (MIP)",
+        "children": [
+          {
+            "id": 85,
+            "name": "Microelectronic Systems Architecture",
+            "children": []
+          },
+          {
+            "id": 86,
+            "name": "Circuits and Signal Processing",
+            "children": []
+          },
+          {
+            "id": 87,
+            "name": "Experimental Systems",
+            "children": []
+          },
+          {
+            "id": 88,
+            "name": "Systems Prototyping and Fabrication",
+            "children": []
+          },
+          {
+            "id": 89,
+            "name": "Design, Tools, and Test",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "BIOLOGICAL, BEHAVIORAL, AND SOCIAL SCIENCES (BBS)",
+    "children": [
+      {
+        "id": 20,
+        "name": "Integrative Biology and Neuroscience (IBN)",
+        "children": [
+          {
+            "id": 114,
+            "name": "Developmental Biology",
+            "children": []
+          },
+          {
+            "id": 115,
+            "name": "Neuroscience Program",
+            "children": []
+          },
+          {
+            "id": 116,
+            "name": "Physiology and Behavior",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "name": "Cellular Biosciences (DCB - split into MCB and IBN)",
+        "children": [
+          {
+            "id": 100,
+            "name": "Regulatory Biology",
+            "children": []
+          },
+          {
+            "id": 101,
+            "name": "Developmental Biology",
+            "children": []
+          },
+          {
+            "id": 102,
+            "name": "Cell Biology",
+            "children": []
+          },
+          {
+            "id": 103,
+            "name": "Metabolic Biology",
+            "children": []
+          },
+          {
+            "id": 104,
+            "name": "Cellular Physiology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "name": "BIOLOGICAL SCIENCES (BIO)",
+        "children": []
+      },
+      {
+        "id": 23,
+        "name": "Molecular and Cellular Biosciences (MCB)",
+        "children": [
+          {
+            "id": 105,
+            "name": "Biophysics",
+            "children": []
+          },
+          {
+            "id": 106,
+            "name": "Genetics and Nucleic Acids",
+            "children": []
+          },
+          {
+            "id": 107,
+            "name": "Biochemistry and Molecular Structure and Function",
+            "children": []
+          },
+          {
+            "id": 108,
+            "name": "Cell Biology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "name": "Environmental Biology (DEB)",
+        "children": [
+          {
+            "id": 109,
+            "name": "Population Biology and Physiological Ecology",
+            "children": []
+          },
+          {
+            "id": 110,
+            "name": "Systematic and Population Biology",
+            "children": []
+          },
+          {
+            "id": 111,
+            "name": "Biological Research Resources",
+            "children": []
+          },
+          {
+            "id": 112,
+            "name": "Ecological Studies",
+            "children": []
+          },
+          {
+            "id": 113,
+            "name": "Ecosystem Studies",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "name": "Biological Instrumentation and Resources (BIR)",
+        "children": []
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "SOCIAL, BEHAVIORIAL, AND ECONOMIC SCIENCES (SBE)",
+    "children": [
+      {
+        "id": 26,
+        "name": "International Programs (INT)",
+        "children": []
+      },
+      {
+        "id": 27,
+        "name": "Science Resources Studies (SRS)",
+        "children": []
+      },
+      {
+        "id": 28,
+        "name": "Behavioral and Cognitive Sciences (DBS)",
+        "children": [
+          {
+            "id": 117,
+            "name": "Sensory Physiology and Perception",
+            "children": []
+          },
+          {
+            "id": 118,
+            "name": "Psychobiology",
+            "children": []
+          },
+          {
+            "id": 119,
+            "name": "Molecular and Cellular Neurobiology",
+            "children": []
+          },
+          {
+            "id": 120,
+            "name": "Integrative Neural Systems",
+            "children": []
+          },
+          {
+            "id": 121,
+            "name": "Developmental Neuroscience",
+            "children": []
+          },
+          {
+            "id": 122,
+            "name": "Social and Developmental Psychology",
+            "children": []
+          },
+          {
+            "id": 123,
+            "name": "Memory and Cognitive Processes",
+            "children": []
+          },
+          {
+            "id": 124,
+            "name": "Language, Cognition and Social Behavior",
+            "children": []
+          },
+          {
+            "id": 125,
+            "name": "Anthropology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "name": "Social and Economic Science (SES)",
+        "children": [
+          {
+            "id": 126,
+            "name": "Decision, Risk and Management Science",
+            "children": []
+          },
+          {
+            "id": 127,
+            "name": "Law and Social Sciences",
+            "children": []
+          },
+          {
+            "id": 128,
+            "name": "Political Science",
+            "children": []
+          },
+          {
+            "id": 129,
+            "name": "Sociology",
+            "children": []
+          },
+          {
+            "id": 130,
+            "name": "Geography and Regional Science",
+            "children": []
+          },
+          {
+            "id": 131,
+            "name": "Economics",
+            "children": []
+          },
+          {
+            "id": 132,
+            "name": "Methodology, Measurement and Statistics",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "GEOSCIENCES (GEO)",
+    "children": [
+      {
+        "id": 30,
+        "name": "Atmospheric Sciences (ATM)",
+        "children": [
+          {
+            "id": 133,
+            "name": "Solar Terrestrial Research",
+            "children": []
+          },
+          {
+            "id": 134,
+            "name": "Magnetospheric Physics",
+            "children": []
+          },
+          {
+            "id": 135,
+            "name": "Aeronomy",
+            "children": []
+          },
+          {
+            "id": 136,
+            "name": "Global Atmospheric Research",
+            "children": []
+          },
+          {
+            "id": 137,
+            "name": "Climate Dynamics",
+            "children": []
+          },
+          {
+            "id": 138,
+            "name": "Atmospheric Chemistry",
+            "children": []
+          },
+          {
+            "id": 139,
+            "name": "Meteorology",
+            "children": []
+          },
+          {
+            "id": 140,
+            "name": "Experimental Meteorology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "name": "Earth Sciences (EAR)",
+        "children": [
+          {
+            "id": 141,
+            "name": "Petrogenesis and Mineral Resources",
+            "children": []
+          },
+          {
+            "id": 142,
+            "name": "Volcanology and Mantle Geochemistry",
+            "children": []
+          },
+          {
+            "id": 143,
+            "name": "Experimental and Theoretical Geochemistry",
+            "children": []
+          },
+          {
+            "id": 144,
+            "name": "Geophysics",
+            "children": []
+          },
+          {
+            "id": 145,
+            "name": "Tectonics",
+            "children": []
+          },
+          {
+            "id": 146,
+            "name": "Surficial Processes",
+            "children": []
+          },
+          {
+            "id": 147,
+            "name": "Geology and Paleontology",
+            "children": []
+          },
+          {
+            "id": 148,
+            "name": "Seismology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "name": "Ocean Sciences (OCE)",
+        "children": [
+          {
+            "id": 149,
+            "name": "Physical Oceanography",
+            "children": []
+          },
+          {
+            "id": 150,
+            "name": "Marine Geology and Geophysics",
+            "children": []
+          },
+          {
+            "id": 151,
+            "name": "Biological Oceanography",
+            "children": []
+          },
+          {
+            "id": 152,
+            "name": "Chemical Oceanography",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "name": "Polar Programs (DPP)",
+        "children": [
+          {
+            "id": 153,
+            "name": "Polar Ocean and Climate Systems",
+            "children": []
+          },
+          {
+            "id": 154,
+            "name": "Polar Glaciology",
+            "children": []
+          },
+          {
+            "id": 155,
+            "name": "Polar Aeronomy and Astrophysics",
+            "children": []
+          },
+          {
+            "id": 156,
+            "name": "Polar Biology and Medicine",
+            "children": []
+          },
+          {
+            "id": 157,
+            "name": "Polar Earth Sciences",
+            "children": []
+          },
+          {
+            "id": 158,
+            "name": "Polar Meteorology",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "ENGINEERING (ENG)",
+    "children": [
+      {
+        "id": 34,
+        "name": "Design and Manufacturing Systems (DDM)",
+        "children": [
+          {
+            "id": 173,
+            "name": "Operations Research and Production Systems",
+            "children": []
+          },
+          {
+            "id": 174,
+            "name": "Design and Computer-Integrated Engineering",
+            "children": []
+          },
+          {
+            "id": 175,
+            "name": "Manufacturing Processes and Equipment",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "name": "Industrial Science and Technological Innovation (ISI)",
+        "children": []
+      },
+      {
+        "id": 36,
+        "name": "Engineering Infrastructure Development (EID)",
+        "children": []
+      },
+      {
+        "id": 37,
+        "name": "Engineering Centers (ECD)",
+        "children": []
+      },
+      {
+        "id": 38,
+        "name": "Mechanical and Structural Systems (MSS)",
+        "children": [
+          {
+            "id": 163,
+            "name": "Dynamic Systems and Control",
+            "children": []
+          },
+          {
+            "id": 164,
+            "name": "Systems, Geomechanics and Building Systems",
+            "children": []
+          },
+          {
+            "id": 165,
+            "name": "Mechanics and Materials",
+            "children": []
+          },
+          {
+            "id": 166,
+            "name": "Solid and Geomechanics",
+            "children": []
+          },
+          {
+            "id": 167,
+            "name": "Surface Engineering and Tribology",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 39,
+        "name": "Electrical and Communications Systems (ECS)",
+        "children": [
+          {
+            "id": 168,
+            "name": "Emerging Technologies Initiation",
+            "children": []
+          },
+          {
+            "id": 169,
+            "name": "Engineering Systems",
+            "children": []
+          },
+          {
+            "id": 170,
+            "name": "Communications and Computational Systems",
+            "children": []
+          },
+          {
+            "id": 171,
+            "name": "Quantum Electronics, Waves, and Beams",
+            "children": []
+          },
+          {
+            "id": 172,
+            "name": "Solid State and Microstructures",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 40,
+        "name": "Chemical and Thermal Systems (CTS)",
+        "children": [
+          {
+            "id": 159,
+            "name": "Thermal Systems",
+            "children": []
+          },
+          {
+            "id": 160,
+            "name": "Fluid, Particulate, and Hyrdaulic Systems",
+            "children": []
+          },
+          {
+            "id": 161,
+            "name": "Chemical Reaction Processes",
+            "children": []
+          },
+          {
+            "id": 162,
+            "name": "Interfacial, Transport, and Separation Processes",
+            "children": []
+          }
+        ]
+      },
+      {
+        "id": 41,
+        "name": "Biological and Critical Systems (BCS)",
+        "children": [
+          {
+            "id": 176,
+            "name": "Earthquake Hazard Migration",
+            "children": []
+          },
+          {
+            "id": 177,
+            "name": "Bioengineering and Aiding the Disabled",
+            "children": []
+          },
+          {
+            "id": 178,
+            "name": "Environmental and Ocean Systems",
+            "children": []
+          },
+          {
+            "id": 179,
+            "name": "Natural and Man-Made Hazard Migration",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "OTHER (TRA)",
+    "children": [
+      {
+        "id": 42,
+        "name": "Center Systems Staff (STA)",
+        "children": []
+      },
+      {
+        "id": 43,
+        "name": "Industrial Partners Research (IND)",
+        "children": []
+      },
+      {
+        "id": 44,
+        "name": "Training (TRA)",
+        "children": []
+      },
+      {
+        "id": 45,
+        "name": "Science and Engineering Education (SEE)",
+        "children": []
+      },
+      {
+        "id": 46,
+        "name": "Small Business Innovation Research (SBR)",
+        "children": []
+      },
+      {
+        "id": 47,
+        "name": "Block Grants",
+        "children": []
+      }
+    ]
+  },
+  {
+    "id": 180,
+    "name": "Humanities/Arts",
+    "children": [
+      {
+        "id": 181,
+        "name": "Humanities",
+        "children": []
+      },
+      {
+        "id": 182,
+        "name": "Arts",
+        "children": []
+      }
+    ]
+  }
+]

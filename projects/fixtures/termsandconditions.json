@@ -1,0 +1,26 @@
+[
+  {
+    "fields": {
+      "version_number": "1.00",
+      "name": "Chameleon User Terms and Conditions",
+      "text": "<ul>\r\n<li>I will only use Chameleon resources to perform research work consistent with the goals of my project. I will not use Chameleon resources for activities related to financial gain, any unlawful purpose, or in a way that makes the work of other users difficult.</li>\r\n<li>I also will acknowledge Chameleon in all publication presenting results or content obtained using Chameleon. The official acknowledgement is as follows: \u201cResults presented in this paper were obtained using the Chameleon testbed supported by the National Science Foundation\u201d.</li>\r\n<li>I understand that non-compliance with the terms above will result in suspension of my account.</li>\r\n</ul>\r\n",
+      "date_active": "2014-12-01T00:00:00Z",
+      "date_created": "2014-12-03T17:43:14Z",
+      "slug": "user-terms"
+    },
+    "model": "termsandconditions.termsandconditions",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "version_number": "1.00",
+      "name": "Project Lead Terms and Conditions",
+      "text": "<ul>\r\n    <li>\r\n        As a project lead I take responsibility for ensuring that users conducting\r\n        work on the Chameleon testbed as part of my project observe the user terms\r\n        and conditions.\r\n    </li>\r\n    <li>\r\n        I further agree to provide the Chameleon team with reports on the progress\r\n        of my project as requested (at most bi-annually).\r\n    </li>\r\n    <li>\r\n        I understand that non-compliance with the terms above will result in\r\n        suspension of my project and suspension of access to all the users holding\r\n        allocations under this project.\r\n    </li>\r\n</ul>",
+      "date_active": null,
+      "date_created": "2014-12-03T17:45:00Z",
+      "slug": "project-terms"
+    },
+    "model": "termsandconditions.termsandconditions",
+    "pk": 5
+  }
+]
