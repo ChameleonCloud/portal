@@ -128,30 +128,39 @@ angular.module('appCatalogApp')
         buttonDefaultText: 'Search by keywords'
       };
 
+      /**
+       * Updated the search filters applied to the list of applications.
+       */
       $scope.updateFiltered = function () {
+        /* reset filtered list to entire list */
+        $scope.filteredAppliances = ApplianceFactory.appliances;
+
+        /* first, filter the list by keyword matches */
         if ($scope.filter.selectedKeywords && $scope.filter.selectedKeywords.length > 0) {
-          ApplianceFactory.getAppliances($scope.filter.selectedKeywords).then(function () {
+
+          $scope.filteredAppliances = _.filter($scope.filteredAppliances, function(a) {
+
             if ($scope.filter.andSearch) {
-              $scope.filteredAppliances = UtilFactory.search(ApplianceFactory.appliances, $scope.filter.searchKey);
+              /* for AND searches, applications must match EVERY selected keyword */
+              return _.every($scope.filter.selectedKeywords, function(keyword) {
+                return _.contains(a.keywords, keyword.id);
+              });
+            } else {
+              /* for OR searches, applications can match ANY selected keyword */
+              return _.some($scope.filter.selectedKeywords, function(keyword) {
+                return _.contains(a.keywords, keyword.id);
+              });
             }
-            else {
-              $scope.filteredAppliances = _.union(UtilFactory.search($scope.appliances, $scope.filter.searchKey), ApplianceFactory.appliances);
-            }
-            $scope.sortAppliances($scope.predicate);
-            $scope.setupPagination();
           });
         }
-        else {
-          // issue here is the get appliances is still getting filtered appliances...need to figure out how to get *all*
-          if (!$scope.filter.searchKey) {
-            $scope.reset();
-            $scope.filteredAppliances = $scope.getAppliances();
-          } else {
-            $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
-          }
-          $scope.sortAppliances($scope.predicate);
-          $scope.setupPagination();
+
+        /* second, filter the list according to simple phrase matching on name, description, author */
+        if ($scope.filter.searchKey) {
+          $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
         }
+
+        $scope.sortAppliances($scope.predicate);
+        $scope.setupPagination();
       };
 
       // list view ordering
