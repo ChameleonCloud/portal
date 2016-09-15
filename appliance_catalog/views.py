@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
@@ -13,7 +13,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
-from .serializers import MyJSONSerialiser
+from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
 import markdown_deux
 import logging
 import json
@@ -45,15 +45,13 @@ def get_appliances(request):
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
     logger.debug('Total matching appliances found: %d.', appliances.count())
+    serializer = ApplianceJSONSerializer()
     response = {
         'status': 'success',
-        'message': ''
+        'message': '',
+        'result': json.loads(serializer.serialize(appliances))
     }
-    serializer = MyJSONSerialiser()
-    response['result'] = json.loads(serializer.serialize(appliances))
-
-    logger.info('Returning json response.')
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return JsonResponse(response)
 
 
 def app_detail(request, pk):
@@ -98,18 +96,18 @@ def get_appliance(request, pk):
         'status': 'success'
     }
     try:
-        serializer = MyJSONSerialiser()
+        serializer = ApplianceJSONSerializer()
         response['message'] = ''
         app = json.loads(serializer.serialize(Appliance.objects.filter(pk=pk)))
         logger.debug('Appliance found. Fetching keywords...')
         keywords = Appliance.objects.get(pk=pk).keywords.all()
         logger.debug('This appliance has %d keyword(s).', keywords.count())
-        app[0]['keywords'] = json.loads(serializer.serialize(keywords))
         response['result'] = app
     except Appliance.DoesNotExist:
         response['message'] = 'Does not exist.'
         response['result'] = None
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return JsonResponse(response)
+
 
 def get_appliance_template(request, pk):
     logger.info('Getting and displaying YAML template for appliance')
@@ -209,10 +207,10 @@ def get_keywords(request, appliance_id=None):
         keywords = appliance.keywords.all()
     else:
         keywords = Keyword.objects.all()
-    serializer = MyJSONSerialiser()
     logger.debug('Total keywords found: %d', keywords.count())
+    serializer = KeywordJSONSerializer()
     response['result'] = json.loads(serializer.serialize(keywords))
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return JsonResponse(response)
 
 
 def app_template(request, resource):
