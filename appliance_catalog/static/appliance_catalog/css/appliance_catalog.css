@@ -107,8 +107,12 @@
 .appCatalog .dropdown-multiselect {
     margin-top: 8px;
     margin-bottom: 3px;
+
 }
 
+div.appliance-content {
+    min-height: 400px;
+}
 .corner-ribbon.complex-logo {
     background: #f0f0f0;
     color: black;
