@@ -1,5 +1,16 @@
 ## Changelog
 
+### v1.14.0
+
+- Fixes:
+    - Improved appliance catalog search and fixed a few visual issues
+    - Made project justification required
+    - Removed "Early User Program" link
+
+- Enhancements:
+    - Integrated "complex appliances" into the appliance catalog
+    - Added webinar link and current webinar section to dashboard
+
 ### v1.13.4
 
 - Fixes:
