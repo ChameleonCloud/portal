@@ -161,13 +161,12 @@ def app_create(request):
 
             message = "A new appliance was submitted by " + request.user.username + "."
             logger.debug(message);
-            # @TODO remove the comments when you test this out :)
-            #send_mail("New appliance has been submitted",
-            #          message,
-            #          'from@chameleon.org',
-            #          #'staff@chameleon.org',
-            #          ('cmarnold@tacc.utexas.edu',),
-            #          fail_silently=False,)
+            send_mail("New appliance has been submitted",
+                      message,
+                      'from@chameleon.org',
+                      #'staff@chameleon.org',
+                      ('cmarnold@tacc.utexas.edu','priteau@uchicago.edu',),
+                      fail_silently=False,)
 
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
