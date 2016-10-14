@@ -63,6 +63,7 @@ class ProjectCreateForm( forms.Form ):
     )
     supplemental_details = forms.CharField(
         label='Resource Justification',
+        min_length=140,
         help_text='Provide supplemental detail on how you intend to use Chameleon to '
                   'accomplish your research goals. This text will not be publicly '
                   'viewable and may include details that you do not wish to publish.',
@@ -109,6 +110,7 @@ class AllocationCreateForm(forms.Form):
     )
     supplemental_details = forms.CharField(
         label='Resource Justification',
+        min_length=140,
         help_text='Please provide an update on the use of your current allocation - any '
                   'success stories, publications, presentations, or just a general '
                   'update on the progress of your research on Chameleon. This is helpful '

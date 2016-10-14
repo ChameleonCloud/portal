@@ -11,6 +11,7 @@ from django.shortcuts import render_to_response
 from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
@@ -152,7 +153,22 @@ def app_create(request):
             appliance = form.save(commit=False)
             appliance.created_by = request.user
             appliance.updated_by = request.user
+
+            if (appliance.project_supported):
+                appliance.needs_review = False
+
             appliance.save()
+
+            message = "A new appliance was submitted by " + request.user.username + "."
+            logger.debug(message);
+            # @TODO remove the comments when you test this out :)
+            #send_mail("New appliance has been submitted",
+            #          message,
+            #          'from@chameleon.org',
+            #          #'staff@chameleon.org',
+            #          ('cmarnold@tacc.utexas.edu',),
+            #          fail_silently=False,)
+
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
             logger.debug('Keywords assigned to this appliance successfully.')

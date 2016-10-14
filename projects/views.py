@@ -213,9 +213,12 @@ def create_allocation(request, project_id, allocation_id=-1):
             # Also update the project
             project.description = allocation.pop('description', None)
 
-            supplemental_details = allocation.pop('supplemental_details', '(none)')
+            supplemental_details = allocation.pop('supplemental_details', None)
             funding_source = allocation.pop('funding_source', None)
 
+            #if supplemental_details == None:
+            #    raise forms.ValidationError("Justifcation is required")
+            # This is required
             if not supplemental_details:
                 supplemental_details = '(none)'
 
@@ -290,9 +293,11 @@ def create_project(request):
                 'requestorId': pi_user['id'],
                 'computeRequested': 20000,
             }
-            supplemental_details = allocation.pop('supplemental_details', '(none)')
+            supplemental_details = allocation.pop('supplemental_details', None)
             funding_source = allocation.pop('funding_source', None)
 
+            #if supplemental_details == None:
+            #    raise forms.ValidationError("Justifcation is required")
             if not supplemental_details:
                 supplemental_details = '(none)'
 
