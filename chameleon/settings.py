@@ -492,7 +492,7 @@ GENI_FEDERATION_PROJECTS = {
     'geni': {
         'id': '97762ef8-86ea-4212-b41a-ac5d75467c16',
         'name': 'Chameleon-Federation',
-        'url': 'https://portal.geni.net/secure/project.php?project_id=97762ef8-86ea-4212-b41a-ac5d75467c16',
+        'url': 'https://portal.geni.net/secure/join-this-project.php?project_id=97762ef8-86ea-4212-b41a-ac5d75467c16'
     },
     'chameleon': {
         'id': '26427',
