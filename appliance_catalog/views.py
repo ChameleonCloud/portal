@@ -163,9 +163,9 @@ def app_create(request):
             logger.debug(message);
             body = "A new appliance has been submitted and is ready for review. \n\n" \
                    "Appliance Name: " + appliance.name + "\n" \
-                   "Contact Name and Email: " + appliance.author_name + "(" + appliance.author_url + ")\n\n" \
+                   "Contact Name and Email: " + appliance.author_name + " (" + appliance.author_url + ")\n\n" \
                    "Appliance URL: https://www.chameleoncloud.org/appliances/" + str(appliance.id)
-            send_mail("A new appliance",
+            send_mail(message,
                       body,
                       'noreply@chameleoncloud.org',
                       ('systems@chameleoncloud.org',),
