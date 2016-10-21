@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.14.1
+
+- Fixes:
+    - Updated complex appliance urls
+
 ### v1.14.0
 
 - Fixes:
