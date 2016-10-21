@@ -113,6 +113,8 @@ class ApplianceForm(ModelForm):
                 self.add_error('chi_tacc_appliance_id', '')
                 self.add_error('chi_uc_appliance_id', '')
                 self.add_error('kvm_tacc_appliance_id', msg)
+
+        # failed attempt at getting around the null=True, blank=True,unique=True bug...going to use custom action instead
         else:
             if (chi_tacc_appliance_id == '' or chi_uc_appliance_id == '' or kvm_tacc_appliance_id == ''):
                 logger.debug("appliance id is blank, returning None")
