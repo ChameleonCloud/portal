@@ -159,13 +159,16 @@ def app_create(request):
 
             appliance.save()
 
-            message = "A new appliance was submitted by " + request.user.username + "."
+            message = "New Appliance Submitted: " + appliance.name + "."
             logger.debug(message);
-            send_mail("New appliance has been submitted",
-                      message,
-                      'from@chameleon.org',
-                      #'staff@chameleon.org',
-                      ('cmarnold@tacc.utexas.edu','priteau@uchicago.edu',),
+            body = "A new appliance has been submitted and is ready for review. \n\n" \
+                   "Appliance Name: " + appliance.name + "\n" \
+                   "Contact Name and Email: " + appliance.author_name + "(" + appliance.author_url + ")\n\n" \
+                   "Appliance URL: https://www.chameleoncloud.org/appliances/" + appliance.id
+            send_mail("A new appliance",
+                      body,
+                      'noreply@chameleoncloud.org',
+                      ('systems@chameleoncloud.org',),
                       fail_silently=False,)
 
             logger.debug('New appliance successfully created. Adding keywords...')
