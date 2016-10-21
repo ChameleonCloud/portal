@@ -113,4 +113,8 @@ class ApplianceForm(ModelForm):
                 self.add_error('chi_tacc_appliance_id', '')
                 self.add_error('chi_uc_appliance_id', '')
                 self.add_error('kvm_tacc_appliance_id', msg)
+        else:
+            if (chi_tacc_appliance_id == '' or chi_uc_appliance_id == '' or kvm_tacc_appliance_id == ''):
+                logger.debug("appliance id is blank, returning None")
+                return None
 
