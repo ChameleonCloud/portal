@@ -45,9 +45,9 @@ def get_appliances(request):
         appliances = Appliance.objects.all()
         # filter out any that need review unless they belong to me
     if request.user.is_authenticated():
-        appliances = appliances.filter(Q(needs_review__exact = False) | Q(created_by = request.user))
+        appliances = appliances.filter(Q(needs_review = False) | Q(created_by = request.user))
     else:
-        appliances = Appliance.objects.all().exclude(needs_review__exact=True)
+        appliances = appliances.exclude(needs_review = True)
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
