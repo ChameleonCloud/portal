@@ -1,9 +1,14 @@
 ## Changelog
 
-### v1.14.1
+### v1.15.0
 
 - Fixes:
     - Updated complex appliance urls
+
+- Enhancements:
+    - Added review step to complex appliances
+    - Added appliance models to django admin
+    - Added support for FPGA in discovery, to be hidden until Halloween release
 
 ### v1.14.0
 
