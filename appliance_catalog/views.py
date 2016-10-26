@@ -36,12 +36,12 @@ def get_appliances(request):
         appliances = Appliance.objects.filter(keywords__in=keywords)
         if appliances and search:
             appliances = appliances.filter(
-                    Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search)).filter(needs_review__exact=False)
+                    Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
         elif search:
             appliances = Appliance.objects.filter(
-            Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search)).filter(needs_review__exact=False)
+            Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
     else:
-        appliances = Appliance.objects.all().filter(needs_review__exact=False)
+        appliances = Appliance.objects.all()
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
