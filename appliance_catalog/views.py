@@ -11,9 +11,11 @@ from django.shortcuts import render_to_response
 from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
+from itertools import chain
 import markdown_deux
 import logging
 import json
@@ -41,6 +43,11 @@ def get_appliances(request):
             Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
     else:
         appliances = Appliance.objects.all()
+        # filter out any that need review unless they belong to me
+    if request.user.is_authenticated():
+        appliances = appliances.filter(Q(needs_review = False) | Q(created_by = request.user))
+    else:
+        appliances = appliances.exclude(needs_review = True)
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
@@ -152,7 +159,24 @@ def app_create(request):
             appliance = form.save(commit=False)
             appliance.created_by = request.user
             appliance.updated_by = request.user
+
+            if (appliance.project_supported):
+                appliance.needs_review = False
+
             appliance.save()
+
+            message = "New Appliance Submitted: " + appliance.name + "."
+            logger.debug(message);
+            body = "A new appliance has been submitted and is ready for review. \n\n" \
+                   "Appliance Name: " + appliance.name + "\n" \
+                   "Contact Name and Email: " + appliance.author_name + " (" + appliance.author_url + ")\n\n" \
+                   "Appliance URL: https://www.chameleoncloud.org/appliances/" + str(appliance.id)
+            send_mail(message,
+                      body,
+                      'noreply@chameleoncloud.org',
+                      ('systems@chameleoncloud.org',),
+                      fail_silently=False,)
+
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
             logger.debug('Keywords assigned to this appliance successfully.')

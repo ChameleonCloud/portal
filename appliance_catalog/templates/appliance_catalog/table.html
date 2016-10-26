@@ -21,6 +21,9 @@
             </a>
             </div>
             <div><a ng-href="[[appliance.id]]/">[[appliance.name]]</a>
+                <div ng-if="appliance.needs_review">
+                <p class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> This appliance is under review.</p>
+            </div>
             </div>
         </td>
         <td ng-bind="appliance.short_description"></td>
@@ -55,16 +58,16 @@
                    ng-href="/appliances/api/appliances/[[appliance.id]]/template"><i class="fa fa-download"></i> Get Template</a>
             </div>
             <div ng-if="appliance.template">
-           <!-- <a target="_blank" class="btn btn-sm btn-block btn-primary"
+            <a target="_blank" class="btn btn-sm btn-block btn-primary"
                ng-href="https://chi.uc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
-                at CHI@UC</a>&nbsp;
-            &nbsp;&nbsp;
+                at CHI@UC</a>
             <a target="_blank" class="btn btn-sm btn-block btn-primary"
                ng-href="https://chi.tacc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
-                at CHI@TACC</a>-->
+                at CHI@TACC</a>
+                <!--
             <a target="_blank" class="btn btn-sm btn-block btn-primary"
                ng-href="https://qa.tacc.chameleoncloud.org/dashboard/project/stacks/">QA</a>
-            </div>
+            </div>-->
         </td>
     </tr>
 </table>
