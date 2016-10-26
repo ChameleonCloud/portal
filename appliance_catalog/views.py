@@ -15,6 +15,7 @@ from django.core.mail import send_mail
 from .forms import ApplianceForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
+from itertools import chain
 import markdown_deux
 import logging
 import json
@@ -41,7 +42,11 @@ def get_appliances(request):
             appliances = Appliance.objects.filter(
             Q(name__icontains=search) | Q(description__icontains=search) | Q(author_name__icontains=search))
     else:
-        appliances = Appliance.objects.all()
+        # filter out any that need review unless they belong to me
+        if request.user.is_authenticated():
+            appliances = Appliance.objects.all().filter(Q(needs_review__exact = False) | Q(created_by = request.user))
+        else:
+            appliances = Appliance.objects.all().exclude(needs_review__exact=True)
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)

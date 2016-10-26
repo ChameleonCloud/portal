@@ -23,6 +23,11 @@
         {% endif %}
             <span class="app-title">{{ appliance.name }}</span></h2>
 
+        {% if appliance.needs_review %}
+            <p class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> Thank you for your contribution. Your appliance is under review.
+                If it all looks good we will publish it straight away, otherwise we will be in touch with you to make the necessary changes.</p>
+        {% endif %}
+
         {% if appliance.documentation %}
             <a href="{% url 'appliance_catalog:app_documentation' appliance.id %}" class="btn btn-info">
                 <span class="fa fa-book"></span>&nbsp;Documentation
@@ -44,16 +49,16 @@
                 at KVM@TACC</a>
         {% endif %}
         {% if appliance.template %}
-           <!-- <a target="_blank" class="btn btn-primary"
+            <a target="_blank" class="btn btn-primary"
                href="https://chi.uc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
                 at CHI@UC</a>&nbsp;
             &nbsp;&nbsp;
             <a target="_blank" class="btn btn-primary"
                href="https://chi.tacc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
-                at CHI@TACC</a>-->
-            <a target="_blank" class="btn btn-primary"
+                at CHI@TACC</a>
+            <!--<a target="_blank" class="btn btn-primary"
                href="https://qa.tacc.chameleoncloud.org/dashboard/project/stacks/">Launch Complex Appliance
-                in QA</a>
+                in QA</a>-->
         {% endif %}
         {% if editable %}
             <a class="btn btn-warning pull-right" href="{% url 'appliance_catalog:app_edit' appliance.id %}">
