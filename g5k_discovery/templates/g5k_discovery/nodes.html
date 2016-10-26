@@ -21,6 +21,9 @@
                 <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3" ng-if="ky.indexOf('humanized') === -1">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
+                <div class="col col-sm-3">
+                    <strong>Node Type: </strong>[[node.node_type]]
+                </div>
                 <!--<div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>-->

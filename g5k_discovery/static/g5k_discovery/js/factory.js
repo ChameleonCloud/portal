@@ -16,6 +16,7 @@ angular.module('discoveryApp')
             'size': 'Size',
             'humanized_size': 'Size',
             'gpu': 'GPU',
+            'node_type': 'Node Type',
             'besteffort': 'Best Effort',
             'true': 'Yes',
             'false': 'No'
@@ -39,6 +40,7 @@ angular.module('discoveryApp')
             'gpu~gpu:yes': 'With GPU',
             'infiniband': 'With Infiniband Support',
             'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
+            'node_type~storage': 'FPGA',
         };
 
         factory.nameMap = _.extend(factory.nameMap, factory.tagMap);
@@ -232,6 +234,11 @@ angular.module('discoveryApp')
                 if (typeof node['processor']['clock_speed'] !== 'undefined' && node['processor']['clock_speed'] !== null) {
                     node['processor']['clock_speed'] = UtilFactory.scaleFrequency(node['processor']['clock_speed']);
                 }
+            } catch (err) {}
+            try {
+              if (typeof node['node_type'] !== 'undefined' && node['node_type'] !== null) {
+                  node['node_type'] = node['node_type']
+              }
             } catch (err) {}
             try {
                 var networkAdapters = node['network_adapters'];
