@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.15.1
+
+- Enhancements:
+    - Uncommented FPGA button
+
 ### v1.15.0
 
 - Fixes:
