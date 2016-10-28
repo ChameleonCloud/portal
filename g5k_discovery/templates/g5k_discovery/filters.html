@@ -35,9 +35,9 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.storage_devices[16].device.sdq" ng-change="applyFilter()" ng-disabled="shouldDisable(['storage_devices', 16, 'device', 'sdq'], filters.storage_devices[16].device.sdq.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.storage_devices[16].device.sdq || filters.storage_devices[16].device.sdq.length === filteredNodesOrg.length"></i> Storage Nodes <span ng-show="filters.storage_devices[16].device.sdq.length > 0">([[filters.storage_devices[16].device.sdq.length]])</span></button>
             </div>
-            <!--<div class="col col-sm-3">
+            <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['fpga']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type']['fpga'], appliedFilters.node_type['fpga'])" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['fpga'] || appliedFilters.node_type['fpga'].length === filteredNodesOrg.length"></i> FPGA <span ng-show="appliedFilters.node_type['fpga'].length > 0">([[appliedFilters.node_type['fpga'].length]])</span></button>
-            </div>-->
+            </div>
         </div>
         <div class="row">
             <div class="col col-sm-2 filter-block">
