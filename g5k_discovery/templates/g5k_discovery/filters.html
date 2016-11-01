@@ -6,7 +6,7 @@
     <div ng-if="!loadingError">
         <p class="lead">Filter nodes using the options below, then generate a reservation script to reserve those nodes.</p>
         <h4>
-            Applied Filters: 
+            Applied Filters:
             <span ng-show="filteredNodesOrg.length === allNodes.length"> None</span>
             <span ng-show="filteredNodesOrg.length !== allNodes.length" ng-repeat="(key, value) in flatAppliedFilters" class="label label-default label-filter">
             <span class="label-text">[[snakeToReadable(key, value)]]<span ng-show="isShowValTag(key, value)">: [[value]]</span> &nbsp;

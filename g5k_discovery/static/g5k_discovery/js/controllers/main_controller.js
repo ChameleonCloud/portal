@@ -372,6 +372,11 @@ angular.module('discoveryApp')
             ResourceFactory.flatAppliedFilters = {};
             ResourceFactory.flatten(prunedAppliedFilters);
             $scope.flatAppliedFilters = ResourceFactory.flatAppliedFilters;
+
+            $scope.showSingleValuesWarning = false;
+            if (Object.keys($scope.flatAppliedFilters).length > 1) {
+              $scope.showSingleValuesWarning = true;
+            }
             $scope.intersectArray = [];
             $scope.createIntersectArray();
             var filteredNodes = null;
