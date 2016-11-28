@@ -448,7 +448,7 @@ DEFAULT_TERMS_SLUG = 'user-terms'
 ACCEPT_TERMS_PATH = '/terms/accept/'
 TERMS_EXCLUDE_URL_PREFIX_LIST = {'/admin', '/terms'}
 TERMS_EXCLUDE_URL_LIST = {'/', '/termsrequired/', '/logout/', '/securetoo/'}
-MULTIPLE_ACTIVE_TERMS = False # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
+MULTIPLE_ACTIVE_TERMS = True # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
 
 
 #####
