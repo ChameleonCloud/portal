@@ -1,5 +1,18 @@
 ## Changelog
 
+### v1.15.3
+- Fixes:
+    - Fixed issue where complex appliance edits were rejected by the admin interface
+    - Fixed a link in the script modal of the resource discovery page
+    - Fixed issue where FPGA button did not display number of nodes
+    - Fixed issue where other buttons were not disabled when FPGA was selected
+- Enhancements:
+    - Improved the resource discovery page
+
+### v1.15.2
+- Fixes:
+    - Fixed a small bug in the project creation form
+
 ### v1.15.1
 
 - Enhancements:
