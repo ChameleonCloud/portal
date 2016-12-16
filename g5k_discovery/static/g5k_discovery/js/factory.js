@@ -40,9 +40,9 @@ angular.module('discoveryApp')
             'gpu~gpu:yes': 'With GPU',
             'infiniband': 'With Infiniband Support',
             'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
-            'node_type~fgpa': 'FPGA',
-            'node_type~lowpower_xeon': 'Low Power XEON',
-            'node_type~atom': 'Atom'
+            'fgpa': 'FPGA',
+            'lowpower_xeon': 'Low Power Xeon',
+            'atom': 'Atom'
         };
 
         factory.nameMap = _.extend(factory.nameMap, factory.tagMap);
