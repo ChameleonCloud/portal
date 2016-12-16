@@ -34,15 +34,38 @@ angular.module('discoveryApp')
             '2 TB': 2000398934016
         };
 
+
+        // Node Types:
+        //
+        // "compute" -> Compute Nodes
+        // "compute_ib" -> Infiniband
+        // "fpga" -> FPGA
+        // "gpu_k80" -> NVIDIA K80 GPU
+        // "gpu_m40" -> NVIDIA M40 GPU
+        // "storage" -> Storage Nodes
+        // "storage_hierarchy" -> Storage Hierarchy
+
+        //factory.tagMap = {
+        //    'architecture~smt_size:48': 'Compute Nodes',
+        //    'storage_devices~16~device:sdq': 'Storage Nodes',
+        //    'gpu~gpu:yes': 'GPU',
+        //    'infiniband': 'Infiniband Support',
+        //    'network_adapters~4~interface:InfiniBand': 'Infiniband Support',
+        //    'node_type:fpga': 'FPGA',
+        //    'node_type:lowpower_xeon': 'Low Power Xeon',
+        //    'node_type:atom': 'Atom'
+        //};
+
         factory.tagMap = {
-            'architecture~smt_size:48': 'Compute Nodes',
-            'storage_devices~16~device:sdq': 'Storage Nodes',
-            'gpu~gpu:yes': 'GPU',
-            'infiniband': 'Infiniband Support',
-            'network_adapters~4~interface:InfiniBand': 'Infiniband Support',
-            'node_type:fpga': 'FPGA',
-            'node_type:lowpower_xeon': 'Low Power Xeon',
-            'node_type:atom': 'Atom'
+            'compute': 'Compute Nodes',
+            'storage': 'Storage Nodes',
+            'storage_heirarchy': 'Storage Heirarchy Nodes',
+            'gpu_k80': 'NVIDIA K80 GPU Nodes',
+            'gpu_m40': 'NVIDIA M40 GPU Nodes',
+            'node_type:compute_ib': 'Nodes with Infiniband Support',
+            'node_type:fpga': 'FPGA Nodes',
+            'node_type:lowpower_xeon': 'Low Power Xeon Nodes',
+            'node_type:atom': 'Atom Nodes'
         };
 
         factory.nameMap = _.extend(factory.nameMap, factory.tagMap);
