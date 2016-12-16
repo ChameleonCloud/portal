@@ -57,11 +57,11 @@ angular.module('discoveryApp')
         //};
 
         factory.tagMap = {
-            'compute': 'Compute Nodes',
-            'storage': 'Storage Nodes',
-            'storage_heirarchy': 'Storage Heirarchy Nodes',
-            'gpu_k80': 'NVIDIA K80 GPU Nodes',
-            'gpu_m40': 'NVIDIA M40 GPU Nodes',
+            'node_type:compute': 'Compute Nodes',
+            'node_type:storage': 'Storage Nodes',
+            'node_type:storage_heirarchy': 'Storage Heirarchy Nodes',
+            'node_type:gpu_k80': 'NVIDIA K80 GPU Nodes',
+            'node_type:gpu_m40': 'NVIDIA M40 GPU Nodes',
             'node_type:compute_ib': 'Nodes with Infiniband Support',
             'node_type:fpga': 'FPGA Nodes',
             'node_type:lowpower_xeon': 'Low Power Xeon Nodes',
