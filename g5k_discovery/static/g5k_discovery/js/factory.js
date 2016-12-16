@@ -37,10 +37,10 @@ angular.module('discoveryApp')
         factory.tagMap = {
             'architecture~smt_size:48': 'Compute Nodes',
             'storage_devices~16~device:sdq': 'Storage Nodes',
-            'gpu~gpu:yes': 'With GPU',
-            'infiniband': 'With Infiniband Support',
-            'network_adapters~4~interface:InfiniBand': 'With Infiniband Support',
-            'node_type:fgpa': 'FPGA',
+            'gpu~gpu:yes': 'GPU',
+            'infiniband': 'Infiniband Support',
+            'network_adapters~4~interface:InfiniBand': 'Infiniband Support',
+            'node_type:fpga': 'FPGA',
             'node_type:lowpower_xeon': 'Low Power Xeon',
             'node_type:atom': 'Atom'
         };
