@@ -20,6 +20,7 @@
             </span>
         </h4>
         <div class="row">
+            <!--
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.architecture.smt_size[48]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', 'smt_size', 48], filterArchitecture.smt_size['48'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.architecture['smt_size'][48] || filterArchitecture.smt_size['48'].length === filteredNodesOrg.length"></i> Compute Nodes <span ng-show="filterArchitecture.smt_size['48'].length > 0">([[filterArchitecture.smt_size['48'].length]])</span></button>
             </div>
@@ -34,6 +35,25 @@
             </div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.storage_devices[16].device.sdq" ng-change="applyFilter()" ng-disabled="shouldDisable(['storage_devices', 16, 'device', 'sdq'], filters.storage_devices[16].device.sdq.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.storage_devices[16].device.sdq || filters.storage_devices[16].device.sdq.length === filteredNodesOrg.length"></i> Storage Nodes <span ng-show="filters.storage_devices[16].device.sdq.length > 0">([[filters.storage_devices[16].device.sdq.length]])</span></button>
+            </div>
+            -->
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['compute']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'compute'], filters.node_type['compute'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['compute'] || filters.node_type['compute'].length === filteredNodesOrg.length"></i> Compute <span ng-show="filters.node_type['compute'].length > 0">([[filters.node_type['compute'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['compute_ib']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'compute_ib'], filters.node_type['compute_ib'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['compute_ib'] || filters.node_type['compute_ib'].length === filteredNodesOrg.length"></i> Infiniband Support <span ng-show="filters.node_type['compute_ib'].length > 0">([[filters.node_type['compute_ib'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['gpu_k80']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'gpu_k80'], filters.node_type['gpu_k80'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['gpu_k80'] || filters.node_type['gpu_k80'].length === filteredNodesOrg.length"></i> NVIDIA K80 GPU <span ng-show="filters.node_type['gpu_k80'].length > 0">([[filters.node_type['gpu_k80'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['gpu_m40']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'gpu_m40'], filters.node_type['gpu_m40'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['gpu_m40'] || filters.node_type['gpu_m40'].length === filteredNodesOrg.length"></i> NVIDIA M40 GPU <span ng-show="filters.node_type['gpu_m40'].length > 0">([[filters.node_type['gpu_m40'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['storage']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'storage'], filters.node_type['storage'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['storage'] || filters.node_type['storage'].length === filteredNodesOrg.length"></i> Storage <span ng-show="filters.node_type['storage'].length > 0">([[filters.node_type['storage'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['storage_hierarchy']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'storage_hierarchy'], filters.node_type['storage_hierarchy'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['storage_hierarchy'] || filters.node_type['storage_hierarchy'].length === filteredNodesOrg.length"></i> Storage Hierarchy <span ng-show="filters.node_type['storage_hierarchy'].length > 0">([[filters.node_type['storage_hierarchy'].length]])</span></button>
             </div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['fpga']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'fpga'], filters.node_type['fpga'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['fpga'] || filters.node_type['fpga'].length === filteredNodesOrg.length"></i> FPGA <span ng-show="filters.node_type['fpga'].length > 0">([[filters.node_type['fpga'].length]])</span></button>
