@@ -22,4 +22,19 @@
   </p>
 </section>
 {% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+  'use strict';
+(function( window, $, undefined ) {
+var text = `
+An acknowledgement of support from the Chameleon project and the National Science Foundation should appear in any publication of material, whether copyrighted or not, that describes work which benefited from access to Chameleon cyberinfrastructure resources.
+The suggested acknowledgement is as follows: “Results presented in this paper were obtained using the Chameleon testbed supported by the National Science Foundation”.
+`;
+  $('#tc-terms-form').on('submit', function() {
+    var c = confirm(text);
+    return c;
+  });
+})( this, $ );
+</script>
+{% endblock %}
 {% block footer %}{% endblock %}
