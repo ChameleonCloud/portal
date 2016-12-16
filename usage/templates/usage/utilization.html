@@ -21,12 +21,11 @@
         <div class="content" ng-controller="UsageController">
             <table>
                 <tr>
-                    <td class="name"><strong>Queue:</strong></td>
+                    <td class="name"><strong>Resource:</strong></td>
                     <td>
                         <select ng-model="utilization.selectedQueue" ng-change="updateUtilizationChart()">
                             <option value="">-- All queues --</option>
                             <option value="kvm@tacc">KVM@TACC</option>
-                            <option value="kvm@uc">KVM@UC</option>
                             <option value="CHI@TACC">CHI@TACC</option>
                             <option value="CHI@UC">CHI@UC</option>
                         </select>
