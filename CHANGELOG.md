@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.15.4
+- Enhancements:
+    - Changed filters to utilize node_type
+    - Added Chameleon citation terms dialog box
+
 ### v1.15.3
 - Fixes:
     - Fixed issue where complex appliance edits were rejected by the admin interface
