@@ -65,7 +65,9 @@
         <hr>
 
         <h4>Description</h4>
+        {% autoescape off %}
         <div>{{ appliance.description|markdown|safe }}</div>
+        {% endautoescape %}
         <div></div>
         {% if keywords %}
             <br>

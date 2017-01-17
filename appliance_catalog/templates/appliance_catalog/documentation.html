@@ -44,7 +44,8 @@
         {% endif %}
 
         <hr>
-
+        {% autoescape off %}
         <div>{{ appliance.documentation|markdown|safe }}</div>
+        {% endautoescape %}
     </div>
 {% endblock %}
