@@ -45,6 +45,6 @@
 
         <hr>
 
-        <div>{{ appliance.documentation|markdown }}</div>
+        <div>{{ appliance.documentation|markdown|safe }}</div>
     </div>
 {% endblock %}

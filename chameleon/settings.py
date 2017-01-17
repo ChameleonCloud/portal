@@ -134,6 +134,8 @@ ROOT_URLCONF = 'chameleon.urls'
 
 WSGI_APPLICATION = 'chameleon.wsgi.application'
 
+MARKDOWN_DEUX_STYLES = { "default": { "extras": { "code-friendly": None, }, "safe_mode": False, }, }
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
