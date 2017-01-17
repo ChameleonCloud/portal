@@ -69,8 +69,6 @@ def app_detail(request, pk):
     logger.debug('This appliance has %d keywords.', keywords.count())
     editable = request.user.is_staff or request.user == appliance.created_by or \
         request.user.has_perm('appliance_catalog.change_appliance')
-
-    appliance.description = markdown_deux.markdown(appliance.description)
     try:
         validate_email(appliance.author_url)
         appliance.author_contact_type = 'email'
@@ -92,7 +90,6 @@ def app_detail(request, pk):
 def app_documentation(request, pk):
     logger.info('Documentation requested for appliance id: %s.', pk)
     appliance = get_object_or_404(Appliance, pk=pk)
-    appliance.documentation = markdown_deux.markdown(appliance.documentation)
     logger.debug('Appliance found.')
     context = {
         'appliance': appliance,
