@@ -134,7 +134,6 @@ ROOT_URLCONF = 'chameleon.urls'
 
 WSGI_APPLICATION = 'chameleon.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 

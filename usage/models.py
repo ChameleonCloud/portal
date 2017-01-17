@@ -1,6 +1,6 @@
 from django.db import models
 
-QUEUES = (('kvm@tacc', 'kvm@tacc'),('kvm@uc', 'kvm@uc'),('chi@tacc', 'chi@tacc'),('chi@uc', 'chi@uc'))
+QUEUES = (('kvm@tacc', 'kvm@tacc'),('chi@tacc', 'chi@tacc'),('chi@uc', 'chi@uc'))
 
 class Downtime(models.Model):
     queue = models.CharField(max_length=50, choices=QUEUES)

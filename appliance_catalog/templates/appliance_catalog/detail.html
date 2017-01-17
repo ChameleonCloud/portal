@@ -68,7 +68,8 @@
         <hr>
 
         <h4>Description</h4>
-        <div>{{ appliance.description|markdown }}</div>
+        <div>{{ appliance.description|safe }}</div>
+        <div></div>
         {% if keywords %}
             <br>
             <h4>Keywords</h4>
