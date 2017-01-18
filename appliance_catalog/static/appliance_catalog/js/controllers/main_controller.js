@@ -56,7 +56,7 @@ angular.module('appCatalogApp')
       };
 
       $scope.setupPagination = function () {
-        $scope.appsPerPage = 15;
+        $scope.appsPerPage = 16;
         $scope.totalPages = Math.ceil($scope.filteredAppliances.length / $scope.appsPerPage);
         $scope.appsCurrentPage = 1;
         $scope.appsPageChanged($scope.appsCurrentPage);
