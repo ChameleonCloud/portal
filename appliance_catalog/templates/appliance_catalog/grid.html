@@ -1,5 +1,6 @@
 <div class="appliance-grid appliance-content">
     <div class="appliance-grid-item corner-ribbon-container" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
+        <a ng-href="/appliances/[[appliance.id]]">
         <div class="thumbnail corner-ribbon-container text-center">
             <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
                  alt="App Icon" ng-if="appliance.appliance_icon.length > 0">
@@ -15,5 +16,6 @@
             <div ng-if="appliance.project_supported" class="corner-ribbon chameleon-logo" title="Chameleon Official Image">Chameleon Official Image</div>
             <div ng-if="appliance.template" class="corner-ribbon top-right complex-logo" title="Complex Appliance"><i class='fa fa-sitemap' aria-hidden='true'></i></div>
         </div>
+        </a>
     </div>
 </div>
