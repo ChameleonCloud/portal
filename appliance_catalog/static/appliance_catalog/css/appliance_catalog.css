@@ -110,9 +110,11 @@
 
 }
 
-div.appliance-content {
-    min-height: 400px;
+
+div.appliance-grid-padding {
+    min-height: 50px;
 }
+
 .corner-ribbon.complex-logo {
     background: #f0f0f0;
     color: black;
