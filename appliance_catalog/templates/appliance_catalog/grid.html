@@ -1,5 +1,5 @@
 <div class="appliance-grid appliance-content">
-    <div class="appliance-grid-item corner-ribbon-container" ng-repeat="appliance in appsThisPage" ng-click="viewDetail(appliance.id)">
+    <div class="appliance-grid-item corner-ribbon-container" ng-repeat="appliance in appsThisPage">
         <a ng-href="/appliances/[[appliance.id]]">
         <div class="thumbnail corner-ribbon-container text-center">
             <img ng-src="/media/[[appliance.appliance_icon]]" class="app-icon"
