@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.15.9
+- Fixes:
+    - Fixed issue with grid view where CTRL+click would not open a new tab, and details would still be loaded in current window
+    - Fixed some small issues with extra whitespace
+    - Grid view now displays 16 appliances 
+
 ### v1.15.4
 - Enhancements:
     - Changed filters to utilize node_type
