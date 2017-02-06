@@ -69,6 +69,9 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['atom']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'atom'], filters.node_type['atom'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['atom'] || filters.node_type['atom'].length === filteredNodesOrg.length"></i> Atom <span ng-show="filters.node_type['atom'].length > 0">([[filters.node_type['atom'].length]])</span></button>
             </div>
+            <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['arm64']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'arm64'], filters.node_type['arm64'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['atom'] || filters.node_type['arm64'].length === filteredNodesOrg.length"></i> ARM64 <span ng-show="filters.node_type['arm64'].length > 0">([[filters.node_type['arm64'].length]])</span></button>
+            </div>
         </div>
         <div class="row">
             <div class="col col-sm-2 filter-block">
