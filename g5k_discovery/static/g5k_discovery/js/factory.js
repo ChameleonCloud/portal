@@ -66,7 +66,8 @@ angular.module('discoveryApp')
             'node_type:compute_ib': 'Nodes with Infiniband Support',
             'node_type:fpga': 'FPGA Nodes',
             'node_type:lowpower_xeon': 'Low Power Xeon Nodes',
-            'node_type:atom': 'Atom Nodes'
+            'node_type:atom': 'Atom Nodes',
+            'node_type:arm64': 'ARM64 Nodes'
         };
 
         factory.nameMap = _.extend(factory.nameMap, factory.tagMap);
