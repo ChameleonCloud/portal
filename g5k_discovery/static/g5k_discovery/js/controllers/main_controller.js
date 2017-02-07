@@ -168,12 +168,6 @@ angular.module('discoveryApp')
             $scope.appliedFilters = angular.copy($scope.appliedFiltersOrg);
             makeChunks();
             $scope.advancedFilters = angular.copy($scope.advancedFiltersOrg);
-            console.log("************ Filters **************");
-            console.log($scope.filters);
-            console.log("************ Filtered Nodes **************");
-            console.log($scope.filteredNodes);
-            console.log("************ Applied Filters **************");
-            console.log($scope.appliedFilters);
 
         }, function(errorMsg) {
             console.error(errorMsg);

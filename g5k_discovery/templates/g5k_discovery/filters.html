@@ -20,23 +20,6 @@
             </span>
         </h4>
         <div class="row">
-            <!--
-            <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.architecture.smt_size[48]" ng-change="applyFilter()" ng-disabled="shouldDisable(['architecture', 'smt_size', 48], filterArchitecture.smt_size['48'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.architecture['smt_size'][48] || filterArchitecture.smt_size['48'].length === filteredNodesOrg.length"></i> Compute Nodes <span ng-show="filterArchitecture.smt_size['48'].length > 0">([[filterArchitecture.smt_size['48'].length]])</span></button>
-            </div>
-            <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.gpu.gpu['yes']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'yes'], filterGpu.gpu['yes'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['yes'] || filterGpu.gpu['yes'].length === filteredNodesOrg.length"></i> GPU <span ng-show="filterGpu.gpu['yes'].length > 0">([[filterGpu.gpu['yes'].length]])</span></button>
-            </div>
-            <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.network_adapters[4].interface.InfiniBand" ng-change="applyFilter()" ng-disabled="shouldDisable(['network_adapters', 4, 'interface', 'InfiniBand'], filters.network_adapters[4].interface.InfiniBand.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.network_adapters[4].interface.InfiniBand || filters.network_adapters[4].interface.InfiniBand.length === filteredNodesOrg.length"></i> Infiniband <span ng-show="filters.network_adapters[4].interface.InfiniBand.length > 0">([[filters.network_adapters[4].interface.InfiniBand.length]])</span></button>
-            </div>
-            <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.main_memory.ram_size['549755813888']" ng-change="applyFilter()" ng-disabled="shouldDisable(['main_memory', 'ram_size', '549755813888'], filterRamSize['512 GiB'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.main_memory.ram_size['549755813888']"></i> Storage Hierarchy <span ng-show="filterRamSize['512 GiB'].length">([[filterRamSize['512 GiB'].length]])</span></button>
-            </div>
-            <div class="col col-sm-3">
-                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.storage_devices[16].device.sdq" ng-change="applyFilter()" ng-disabled="shouldDisable(['storage_devices', 16, 'device', 'sdq'], filters.storage_devices[16].device.sdq.length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.storage_devices[16].device.sdq || filters.storage_devices[16].device.sdq.length === filteredNodesOrg.length"></i> Storage Nodes <span ng-show="filters.storage_devices[16].device.sdq.length > 0">([[filters.storage_devices[16].device.sdq.length]])</span></button>
-            </div>
-            -->
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['compute']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'compute'], filters.node_type['compute'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['compute'] || filters.node_type['compute'].length === filteredNodesOrg.length"></i> Compute <span ng-show="filters.node_type['compute'].length > 0">([[filters.node_type['compute'].length]])</span></button>
             </div>
@@ -54,6 +37,7 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.gpu.gpu['yes']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'yes'], filterGpu.gpu['yes'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['yes'] || filterGpu.gpu['yes'].length === filteredNodesOrg.length"></i> GPU <span ng-show="filterGpu.gpu['yes'].length > 0">([[filterGpu.gpu['yes'].length]])</span></button>
             </div>
+            <div class="w-100"></div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['storage']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'storage'], filters.node_type['storage'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['storage'] || filters.node_type['storage'].length === filteredNodesOrg.length"></i> Storage <span ng-show="filters.node_type['storage'].length > 0">([[filters.node_type['storage'].length]])</span></button>
             </div>
@@ -63,6 +47,7 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['fpga']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'fpga'], filters.node_type['fpga'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['fpga'] || filters.node_type['fpga'].length === filteredNodesOrg.length"></i> FPGA <span ng-show="filters.node_type['fpga'].length > 0">([[filters.node_type['fpga'].length]])</span></button>
             </div>
+            <div class="w-100"></div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['lowpower_xeon']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'lowpower_xeon'], filters.node_type['lowpower_xeon'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['lowpower_xeon'] || filters.node_type['lowpower_xeon'].length === filteredNodesOrg.length"></i> Low Power Xeon <span ng-show="filters.node_type['lowpower_xeon'].length > 0">([[filters.node_type['lowpower_xeon'].length]])</span></button>
             </div>
