@@ -37,7 +37,6 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.gpu.gpu['yes']" ng-change="applyFilter()" ng-disabled="shouldDisable(['gpu', 'gpu', 'yes'], filterGpu.gpu['yes'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.gpu.gpu['yes'] || filterGpu.gpu['yes'].length === filteredNodesOrg.length"></i> GPU <span ng-show="filterGpu.gpu['yes'].length > 0">([[filterGpu.gpu['yes'].length]])</span></button>
             </div>
-            <div class="w-100"></div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['storage']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'storage'], filters.node_type['storage'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['storage'] || filters.node_type['storage'].length === filteredNodesOrg.length"></i> Storage <span ng-show="filters.node_type['storage'].length > 0">([[filters.node_type['storage'].length]])</span></button>
             </div>
@@ -47,7 +46,6 @@
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['fpga']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'fpga'], filters.node_type['fpga'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['fpga'] || filters.node_type['fpga'].length === filteredNodesOrg.length"></i> FPGA <span ng-show="filters.node_type['fpga'].length > 0">([[filters.node_type['fpga'].length]])</span></button>
             </div>
-            <div class="w-100"></div>
             <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['lowpower_xeon']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'lowpower_xeon'], filters.node_type['lowpower_xeon'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['lowpower_xeon'] || filters.node_type['lowpower_xeon'].length === filteredNodesOrg.length"></i> Low Power Xeon <span ng-show="filters.node_type['lowpower_xeon'].length > 0">([[filters.node_type['lowpower_xeon'].length]])</span></button>
             </div>
