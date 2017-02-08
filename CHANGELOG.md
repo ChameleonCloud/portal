@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.16.0
+-Enhancements:
+    - Added ARM64 filter
+
 ### v1.15.9
 - Fixes:
     - Fixed issue with grid view where CTRL+click would not open a new tab, and details would still be loaded in current window
