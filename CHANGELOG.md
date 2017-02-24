@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.16.1
+- Enhancements:
+    - Added user csv download
+
 ### v1.16.0
 -Enhancements:
     - Added ARM64 filter
