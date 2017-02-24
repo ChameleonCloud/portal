@@ -16,8 +16,11 @@ from django.contrib import admin
 from django.utils.encoding import force_text
 from django.utils.html import escape
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.http import HttpResponse
 from .forms import TasUserProfileAdminForm
+import csv
 import logging
+import datetime
 
 logger = logging.getLogger('default');
 
@@ -53,7 +56,7 @@ class TasUserAdminForm(UserChangeForm):
 
 
 class TasUserAdmin(UserAdmin):
-    actions = ['reset_user_password', 'make_user_pi']
+    actions = ['reset_user_password', 'make_user_pi', 'download_user_report']
 
     form = TasUserAdminForm
     fieldsets = (
@@ -126,6 +129,22 @@ class TasUserAdmin(UserAdmin):
             context, current_app=self.admin_site.name)
 
     make_user_pi.short_description = "Grant PI Eligibility"
+
+    def download_user_report(self, request, selected_users, form_url=''):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment;filename="chameleon_users.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['username','first_name','last_name','email','is_active','is_staff','date_joined','last_login'])
+        for user in selected_users:
+            joined = user.date_joined.strftime("%H:%M:%S %Z")
+            last = user.last_login.strftime("%H:%M:%S %Z")
+            user = [user.username, user.first_name, user.last_name, user.email, user.is_active, user.is_staff, joined, last]
+            writer.writerow(user)
+
+        return response
+
+    download_user_report.short_description = "Download User Report"
 
     def tas_manage(self, request, id, form_url=''):
         if not self.has_change_permission(request):
