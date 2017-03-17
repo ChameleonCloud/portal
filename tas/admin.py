@@ -137,8 +137,8 @@ class TasUserAdmin(UserAdmin):
         writer = csv.writer(response)
         writer.writerow(['username','first_name','last_name','email','is_active','is_staff','date_joined','last_login'])
         for user in selected_users:
-            joined = user.date_joined.strftime("%d-%M-%Y %H:%M:%S %Z")
-            last = user.last_login.strftime("%d-%M-%Y %H:%M:%S %Z")
+            joined = user.date_joined.strftime("%m-%d-%Y %H:%M:%S %Z")
+            last = user.last_login.strftime("%m-%d-%Y %H:%M:%S %Z")
             user = [user.username.encode('utf8'), user.first_name.encode('utf8'), user.last_name.encode('utf8'), user.email.encode('utf8'), user.is_active, user.is_staff, joined, last]
             writer.writerow(user)
 
