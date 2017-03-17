@@ -184,7 +184,41 @@ angular.module('usageApp')
                                     textShadow: '0 0 3px black'
                                 }
                             }
+                        },
+                        series: {
+                          cursor: 'pointer',
+                          point: {
+                            events: {
+                              click: function () {
+                                $http({
+                                  method: 'GET',
+                                  url: '/admin/usage/user-info/' + this.category,
+                                  cache: 'true'
+                                }).then(function success(response) {
+                                  var user = response.data.result;
+                                  var projects = response.data.result.projects;
+                                  console.log(user);
+                                  $('#userInfo').empty();
+                                  $('#userInfo').append('<b>User Information</b><br />');
+                                  $('#userInfo').append(user.firstName + " " + user.lastName + " (" + user.username + ")<br />");
+                                  $('#userInfo').append(user.email + "<br />");
+                                  $('#userInfo').append(user.institution);
+                                  $('#userInfo').append('<br/><b>Projects</b><br />');
+
+                                  var uniques = _.uniq(projects, function(p) {
+                                    return p.id;
+                                  });
+
+                                  $.each(uniques, function(index, value) {
+                                    $('#userInfo').append(value.title + ' (' + value.chargeCode + ')<br />');
+                                  });
+                                }, function error(response) {
+                                  $('#userInfo').empty().append("Unable to load information for user " + this.category);
+                                });
+                              }
+                          }
                         }
+                      }
                     },
                     tooltip: {
                         formatter: function() {
@@ -424,6 +458,7 @@ angular.module('usageApp')
                     userBreakdownData[user_usage.queue] = [user_usage.nodes_used]
                   }
                   $scope.utilization.usageUserBreakdownChartConfig.options.xAxis.categories.push(user_usage.username);
+
                 });
 
                 $scope.utilization.usageChartConfig.series.push( {
@@ -443,9 +478,6 @@ angular.module('usageApp')
                 $scope.utilization.usageUserBreakdownChartConfig.series.push({
                       name: 'kvm@tacc',
                       data: userBreakdownData['kvm@tacc'],
-                      }, {
-                      name: 'kvm@uc',
-                      data: userBreakdownData['kvm@uc'],
                       }, {
                       name: 'chi@tacc',
                       data: userBreakdownData['chi@tacc'],

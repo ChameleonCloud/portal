@@ -339,6 +339,32 @@ def get_daily_usage_user_breakdown_json( request):
         raise Exception('Error fetching jobs.')
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+def get_user_info(request, username):
+    #username = request.GET.get('username')
+
+    resp = {}
+    resp['result'] = None
+    resp['status'] = 'error'
+
+    if username is None:
+        resp['message'] = 'Username is required'
+
+    try:
+        tas = TASClient()
+        resp['status'] = 'success'
+        users = tas.get_user(username=username)
+        projects = tas.projects_for_user(username)
+
+        resp['result'] = users
+        resp['result']['projects'] = projects
+
+    except Exception as e:
+        traceback.print_exc()
+        raise Exception('Error fetching user.')
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
 def utilization( request):
     logger.info( 'Utilization page requested.')
