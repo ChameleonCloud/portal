@@ -1,5 +1,11 @@
 ## Changelog
 
+### v1.16.2:
+    - Fixes:
+        - fixed date display issue in user download
+    - Enhancements:
+        - added user information to utilization chart
+
 ### v1.16.1
 - Enhancements:
     - Added user csv download
