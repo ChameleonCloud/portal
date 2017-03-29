@@ -203,6 +203,7 @@ angular.module('usageApp')
                                   $('#userInfo').append(user.firstName + " " + user.lastName + " (" + user.username + ")<br />");
                                   $('#userInfo').append(user.email + "<br />");
                                   $('#userInfo').append(user.institution);
+                                  $('#userInfo').append('<br/><br/>');
                                   $('#userInfo').append('<br/><b>Projects</b><br />');
 
                                   var uniques = _.uniq(projects, function(p) {
@@ -210,7 +211,7 @@ angular.module('usageApp')
                                   });
 
                                   $.each(uniques, function(index, value) {
-                                    $('#userInfo').append(value.title + ' (' + value.chargeCode + ')<br />');
+                                    $('#userInfo').append('<a href="/user/projects/' + value.id + '">' + value.title + '</a> (' + value.chargeCode + ')<br />');
                                   });
                                 }, function error(response) {
                                   $('#userInfo').empty().append("Unable to load information for user " + this.category);
