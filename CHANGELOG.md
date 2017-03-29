@@ -1,5 +1,9 @@
 ## Changelog
 
+### v1.16.3:
+    - Fixes:
+        - fixed issue where menu was not displaying on webinar pages
+
 ### v1.16.2:
     - Fixes:
         - fixed date display issue in user download
