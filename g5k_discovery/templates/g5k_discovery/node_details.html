@@ -1,28 +1,27 @@
-<h2 class="title"><span ng-show="filteredNodes.length !== allNodes.length">Filtered </span>Nodes</h2>
-<div><button class="btn btn-sm back-btn" ng-click="changeView()">Back</button></div>
-<input type="text" name="nodeViewSearch" ng-model="nodeView.search" ng-change="nodeViewSearch()" class="filter-search" ng-model-options="{debounce: 500}" placeholder="Search by any node properties.">
-<toggle-switch ng-model="nodeView.allKeys" on-label="ALL" off-label="ANY" knob-label="" ng-change="nodeViewSearch()">
-</toggle-switch>
-<button class="btn btn-sm" ng-click="nodeView.search = '';nodeViewSearch()">Clear</button>
-<ol ng-show="filteredNodes.length > 0">
-    <li ng-repeat="node in filteredNodes track by $index" class="node">
-        <h4 class="node-header"><a href="node/sites/[[node.site]]/clusters/[[node.cluster]]/nodes/[[node.uid]]">[[node.uid]]</a></h4>
+{% extends 'layout/default.html' %} {% load sekizai_tags staticfiles %} {% block title %}Chameleon Resource Browser{% endblock %} {% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}"> {% endblock %} {% block content %}
+
+<h2>Details for node {{ node.uid }}</h2>
+{{ resource }}
+<div ng-app="discoveryApp" class="discovery-app" ng-controller="NodeController" ng-init="initLink('{{resource}}');">
         <section>
             <div class="row">
                 <div class="col col-sm-3">
-                    <strong>Site: </strong>[[node.site]]
+                    <strong>Site: </strong> SUMTHIN
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Cluster: </strong>[[node.cluster]]
+                    <strong>Cluster: </strong> AMPTJER
                 </div>
+                [[ node.architecture ]]
                 <div ng-repeat="(ky, vl) in node.architecture track by $index" class="col col-sm-3">
+                    key [[ky]]  value [[vl]]
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
                 <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3" ng-if="ky.indexOf('humanized') === -1">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Node Type: </strong>[[node.node_type]]
+                    <strong>Node Type: </strong> {{ node.node_type }}
                 </div>
                 <!--<div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
@@ -31,7 +30,7 @@
                     <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Version: </strong>[[node.version]]
+                    <strong>Version: </strong> {{ node.version }}
                 </div>
             </div>
             <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'monitoring'], key)">
@@ -64,9 +63,13 @@
                 </div>
             </div>
         </section>
-    </li>
-</ol>
-<div ng-show="isEmpty(filteredNodes)" class="alert alert-warning">Node(s) not found.</div>
-<div>
-    <button class="btn btn-sm" ng-click="changeView()">Back</button>
 </div>
+{% endblock content %}{% block scripts %}
+<script src="{% static 'g5k_discovery/js/vendor.js' %}"></script>
+<script src="{% static 'g5k_discovery/js/app.js' %}"></script>
+<script src="{% static 'g5k_discovery/js/factory.js' %}"></script>
+<script src="{% static 'g5k_discovery/js/controllers/main_controller.js' %}"></script>
+<script src="{% static 'g5k_discovery/js/controllers/modal_controller.js' %}"></script>
+<script src="{% static 'g5k_discovery/js/controllers/node_controller.js' %}"></script>
+{% endblock %}
+

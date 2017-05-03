@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.views.generic import TemplateView
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.conf import settings
 from .g5k_discovery_api import G5K_API
 import json
@@ -27,3 +27,13 @@ def g5k_html(request, resource):
     logger.info('Template requested: %s.html', resource)
     templateUrl = 'g5k_discovery/%s.html' %resource
     return render_to_response(templateUrl)
+
+
+# basically writing two more identical functions because angular is a fucking piece of shit :)
+def node_view(request, resource):
+    data = api.call(resource)
+    return render(request, 'g5k_discovery/node_details.html', { 'node': data, 'resource': resource })
+
+def node_data(request, resource):
+    data = api.call(resource)
+    return HttpResponse(json.dumps(data), content_type='application/json')

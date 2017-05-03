@@ -297,6 +297,7 @@ angular.module('discoveryApp')
         factory.getResources = function(scope, successCallBack, errorCallBack) {
             scope.loading = true;
             scope.loadingError = false;
+
             var promise_sites = $http({
                     method: 'GET',
                     url: 'sites.json',
@@ -310,6 +311,7 @@ angular.module('discoveryApp')
                                 rel: 'clusters'
                             });
                             if (cluster_link) {
+                                console.log(cluster_link);
                                 var cluster_link_href = (cluster_link.href.substring(1)) + '.json';
                                 //Step II: Fetch Clusters
                                 var promise_clusters = $http({
@@ -325,6 +327,7 @@ angular.module('discoveryApp')
                                                     rel: 'nodes'
                                                 });
                                                 if (node_link) {
+                                                    console.log(node_link);
                                                     var nodes_link_href = (node_link.href.substring(1)) + '.json';
                                                     //Step III: Fetch Nodes
                                                     var promise_nodes = $http({
@@ -339,13 +342,14 @@ angular.module('discoveryApp')
                                                                     node.cluster = cluster.uid;
                                                                     factory.formatNode(node);
                                                                     factory.allNodes.push(node);
+
                                                                     if ((parentIndex === factory.sites.length - 1) && (clusterIndex === site.clusters.length - 1) && (nodeIndex === cluster.nodes.length - 1)) {
                                                                         $q.all(promises).then(function() {
                                                                             scope.loading = false;
                                                                             successCallBack();
                                                                         });
                                                                     }
-                                                                });
+                                                                })
                                                                 return response;
                                                             },
                                                             function(response) {
