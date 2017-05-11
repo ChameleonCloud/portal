@@ -34,7 +34,7 @@
                     <strong>Version: </strong>[[node.version]]
                 </div>
             </div>
-            <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'monitoring'], key)">
+            <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'monitoring', 'node_type'], key)">
                 <div ng-if="!isObject(value) && !isArray(value) && value !== null && value !== ''" class="row">
                     <div class="col col-sm-3">
                         <strong>[[snakeToReadable(key)]]: </strong>[[value]]

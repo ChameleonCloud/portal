@@ -2,74 +2,213 @@
 <link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}"> {% endblock %} {% block content %}
 
 <h2>Details for node {{ node.uid }}</h2>
-{{ resource }}
 <div ng-app="discoveryApp" class="discovery-app" ng-controller="NodeController" ng-init="initLink('{{resource}}');">
         <section>
             <div class="row">
                 <div class="col col-sm-3">
-                    <strong>Site: </strong> SUMTHIN
+                    <strong>Site: </strong> {{ site }}
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Cluster: </strong> AMPTJER
+                    <strong>Cluster: </strong> {{ cluster }}
                 </div>
-                [[ node.architecture ]]
-                <div ng-repeat="(ky, vl) in node.architecture track by $index" class="col col-sm-3">
-                    key [[ky]]  value [[vl]]
-                    <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
+                <div class="col col-sm-3">
+                    <strong>Platform Type: </strong>{{ node.architecture.platform_type }}
                 </div>
-                <div ng-repeat="(ky, vl) in node.main_memory track by $index" class="col col-sm-3" ng-if="ky.indexOf('humanized') === -1">
-                    <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
+                <div class="col col-sm-3">
+                    <strong># CPUs: </strong>{{ node.architecture.smp_size }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong># of Threads: </strong>{{ node.architecture.smt_size }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>RAM Size: </strong>{{ node.main_memory.humanized_ram_size }}
                 </div>
                 <div class="col col-sm-3">
                     <strong>Node Type: </strong> {{ node.node_type }}
                 </div>
-                <!--<div ng-repeat="(ky, vl) in node.gpu track by $index" class="col col-sm-3">
-                    <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
-                </div>-->
-                <div ng-repeat="(ky, vl) in node.monitoring track by $index" class="col col-sm-3">
-                    <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
+                <div class="col col-sm-3">
+                    <strong>Wattmeter: </strong>{% if node.monitoring.wattmeter == 'true' %}Yes{% else %}No{% endif%}
                 </div>
                 <div class="col col-sm-3">
                     <strong>Version: </strong> {{ node.version }}
                 </div>
             </div>
-            <div ng-repeat="(key, value) in node track by $index" ng-if="!contains(['site', 'cluster', 'uid', 'version', 'architecture', 'main_memory', 'monitoring'], key)">
-                <div ng-if="!isObject(value) && !isArray(value) && value !== null && value !== ''" class="row">
+            <h5 class="bg-success"><strong>Bios</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Release Date: </strong> {{ node.bios.release_date }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Vendor: </strong> {{ node.bios.version }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Version: </strong> {{ node.bios.vendor }}
+                </div>
+            </div>
+            <h5 class="bg-success"><strong>Chassis</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Manufacturer: </strong> {{ node.chassis.manufacturer }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Name: </strong> {{ node.chassis.name }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Serial: </strong> {{ node.chassis.serial }}
+                </div>
+            </div>
+            <h5 class="bg-success"><strong>GPU</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>GPU: </strong>{% if node.gpu.gpu == 'true' %}Yes{% else %}No{% endif%}
+                </div>
+            </div>
+            <h5 class="bg-success" data-toggle="collapse" data-target="#network"><strong>Network Adapters</strong>
+                <span class="pull-right network-toggle">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
+            </h5>
+            <div class="collapse" id="network">
+                {% for na in node.network_adapters %}
+                <h5 class="bg-info"><strong>Network Adapter #{{ forloop.counter0 }}</strong></h5>
+                <div class="row">
                     <div class="col col-sm-3">
-                        <strong>[[snakeToReadable(key)]]: </strong>[[value]]
+                        <strong>Bridged: </strong> {% if na.bridged == 'false' %}No{% else %}Yes{% endif %}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Device: </strong> {{ na.device }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Driver: </strong> {{ na.driver }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Interface: </strong> {{ na.interface }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Mac: </strong> {{ na.mac }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Management: </strong>{% if na.management == 'false' %}No{% else %}Yes{% endif %}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Model: </strong> {{ na.model }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Mounted: </strong>{% if na.mounted == 'false' %}No{% else %}Yes{% endif %}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Rate: </strong> {{ na.rate }}
+                    </div>
+                    <div class="col col-sm-3">
+                        <strong>Vendor: </strong> {{ na.vendor }}
                     </div>
                 </div>
-                <div ng-if="isArray(value)" ng-init="collapsed = true">
-                    <h5 class="bg-success pseudolink" ng-click="collapsed = !collapsed"><strong>[[snakeToReadable(key)]]</strong>
-                             <span ng-show="!collapsed" class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>
-                             <span ng-show="collapsed" class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-                        </h5>
-                    <div ng-repeat="val in value track by $index" ng-show="!collapsed" ng-init="arrayIndex = $index; innerCollapsed = true">
-                        <h5 class="bg-info"><strong>[[snakeToReadable(key)]] #[[$index]]</strong></h5>
-                        <div class="row">
-                            <div ng-repeat="(ky, vl) in val track by $index" class="col col-sm-3" ng-if="vl !== null && vl !== '' && ky.indexOf('humanized') === -1">
-                                <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
-                            </div>
-                        </div>
-                    </div>
+                {% endfor %}
+            </div>
+            <h5 class="bg-success"><strong>Operating System</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Kernel: </strong> {{ node.operating_system.kernel }}
                 </div>
-                <div ng-if="isObject(value) && !isArray(value)">
-                    <h5 class="bg-success"><strong>[[snakeToReadable(key)]]</strong></h5>
-                    <div class="row">
-                        <div ng-repeat="(ky, vl) in value track by $index" ng-show="!collapsed" class="col col-sm-3" ng-if="vl !== null && vl !== ''">
-                            <strong>[[snakeToReadable(ky)]]: </strong>[[vl]]
-                        </div>
-                    </div>
+                <div class="col col-sm-3">
+                    <strong>Name: </strong> {{ node.operating_system.name }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Version: </strong> {{ node.operating_system.version }}
+                </div>
+            </div>
+            <h5 class="bg-success"><strong>Processor</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Cache L1d: </strong> {{ node.processor.cache_l1d }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Cache L1i: </strong> {{ node.processor.cache_l1i }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Cache L2: </strong> {{ node.processor.cache_l2 }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Cache L3: </strong> {{ node.processor.cache_l3 }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Clock Speed: </strong> {{ node.processor.clock_speed }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Instruction Set: </strong> {{ node.processor.instruction_set }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Model: </strong> {{ node.processor.model }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Other Description: </strong> {{ node.processor.other_description }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Vendor: </strong> {{ node.processor.vendor }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Version: </strong> {{ node.processor.version }}
+                </div>
+            </div>
+            <h5 class="bg-success" data-toggle="collapse" data-target="#storage"><strong>Storage Devices</strong>
+                <span class="pull-right storage-toggle">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
+            </h5>
+            <div class="collapse" id="storage">
+                {% for sd in node.storage_devices %}
+                <h5 class="bg-info"><strong>Storage Device #{{ forloop.counter0 }}</strong></h5>
+                <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Device: </strong> {{ sd.device }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Driver: </strong> {{ sd.driver }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Interface: </strong> {{ sd.interface }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Model: </strong> {{ sd.model }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Rev: </strong> {{ sd.rev }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Size: </strong> {{ sd.humanized_size }}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Vendor: </strong> {{ sd.vendor }}
+                </div>
+                </div>
+                {% endfor %}
+            </div>
+            <h5 class="bg-success"><strong>Supported Job Types</strong></h5>
+            <div class="row">
+                <div class="col col-sm-3">
+                    <strong>Best Effort: </strong> {% if node.supported_job_types.besteffort == 'true' %}Yes{% else %}No{% endif%}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Deploy: </strong> {% if node.supported_job_types.deploy == 'true' %}Yes{% else %}No{% endif%}
+                </div>
+                <div class="col col-sm-3">
+                    <strong>Virtual: </strong> {{ node.supported_job_types.virtual }}
                 </div>
             </div>
         </section>
 </div>
 {% endblock content %}{% block scripts %}
-<script src="{% static 'g5k_discovery/js/vendor.js' %}"></script>
-<script src="{% static 'g5k_discovery/js/app.js' %}"></script>
-<script src="{% static 'g5k_discovery/js/factory.js' %}"></script>
-<script src="{% static 'g5k_discovery/js/controllers/main_controller.js' %}"></script>
-<script src="{% static 'g5k_discovery/js/controllers/modal_controller.js' %}"></script>
-<script src="{% static 'g5k_discovery/js/controllers/node_controller.js' %}"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+  $("#storage").on("hide.bs.collapse", function(){
+    $(".storage-toggle").html('<span class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>');
+  });
+  $("#storage").on("show.bs.collapse", function(){
+    $(".storage-toggle").html('<span class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>');
+  });
+  $("#network").on("hide.bs.collapse", function(){
+    $(".network-toggle").html('<span class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>');
+  });
+  $("#network").on("show.bs.collapse", function(){
+    $(".network-toggle").html('<span class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>');
+  });
+});
+</script>
 {% endblock %}
 
