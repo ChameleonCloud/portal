@@ -1,5 +1,10 @@
 ## Changelog
 
+### v1.16.5:
+    - Enhancements:
+        - Added node detail page
+        - Added extra information to ticket creation
+
 ### v1.16.3:
     - Fixes:
         - fixed issue where menu was not displaying on webinar pages
