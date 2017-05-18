@@ -43,12 +43,14 @@ class BaseTicketForm(forms.Form):
     Base form class for Tickets.
     """
 
+    help_text = 'In order to help us address your issue in a timely manner, please be sure to provide your project name and the details of your problem, including your username and the UUID of the instance or lease in question if applicable.'
+
     first_name = forms.CharField(widget=forms.TextInput(), label='First name', max_length=100, required=True)
     last_name = forms.CharField(widget=forms.TextInput(), label='Last name', max_length=100, required=True)
     email = forms.EmailField(widget=forms.EmailInput(), label='Email', required=True)
     subject = forms.CharField(widget=forms.TextInput(), label='Subject', max_length=100, required=True)
     category = forms.ChoiceField(required=True)
-    problem_description = forms.CharField(widget=forms.Textarea(), label='Problem description', required=True)
+    problem_description = forms.CharField(widget=forms.Textarea(attrs={'placeholder': help_text}), label='Problem description', required=True)
     attachment = forms.FileField(required=False)
 
     def __init__(self, *args, **kwargs):

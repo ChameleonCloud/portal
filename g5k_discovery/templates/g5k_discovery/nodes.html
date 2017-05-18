@@ -6,7 +6,7 @@
 <button class="btn btn-sm" ng-click="nodeView.search = '';nodeViewSearch()">Clear</button>
 <ol ng-show="filteredNodes.length > 0">
     <li ng-repeat="node in filteredNodes track by $index" class="node">
-        <h4 class="node-header">[[node.uid]]</h4>
+        <h4 class="node-header"><a href="node/sites/[[node.site]]/clusters/[[node.cluster]]/nodes/[[node.uid]]">[[node.uid]]</a></h4>
         <section>
             <div class="row">
                 <div class="col col-sm-3">
