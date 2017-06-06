@@ -4,12 +4,14 @@ from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
+from django.core.mail import send_mail
 from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
+from django.contrib.auth.models import User
 from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, \
-                      PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm
+                      PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, RecoverUsernameForm
 from tas.models import activate_local_user
 from djangoRT import rtUtil, rtModels
 import re
@@ -87,6 +89,25 @@ def profile_edit(request):
         'user': tas_user,
         }
     return render(request, 'tas/profile_edit.html', context)
+
+def recover_username(request):
+
+    if request.POST:
+        form = RecoverUsernameForm(request.POST)
+        if form.is_valid():
+            email = request.POST['email']
+            user = User.objects.get(email=email)
+
+            send_mail(
+                'Your Chameleon Username',
+                'Your Chameleon username is ' + user.username,
+                'no-reply@chameleoncloud.org',
+                [email],
+                fail_silently=False,
+            )
+    else:
+        form = RecoverUsernameForm()
+    return render(request, 'tas/recover_username.html', { 'form': form })
 
 def password_reset(request):
     if request.user is not None and request.user.is_authenticated():

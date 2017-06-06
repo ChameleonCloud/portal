@@ -34,6 +34,7 @@ urlpatterns = patterns(
         url(r'^user/', include('tas.urls', namespace='tas')),
         url(r'^email-confirmation/', 'tas.views.email_confirmation'),
         url(r'^password-reset/', 'tas.views.password_reset'),
+        url(r'^forgot-username/$', 'tas.views.recover_username'),
         url(r'^appliances/', include('appliance_catalog.urls')),
         url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
         url(r'^user/projects/', include('projects.urls', namespace='projects')),

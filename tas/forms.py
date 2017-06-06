@@ -103,6 +103,9 @@ def check_password_policy(user, password, confirm_password):
 
     return True, None
 
+class RecoverUsernameForm(forms.Form):
+    email = forms.CharField(label='Enter Your Email Address', required=True)
+
 class PasswordResetRequestForm(forms.Form):
     username = forms.CharField(label='Enter Your Chameleon Username', required=True)
 
