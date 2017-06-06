@@ -14,6 +14,7 @@ angular.module('allocationsApp')
         };
         $scope.filter = {
             active: false,
+            approved: false,
             inactive: false,
             pending: false,
             rejected: false,
@@ -22,6 +23,7 @@ angular.module('allocationsApp')
         $scope.reset = function() {
             $scope.selectedProjects = $scope.projects;
             $scope.filter.active = false;
+            $scope.filter.approved = false;
             $scope.filter.inactive = false;
             $scope.filter.pending = false;
             $scope.filter.rejected = false;

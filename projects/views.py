@@ -113,6 +113,7 @@ def view_project(request, project_id):
         raise PermissionDenied
 
     project.active_allocations = []
+    project.approved_allocations = []
     project.pending_allocations = []
     project.rejected_allocations = []
     project.inactive_allocations = []
@@ -121,6 +122,9 @@ def view_project(request, project_id):
         if a.status == 'Active' and a.resource == 'Chameleon':
             project.active_allocations.append(a)
             project.has_active_allocations = True
+        if a.status == 'Approved' and a.resource == 'Chameleon':
+            project.approved_allocations.append(a)
+            project.has_approved_allocations = True
         if a.status == 'Pending' and a.resource == 'Chameleon':
             project.pending_allocations.append(a)
             project.has_pending_allocations = True
