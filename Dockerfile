@@ -1,7 +1,8 @@
-FROM mrhanlon/python-nginx:latest
+FROM python:2.7
 
-MAINTAINER Matthew R Hanlon <mrhanlon@tacc.utexas.edu>
+MAINTAINER Carrie Arnold <cmarnold@tacc.utexas.edu>
 
+RUN apt-get update && apt-get install -y nginx supervisor ruby ruby-dev && gem install sass compass && pip install uwsgi
 
 EXPOSE 80 443
 
