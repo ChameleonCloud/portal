@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -96,15 +97,19 @@ def recover_username(request):
         form = RecoverUsernameForm(request.POST)
         if form.is_valid():
             email = request.POST['email']
-            user = User.objects.get(email=email)
+            try:
+                user = User.objects.get(email=email)
+                send_mail(
+                    'Your Chameleon Username',
+                    'Your Chameleon username is ' + user.username,
+                    'no-reply@chameleoncloud.org',
+                    [email],
+                    fail_silently=False,
+                )
 
-            send_mail(
-                'Your Chameleon Username',
-                'Your Chameleon username is ' + user.username,
-                'no-reply@chameleoncloud.org',
-                [email],
-                fail_silently=False,
-            )
+                messages.success(request, 'Your username has been sent to the email you provided.')
+            except ObjectDoesNotExist:
+                messages.info(request, 'Your username could not be recovered, please contact the helpdesk.')
     else:
         form = RecoverUsernameForm()
     return render(request, 'tas/recover_username.html', { 'form': form })
