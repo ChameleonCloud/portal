@@ -109,7 +109,7 @@ def recover_username(request):
 
                 messages.success(request, 'Your username has been sent to the email you provided.')
             except ObjectDoesNotExist:
-                messages.info(request, 'Your username could not be recovered, please contact the helpdesk.')
+                messages.error(request, 'Your username could not be recovered, please contact the helpdesk.')
     else:
         form = RecoverUsernameForm()
     return render(request, 'tas/recover_username.html', { 'form': form })
