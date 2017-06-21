@@ -9,7 +9,7 @@
       {% endif %}
     </small>
   </h4>
-  {% if alloc.up_for_renewal %}
+  {% if alloc.up_for_renewal and not project.has_approved_allocations %}
     <div class="alert alert-warning">
       <p>
         <i class="fa fa-warning"></i>
@@ -43,7 +43,7 @@
         </div>
       </div>
       <div class="col-sm-3">
-        {% if is_pi and not project.has_pending_allocations %}
+        {% if is_pi and not project.has_pending_allocations and not project.has_approved_allocations %}
           <h5>Actions</h5>
           <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
              title="If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. An accepted request will grant up to an additional 20,000 SUs and extend the end date of the allocation for up to an additional 6 months.">
@@ -69,7 +69,7 @@
         {{ alloc.decisionSummary }}
       </div>
       <div class="col-sm-3">
-      {% if is_pi and not project.has_pending_allocations and not project.has_active_allocations %}
+      {% if is_pi and not project.has_pending_allocations and not project.has_active_allocations and not project.has_approved_allocations %}
         <h5>Actions</h5>
         <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
            title="">
