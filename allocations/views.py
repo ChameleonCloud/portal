@@ -78,14 +78,14 @@ def user_projects( request, username ):
             userData = tas.get_user(username=username)
             try:
                 userProjects = tas.projects_for_user( username=username )
-                logger.debug(userProjects)
-                if (len(userProjects) > 0):
-                    logger.info('User Projects: %s',  len(userProjects))
-                    for p in userProjects:
-                        if p['source'] == 'Chameleon':
-                            resp['status'] = 'success'
-                            resp['result'].append(p)
-                    logger.info('Total chameleon projects for user %s: %s', username, len(resp))
+                #logger.debug(userProjects)
+                #if (len(userProjects) > 0):
+                 #   logger.info('User Projects: %s',  len(userProjects))
+                for p in userProjects:
+                     if p['source'] == 'Chameleon':
+                        resp['status'] = 'success'
+                        resp['result'].append(p)
+                logger.info('Total chameleon projects for user %s: %s', username, len(resp))
                     # @TODO verify that all projects will have a source of Chameleon
                     #if (chameleonProjects and userProjects):
                     #    for project in userProjects:
