@@ -78,13 +78,21 @@ def user_projects( request, username ):
             userData = tas.get_user(username=username)
             try:
                 userProjects = tas.projects_for_user( username=username )
-                chameleonProjects = tas.projects_for_group('Chameleon');
-                if (chameleonProjects and userProjects):
-                    for project in userProjects:
-                        if project in chameleonProjects:
+                logger.debug(userProjects)
+                if (len(userProjects) > 0):
+                    logger.info('User Projects: %s',  len(userProjects))
+                    for p in userProjects:
+                        if p['source'] == 'Chameleon':
                             resp['status'] = 'success'
-                            resp['result'].append(project)
-                            logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
+                            resp['result'].append(p)
+                    logger.info('Total chameleon projects for user %s: %s', username, len(resp))
+                    # @TODO verify that all projects will have a source of Chameleon
+                    #if (chameleonProjects and userProjects):
+                    #    for project in userProjects:
+                    #        if project in chameleonProjects:
+                    #            resp['status'] = 'success'
+                    #            resp['result'].append(project)
+                    #            logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
             except Exception as e:
                 logger.debug('Error loading projects for user: %s', username)
                 resp['msg'] = 'Error loading projects for user: %s' %username
