@@ -79,22 +79,25 @@ def user_projects( request, username ):
             try:
                 userProjects = tas.projects_for_user( username=username )
                 #logger.debug(userProjects)
-                #if (len(userProjects) > 0):
-                 #   logger.info('User Projects: %s',  len(userProjects))
+
+                temp = {}
+                # run through and make sure all the allocations are associated with one project
                 for p in userProjects:
                      if p['source'] == 'Chameleon':
-                        resp['status'] = 'success'
-                        resp['result'].append(p)
+                        if p['chargeCode'] not in temp:
+                            logger.debug('Project ' + p['chargeCode'] + ' is not in the temp yet, adding')
+                            temp[p['chargeCode']] = p
+                        else:
+                            logger.debug('Project ' + p['chargeCode'] + ' is in temp...appending allocations')
+                            tempProj = temp[p['chargeCode']]
+                            tempProj['allocations'].extend(p['allocations'])
+                            temp[p['chargeCode']] = tempProj
+                for code, proj in temp.items():
+                    resp['status'] = 'success'
+                    resp['result'].append(proj)
                 logger.info('Total chameleon projects for user %s: %s', username, len(resp))
-                    # @TODO verify that all projects will have a source of Chameleon
-                    #if (chameleonProjects and userProjects):
-                    #    for project in userProjects:
-                    #        if project in chameleonProjects:
-                    #            resp['status'] = 'success'
-                    #            resp['result'].append(project)
-                    #            logger.info( 'Total chameleon projects for user %s: %s', username, len( resp ) )
             except Exception as e:
-                logger.debug('Error loading projects for user: %s', username)
+                logger.debug('Error loading projects for user: %s with error %s', username, e)
                 resp['msg'] = 'Error loading projects for user: %s' %username
         except Exception as e:
             logger.debug('User not found with username: %s', username)
