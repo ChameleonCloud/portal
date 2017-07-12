@@ -44,10 +44,17 @@ def denied( request ):
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def view( request ):
-    resp = ''
+    #resp = ''
     try:
         tas = TASClient()
         resp = tas.projects_for_group('Chameleon')
+        for p in resp:
+            tempAlloc = []
+            for a in p['allocations']:
+                if a['resource'] == 'Chameleon':
+                    tempAlloc.append(a)
+            p['allocations'] = tempAlloc
+
         logger.debug( 'Total projects: %s', len(resp) )
     except Exception as e:
         logger.exception('Error loading chameleon projects')
@@ -90,7 +97,9 @@ def user_projects( request, username ):
                         else:
                             logger.debug('Project ' + p['chargeCode'] + ' is in temp...appending allocations')
                             tempProj = temp[p['chargeCode']]
-                            tempProj['allocations'].extend(p['allocations'])
+                            for a in p['allocations']:
+                                if a['resource'] == 'Chameleon':
+                                    tempProj['allocations'].extend(a)
                             temp[p['chargeCode']] = tempProj
                 for code, proj in temp.items():
                     resp['status'] = 'success'
