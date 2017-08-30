@@ -54,18 +54,19 @@ The docker-compose.yml included in this repo is setup for running the compositio
 ```bash
 git clone git@github.com:ChameleonCloud/reference-api.git
 cd reference-api
+git submodule init && git submodule update
 docker build -t referenceapi .
 ```
 
 Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
 
-Finally, from this repository run:
+Finally, from the root portal projecct folder, run:
 
 ```bash
 docker-compose up
 ```
 
-If you need to rebuild the image, simply run:
+If you need to (re)build the image, simply run:
 
 ```bash
 docker-compose build
