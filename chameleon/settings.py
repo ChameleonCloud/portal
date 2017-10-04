@@ -25,7 +25,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'NOT_A_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
 
-TEMPLATE_DEBUG = DEBUG
+#TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     # django-cms
     #
     'cms',
+    'treebeard',
     'mptt',
     'menus',
     'sekizai',
@@ -71,7 +72,7 @@ INSTALLED_APPS = (
     'djangocms_column',
     'djangocms_file',
     'djangocms_flash',
-    'djangocms_googlemap',
+    #'djangocms_googlemap',
     'djangocms_inherit',
     'djangocms_link',
     'djangocms_picture',
@@ -185,11 +186,11 @@ STATICFILES_DIRS = (
     '/var/www/static/',
 )
 
-
+'''
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,'chameleon','templates'),
 )
-
+'''
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
@@ -395,14 +396,45 @@ PIPELINE_JS = {
 # compress when collect static
 STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
 
-TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
+#TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
 
+'''
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django.core.context_processors.request',
     'chameleon.context_processors.google_analytics',
     'sekizai.context_processors.sekizai',
     'cms.context_processors.cms_settings',
 )
+'''
+TEMPLATES = [
+{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'APP_DIRS': True,
+    'DIRS': os.path.join(BASE_DIR,'chameleon','templates'),
+    'OPTIONS': {
+        'context_processors':
+            (
+            'django.contrib.auth.context_processors.auth',
+            'django.template.context_processors.debug',
+            'django.template.context_processors.i18n',
+            'django.template.context_processors.media',
+            'django.template.context_processors.static',
+            'django.template.context_processors.tz',
+            'django.template.context_processors.csrf',
+            'django.template.context_processors.request',
+            'django.contrib.messages.context_processors.messages',
+            'django.core.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'chameleon.context_processors.google_analytics',
+            'sekizai.context_processors.sekizai',
+            'chameleon.context_processors.sekizai',
+            'cms.context_processors.cms_settings',
+            ),
+	'debug': os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
+    }
+},
+]
+
 
 
 #####

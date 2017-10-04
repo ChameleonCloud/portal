@@ -31,7 +31,7 @@ class Appliance(models.Model):
     support_contact_url = models.CharField(max_length=500)
     project_supported = models.BooleanField(default=False, blank=True)
     project_flagged = models.BooleanField(default=False, blank=True)
-    keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', null=True,
+    keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', null=False,
                                       blank=True)
     version = models.CharField(max_length=100)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='appliances')

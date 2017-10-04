@@ -5,6 +5,7 @@ class EventForm(ModelForm):
 
     class Meta:
         model = Event
+	fields = '__all__'
         widgets = {
             'event_type': Select
         }
@@ -14,6 +15,7 @@ class OutageForm(ModelForm):
 
     class Meta:
         model = Outage
+	fields = '__all__'
 
     def clean_send_email_notification(self):
         send = self.cleaned_data.get('send_email_notification')
