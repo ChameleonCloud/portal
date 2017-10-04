@@ -65,7 +65,7 @@ INSTALLED_APPS = (
     #
     'cms',
     'treebeard',
-    'mptt',
+#    'mptt',
     'menus',
     'sekizai',
     'djangocms_style',
@@ -316,7 +316,7 @@ MIGRATION_MODULES = {
     'djangocms_text_ckeditor': 'djangocms_text_ckeditor.migrations_django',
     'djangocms_column': 'djangocms_column.migrations_django',
     'djangocms_flash': 'djangocms_flash.migrations_django',
-    'djangocms_googlemap': 'djangocms_googlemap.migrations_django',
+#    'djangocms_googlemap': 'djangocms_googlemap.migrations_django',
     'djangocms_inherit': 'djangocms_inherit.migrations_django',
     'djangocms_style': 'djangocms_style.migrations_django',
     'djangocms_file': 'djangocms_file.migrations_django',
