@@ -311,8 +311,8 @@ LANGUAGES = [
 ]
 
 MIGRATION_MODULES = {
-    'cms': 'cms.migrations_django',
-    'menus': 'menus.migrations_django',
+#    'cms': 'cms.migrations_django',
+#    'menus': 'menus.migrations_django',
     'djangocms_text_ckeditor': 'djangocms_text_ckeditor.migrations_django',
     'djangocms_column': 'djangocms_column.migrations_django',
     'djangocms_flash': 'djangocms_flash.migrations_django',
