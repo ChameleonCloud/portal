@@ -410,10 +410,10 @@ TEMPLATES = [
 {
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'APP_DIRS': True,
-    'DIRS': os.path.join(BASE_DIR,'chameleon','templates'),
+    'DIRS': [os.path.join(BASE_DIR,'chameleon','templates'),],
     'OPTIONS': {
         'context_processors':
-            (
+            [
             'django.contrib.auth.context_processors.auth',
             'django.template.context_processors.debug',
             'django.template.context_processors.i18n',
@@ -427,10 +427,10 @@ TEMPLATES = [
             'django.contrib.auth.context_processors.auth',
             'chameleon.context_processors.google_analytics',
             'sekizai.context_processors.sekizai',
-            'chameleon.context_processors.sekizai',
+           # 'chameleon.context_processors.sekizai',
             'cms.context_processors.cms_settings',
-            ),
-	'debug': os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
+            ],
+	'debug': os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG',
     }
 },
 ]
