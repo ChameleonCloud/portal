@@ -65,7 +65,7 @@ INSTALLED_APPS = (
     #
     'cms',
     'treebeard',
-#    'mptt',
+    'mptt',
     'menus',
     'sekizai',
     'djangocms_style',
@@ -424,7 +424,7 @@ TEMPLATES = [
             'django.template.context_processors.request',
             'django.contrib.messages.context_processors.messages',
             'django.core.context_processors.request',
-            'django.contrib.auth.context_processors.auth',
+            #'django.contrib.auth.context_processors.auth',
             'chameleon.context_processors.google_analytics',
             'sekizai.context_processors.sekizai',
            # 'chameleon.context_processors.sekizai',
