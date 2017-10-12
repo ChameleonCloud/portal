@@ -477,7 +477,7 @@ BOOTSTRAP3 = {
 # Terms and Conditions settings
 #
 #####
-DEFAULT_TERMS_SLUG = 'user-terms'
+DEFAULT_TERMS_SLUG = 'site-terms'
 ACCEPT_TERMS_PATH = '/terms/accept/'
 TERMS_EXCLUDE_URL_PREFIX_LIST = {'/admin', '/terms'}
 TERMS_EXCLUDE_URL_LIST = {'/', '/termsrequired/', '/logout/', '/securetoo/'}
