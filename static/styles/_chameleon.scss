@@ -307,9 +307,15 @@ article {
       }
     }
   }
+  .navbar-nav>li>a {
+    padding-top: 24px;
+    padding-bottom: 24px;
+    padding-left: 7px;
+    padding-right: 7px;
+}  
 }
 
-@media screen and (min-width:768px) {
+@media screen and (min-width:992px) {
   .navbar-nav>li>a {
     padding-left: 14px;
     padding-right: 14px;

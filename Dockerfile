@@ -1,6 +1,6 @@
 FROM python:2.7
 
-MAINTAINER Carrie Arnold <cmarnold@tacc.utexas.edu>
+MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
 
 RUN apt-get update && apt-get install -y nginx supervisor ruby ruby-dev && gem install sass compass && pip install uwsgi
 
