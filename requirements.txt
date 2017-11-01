@@ -59,7 +59,7 @@ opbeat
 httpretty
 mock
 
-djangocms-blog=0.8.13
+djangocms-blog==0.8.13
 #django-meta-mixin
 
 # these modules aren't in PIP
