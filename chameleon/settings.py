@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'taggit_autosuggest',
     'meta',
     'meta_mixin',
+    'aldryn_search',
     'djangocms_blog',
 
 )
@@ -583,3 +584,19 @@ PARLER_LANGUAGES = {
         'fallbacks': ['en'],
     }
 }
+
+HAYSTACK_CONNECTIONS = {
+    'en': {
+        'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
+        'URL': 'http://my-solr-server/solr/my-site-en/',
+        'TIMEOUT': 60 * 5,
+        'INCLUDE_SPELLING': True,
+        'BATCH_SIZE': 100,
+    },
+}
+
+HAYSTACK_ROUTERS = ['aldryn_search.router.LanguageRouter',]
+
+
+
+
