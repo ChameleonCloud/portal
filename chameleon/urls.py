@@ -57,6 +57,7 @@ urlpatterns = patterns(
             'chameleon_mailman.views.manage_mailman_subscriptions',
             name='mailman_manage'),
         # cms urls
+        url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
         url(r'^', include('cms.urls')),
 )
 
