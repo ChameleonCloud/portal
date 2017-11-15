@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     #
     'djangocms_admin_style',
     'djangocms_text_ckeditor',
+    'blog_comments',
 
     ##
     # core apps

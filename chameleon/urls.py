@@ -58,6 +58,7 @@ urlpatterns = patterns(
             name='mailman_manage'),
         # cms urls
         url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
+        url(r'^', include('blog_comments.urls')),
         url(r'^', include('cms.urls')),
 )
 
