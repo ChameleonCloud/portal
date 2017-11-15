@@ -7,6 +7,13 @@
     list-style-type: none;
 
 }
+.post-detail tags ul {
+    list-style-type: none;
+
+}
+.post-detail tags li {
+    display: inline-block;
+}
 .post-detail li {
     display: inline-block;
 }
@@ -25,10 +32,10 @@
     {% endif %}
 </ul>
 <ul class="post-detail tags">
-    {% if post.categories.exists %}
+    {% if post.categories.exists %}<i class="fa fa-tags" aria-hidden="true" style="padding-right: .5em;"></i>
         {% for category in post.categories.all %}
             {% if category.slug %}
-                <li class="category_{{ forloop.counter }}"><a href="{% url 'djangocms_blog:posts-category' category=category.slug %}" class="blog-categories-{{ category.count }}">{{ category.name }}</a>{% if not forloop.last %}, {% endif %}</li>
+                <li class="category_{{ forloop.counter }}"><a href="{% url 'djangocms_blog:posts-category' category=category.slug %}" class="blog-categories-{{ category.count }}">{{ category.name }}</a>{% if not forloop.last %},&nbsp;{% endif %}</li>
             {% endif %}
         {% endfor %}
     {% endif %}
