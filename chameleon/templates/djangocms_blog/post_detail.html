@@ -65,7 +65,7 @@
     <form method="POST" class="post-form" action="{% url 'add_comment_to_post' pk=post.pk %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.path }}">
-    <textarea rows="6" cols="50" name="text" placeholder="Markdown syntax allowed--no raw HTML. Examples: **bold**, <https://www.example.com>" ></textarea>
+    <textarea required rows="6" cols="50" name="text" placeholder="Markdown syntax allowed--no raw HTML. Examples: **bold**, <https://www.example.com>" ></textarea>
     <br/>
     <button type="submit" class="save btn btn-default">Add</button>
     </form>
@@ -91,7 +91,7 @@ Add a comment
     <div class="comment">
         <span class="date"><strong>{{ comment.author.first_name }}&nbsp;{{ comment.author.last_name }}</strong>&nbsp;{{ comment.created_date }}</span>
         <div>
-        <p>{{ comment.text|markdown }}</p>
+        <p>{{ comment.escaped_text|markdown }}</p>
 	</div>
     </div>
 {% empty %}
