@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from .forms import CommentForm
 from django.contrib import messages
 from djangocms_blog.models import Post
+from django.utils import html
 
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -12,6 +13,7 @@ def add_comment_to_post(request, pk):
             comment = form.save(commit=False)
             comment.author = request.user
             comment.post = post
+            comment.text = html.conditional_escape(comment.text)
             comment.save()
             next = request.POST.get('next', '/')
             messages.success(request, 'Comment Added Successfully')

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from djangocms_blog import models as blogmodels
 from django.utils import timezone
+from django.utils import html
 # Create your models here.
 
 
@@ -25,3 +26,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
+
+    def escaped_text(self):
+    	return html.conditional_escape(self.text)
