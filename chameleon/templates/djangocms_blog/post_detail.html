@@ -1,6 +1,6 @@
 {% extends "djangocms_blog/base.html" %}
 {% load i18n thumbnail cms_tags %}
-
+{% load markdown_deux_tags %}
 {% block meta_description %}{{ post.meta_description }}{% endblock meta_description %}
 {% block meta_keywords %}{{ post.meta_keywords }}{% endblock meta_keywords %}
 {% block canonical_url %}<link rel="canonical" href="{{ meta.url }}"/>{% endblock canonical_url %}
@@ -15,9 +15,10 @@
 
     }
 
-    .comment p {
+    .comment div {
         margin: 0em 1em;
         padding: 0em .5em;
+	max-width: 50rem;
         border-left-style: solid;
         border-left-color: lightgray;
         border-left-width: medium;
@@ -64,8 +65,9 @@
     <form method="POST" class="post-form" action="{% url 'add_comment_to_post' pk=post.pk %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.path }}">
-    <textarea rows="6" cols="50" name="text"></textarea><br/>
-        <button type="submit" class="save btn btn-default">Add</button>
+    <textarea rows="6" cols="50" name="text" placeholder="Markdown syntax allowed--no raw HTML. Examples: **bold**, <https://www.example.com>" ></textarea>
+    <br/>
+    <button type="submit" class="save btn btn-default">Add</button>
     </form>
 <hr>
 {% else %}
@@ -87,9 +89,10 @@ Add a comment
 {% endif %}
 {% for comment in post.comments.all %}
     <div class="comment">
-        <div class="date"><strong>{{ comment.author.first_name }}&nbsp;{{ comment.author.last_name }}</strong>&nbsp;{{ comment.created_date }}</div>
-        
-        <p>{{ comment.text|linebreaks }}</p>
+        <span class="date"><strong>{{ comment.author.first_name }}&nbsp;{{ comment.author.last_name }}</strong>&nbsp;{{ comment.created_date }}</span>
+        <div>
+        <p>{{ comment.text|markdown }}</p>
+	</div>
     </div>
 {% empty %}
 

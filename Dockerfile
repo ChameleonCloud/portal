@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y gettext
 
 
 # copy requirements.txt, deps, and config separate from the rest of the project
-COPY requirements.txt /setup/requirements.txt
+COPY requirements-frozen.txt /setup/requirements-frozen.txt
 
 ### REMOVE THIS AFTER INTEGRATION IS COMPLETE
 #COPY deps /setup/deps
@@ -29,7 +29,7 @@ COPY docker-conf /setup/docker-conf
 
 
 # install pip dependencies
-RUN pip install -r /setup/requirements.txt
+RUN pip install -r /setup/requirements-frozen.txt
 
 
 # install non-pip dependencies
