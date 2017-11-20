@@ -28,4 +28,4 @@ class Comment(models.Model):
         return self.text
 
     def escaped_text(self):
-    	return html.conditional_escape(self.text)
+        return self.text
