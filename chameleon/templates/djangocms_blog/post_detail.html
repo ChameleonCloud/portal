@@ -91,7 +91,7 @@ Add a comment
     <div class="comment">
         <span class="date"><strong>{{ comment.author.first_name }}&nbsp;{{ comment.author.last_name }}</strong>&nbsp;{{ comment.created_date }}</span>
         <div>
-        <p>{{ comment.escaped_text|markdown }}</p>
+        <p>{{ comment.text|markdown:"blog_comments" }}</p>
 	</div>
     </div>
 {% empty %}

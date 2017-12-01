@@ -13,7 +13,7 @@ def add_comment_to_post(request, pk):
             comment = form.save(commit=False)
             comment.author = request.user
             comment.post = post
-            comment.text = comment.text #html.conditional_escape(comment.text)
+            comment.text = comment.text
             comment.save()
             next = request.POST.get('next', '/')
             messages.success(request, 'Comment Added Successfully')
