@@ -36,7 +36,61 @@
         padding: 0 5em 0 1em;
     }
 
+    #comments {
+        width: 70%;
+        float: left;
+    }
+
+    article div img {
+        max-width: 100%;
+    }
+
+    ul.featured-post {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    ul.featured-post li {
+        list-style-type: none;
+        padding: 0 0 1em 0;
+    }
+
+    section.blog-list article::after {
+        display: none;
+    }
+
+ @media screen and (max-width: 767px) {
+    .post-item {
+        display: inline-block;
+        width: 100%;
+    }
+    .featured-posts {
+        width: 100%;
+        padding: 0 0 0 0em;
+    }
+    .blog-list {
+        width: 100%;
+        display: inline-block;
+    }    
+    }
+
+@media screen and (min-width: 768px) {
+    .featured-posts {
+        float: right;
+        width: 25%;
+        padding: 0 0 0 3em;
+    }
+    .post-item {
+        width: 75%;
+        display: inline-block;
+        float: left;
+    }
+}
+
+}
+
 </style>
+
 
 <article id="post-{{ post.slug }}" class="post-item post-detail">
     <header>
@@ -57,8 +111,21 @@
     {% else %}
         <div class="blog-content">{% render_model post "post_text" "post_text" "" "safe" %}</div>
     {% endif %}
-</article>
 <hr>
+</article>
+
+<div class="featured-posts">
+  <h4>Featured Posts</h4>
+  <ul class="featured-post">
+    <li><a href="/blog/2018/01/30/orchestrating-and-deploying-complex-appliances/">Orchestrating and Deploying Complex Applications</a></li>
+    <li><a href="/blog/2018/01/17/making-instance-snapshots-chameleon/">Making Instance Snapshots on Chameleon</a></li>
+    <li><a href="/blog/2018/01/17/making-instance-snapshots-chameleon/">Getting Started with Chameleon</a></li>
+  </ul>
+  <hr>
+</div>
+
+<div id="comments">
+
 {% if user.is_authenticated %}
     <h4 id="addcomment">Add a comment</h4>
     <div class="date"><strong>{{ user.first_name }}&nbsp;{{ user.last_name }}:</strong></div>
@@ -79,7 +146,7 @@ Add a comment
 {% endif %}
 
 
-<div id="comments">
+
 {% if post.comments.all|length == 0 %}
  <h4>No&nbsp;comments</h4>
 {% elif post.comments.all|length == 1 %}
