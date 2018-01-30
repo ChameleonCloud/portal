@@ -12,7 +12,7 @@
 
     ul.featured-post li {
         list-style-type: none;
-        padding: 0 0 1em 0;
+        padding: 0 0 .5em 0;
     }
 
     section.blog-list article::after {
@@ -33,11 +33,11 @@
 @media screen and (min-width: 768px) {
     .featured-posts {
         float: right;
-        width: 25%;
+        width: 33%;
         padding: 0 0 0 3em;
     }
     .blog-list {
-        width: 75%;
+        width: 66%;
         display: inline-block;
         float: left;
     }
@@ -79,6 +79,15 @@
     </nav>
     {% endif %}
 </section>
+
+<div class="featured-posts">
+  <h4>Categories</h4>
+  <ul class="featured-post">
+    <li><a href="/blog/category/newusers">New Users</a></li>
+    <li><a href="/blog/category/education">Education</a></li>
+  </ul>
+</div>
+
 <div class="featured-posts">
   <h4>Featured Posts</h4>
   <ul class="featured-post">
