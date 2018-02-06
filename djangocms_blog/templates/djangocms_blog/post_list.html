@@ -83,18 +83,20 @@
 <div class="featured-posts">
   <h4>Categories</h4>
   <ul class="featured-post">
-    <li><a href="/blog/category/newusers">New Users</a></li>
-    <li><a href="/blog/category/education">Education</a></li>
+    {% for category in categories %}
+    <li><a href="{{category.get_absolute_url}}">{{category.name}}</a></li>
+    {% endfor %}
   </ul>
 </div>
 
 <div class="featured-posts">
   <h4>Featured Posts</h4>
   <ul class="featured-post">
-    <li><a href="/blog/2018/01/30/orchestrating-and-deploying-complex-appliances/">Orchestrating and Deploying Complex Applications</a></li>
-    <li><a href="/blog/2018/01/17/making-instance-snapshots-chameleon/">Making Instance Snapshots on Chameleon</a></li>
-    <li><a href="/blog/2018/01/03/getting-started-chameleon/">Getting Started with Chameleon</a></li>
+    {% for featured_post in featured_posts %}
+    <li><a href="{{featured_post.get_absolute_url}}">{{featured_post.get_title}}</a></li>
+    {% endfor %}
   </ul>
+  <hr>
 </div>
 {% endblock %}
 {% endspaceless %}
