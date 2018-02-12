@@ -29,10 +29,10 @@ def is_user_subscribed_to_list(user, list_name):
 def mailman_export_list(request, list_name):
     """
     Returns a text file, listing the email addresses, one per line, of all
-    Chameleon Users subscribed to the given list.
+    active (in Chamelon portal) Chameleon Users subscribed to the given list.
     """
     try:
-        users = get_user_model().objects.all()
+        users = get_user_model().objects.filter(is_active=True)
         content = list(u.email for u in users if is_user_subscribed_to_list(u, list_name))
         response = HttpResponse('\n'.join(content), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="%s.txt"' % list_name
