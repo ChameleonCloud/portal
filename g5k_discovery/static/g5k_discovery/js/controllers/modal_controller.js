@@ -41,11 +41,11 @@ angular.module('discoveryApp').controller('ModalInstanceCtrl', ['$scope', '$filt
         generateFilterScript(appliedFilters);
         if ($scope.scrpt) {
             $scope.scrpt = $scope.scrpt.substring(0, $scope.scrpt.length - 2);
-            $scope.scrpt = 'climate lease-create --physical-reservation min=' + $scope.userSelections.minNode + ',max=' + $scope.userSelections.maxNode +
+            $scope.scrpt = 'blazar lease-create --physical-reservation min=' + $scope.userSelections.minNode + ',max=' + $scope.userSelections.maxNode +
                 ',resource_properties=\'[' + $scope.scrpt + ']\'' + ' --start-date \"' + UtilFactory.getFormattedDate($scope.userSelections.startDate, $scope.userSelections.startTime) +
                 '\" --end-date \"' + UtilFactory.getFormattedDate($scope.userSelections.endDate, $scope.userSelections.endTime) + '\" my-custom-lease';
         } else {
-            $scope.scrpt = 'climate lease-create --physical-reservation min=' + $scope.userSelections.minNode + ',max=' + $scope.userSelections.maxNode +
+            $scope.scrpt = 'blazar lease-create --physical-reservation min=' + $scope.userSelections.minNode + ',max=' + $scope.userSelections.maxNode +
                 ' --start-date \"' + UtilFactory.getFormattedDate($scope.userSelections.startDate, $scope.userSelections.startTime) + '\" --end-date \"' +
                 UtilFactory.getFormattedDate($scope.userSelections.endDate, $scope.userSelections.endTime) + '\" my-custom-lease';
         }

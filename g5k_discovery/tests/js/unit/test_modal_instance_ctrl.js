@@ -52,7 +52,7 @@ describe('ModalInstanceCtrl', function() {
 
     it('Generates script based on user selections', function() {
         scope.generateScript();
-        expect('climate lease-create --physical-reservation min=10,max=20,resource_properties=\'[\"=\", \"$network_adapters.0.rate\", \"1\"]\' --start-date \"2015-01-01 06:00\" --end-date \"2015-12-30 06:00\" my-custom-lease').toEqual(scope.scrpt);
+        expect('blazar lease-create --physical-reservation min=10,max=20,resource_properties=\'[\"=\", \"$network_adapters.0.rate\", \"1\"]\' --start-date \"2015-01-01 06:00\" --end-date \"2015-12-30 06:00\" my-custom-lease').toEqual(scope.scrpt);
     });
 
     it('Opens and closes calendar', function() {
