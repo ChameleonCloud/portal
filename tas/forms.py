@@ -167,7 +167,7 @@ class UserProfileForm(forms.Form):
 
         self.fields['countryId'].choices = get_country_choices()
         self.fields['citizenshipId'].choices = get_country_choices()
-        self.fields['citizenshipId'].widget.attrs['readonly'] = True
+        self.fields['citizenshipId'].widget.attrs['disabled'] = True
 
 
 class TasUserProfileAdminForm(forms.Form):
