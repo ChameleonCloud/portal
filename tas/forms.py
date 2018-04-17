@@ -154,8 +154,8 @@ class UserProfileForm(forms.Form):
     institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
     departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
     title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
-    countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
-    citizenshipId = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
+    countryId = forms.CharField(label='Country of residence', widget=forms.HiddenInput(), error_messages={'invalid': 'Please select your Country of residence'})
+
 
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
@@ -166,8 +166,8 @@ class UserProfileForm(forms.Form):
             self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
 
         self.fields['countryId'].choices = get_country_choices()
-        self.fields['citizenshipId'].choices = get_country_choices()
-        self.fields['citizenshipId'].widget.attrs['readonly'] = True
+        #self.fields['citizenshipId'].choices = get_country_choices()
+        self.fields['citizenshipId'].widget.attrs['disabled'] = True
 
 
 class TasUserProfileAdminForm(forms.Form):
