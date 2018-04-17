@@ -166,9 +166,8 @@ class UserProfileForm(forms.Form):
             self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
 
         self.fields['countryId'].choices = get_country_choices()
-        #self.fields['citizenshipId'].choices = get_country_choices()
-        self.fields['citizenshipId'].widget.attrs['disabled'] = True
-        self.fields['citizenshipId'].widget.attrs['required'] = False
+        self.fields['citizenshipId'].choices = get_country_choices()
+        self.fields['citizenshipId'].widget.attrs['readonly'] = True
 
 
 class TasUserProfileAdminForm(forms.Form):
