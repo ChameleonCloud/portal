@@ -9,7 +9,9 @@
     <form method="post">
       {% csrf_token %}
       {% bootstrap_form form %}
-
+          <p class="help-block">
+            Changes to citizenship information may be initiated via a support request <a href="/user/help/ticket/new/">here</a>
+          </p>
       <div class="form-group">
         <label>PI Eligibility</label>
         {% if user.piEligibility|lower == 'eligible' %}
