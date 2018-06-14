@@ -183,7 +183,10 @@ def app_create(request):
             return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
     else:
         logger.info('Appliance create page requested.')
-        form = ApplianceForm(request.user)
+        params = request.GET.items()
+        params.append(('author_name', request.user.first_name + ' ' + request.user.last_name))
+        params.append(('author_url', request.user.email))
+        form = ApplianceForm(request.user, initial=params)
     return render(request, 'appliance_catalog/create-edit.html', {'appliance_form': form})
 
 
