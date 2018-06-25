@@ -120,3 +120,123 @@ class ApplianceForm(ModelForm):
                 logger.debug("appliance id is blank, returning None")
                 return None
 
+
+class ApplianceShareForm(ModelForm):
+    description = forms.CharField(required=False)
+    new_keywords = CharField(
+            label="Assign new keywords",
+            widget=TextInput(attrs={'placeholder': 'Provide comma separated keywords that'
+                                                   ' are not in the list above.'}),
+            required=False)
+    appliance_icon = ImageField(
+            label="Upload icon. <small>Must be 150px by 150px or less.</small>",
+            required=False)
+
+    class Meta:
+        model = Appliance
+        fields = ['name', 'short_description', 'version', 'author_name', 'author_url',
+                  'support_contact_name', 'support_contact_url', 'description', 'documentation',
+                  'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id',
+                  'kvm_tacc_appliance_id',  'keywords',
+                  'new_keywords', 'project_supported', 'shared_from_horizon']
+        labels = {
+            'short_description': 'Short description (140 characters)',
+            'chi_tacc_appliance_id':
+                'Appliance ID for '
+                '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
+            'chi_uc_appliance_id':
+                'Appliance ID for '
+                '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
+            'kvm_tacc_appliance_id':
+                'Appliance ID for '
+                '<a href="https://openstack.tacc.chameleoncloud.org">KVM@TACC</a>',
+            'template': 'Template (Complex Appliances Only)',
+            'author_url': 'Author: Contact URL or Email',
+            'support_contact_name': 'Support: Contact Name',
+            'support_contact_url': 'Support: Contact URL or Email',
+        }
+        widgets = {
+            'chi_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+            'chi_uc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+            'project_supported': forms.HiddenInput(),
+            'shared_from_horizon': forms.HiddenInput(),
+            'kvm_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+        }
+        help_texts = {
+            'description': markdown_allowed(),
+            'documentation': markdown_allowed()
+        }
+
+    def __init__(self, user, *args, **kwargs):
+        super(ApplianceShareForm, self).__init__(*args, **kwargs)
+        self.fields['description'].required = False
+        # del self.fields['template']
+        self.fields['project_supported'].initial = True
+        self.fields['shared_from_horizon'].initial = True
+
+    def _is_valid_email_or_url(self, text):
+        valid_email = True
+        valid_url = True
+        try:
+            validate_email(text)
+        except ValidationError:
+            valid_email = False
+        validate_url = URLValidator()
+        try:
+            validate_url(text)
+        except ValidationError:
+            valid_url = False
+        if valid_email or valid_url:
+            return True
+        else:
+            return False
+
+    def validate_picture(self, cleaned_data):
+        picture = cleaned_data['appliance_icon']
+        logger.debug('Icon uploaded: %s', picture)
+        if picture:
+            w, h = get_image_dimensions(picture)
+            if (w > 150) or (h > 150):
+                self.add_error('appliance_icon', 'Icon must be 150px by 150px or smaller.')
+                logger.debug('Icon uploaded is larger than 150px by 150px.')
+            logger.debug('Icon uploaded is valid.')
+        elif not picture:
+            logger.debug('Icon not uploaded.')
+
+    def clean(self):
+        cleaned_data = super(ApplianceShareForm, self).clean()
+        logger.info(cleaned_data)
+        author_url = cleaned_data.get('author_url')
+        support_contact_url = cleaned_data.get('support_contact_url')
+        if cleaned_data['description'] is None:
+           cleaned_data['description'] = " "
+        cleaned_data['chi_tacc_appliance_id'] = cleaned_data.get('chi_tacc_appliance_id') or None
+        cleaned_data['chi_uc_appliance_id'] = cleaned_data.get('chi_uc_appliance_id') or None
+        cleaned_data['kvm_tacc_appliance_id'] = cleaned_data.get('kvm_tacc_appliance_id') or None
+        chi_tacc_appliance_id = cleaned_data.get('chi_tacc_appliance_id')
+        chi_uc_appliance_id = cleaned_data.get('chi_uc_appliance_id')
+        kvm_tacc_appliance_id = cleaned_data.get('kvm_tacc_appliance_id')
+        template = cleaned_data.get('template')
+        project_supported = cleaned_data.get('project_supported')
+        shared_from_horizon = cleaned_data.get('shared_from_horizon')
+        self.validate_picture(cleaned_data)
+
+        if not self._is_valid_email_or_url(author_url):
+            msg = 'Please enter a valid email or url.'
+            self.add_error('author_url', msg)
+        if not self._is_valid_email_or_url(support_contact_url):
+            msg = 'Please enter a valid email or url.'
+            self.add_error('support_contact_url', msg)
+        if not template:
+            if not (chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id):
+                msg = 'At least one form of appliance id is required.'
+                self.add_error('chi_tacc_appliance_id', '')
+                self.add_error('chi_uc_appliance_id', '')
+                self.add_error('kvm_tacc_appliance_id', msg)
+
+        # failed attempt at getting around the null=True, blank=True,unique=True bug...going to use custom action instead
+        else:
+            if (chi_tacc_appliance_id == '' or chi_uc_appliance_id == '' or kvm_tacc_appliance_id == ''):
+                logger.debug("appliance id is blank, returning None")
+                return None
+

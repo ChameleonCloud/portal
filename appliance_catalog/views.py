@@ -12,7 +12,7 @@ from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from .forms import ApplianceForm
+from .forms import ApplianceForm, ApplianceShareForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
 from itertools import chain
@@ -115,6 +115,13 @@ def get_appliance(request, pk):
         response['result'] = None
     return JsonResponse(response)
 
+def get_appliance_by_id(request, appliance_id):
+    try:
+        pk = Appliance.objects.get(Q(chi_tacc_appliance_id=appliance_id) | Q(chi_uc_appliance_id=appliance_id) | Q(kvm_tacc_appliance_id=appliance_id)).pk
+        return get_appliance(request, pk)
+    except Appliance.DoesNotExist:
+        return get_appliance(request, -1)
+
 
 def get_appliance_template(request, pk):
     logger.info('Getting and displaying YAML template for appliance')
@@ -148,6 +155,19 @@ def _add_keywords(request, cleaned_data, appliance):
                 appliance_tagging.save()
                 logger.info('Appliance %s successfully tagged as: %s.', appliance, kw)
 
+@login_required
+def app_create_check(request):
+    if request.method == 'POST':
+        if request.POST.get('shared_from_horizon') is not None and request.POST.get('shared_from_horizon') == 'True':
+            logger.info('calling app_create_shared')
+            return app_create_shared(request)
+        else:
+            return app_create(request)
+    if request.GET.get('name') is None:
+        return app_create(request)
+    else:
+        logger.info('calling app_create_shared')
+        return app_create_shared(request)
 
 @login_required
 def app_create(request):
@@ -175,7 +195,33 @@ def app_create(request):
                       body,
                       'noreply@chameleoncloud.org',
                       ('systems@chameleoncloud.org',),
-                      fail_silently=False,)
+                      fail_silently=True,)
+
+            logger.debug('New appliance successfully created. Adding keywords...')
+            _add_keywords(request, form.cleaned_data, appliance)
+            logger.debug('Keywords assigned to this appliance successfully.')
+            return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
+    else:
+        logger.info('Appliance create page requested.')
+        form = ApplianceForm(request.user)
+    return render(request, 'appliance_catalog/create-edit.html', {'appliance_form': form})
+
+## this handles creating appliances shared from Horizon images
+@login_required
+def app_create_shared(request):
+    if request.method == 'POST':
+        logger.info('Appliance create shared posted by user %s with data %s and files %s', request.user.username, request.POST, request.FILES)
+        form = ApplianceShareForm(request.user, request.POST, request.FILES)
+        if form.is_valid():
+            logger.debug('Applicate create form is valid. Creating new appliance...')
+            appliance = form.save(commit=False)
+            appliance.created_by = request.user
+            appliance.updated_by = request.user
+
+            if (appliance.project_supported):
+                appliance.needs_review = False
+
+            appliance.save()
 
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
@@ -186,9 +232,8 @@ def app_create(request):
         params = request.GET.items()
         params.append(('author_name', request.user.first_name + ' ' + request.user.last_name))
         params.append(('author_url', request.user.email))
-        form = ApplianceForm(request.user, initial=params)
-    return render(request, 'appliance_catalog/create-edit.html', {'appliance_form': form})
-
+        form = ApplianceShareForm(request.user, initial=params)
+    return render(request, 'appliance_catalog/create-edit-shared.html', {'appliance_share_form': form})
 
 @login_required
 def app_edit(request, pk):
