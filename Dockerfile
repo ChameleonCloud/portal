@@ -1,5 +1,5 @@
-FROM python:2.7
 
+FROM python:2.7.14
 MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
 
 RUN apt-get update && apt-get install -y nginx supervisor ruby ruby-dev && gem install sass compass && pip install uwsgi
@@ -12,7 +12,6 @@ CMD ["supervisord", "-n"]
 
 # gettext for i18n
 RUN apt-get update && apt-get install -y gettext
-
 
 # kramdown for parsing static site content
 #RUN gem install kramdown
@@ -31,6 +30,8 @@ COPY docker-conf /setup/docker-conf
 # install pip dependencies
 RUN pip install -r /setup/requirements-frozen.txt
 
+RUN apt-get install -y node npm
+RUN npm install -g yuglify
 
 # install non-pip dependencies
 ### REMOVE THIS AFTER INTEGRATION IS COMPLETE
