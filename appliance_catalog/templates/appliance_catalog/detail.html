@@ -58,9 +58,15 @@
                 at CHI@TACC</a>
         {% endif %}
         {% if editable %}
+            {% if appliance.shared_from_horizon %}
+                <a class="btn btn-warning pull-right" href="{% url 'appliance_catalog:app_edit_image' appliance.id %}">
+                    <i class="fa fa-edit"></i> Edit
+                </a>
+            {% else %}
             <a class="btn btn-warning pull-right" href="{% url 'appliance_catalog:app_edit' appliance.id %}">
                 <i class="fa fa-edit"></i> Edit
             </a>
+            {% endif %}
         {% endif %}
         <hr>
 

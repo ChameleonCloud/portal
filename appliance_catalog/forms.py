@@ -122,7 +122,7 @@ class ApplianceForm(ModelForm):
 
 
 class ApplianceShareForm(ModelForm):
-    description = forms.CharField(required=False)
+    description = forms.CharField(required=False, widget=forms.Textarea)
     new_keywords = CharField(
             label="Assign new keywords",
             widget=TextInput(attrs={'placeholder': 'Provide comma separated keywords that'
@@ -136,8 +136,7 @@ class ApplianceShareForm(ModelForm):
         model = Appliance
         fields = ['name', 'short_description', 'version', 'author_name', 'author_url',
                   'support_contact_name', 'support_contact_url', 'description', 'documentation',
-                  'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id',
-                  'kvm_tacc_appliance_id',  'keywords',
+                  'appliance_icon', 'chi_tacc_appliance_id', 'chi_uc_appliance_id','keywords',
                   'new_keywords', 'project_supported', 'shared_from_horizon']
         labels = {
             'short_description': 'Short description (140 characters)',
@@ -147,9 +146,6 @@ class ApplianceShareForm(ModelForm):
             'chi_uc_appliance_id':
                 'Appliance ID for '
                 '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
-            'kvm_tacc_appliance_id':
-                'Appliance ID for '
-                '<a href="https://openstack.tacc.chameleoncloud.org">KVM@TACC</a>',
             'template': 'Template (Complex Appliances Only)',
             'author_url': 'Author: Contact URL or Email',
             'support_contact_name': 'Support: Contact Name',
@@ -158,9 +154,7 @@ class ApplianceShareForm(ModelForm):
         widgets = {
             'chi_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
             'chi_uc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
-            'project_supported': forms.HiddenInput(),
-            'shared_from_horizon': forms.HiddenInput(),
-            'kvm_tacc_appliance_id': forms.TextInput(attrs={'placeholder': ''}),
+            'shared_from_horizon': forms.HiddenInput()
         }
         help_texts = {
             'description': markdown_allowed(),
@@ -169,9 +163,11 @@ class ApplianceShareForm(ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super(ApplianceShareForm, self).__init__(*args, **kwargs)
+        if not user.is_staff:
+            del self.fields['project_supported']        
         self.fields['description'].required = False
         # del self.fields['template']
-        self.fields['project_supported'].initial = True
+        # self.fields['project_supported'].initial = True
         self.fields['shared_from_horizon'].initial = True
 
     def _is_valid_email_or_url(self, text):
@@ -212,10 +208,8 @@ class ApplianceShareForm(ModelForm):
            cleaned_data['description'] = " "
         cleaned_data['chi_tacc_appliance_id'] = cleaned_data.get('chi_tacc_appliance_id') or None
         cleaned_data['chi_uc_appliance_id'] = cleaned_data.get('chi_uc_appliance_id') or None
-        cleaned_data['kvm_tacc_appliance_id'] = cleaned_data.get('kvm_tacc_appliance_id') or None
         chi_tacc_appliance_id = cleaned_data.get('chi_tacc_appliance_id')
         chi_uc_appliance_id = cleaned_data.get('chi_uc_appliance_id')
-        kvm_tacc_appliance_id = cleaned_data.get('kvm_tacc_appliance_id')
         template = cleaned_data.get('template')
         project_supported = cleaned_data.get('project_supported')
         shared_from_horizon = cleaned_data.get('shared_from_horizon')
@@ -228,15 +222,14 @@ class ApplianceShareForm(ModelForm):
             msg = 'Please enter a valid email or url.'
             self.add_error('support_contact_url', msg)
         if not template:
-            if not (chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id):
+            if not (chi_tacc_appliance_id or chi_uc_appliance_id):
                 msg = 'At least one form of appliance id is required.'
                 self.add_error('chi_tacc_appliance_id', '')
-                self.add_error('chi_uc_appliance_id', '')
-                self.add_error('kvm_tacc_appliance_id', msg)
+                self.add_error('chi_uc_appliance_id', msg)
 
         # failed attempt at getting around the null=True, blank=True,unique=True bug...going to use custom action instead
         else:
-            if (chi_tacc_appliance_id == '' or chi_uc_appliance_id == '' or kvm_tacc_appliance_id == ''):
+            if (chi_tacc_appliance_id == '' or chi_uc_appliance_id == ''):
                 logger.debug("appliance id is blank, returning None")
                 return None
 

@@ -114,3 +114,5 @@ Unidecode==0.4.21
 urllib3==1.22
 URLObject==2.4.3
 YURL==0.13
+python-glanceclient==2.8.0
+python-keystoneclient==3.15.0

@@ -19,9 +19,23 @@ from itertools import chain
 import markdown_deux
 import logging
 import json
+from django.conf import settings
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client
+from glanceclient import Client
+from smtplib import SMTPException
 
 logger = logging.getLogger('default')
 
+def make_image_public(username, image_id):
+    glanceAuth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, \
+        password=settings.OPENSTACK_SERVICE_PASSWORD,project_id=settings.OPENSTACK_SERVICE_PROJECT_ID,user_domain_name='default',user_domain_id='default')
+    newsession = session.Session(auth=glanceAuth)
+    glance = Client('2', session=newsession)
+    logger.info('User: ' + username +  ' requesting visibility=public for image id: ' + image_id)
+    glance.images.update(image_id, visibility='public')
+    logger.info('User: ' + username +  ' image status after update: ' + str(glance.images.get(image_id)))
 
 def app_list(request):
     logger.info('App catalog requested.')
@@ -156,20 +170,6 @@ def _add_keywords(request, cleaned_data, appliance):
                 logger.info('Appliance %s successfully tagged as: %s.', appliance, kw)
 
 @login_required
-def app_create_check(request):
-    if request.method == 'POST':
-        if request.POST.get('shared_from_horizon') is not None and request.POST.get('shared_from_horizon') == 'True':
-            logger.info('calling app_create_shared')
-            return app_create_shared(request)
-        else:
-            return app_create(request)
-    if request.GET.get('name') is None:
-        return app_create(request)
-    else:
-        logger.info('calling app_create_shared')
-        return app_create_shared(request)
-
-@login_required
 def app_create(request):
     if request.method == 'POST':
         logger.info('Appliance create posted by user %s with data %s and files %s', request.user.username, request.POST, request.FILES)
@@ -185,17 +185,21 @@ def app_create(request):
 
             appliance.save()
 
-            message = "New Appliance Submitted: " + appliance.name + "."
-            logger.debug(message);
-            body = "A new appliance has been submitted and is ready for review. \n\n" \
-                   "Appliance Name: " + appliance.name + "\n" \
-                   "Contact Name and Email: " + appliance.author_name + " (" + appliance.author_url + ")\n\n" \
-                   "Appliance URL: https://www.chameleoncloud.org/appliances/" + str(appliance.id)
-            send_mail(message,
-                      body,
-                      'noreply@chameleoncloud.org',
-                      ('systems@chameleoncloud.org',),
-                      fail_silently=True,)
+            if request.META['HTTP_HOST'] == 'www.chameleoncloud.org':
+                message = "New Appliance Submitted: " + appliance.name + "."
+                logger.debug(message);
+                body = "A new appliance has been submitted and is ready for review. \n\n" \
+                    "Appliance Name: " + appliance.name + "\n" \
+                    "Contact Name and Email: " + appliance.author_name + " (" + appliance.author_url + ")\n\n" \
+                    "Appliance URL: https://www.chameleoncloud.org/appliances/" + str(appliance.id)
+                try:
+                    send_mail(message,
+                            body,
+                            'noreply@chameleoncloud.org',
+                            ('systems@chameleoncloud.org',),
+                            fail_silently=False,)
+                except SMTPException as e:
+                    logger.error('Error sending appliance catalog email ', e)
 
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
@@ -208,20 +212,33 @@ def app_create(request):
 
 ## this handles creating appliances shared from Horizon images
 @login_required
-def app_create_shared(request):
+def app_create_image(request):
     if request.method == 'POST':
         logger.info('Appliance create shared posted by user %s with data %s and files %s', request.user.username, request.POST, request.FILES)
         form = ApplianceShareForm(request.user, request.POST, request.FILES)
         if form.is_valid():
-            logger.debug('Applicate create form is valid. Creating new appliance...')
+            logger.debug('Appliance create form is valid. Creating new appliance...')
             appliance = form.save(commit=False)
             appliance.created_by = request.user
             appliance.updated_by = request.user
-
-            if (appliance.project_supported):
-                appliance.needs_review = False
-
+            appliance.needs_review = False
             appliance.save()
+
+            if request.META['HTTP_HOST'] == 'www.chameleoncloud.org':
+                message = "New Appliance Submitted: " + appliance.name + "."
+                logger.debug(message);
+                body = "A new appliance has been published to the Appliance Catalog from Horizon. \n\n" \
+                    "Appliance Name: " + appliance.name + "\n" \
+                    "Contact Name and Email: " + appliance.author_name + " (" + appliance.author_url + ")\n\n" \
+                    "Appliance URL: https://www.chameleoncloud.org/appliances/" + str(appliance.id)
+                try:
+                    send_mail(message,
+                            body,
+                            'noreply@chameleoncloud.org',
+                            ('systems@chameleoncloud.org',),
+                            fail_silently=False,)
+                except SMTPException as e:
+                    logger.error('Error sending appliance catalog email ', e)
 
             logger.debug('New appliance successfully created. Adding keywords...')
             _add_keywords(request, form.cleaned_data, appliance)
@@ -231,7 +248,9 @@ def app_create_shared(request):
         logger.info('Appliance create page requested.')
         params = request.GET.items()
         params.append(('author_name', request.user.first_name + ' ' + request.user.last_name))
+        params.append(('support_contact_name', request.user.first_name + ' ' + request.user.last_name))
         params.append(('author_url', request.user.email))
+        params.append(('support_contact_url', request.user.email))
         form = ApplianceShareForm(request.user, initial=params)
     return render(request, 'appliance_catalog/create-edit-shared.html', {'appliance_share_form': form})
 
@@ -263,6 +282,37 @@ def app_edit(request, pk):
         form = ApplianceForm(request.user, instance=appliance)
     return render(request, 'appliance_catalog/create-edit.html', {'appliance_form': form, 'edit': True, 'pk': pk})
 
+@login_required
+def app_edit_image(request, pk):
+    logger.info('Appliance edit requested for appliance id: %s', pk)
+    appliance = get_object_or_404(Appliance, pk=pk)
+
+    editable = request.user.is_staff or request.user == appliance.created_by or \
+        request.user.has_perm('appliance_catalog.change_appliance')
+    if not editable:
+        messages.error(request, 'You do not have permission to edit this appliance.')
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        logger.info('Appliance edit posted by user %s with data %s and files %s', request.user.username, request.POST, request.FILES)
+        form = ApplianceShareForm(request.user, request.POST, request.FILES, instance=appliance)
+        if form.is_valid():
+            logger.debug('Appliance edit form is valid. Updating this appliance...')
+            post = form.save(commit=False)
+            post.updated_by = request.user
+            if str(request.POST.get('chi_uc_appliance_id')):
+                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')))
+            if str(request.POST.get('chi_tacc_appliance_id')):
+                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')))
+            post.save()
+            logger.debug('Appliance successfully updated. Updating keywords...')
+            _add_keywords(request, form.cleaned_data, appliance)
+            logger.debug('Keywords updated for this appliance successfully.')
+            return HttpResponseRedirect(reverse('appliance_catalog:app_detail', kwargs={'pk':pk}))
+    else:
+        logger.info('Appliance edit page requested.')
+        form = ApplianceShareForm(request.user, instance=appliance)
+    return render(request, 'appliance_catalog/create-edit-shared.html', {'appliance_share_form': form, 'edit': True, 'pk': pk})
 
 def get_keywords(request, appliance_id=None):
     if appliance_id:

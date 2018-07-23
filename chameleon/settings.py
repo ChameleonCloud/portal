@@ -25,6 +25,12 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'NOT_A_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
 
+## OpenStack Properties
+OPENSTACK_KEYSTONE_URL = os.environ.get('OPENSTACK_KEYSTONE_URL', 'https://dev.tacc.chameleoncloud.org:5000/v3')
+OPENSTACK_SERVICE_USERNAME = os.environ.get('OPENSTACK_SERVICE_USERNAME', '')
+OPENSTACK_SERVICE_PASSWORD = os.environ.get('OPENSTACK_SERVICE_PASSWORD', '')
+OPENSTACK_SERVICE_PROJECT_ID = os.environ.get('OPENSTACK_SERVICE_PROJECT_ID', '')
+
 #TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = [

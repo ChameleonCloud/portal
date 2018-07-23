@@ -72,3 +72,5 @@ aldryn-search
 # Trying a specific commit because pip is garbage
 -e git+https://bitbucket.org/taccaci/pytas.git@e9fc42d#egg=pytas-e9fc42d
 
+python-glanceclient==2.8.0
+python-keystoneclient==3.15.0
