@@ -53,9 +53,6 @@ urlpatterns = patterns(
         # mailing list resource for mailman autosubscribe
         url(r'^mailman/(?P<list_name>\w+)\.txt$',
             'chameleon_mailman.views.mailman_export_list', name='mailman_export_list'),
-        url(r'^user/profile/subscriptions/$',
-            'chameleon_mailman.views.manage_mailman_subscriptions',
-            name='mailman_manage'),
         # cms urls
         url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
         url(r'^', include('blog_comments.urls')),

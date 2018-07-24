@@ -6,6 +6,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
@@ -192,12 +193,14 @@ def email_confirmation(request):
         if form.is_valid():
             code = request.POST['code']
             username = request.POST['username']
+            #send_opt_in_email(username)
             try:
                 tas = TASClient()
                 user = tas.get_user(username=username)
                 tas.verify_user(user['id'], code)
                 activate_local_user(username)
                 messages.success(request, 'Congratulations, your email has been verified! Please log in now.')
+                send_opt_in_email(username)
                 return HttpResponseRedirect(reverse('tas:profile'))
             except Exception as e:
                 logger.exception('Email verification failed')
@@ -212,6 +215,18 @@ def email_confirmation(request):
     context['form'] = form
 
     return render(request, 'tas/email_confirmation.html', context)
+
+def send_opt_in_email(username):
+    try:
+        template = 'tas/email_subscription_opt_in.html'
+        user = User.objects.get(username=username)
+        email_message = render_to_string(template, {'user': user})
+        logger.info(email_message)
+        send_mail(subject='Welcome to Chameleon',message=None,from_email='no-reply@chameleoncloud.org',recipient_list=[user.email],fail_silently=False,html_message=email_message)
+    except Exception as e:
+        logger.error(e)
+        return
+
 
 def register(request):
     if request.user is not None and request.user.is_authenticated():
