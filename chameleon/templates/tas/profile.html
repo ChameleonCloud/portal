@@ -70,14 +70,14 @@
 
   <hr>
 
-  <h4>Manage Email Subscriptions</h4>
   {% if profile.source == 'Chameleon' %}
+  <h4>Actions</h4>
     <a href="{% url 'tas:profile_edit' %}" class="btn btn-default">
       <i class="fa fa-edit"></i>
       Edit Profile
     </a>
   {% endif %}
-
+  <h4>Manage Email Subscriptions</h4>
   <a href="https://lists.chameleoncloud.org/mailman/listinfo/outages" target="_blank" class="btn btn-default">
     <i class="fa fa-envelope"></i>
     Outage Notifications Mailing List
