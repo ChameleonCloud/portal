@@ -222,6 +222,10 @@ def app_create_image(request):
             appliance.created_by = request.user
             appliance.updated_by = request.user
             appliance.needs_review = False
+            if str(request.POST.get('chi_uc_appliance_id')):
+                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')))
+            if str(request.POST.get('chi_tacc_appliance_id')):
+                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')))
             appliance.save()
 
             if request.META['HTTP_HOST'] == 'www.chameleoncloud.org':
