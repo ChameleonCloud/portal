@@ -223,9 +223,9 @@ def app_create_image(request):
             appliance.updated_by = request.user
             appliance.needs_review = False
             if str(request.POST.get('chi_uc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_KEYSTONE_URL))
+                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_KEYSTONE_URL)
             if str(request.POST.get('chi_tacc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_KEYSTONE_URL))
+                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_KEYSTONE_URL)
             appliance.save()
 
             if request.META['HTTP_HOST'] == 'www.chameleoncloud.org':
