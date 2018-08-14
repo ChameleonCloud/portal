@@ -147,8 +147,14 @@ def get_usage_by_users_json( request, allocation_id=None):
     start_date = request.GET.get('from')
     end_date = request.GET.get('to')
     project_id = request.GET.get('projectId')
+<<<<<<< HEAD
     if not (allocation_admin_or_superuser(request.user) or is_project_pi(user=request.user, project_id=project_id)):
         return HttpResponseRedirect('/admin/usage/denied/')
+=======
+    if not (allocation_admin_or_superuser(request.user) or is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)):
+        return HttpResponseRedirect('/admin/usage/denied/')
+    logger.info('################PROJECT ID: ' + project_id)
+>>>>>>> Allowing Project PI's to see usage graph
     if not re.match(r'^\d{4}-\d{2}-\d{2}', start_date) or not re.match(r'^\d{4}-\d{2}-\d{2}', end_date):
         raise Exception('Start date and end date params must be in the format: YYYY-MM-dd')
     logger.info( 'Usage by users requested for allocation id: %s, from: %s, to: %s', allocation_id, start_date, end_date)
@@ -158,6 +164,8 @@ def get_usage_by_users_json( request, allocation_id=None):
         logger.debug(
             "Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date + ", allocation=" + allocation_id)
         jobs = tas.get_jobs(resource='chameleon', start=start_date, end=end_date, allocation_id=allocation_id)
+        #resp = tas.get_project_users( project_id=project_id )
+        is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)
         logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
