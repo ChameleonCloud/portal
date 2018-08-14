@@ -11,10 +11,11 @@
 
        var start =  $('#usageChart').attr('start');
        var end = $('#usageChart').attr('end');
+       var projectId = $('#usageChart').attr('project-id');
           $.ajax({
             method: 'GET',
             dataType: "json",
-            url: '/admin/usage/usage-by-users/' + $('#usageChart').attr('allocation-id') +'/?from=' + start + '&to=' + end,
+            url: '/admin/usage/usage-by-users/' + $('#usageChart').attr('allocation-id') +'/?from=' + start + '&to=' + end + '&projectId=' + projectId,
             cache: 'true'
            }).done(function(response) {
             // we're initializing all the queues ahead of time since we know what the are, and that will simplify the logic below

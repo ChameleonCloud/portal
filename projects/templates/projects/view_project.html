@@ -112,7 +112,7 @@
 {% if project.has_active_allocations %}
 <h3>Usage</h3>
 {% for alloc in project.active_allocations %}
-<div id="usageChart" start="{{alloc.start|date:'Y-m-d'}}" end="{{alloc.end|date:'Y-m-d'}}" allocation-id="{{alloc.id}}"></div>
+<div id="usageChart" start="{{alloc.start|date:'Y-m-d'}}" end="{{alloc.end|date:'Y-m-d'}}" allocation-id="{{alloc.id}}" project-id="{{project.id}}" ></div>
 {% endfor %}
 {% endif %}
 

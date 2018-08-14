@@ -32,6 +32,31 @@ def allocation_admin_or_superuser(user):
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
     return False
 
+def is_project_pi(user, project_id, allocation_id):
+    resp = []
+    try:
+        tas = TASClient()
+        if project_id is not None:
+            projects = tas.projects_for_user(user.username)
+            for project in projects:
+                project_pi = project.get('pi').get('username')
+                logger.info('#####project PI username: ' + project_pi)
+                if user.username == project_pi:
+                    logger.info('project pi and username match for: ' + user.username)
+                    return True
+                    # for allocation in project.get('allocations'):
+                    #     if allocation_id == allocation.get('id'):
+                    #         logger.info('allocation id: ' + allocation_id + ' belongs to user: ' + user.username)
+                    #         return True
+            return False
+        else:
+            raise Exception('Project id is required.')
+            return False
+
+    except Exception as e:
+        traceback.print_exc()
+        raise Exception('Error loading projects users.')
+
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
 def project_usage( request ):
@@ -88,6 +113,7 @@ def get_project_users_json( request, project_id=None ):
         tas = TASClient()
         if project_id is not None:
             resp = tas.get_project_users( project_id=project_id )
+            # logger.info('***************project users: ' + str(resp))
             logger.info( 'Total users for project %s: %s', project_id, len( resp ) )
         else:
             raise Exception('Project id is required.')
@@ -128,10 +154,15 @@ def get_allocation_usage_json( request, allocation_id=None, username=None, queue
         raise Exception('Error fetching jobs.')
     return HttpResponse(json.dumps(data), content_type="application/json")
 
-@user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+# @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
+@login_required
 def get_usage_by_users_json( request, allocation_id=None):
     start_date = request.GET.get('from')
     end_date = request.GET.get('to')
+    project_id = request.GET.get('projectId')
+    if not (allocation_admin_or_superuser(request.user) or is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)):
+        return HttpResponseRedirect('/admin/usage/denied/')
+    logger.info('################PROJECT ID: ' + project_id)
     if not re.match(r'^\d{4}-\d{2}-\d{2}', start_date) or not re.match(r'^\d{4}-\d{2}-\d{2}', end_date):
         raise Exception('Start date and end date params must be in the format: YYYY-MM-dd')
     logger.info( 'Usage by users requested for allocation id: %s, from: %s, to: %s', allocation_id, start_date, end_date)
@@ -142,6 +173,8 @@ def get_usage_by_users_json( request, allocation_id=None):
         logger.debug(
             "Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date + ", allocation=" + allocation_id)
         jobs = tas.get_jobs(resource='chameleon', start=start_date, end=end_date, allocation_id=allocation_id)
+        #resp = tas.get_project_users( project_id=project_id )
+        is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)
         logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
