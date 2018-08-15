@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django import forms
 from pytas.http import TASClient, JobsClient
+from pytas.models import Project
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -32,30 +33,16 @@ def allocation_admin_or_superuser(user):
         return (user.groups.filter(name='Allocation Admin').count() == 1) or user.is_superuser
     return False
 
-def is_project_pi(user, project_id, allocation_id):
-    resp = []
+def is_project_pi(user, project_id):
     try:
-        tas = TASClient()
-        if project_id is not None:
-            projects = tas.projects_for_user(user.username)
-            for project in projects:
-                project_pi = project.get('pi').get('username')
-                logger.info('#####project PI username: ' + project_pi)
-                if user.username == project_pi:
-                    logger.info('project pi and username match for: ' + user.username)
-                    return True
-                    # for allocation in project.get('allocations'):
-                    #     if allocation_id == allocation.get('id'):
-                    #         logger.info('allocation id: ' + allocation_id + ' belongs to user: ' + user.username)
-                    #         return True
-            return False
-        else:
-            raise Exception('Project id is required.')
-            return False
-
+        project = Project(project_id)
+        if project.source != 'Chameleon':
+            raise Http404('The requested project does not exist!')
+        if user.username == project.pi.username:
+            return True
     except Exception as e:
-        traceback.print_exc()
-        raise Exception('Error loading projects users.')
+        logger.error(e)
+        raise Http404('The requested project does not exist!')
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/usage/denied/')
@@ -160,21 +147,17 @@ def get_usage_by_users_json( request, allocation_id=None):
     start_date = request.GET.get('from')
     end_date = request.GET.get('to')
     project_id = request.GET.get('projectId')
-    if not (allocation_admin_or_superuser(request.user) or is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)):
+    if not (allocation_admin_or_superuser(request.user) or is_project_pi(user=request.user, project_id=project_id)):
         return HttpResponseRedirect('/admin/usage/denied/')
-    logger.info('################PROJECT ID: ' + project_id)
     if not re.match(r'^\d{4}-\d{2}-\d{2}', start_date) or not re.match(r'^\d{4}-\d{2}-\d{2}', end_date):
         raise Exception('Start date and end date params must be in the format: YYYY-MM-dd')
     logger.info( 'Usage by users requested for allocation id: %s, from: %s, to: %s', allocation_id, start_date, end_date)
     resp = {}
     try:
-        #tas = TASClient()
         tas = JobsClient()
         logger.debug(
             "Getting some jobs for chameleon, start=" + start_date + ", end=" + end_date + ", allocation=" + allocation_id)
         jobs = tas.get_jobs(resource='chameleon', start=start_date, end=end_date, allocation_id=allocation_id)
-        #resp = tas.get_project_users( project_id=project_id )
-        is_project_pi(user=request.user, project_id=project_id, allocation_id=allocation_id)
         logger.debug("Done fetching jobs")
         logger.info( 'Total jobs: %s', len( jobs ) )
         for job in jobs:
