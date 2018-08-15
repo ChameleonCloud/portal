@@ -45,24 +45,15 @@ RUN \
     && ln -s /setup/docker-conf/nginx-app.conf /etc/nginx/sites-enabled/ \
     && ln -s /setup/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
 
-
 # setup project code
 COPY . /project
 WORKDIR /project
 
-
 # logs
 RUN mkdir /var/log/django
 
-
-# database migrations, if necessary
-# maybe remove this in the future? - @mrhanlon
-#RUN python manage.py migrate
-
-
 # translation messages, if necessary
 RUN python manage.py compilemessages
-
 
 # setup static assets
 RUN mkdir -p /var/www/static && mkdir -p /var/www/chameleoncloud.org/static && python manage.py collectstatic --noinput
