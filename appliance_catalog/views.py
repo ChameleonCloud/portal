@@ -28,12 +28,12 @@ from smtplib import SMTPException
 
 logger = logging.getLogger('default')
 
-def make_image_public(username, image_id, openstack_keystone_url):
-    glanceAuth = v3.Password(auth_url=openstack_keystone_url,username=settings.OPENSTACK_SERVICE_USERNAME, \
+def make_image_public(username, image_id, region_name):
+    glanceAuth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, \
         password=settings.OPENSTACK_SERVICE_PASSWORD,project_id=settings.OPENSTACK_SERVICE_PROJECT_ID,user_domain_name='default',user_domain_id='default')
     newsession = session.Session(auth=glanceAuth)
-    glance = Client('2', session=newsession)
-    logger.info('User: ' + username +  ' requesting visibility=public for image id: ' + image_id)
+    glance = Client('2', session=newsession,region_name=region_name)
+    logger.info('User: ' + username +  ' requesting visibility=public for image id: ' + image_id + ' in region: ' + region_name + ' at endpoint: ' + settings.OPENSTACK_KEYSTONE_URL)
     glance.images.update(image_id, visibility='public')
     logger.info('User: ' + username +  ' image status after update: ' + str(glance.images.get(image_id)))
 
@@ -223,9 +223,9 @@ def app_create_image(request):
             appliance.updated_by = request.user
             appliance.needs_review = False
             if str(request.POST.get('chi_uc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_KEYSTONE_URL)
+                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_REGION)
             if str(request.POST.get('chi_tacc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_KEYSTONE_URL)
+                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_REGION)
             appliance.save()
 
             if request.META['HTTP_HOST'] == 'www.chameleoncloud.org':
@@ -305,9 +305,9 @@ def app_edit_image(request, pk):
             post = form.save(commit=False)
             post.updated_by = request.user
             if str(request.POST.get('chi_uc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_KEYSTONE_URL)
+                make_image_public(request.user.username, str(request.POST.get('chi_uc_appliance_id')), settings.OPENSTACK_UC_REGION)
             if str(request.POST.get('chi_tacc_appliance_id')):
-                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_KEYSTONE_URL)
+                make_image_public(request.user.username, str(request.POST.get('chi_tacc_appliance_id')), settings.OPENSTACK_TACC_REGION)
             post.save()
             logger.debug('Appliance successfully updated. Updating keywords...')
             _add_keywords(request, form.cleaned_data, appliance)

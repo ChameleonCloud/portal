@@ -26,8 +26,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'NOT_A_SECRET')
 DEBUG = os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
 
 ## OpenStack Properties
-OPENSTACK_TACC_KEYSTONE_URL = os.environ.get('OPENSTACK_TACC_KEYSTONE_URL', 'https://chi.tacc.chameleoncloud.org:5000/v3')
-OPENSTACK_UC_KEYSTONE_URL = os.environ.get('OPENSTACK_UC_KEYSTONE_URL', 'https://chi.uc.chameleoncloud.org:5000/v3')
+OPENSTACK_KEYSTONE_URL = os.environ.get('OPENSTACK_KEYSTONE_URL', 'https://chi.tacc.chameleoncloud.org:5000/v3')
+OPENSTACK_UC_REGION = os.environ.get('OPENSTACK_UC_REGION', 'CHI@UC')
+OPENSTACK_TACC_REGION = os.environ.get('OPENSTACK_TACC_REGION', 'CHI@TACC')
 OPENSTACK_SERVICE_USERNAME = os.environ.get('OPENSTACK_SERVICE_USERNAME', '')
 OPENSTACK_SERVICE_PASSWORD = os.environ.get('OPENSTACK_SERVICE_PASSWORD', '')
 OPENSTACK_SERVICE_PROJECT_ID = os.environ.get('OPENSTACK_SERVICE_PROJECT_ID', '')
