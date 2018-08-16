@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'appliance_catalog',
     'webinar_registration',
 
-    
+
     'easy_thumbnails',
     'filer',
     'aldryn_apphooks_config',
@@ -414,11 +414,11 @@ PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 PIPELINE_CSS = {
     'main': {
         'source_filenames': (
-            'styles/main.scss',
+            'static/styles/main.scss',
             'styles/corner-ribbon.css',
             'djangoRT/css/djangoRT.css',
             'projects/css/projects.scss',
-            ),
+        ),
         'output_filename': 'styles/main.css',
     },
 }
@@ -623,7 +623,3 @@ HAYSTACK_CONNECTIONS = {
 }
 
 HAYSTACK_ROUTERS = ['aldryn_search.router.LanguageRouter',]
-
-
-
-
