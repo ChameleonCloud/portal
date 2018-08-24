@@ -1,5 +1,5 @@
 from chameleon_token.decorators import token_required
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
@@ -19,8 +19,11 @@ def mailman_export_list(request):
     users who joined in the last day.
     """
     try:
+        # Ignoring complexity of timezones because we just want a fuzzy range
+        # that is limited to a recent window
+        start_of_yesterday = datetime.today() - timedelta(days=1)
         users = get_user_model().objects.filter(is_active=True,
-                                                date_joined__gte=datetime.today())
+                                                date_joined__gte=start_of_yesterday)
         content = list(u.email for u in users)
         response = HttpResponse('\n'.join(content), content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="new_members.txt"'
