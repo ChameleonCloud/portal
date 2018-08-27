@@ -414,7 +414,7 @@ PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 PIPELINE_CSS = {
     'main': {
         'source_filenames': (
-            'static/styles/main.scss',
+            'styles/main.scss',
             'styles/corner-ribbon.css',
             'djangoRT/css/djangoRT.css',
             'projects/css/projects.scss',

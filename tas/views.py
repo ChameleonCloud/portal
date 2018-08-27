@@ -34,12 +34,6 @@ def profile(request):
         context['profile'] = False
         # raise Exception('error loading profile')
 
-    if context['profile']['source'] != 'Chameleon':
-        messages.info(request,
-                      'Your account was created outside of the Chameleon Portal. ' \
-                      'Please visit the <a target="_blank" href="https://portal.tacc.utexas.edu">'\
-                      'TACC User Portal</a> to edit your profile.')
-
     return render(request, 'tas/profile.html', context)
 
 def get_departments_json(request):
@@ -67,8 +61,6 @@ def profile_edit(request):
     tas = TASClient()
     tas_user = tas.get_user(username=request.user)
 
-    if tas_user['source'] != 'Chameleon':
-        return HttpResponseRedirect(reverse('tas:profile'))
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, initial=tas_user)
