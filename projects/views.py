@@ -33,7 +33,6 @@ def project_pi_or_admin_or_superuser(user, project):
 
     return False
 
-
 def project_member_or_admin_or_superuser(user, project, project_user):
     if project_pi_or_admin_or_superuser(user, project):
         return True
@@ -43,7 +42,6 @@ def project_member_or_admin_or_superuser(user, project, project_user):
             return True
 
     return False
-
 
 @login_required
 def user_projects(request):

@@ -96,6 +96,7 @@ ply==3.4
 premailer==3.1.1
 py==1.4.31
 -e git+https://bitbucket.org/taccaci/pytas.git@e9fc42d627598a121ba66d1dd09547c69faa44f7#egg=pytas
+-e git+https://bitbucket.org/taccaci/pytas.git@7ca59017f0de5ba1648665ba80ac299131a05f6d#egg=pytas
 pytest==2.8.3
 python-dateutil==2.6.1
 python-openid==2.2.5

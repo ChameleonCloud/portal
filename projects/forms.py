@@ -47,6 +47,13 @@ class ProjectCreateForm( forms.Form ):
         required=True,
         widget=forms.TextInput(attrs={'placeholder': 'Research into how...'}),
     )
+    nickname = forms.CharField(
+        label='Project Nickname',
+        max_length='50',
+        help_text='Provide a nickname to identify your project across the Chameleon Infrastructure',
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Project Nickname'}),
+    )
     description = forms.CharField(
         label='Abstract (~200 words)',
         help_text='An application for a project has to include a description of the '
