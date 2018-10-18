@@ -61,7 +61,12 @@
                   {% if alloc.status == 'Active' %}
                     <tr>
                       <td>
+                        {% if project.nickname %}
                         <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
+                        <div>{{project.nickname}}</div>
+                        {% else %}
+                        <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
+                        {% endif %}
                       </td>
                       <td>
                         {% for a in project.allocations %}

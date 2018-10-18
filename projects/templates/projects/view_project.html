@@ -19,7 +19,7 @@
       </tr>
       <tr>
         <th>Nickname</th>
-        <td style="white-space:pre-wrap;">{{ project.nickname }}</td>
+        <td style="white-space:pre-wrap;">{% if project.nickname %} {{ project.nickname }}{%endif%}&nbsp;</td>
       </tr>
       <tr>
         <th>Abstract</th>
