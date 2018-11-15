@@ -31,8 +31,8 @@
                        ng-keypress="($event.which === 13)?updateFiltered():angular.noop()"
                        placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
                 <div class="project-supported">
-                    <span>Filter by <span class="label label-success">Chameleon Supported</span></span>&nbsp;
-                    <input type="checkbox" ng-model="filter.project_supported" ng-click="updateFiltered()" aria-label="Toggle Show">
+                    <label for="filter.project_supported">Filter by <span class="label label-success">Chameleon Supported</span></label>&nbsp;
+                    <input id="filter.project_supported" type="checkbox" ng-model="filter.project_supported" ng-click="updateFiltered()" aria-label="Toggle Show">
                 </div>
                 <div>
                 <span ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"

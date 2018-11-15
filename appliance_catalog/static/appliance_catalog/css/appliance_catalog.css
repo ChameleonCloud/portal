@@ -92,6 +92,9 @@
 .appCatalog .project-supported {
     margin-top: 10px;
 }
+.appCatalog .project-supported label{
+    font-weight: normal;
+}
 
 .appCatalog .app-title {
     margin-left: 10px;
