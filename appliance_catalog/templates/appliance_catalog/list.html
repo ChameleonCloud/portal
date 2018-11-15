@@ -30,10 +30,17 @@
                 <input class="form-control" type="text"
                        ng-keypress="($event.which === 13)?updateFiltered():angular.noop()"
                        placeholder="Search by name, description or author." ng-model="filter.searchKey"/>
+                <div class="project-supported">
+                    <span>Filter by <span class="label label-success">Chameleon Supported</span></span>&nbsp;
+                    <input type="checkbox" ng-model="filter.project_supported" ng-click="updateFiltered()" aria-label="Toggle Show">
+                </div>
+                <div>
+                <span ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
+                     extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts">
+                </span>
                 <toggle-switch ng-model="filter.andSearch" on-label="AND" off-label="OR" knob-label="">
                 </toggle-switch>
-                <div ng-dropdown-multiselect="" options="keywords" selected-model="filter.selectedKeywords"
-                     extra-settings="multiselectSettings" translation-texts="multiselectCustomTexts"></div>
+                </div>
                 <div>
                     <input type="button" value="Search" ng-click="updateFiltered()" class="btn btn-primary"/>
                     <input type="button" value="Reset" ng-click="reset()" class="btn btn-warning"/>

@@ -28,7 +28,8 @@ angular.module('appCatalogApp')
         $scope.filter = {
           selectedKeywords: [],
           searchKey: '',
-          andSearch: true
+          andSearch: true,
+          project_supported: false
         };
       };
       $scope.filterInit();
@@ -157,6 +158,10 @@ angular.module('appCatalogApp')
         /* second, filter the list according to simple phrase matching on name, description, author */
         if ($scope.filter.searchKey) {
           $scope.filteredAppliances = UtilFactory.search($scope.filteredAppliances, $scope.filter.searchKey);
+        }
+
+        if ($scope.filter.project_supported) {
+          $scope.filteredAppliances = UtilFactory.filterProjectSupported($scope.filteredAppliances);
         }
 
         $scope.sortAppliances($scope.predicate);

@@ -141,6 +141,12 @@ angular
             }
         };
 
+        factory.filterProjectSupported = function(appliances) {
+                return _.filter(appliances, function(appliance) {
+                    return appliance.project_supported;
+                });
+        };
+
         factory.search = function(appliances, searchKey) {
             if (!searchKey) {
                 return angular.copy(appliances);

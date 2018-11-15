@@ -86,6 +86,10 @@
 }
 
 .appCatalog .ats-switch {
+    margin-top: 0px;
+}
+
+.appCatalog .project-supported {
     margin-top: 10px;
 }
 
