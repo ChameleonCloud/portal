@@ -9,6 +9,21 @@ import logging
 import mimetypes
 from .models import TicketCategories
 
+
+from keystoneclient import client as ks_client
+from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
+import json
+from novaclient import client as nova_client
+from blazarclient import client as blazar_client
+from glanceclient import Client as glance_client
+from django.conf import settings
+from datetime import datetime
+from dateutil import parser
+import sys
+from django.template.loader import render_to_string
+
+
 logger = logging.getLogger('default')
 
 @login_required
@@ -57,6 +72,20 @@ def ticketcreate(request):
 
             header = '\n'.join('[%s] %s' % m for m in meta)
             ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
+
+            try:
+                ch_regions = ['CHI@TACC', 'CHI@UC']
+                unscoped_token = request.session['unscoped_token'].get('auth_token')
+                region_list = []
+                for ch_region in ch_regions:
+                    region_list.append(get_openstack_data(unscoped_token, ch_region))
+
+                user_details = render_to_string('djangoRT/project_details.txt', {'regions': region_list})
+                logger.info(user_details)
+
+                ticket_body = ticket_body + user_details
+            except:
+                logger.error(sys.exc_info()[0]))
 
             ticket = rtModels.Ticket( subject = form.cleaned_data['subject'],
                                       problem_description = ticket_body,
@@ -173,3 +202,54 @@ def ticketattachment(request, ticketId, attachmentId):
         response = HttpResponse(attachment['Content'], content_type=attachment['Headers']['Content-Type'])
         response['Content-Disposition'] = attachment['Headers']['Content-Disposition']
         return response
+
+def get_openstack_data(unscoped_token, region):
+    current_region = {}
+    current_region['name'] = region
+    current_region['projects'] = []
+    auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=None)
+    sess = ks_session.Session(auth=auth, verify=None)
+    ks = ks_client.Client(session=sess,insecure=True)
+    projects = ks.federation.projects.list()
+    for project in projects:
+        current_project = {}
+        current_project['name'] = project.name
+        current_project['id'] = project.id
+        current_region['projects'].append(current_project)
+        pauth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=project.id)
+        psess = ks_session.Session(auth=pauth, verify=None)
+        current_project['leases'] = get_lease_info(psess, region)
+
+        current_project['servers'] = get_server_info(psess, region)
+    return current_region
+
+def get_lease_info(psess, region):
+    lease_list=[]
+    blazar = blazar_client.Client('1', service_type='reservation', interface='publicURL', session=psess, blazar_url='chi.uc.chameleoncloud.org:1234',region_name=region)
+    leases = blazar.lease.list()
+    for lease in leases:
+        lease_dict = {}
+        lease_dict['name'] = lease.get('name')
+        lease_dict['status'] = lease.get('status')
+        lease_dict['start_date'] = str(parser.parse(lease.get('start_date')))
+        lease_dict['end_date'] = str(parser.parse(lease.get('end_date')))
+        lease_dict['id'] = lease.get('id')
+        lease_list.append(lease_dict)
+    return lease_list
+
+def get_server_info(psess, region):
+    server_list=[]
+    nova = nova_client.Client('2', session=psess,region_name=region)
+    glance = glance_client('2', service_type='image', interface='publicURL', session=psess,region_name=region)
+    servers = nova.servers.list()
+    for server in servers:
+        server_dict = {}
+        server_dict['name'] = server.name
+        server_dict['status'] = str(server.status)
+        server_dict['created_date'] = str(parser.parse(server.created))
+        server_dict['id'] = server.id
+        image = glance.images.get(str(server.image['id']))
+        server_dict['image_name'] = str(image.name)
+        server_dict['image_id'] = str(image.id)
+        server_list.append(server_dict)
+    return server_list
