@@ -73,26 +73,26 @@ def ticketcreate(request):
             header = '\n'.join('[%s] %s' % m for m in meta)
             ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
 
-            try:
-                ch_regions = ['CHI@TACC', 'CHI@UC']
+            user_details = ''
+            if 'unscoped_token' in request.session:
                 unscoped_token = request.session['unscoped_token'].get('auth_token')
+                ch_regions = [settings.OPENSTACK_TACC_REGION, settings.OPENSTACK_UC_REGION]
                 region_list = []
                 for ch_region in ch_regions:
-                    region_list.append(get_openstack_data(unscoped_token, ch_region))
+                    try:
+                        region_list.append(get_openstack_data(unscoped_token, ch_region))
+                    except Exception as err:
+                        logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
 
                 user_details = render_to_string('djangoRT/project_details.txt', {'regions': region_list})
-                logger.info(user_details)
-
                 ticket_body = ticket_body + user_details
-            except:
-                logger.error(sys.exc_info()[0]))
 
             ticket = rtModels.Ticket( subject = form.cleaned_data['subject'],
                                       problem_description = ticket_body,
                                       requestor = form.cleaned_data['email'],
                                       cc = form.cleaned_data['cc'] )
 
-            logger.debug('Creating ticket for user: %s' % form.cleaned_data)
+            logger.debug('Creating ticket for user: %s' % form.cleaned_data + ' with project details: ' + user_details)
 
             ticket_id = rt.createTicket(ticket)
 
@@ -225,7 +225,7 @@ def get_openstack_data(unscoped_token, region):
 
 def get_lease_info(psess, region):
     lease_list=[]
-    blazar = blazar_client.Client('1', service_type='reservation', interface='publicURL', session=psess, blazar_url='chi.uc.chameleoncloud.org:1234',region_name=region)
+    blazar = blazar_client.Client('1', service_type='reservation', interface='publicURL', session=psess,region_name=region)
     leases = blazar.lease.list()
     for lease in leases:
         lease_dict = {}

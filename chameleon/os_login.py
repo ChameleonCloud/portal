@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.conf import settings
 from django.contrib.auth.views import login
-
+import sys
 from keystoneclient import client as ks_client
 
 import logging
@@ -19,9 +19,12 @@ def custom_login(request,
     current_app=None, extra_context=None)
     logger.error('is user logged in: ' + str(request.user.is_authenticated()))
     if request.user.is_authenticated() and request.POST.get('password', False):
-        unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_KEYSTONE_URL).get_raw_token_from_identity_service( \
-            auth_url=settings.OPENSTACK_KEYSTONE_URL,username=request.POST.get('username'), password=request.POST.get('password'), project_id=None, \
-            user_domain_name='default', user_domain_id='default')
-        request.session['unscoped_token'] = unscoped_token
-        logger.error('*********************################## Unscoped Toke: ' + str(request.session['unscoped_token']))
+        try:
+            unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_KEYSTONE_URL).get_raw_token_from_identity_service( \
+                auth_url=settings.OPENSTACK_KEYSTONE_URL,username=request.POST.get('username'), password=request.POST.get('password'), project_id=None, \
+                user_domain_name='default', user_domain_id='default')
+            request.session['unscoped_token'] = unscoped_token
+            logger.info('*********************################## Unscoped Token retrieved and stored in session')
+        except Exception as err:
+            logger.error('Error retrieving Openstack Token: {}'.format(err.message) + str(sys.exc_info()[0]))
     return login_return
