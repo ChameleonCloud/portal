@@ -13,6 +13,31 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 @login_required
+def horizon_sso_login(request):
+    next = ''
+    if request.GET.get('next'):
+        next = request.GET.get('next')
+        next.replace('/sso/horizon/', '')
+
+
+    ## first we get the url params
+        ## host
+        ## path
+        ## params
+
+    ## now, we verify the host is valid
+        ## if not valid, do nothing, or maybe show an error
+    ## if valid,
+        ## then post the form..
+
+    context = {}
+    context['sso_token'] = request.session['unscoped_token'].get('auth_token')
+    context['host'] = 'http://127.0.0.1:8000/auth/ccwebsso/' + '?next=' + next
+
+    return render(request, 'sso/sso_callback_template.html', context)
+
+
+@login_required
 def dashboard(request):
     context = {}
 
