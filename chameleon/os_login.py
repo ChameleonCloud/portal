@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 @never_cache
 def custom_login(request, current_app=None, extra_context=None):
     login_return = login(request, current_app=None, extra_context=None)
-
     if request.user.is_authenticated() and request.POST.get('password', False):
         set_unscoped_token(request)
 
@@ -24,12 +23,12 @@ def custom_login(request, current_app=None, extra_context=None):
 
 def set_unscoped_token(request):
     try:
-        unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_KEYSTONE_URL + 'abcdefg').get_raw_token_from_identity_service( \
+        unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_KEYSTONE_URL).get_raw_token_from_identity_service( \
             auth_url=settings.OPENSTACK_KEYSTONE_URL,username=request.POST.get('username'), password=request.POST.get('password'), project_id=None, \
             user_domain_name='default', user_domain_id='default')
         request.session['unscoped_token'] = unscoped_token
         logger.info('***Unscoped Token retrieved and stored in session for user: ' + request.POST.get('username'))
-    except NotFoundException as nfe:
+    except Exception as nfe:
         try:
             logger.error('Error retrieving Openstack Token: {}'.format(nfe.message) + str(sys.exc_info()[0]))
             unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_ALT_KEYSTONE_URL).get_raw_token_from_identity_service( \
