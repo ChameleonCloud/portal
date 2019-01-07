@@ -1,41 +1,37 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from user_news.models import Outage
 from djangoRT import rtUtil
-
+from urlparse import urlparse
 import logging
 from pytas.models import Project
 from webinar_registration.models import Webinar
 from django.utils import timezone
+from django.core.exceptions import SuspiciousOperation
+import sys
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 @login_required
 def horizon_sso_login(request):
     next = ''
-    if request.GET.get('next'):
-        next = request.GET.get('next')
-        next.replace('/sso/horizon/', '')
-
-
-    ## first we get the url params
-        ## host
-        ## path
-        ## params
-
-    ## now, we verify the host is valid
-        ## if not valid, do nothing, or maybe show an error
-    ## if valid,
-        ## then post the form..
-
+    ## first we get the url params, host and next
+    next = request.GET.get('next') if request.GET.get('next') else ''
+    host = request.GET.get('host')
+    valid_callback_hosts = getattr(settings, 'SSO_CALLBACK_VALID_HOSTS', [])
+    ## now, we verify the host is valid, if not valid, raise the alarm
+    if not host or not host in valid_callback_hosts:
+        logger.error('invalid or missing host in callback, host: ' + host)
+        raise SuspiciousOperation("Invalid request")
+    ## once we know the host is valid, we post the form
     context = {}
     context['sso_token'] = request.session['unscoped_token'].get('auth_token')
-    context['host'] = 'http://127.0.0.1:8000/auth/ccwebsso/' + '?next=' + next
-
+    protocol = 'http' if host.startswith('127.0.0.1') else 'https'
+    context['host'] = protocol + '://' + host + '/auth/ccwebsso/' + '?next=' + next
     return render(request, 'sso/sso_callback_template.html', context)
-
 
 @login_required
 def dashboard(request):
