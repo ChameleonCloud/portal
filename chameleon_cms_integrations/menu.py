@@ -42,11 +42,11 @@ class UserMenu(CMSAttachMenu):
         #nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('HelpDesk'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help'), "/user/help/", menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('HelpDesk'), "/user/help/", menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
