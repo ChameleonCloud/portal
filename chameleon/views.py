@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 @login_required
 def horizon_sso_login(request):
     next = ''
-    ## first we get the url params, host and next
+    ## first we get the url params, host, webroot, and next
+    horizon_webroot = request.GET.get('webroot') if request.GET.get('webroot') else ''
     next = request.GET.get('next') if request.GET.get('next') else ''
     host = request.GET.get('host')
     valid_callback_hosts = getattr(settings, 'SSO_CALLBACK_VALID_HOSTS', [])
@@ -30,7 +31,7 @@ def horizon_sso_login(request):
     context = {}
     context['sso_token'] = request.session['unscoped_token'].get('auth_token')
     protocol = 'http' if host.startswith('127.0.0.1') else 'https'
-    context['host'] = protocol + '://' + host + '/auth/ccwebsso/' + '?next=' + next
+    context['host'] = protocol + '://' + host + horizon_webroot + '/auth/ccwebsso/' + '?next=' + next
     return render(request, 'sso/sso_callback_template.html', context)
 
 @login_required
