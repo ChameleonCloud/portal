@@ -6,33 +6,99 @@ from user_news.models import Outage
 from djangoRT import rtUtil
 from urlparse import urlparse
 import logging
+import chameleon.os_login as login
+from tas import auth as tas_auth
 from pytas.models import Project
 from webinar_registration.models import Webinar
 from django.utils import timezone
 from django.core.exceptions import SuspiciousOperation
 import sys
+from django.contrib.auth.forms import AuthenticationForm
 from django.conf import settings
+from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
 
 @login_required
 def horizon_sso_login(request):
     next = ''
-    ## first we get the url params, host, webroot, and next
+    ## first we get the url params host, webroot, and next
     horizon_webroot = request.GET.get('webroot') if request.GET.get('webroot') else ''
     next = request.GET.get('next') if request.GET.get('next') else ''
-    host = request.GET.get('host')
+    host = request.GET.get('host') if request.GET.get('host') else ''
+
+    ## now, we verify the host is valid, if not valid, raise the alarm...
     valid_callback_hosts = getattr(settings, 'SSO_CALLBACK_VALID_HOSTS', [])
-    ## now, we verify the host is valid, if not valid, raise the alarm
     if not host or not host in valid_callback_hosts:
-        logger.error('invalid or missing host in callback, host: ' + host)
-        raise SuspiciousOperation("Invalid request")
-    ## once we know the host is valid, we post the form
+        raise SuspiciousOperation('Invalid or missing host in callback by user ' \
+            + request.user.username + ', callback host was: ' + host)
+
+    ## get the Keystone token, and add to context 
+    ## if none available, prompt user for username/password to get one
     context = {}
-    context['sso_token'] = request.session['unscoped_token'].get('auth_token')
-    protocol = 'http' if host.startswith('127.0.0.1') else 'https'
+    try:
+        context['sso_token'] = request.session['unscoped_token'].get('auth_token')
+    except:
+        return manual_ks_login(request)
+
+    protocol = getattr(settings, 'SSO_CALLBACK_PROTOCOL', 'https')
     context['host'] = protocol + '://' + host + horizon_webroot + '/auth/ccwebsso/' + '?next=' + next
     return render(request, 'sso/sso_callback_template.html', context)
+
+@login_required
+def manual_ks_login(request):
+    if request.method == 'POST':
+        form = KSAuthForm(request, data=request.POST)
+        user = None
+        if request.user.username == request.POST.get('username') and form.is_valid():
+            login.set_unscoped_token(request)
+            try:
+                request.session['unscoped_token']
+                return horizon_sso_login(request)
+            except KeyError:
+                return HttpResponseRedirect('/sso/horizon/unavailable')
+        else:
+            logger.error('an error occurred on horizon verify')
+            form = KSAuthForm(request)
+    else:
+        form = KSAuthForm(request)
+
+    context = {
+        'form': form,
+    }
+    form.fields['username'].widget.attrs['readonly'] = True
+    return render(request, 'sso/manual_ks_login.html', context)
+
+## This page is meant for users who were trying to sso to Horizon, 
+## but were unable to retrieve a Keystone token
+@login_required
+def horizon_sso_unavailable(request):
+    try:
+        ## Here we're just checking to see if a keystone token is in the session,
+        ## if it is, we shouldn't be here, let's redirect to the home page
+        request.session['unscoped_token']
+        return redirect('/')
+    except KeyError:
+        ## If we're here we've tried to get a token from ks and failed,
+        ## that means we can't log in to Horizon so we send them to a help page
+        return render(request, 'sso/keystone_login_unavailable.html', None)
+
+class KSAuthForm(AuthenticationForm):
+    def __init__(self, request=None, *args, **kwargs):
+        if request is not None:
+            username = request.user.username
+            initial = kwargs.get('initial', {})
+            initial_default = {'username': username}
+            initial_default.update(initial)
+            kwargs['initial'] = initial_default
+        super(KSAuthForm, self).__init__(request, *args, **kwargs)
+    def clean_username(self):
+        instance = getattr(self, 'instance', None)
+        if instance:
+            if instance.is_disabled:
+                return instance.username
+            else:
+                return self.cleaned_data.get('username')
 
 @login_required
 def dashboard(request):

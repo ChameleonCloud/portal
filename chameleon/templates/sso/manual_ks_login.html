@@ -1,0 +1,23 @@
+{% extends "layout/default.html" %}
+{% load bootstrap3 %}
+{% block title %}Credentials Verification{% endblock %}
+{% block content %}
+<h1>Credential Verification</h1>
+
+<div class="row">
+  <div class="col-sm-6">
+    <p>
+     Please verify your credentials before proceeding.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+
+      {% bootstrap_form form %}
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
