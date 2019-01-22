@@ -27,11 +27,12 @@ def horizon_sso_login(request):
     next = request.GET.get('next') if request.GET.get('next') else ''
     host = request.GET.get('host') if request.GET.get('host') else ''
 
-    ## now, we verify the host is valid, if not valid, raise the alarm...
+    ## now we verify the host is valid, if not valid, log the error, send to home page...
     valid_callback_hosts = getattr(settings, 'SSO_CALLBACK_VALID_HOSTS', [])
     if not host or not host in valid_callback_hosts:
-        raise SuspiciousOperation('Invalid or missing host in callback by user ' \
+        logger.error('Invalid or missing host in callback by user ' \
             + request.user.username + ', callback host was: ' + host)
+        return HttpResponseRedirect('/')
 
     ## get the Keystone token, and add to context 
     ## if none available, prompt user for username/password to get one
