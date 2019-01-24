@@ -11,7 +11,6 @@ from tas import auth as tas_auth
 from pytas.models import Project
 from webinar_registration.models import Webinar
 from django.utils import timezone
-from django.core.exceptions import SuspiciousOperation
 import sys
 from django.contrib.auth.forms import AuthenticationForm
 from django.conf import settings
@@ -52,11 +51,12 @@ def manual_ks_login(request):
         form = KSAuthForm(request, data=request.POST)
         user = None
         if request.user.username == request.POST.get('username') and form.is_valid():
-            login.set_unscoped_token(request)
-            try:
-                request.session['unscoped_token']
+            unscoped_token = login.get_unscoped_token(request)
+            if unscoped_token:
+                # We know login was successful!
+                request.session['unscoped_token'] = unscoped_token
                 return horizon_sso_login(request)
-            except KeyError:
+            else:
                 return HttpResponseRedirect('/sso/horizon/unavailable')
         else:
             logger.error('an error occurred on horizon verify')
@@ -74,14 +74,17 @@ def manual_ks_login(request):
 ## but were unable to retrieve a Keystone token
 @login_required
 def horizon_sso_unavailable(request):
-    try:
-        ## Here we're just checking to see if a keystone token is in the session,
-        ## if it is, we shouldn't be here, let's redirect to the home page
-        request.session['unscoped_token']
+    """
+    Here we're just checking to see if a keystone token is in the session,
+    if it is, we shouldn't be here, let's redirect to the home page
+    """
+    if getattr(request.session, 'unscoped_token', None):
         return redirect('/')
-    except KeyError:
-        ## If we're here we've tried to get a token from ks and failed,
-        ## that means we can't log in to Horizon so we send them to a help page
+    else:
+        """
+        If we're here we've tried to get a token from ks and failed,
+        that means we can't log in to Horizon so we send them to a help page
+        """
         return render(request, 'sso/keystone_login_unavailable.html', None)
 
 class KSAuthForm(AuthenticationForm):
