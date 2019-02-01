@@ -39,7 +39,7 @@
     <button class="btn btn-xs btn-default pull-right" name="allocation-display-toggle">Toggle inactive allocations</button>
   {% endif %}
 
-  {% if not project.has_active_allocations and not project.has_pending_allocations %}
+  {% if not project.has_active_allocations and not project.has_approved_allocations and not project.has_pending_allocations %}
     {% if project.has_rejected_allocations %}
       {% for alloc in project.rejected_allocations %}
         {% include 'projects/allocation.html' %}

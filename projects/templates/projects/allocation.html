@@ -9,7 +9,7 @@
       {% endif %}
     </small>
   </h4>
-  {% if alloc.up_for_renewal and not project.has_approved_allocations %}
+  {% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
     <div class="alert alert-warning">
       <p>
         <i class="fa fa-warning"></i>
