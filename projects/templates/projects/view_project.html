@@ -63,12 +63,15 @@
     {% for alloc in project.active_allocations %}
       {% include 'projects/allocation.html' %}
     {% endfor %}
+    {% for alloc in project.approved_allocations %}
+      {% include 'projects/allocation.html' %}
+    {% endfor %}
     {% for alloc in project.pending_allocations %}
       {% include 'projects/allocation.html' %}
     {% endfor %}
   {% endif %}
 
-  {% if project.has_active_allocations or project.has_pending_allocations %}
+  {% if project.has_active_allocations or project.has_approved_allocations or project.has_pending_allocations %}
      {% if project.has_rejected_allocations %}
        {% for alloc in project.rejected_allocations %}
          {% include 'projects/allocation.html' %}
