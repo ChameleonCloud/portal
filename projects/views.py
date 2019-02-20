@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from chameleon.decorators import terms_required
 from django.contrib import messages
 from django.http import (Http404, HttpResponse,
-                         HttpResponseRedirect, HttpResponseNotAllowed)
+                         HttpResponseRedirect, HttpResponseNotAllowed, JsonResponse)
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
@@ -11,6 +11,9 @@ from datetime import datetime
 
 from pytas.http import TASClient
 from pytas.models import Project
+from models import ProjectExtras
+from projects.serializer import ProjectExtrasJSONSerializer
+from django.contrib.auth.models import User
 
 from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
 
@@ -151,9 +154,31 @@ def view_project(request, project_id):
                 a.up_for_renewal = True
                 a.renewal_days = days_left
 
+    try:
+        extras = ProjectExtras.objects.get(project_id=project_id)
+        project_nickname = extras.nickname
+    except ProjectExtras.DoesNotExist:
+        project_nickname = None
+    
+    # portal_users = User.objects.filter(username__in=[u.username for u in users])
+    user_mashup = []
+    for u in users:
+        user = {}
+        user['username'] = u.username
+        user['role'] = u.role
+        try:
+            portal_user = User.objects.get(username=u.username)
+            user['email'] = portal_user.email
+            user['first_name'] = portal_user.first_name
+            user['last_name'] = portal_user.last_name
+        except User.DoesNotExist:
+            logger.info('user: ' + u.username + ' not found')
+        user_mashup.append(user)
+
     return render(request, 'projects/view_project.html', {
         'project': project,
-        'users': users,
+        'project_nickname': project_nickname,
+        'users': user_mashup,
         'is_pi': request.user.username == project.pi.username,
         'form': form,
     })
@@ -323,7 +348,16 @@ def create_project(request):
             project['source'] = 'Chameleon'
 
             try:
+                nickname = None
+                if 'nickname' in project:
+                    nickname = project.pop("nickname") # nickname doesn't go to TAS
                 created_project = tas.create_project(project)
+                if nickname:
+                    project_id = created_project['id']
+                    pextras = ProjectExtras.objects.create(project_id=project_id)
+                    pextras.nickname = nickname
+                    pextras.save()
+
                 messages.success(request, 'Your project has been created!')
                 return HttpResponseRedirect(
                     reverse('projects:view_project', args=[created_project['id']]))
@@ -347,3 +381,17 @@ def edit_project(request):
     context = {}
     return render(request, 'projects/edit_project.html', context)
 
+def get_extras(request):
+    logger.info('Get all project extras json endpoint requested')
+    response = {
+        'status': 'success'
+    }
+    try:
+        serializer = ProjectExtrasJSONSerializer()
+        response['message'] = ''
+        extras = json.loads(serializer.serialize(ProjectExtras.objects.all()))
+        response['result'] = extras
+    except ProjectExtras.DoesNotExist:
+        response['message'] = 'Does not exist.'
+        response['result'] = None
+    return JsonResponse(response)

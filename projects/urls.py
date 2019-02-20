@@ -7,4 +7,5 @@ urlpatterns = patterns('',
     url( r'^(\d+)/$', views.view_project, name='view_project' ),
     url( r'^(\d+)/allocation/$', views.create_allocation, name='create_allocation'),
     url( r'^(\d+)/allocation/(\d+)$', views.create_allocation, name='renew_allocation'),
+    url(r'^api/extras/$', views.get_extras, name='get_extras'),
 )
