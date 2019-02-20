@@ -155,7 +155,7 @@ def view_project(request, project_id):
                 a.renewal_days = days_left
 
     try:
-        extras = ProjectExtras.objects.get(project_id=project_id)
+        extras = ProjectExtras.objects.get(tas_project_id=project_id)
         project_nickname = extras.nickname
     except ProjectExtras.DoesNotExist:
         project_nickname = None
@@ -352,10 +352,11 @@ def create_project(request):
                 if 'nickname' in project:
                     nickname = project.pop("nickname") # nickname doesn't go to TAS
                 created_project = tas.create_project(project)
+                logger.info(json.dumps(created_project))
                 if nickname:
-                    project_id = created_project['id']
-                    pextras = ProjectExtras.objects.create(project_id=project_id)
-                    pextras.nickname = nickname
+                    tas_project_id = created_project['id']
+                    charge_code = created_project['chargeCode']
+                    pextras = ProjectExtras.objects.create(tas_project_id=tas_project_id, nickname=nickname,charge_code=charge_code)
                     pextras.save()
 
                 messages.success(request, 'Your project has been created!')
