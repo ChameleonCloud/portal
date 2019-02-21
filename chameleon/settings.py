@@ -375,6 +375,12 @@ MIGRATION_MODULES = {
     'djangocms_video': 'djangocms_video.migrations_django',
 }
 
+#####
+#
+# Project Extras/Nickname API token for json endpoint
+#
+#####
+PROJECT_EXTRAS_API_TOKEN = os.environ.get('PROJECT_EXTRAS_API_TOKEN', None)
 
 #####
 #

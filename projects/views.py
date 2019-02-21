@@ -2,13 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from chameleon.decorators import terms_required
 from django.contrib import messages
-from django.http import (Http404, HttpResponse,
+from django.http import (Http404, HttpResponseForbidden, HttpResponse,
                          HttpResponseRedirect, HttpResponseNotAllowed, JsonResponse)
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
-
+from django.conf import settings
 from pytas.http import TASClient
 from pytas.models import Project
 from models import ProjectExtras
@@ -383,6 +383,12 @@ def edit_project(request):
     return render(request, 'projects/edit_project.html', context)
 
 def get_extras(request):
+    provided_token = request.GET.get('token') if request.GET.get('token') else None
+    stored_token = getattr(settings, 'PROJECT_EXTRAS_API_TOKEN', None)
+    if not provided_token or not stored_token or provided_token != stored_token:
+        logger.error('Project Extras json api Access Token validation failed')
+        return HttpResponseForbidden()
+
     logger.info('Get all project extras json endpoint requested')
     response = {
         'status': 'success'

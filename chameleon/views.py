@@ -13,7 +13,6 @@ from webinar_registration.models import Webinar
 from django.utils import timezone
 import sys
 from django.contrib.auth.forms import AuthenticationForm
-from django.conf import settings
 from django.http import HttpResponseRedirect
 
 logger = logging.getLogger(__name__)
