@@ -110,8 +110,8 @@
         <input type="hidden" name="username" value="{{ u.username }}">
         <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
       </form>
+      <strong>{{ u.username }}</strong>, {{ u.email}}, {{ u.first_name}} {{ u.last_name}}
     {% endif %}
-    <strong>{{ u.username }}</strong>, {{ u.email}}, {{ u.first_name}} {{ u.last_name}}
   </li>
   {% endfor %}
 </ul>

@@ -159,10 +159,11 @@ def view_project(request, project_id):
         project_nickname = extras.nickname
     except ProjectExtras.DoesNotExist:
         project_nickname = None
-    
-    # portal_users = User.objects.filter(username__in=[u.username for u in users])
+
     user_mashup = []
     for u in users:
+        if u.role == 'PI': # Exclude PI from member list
+            continue
         user = {}
         user['username'] = u.username
         user['role'] = u.role
