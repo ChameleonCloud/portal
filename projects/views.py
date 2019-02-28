@@ -14,7 +14,7 @@ from pytas.models import Project
 from models import ProjectExtras
 from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
-
+from django.views.decorators.http import require_POST
 from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
 
 import re
@@ -382,6 +382,25 @@ def create_project(request):
 def edit_project(request):
     context = {}
     return render(request, 'projects/edit_project.html', context)
+
+@require_POST
+def edit_nickname(request):
+    project_id = request.POST.get('project_id', '')
+    nickname = request.POST.get('nickname', '')
+    project = Project(project_id)
+    if not project_pi_or_admin_or_superuser(request.user, project):
+        return JsonResponse({'status': 'error'})
+
+    charge_code = project.chargeCode
+    pextras, created = ProjectExtras.objects.get_or_create(tas_project_id=project_id)
+    pextras.nickname = nickname
+    pextras.charge_code = charge_code
+    pextras.save()
+    response = {
+        'status': 'success'
+    }
+    return JsonResponse(response)
+
 
 def get_extras(request):
     provided_token = request.GET.get('token') if request.GET.get('token') else None

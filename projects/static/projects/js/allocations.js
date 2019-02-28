@@ -5,6 +5,34 @@
       $('.allocation').toggleClass('show');
     });
 
+    $('#icon_show_edit').on('click', function(e) {
+        $('#project_nickname').toggleClass('hidden');
+        $('#icon_show_edit').toggleClass('hidden');
+        $('#project_edit_form').toggleClass('hidden');
+      });
+      $('#btn_cancel_project_nickname').on('click', function(e) {
+        $('#project_nickname').toggleClass('hidden');
+        $('#icon_show_edit').toggleClass('hidden');
+        $('#project_edit_form').toggleClass('hidden');
+      });
+
+      $('#btn_update_project_nickname').on('click', function(e) {
+        e.preventDefault();
+        var editNicknameForm = $('#frm_edit_nickname');
+        var fd = editNicknameForm.serialize();
+        $.ajax({
+            method: 'POST',
+            url: editNicknameForm[0].action, 
+            data: fd,
+            success: function(retData){
+                $('#project_nickname').text(editNicknameForm[0].nickname.value);
+                $('#project_nickname').toggleClass('hidden');
+                $('#project_edit_form').toggleClass('hidden');
+                $('#icon_show_edit').toggleClass('hidden');
+                }
+        })
+      });
+
     if ($('.allocation-active').length != 0 || $('.allocation-pending').length != 0) {
             $('.allocation-rejected').toggleClass('hide');
     }
