@@ -8,6 +8,7 @@
 </h2>
 
 <div class="table-responsive">
+    <div id='nickname_message'></div>
   <table class="table">
     <tbody>
       <tr>
@@ -25,7 +26,7 @@
             <span id='project_edit_form' class='hidden'>
             <form method="POST" id='frm_edit_nickname' name='frm_edit_nickname' action="/user/projects/edit/nickname/" >
               {% csrf_token %}
-            <input id="edit_project_nickname" name="nickname" type="text" value="{{ project_nickname|default_if_none:'' }}" />
+            <input id="edit_project_nickname" maxlength="50" name="nickname" type="text" value="{{ project_nickname|default_if_none:'' }}" />
             <input id="project_id" name="project_id" type="hidden" value="{{project.id}}" />
             <button type="submit" class="btn btn-xs" id="btn_update_project_nickname">Update</button>
             <button type="button" class="btn btn-xs" id="btn_cancel_project_nickname">Cancel</button>

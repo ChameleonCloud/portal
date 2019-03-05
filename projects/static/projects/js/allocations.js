@@ -13,22 +13,32 @@
       $('#btn_cancel_project_nickname').on('click', function(e) {
         $('#project_nickname').toggleClass('hidden');
         $('#icon_show_edit').toggleClass('hidden');
+        $('#edit_project_nickname').val('');
         $('#project_edit_form').toggleClass('hidden');
+        $('#nickname_message').attr('class','').text('');
       });
 
       $('#btn_update_project_nickname').on('click', function(e) {
         e.preventDefault();
+        $('#nickname_message').attr('class','').text('');
         var editNicknameForm = $('#frm_edit_nickname');
         var fd = editNicknameForm.serialize();
         $.ajax({
             method: 'POST',
             url: editNicknameForm[0].action, 
             data: fd,
+            dataType: 'json',
             success: function(retData){
                 $('#project_nickname').text(editNicknameForm[0].nickname.value);
                 $('#project_nickname').toggleClass('hidden');
                 $('#project_edit_form').toggleClass('hidden');
                 $('#icon_show_edit').toggleClass('hidden');
+                $('#nickname_message').attr('class','alert alert-success alert-dismissable alert-link');
+                $('#nickname_message').text('Update Successful');
+                },
+            error: function(xhr, textStatus, errorThrown){
+                $('#nickname_message').attr('class','alert alert-danger alert-dismissable alert-link');
+                $('#nickname_message').text(xhr.responseJSON.message);
                 }
         })
       });

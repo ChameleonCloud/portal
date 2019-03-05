@@ -16,7 +16,7 @@ from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
-
+from django.db import IntegrityError
 import re
 import logging
 import json
@@ -313,6 +313,15 @@ def create_project(request):
         if form.is_valid():
             # title, description, typeId, fieldId
             project = form.cleaned_data.copy()
+            # let's check that any provided nickname is unique
+            nickname = project.pop('nickname').strip()
+            nickname_valid = ProjectExtras.objects.filter(nickname=nickname).count() < 1
+
+            if not nickname_valid:
+                form.add_error('__all__',
+                            'Project nickname unavailable')
+                return render(request, 'projects/create_project.html', {'form': form})
+
             project.pop('accept_project_terms', None)
 
             # pi
@@ -347,19 +356,13 @@ def create_project(request):
 
             # source
             project['source'] = 'Chameleon'
-
             try:
-                nickname = None
-                if 'nickname' in project:
-                    nickname = project.pop("nickname") # nickname doesn't go to TAS
                 created_project = tas.create_project(project)
-                logger.info(json.dumps(created_project))
-                if nickname:
-                    tas_project_id = created_project['id']
-                    charge_code = created_project['chargeCode']
-                    pextras = ProjectExtras.objects.create(tas_project_id=tas_project_id, nickname=nickname,charge_code=charge_code)
-                    pextras.save()
-
+                logger.info('newly created project: ' + json.dumps(created_project))
+                tas_project_id = created_project['id']
+                charge_code = created_project['chargeCode']
+                pextras = ProjectExtras.objects.create(tas_project_id=tas_project_id, nickname=nickname,charge_code=charge_code)
+                pextras.save()
                 messages.success(request, 'Your project has been created!')
                 return HttpResponseRedirect(
                     reverse('projects:view_project', args=[created_project['id']]))
@@ -371,7 +374,6 @@ def create_project(request):
             form.add_error('__all__',
                            'There were errors processing your request. '
                            'Please see below for details.')
-
     else:
         form = ProjectCreateForm()
 
@@ -389,13 +391,18 @@ def edit_nickname(request):
     nickname = request.POST.get('nickname', '')
     project = Project(project_id)
     if not project_pi_or_admin_or_superuser(request.user, project):
-        return JsonResponse({'status': 'error'})
+        return JsonResponse({'status': 'error', 'message':'Only PI can make project updates.'}, status=500)
 
-    charge_code = project.chargeCode
     pextras, created = ProjectExtras.objects.get_or_create(tas_project_id=project_id)
-    pextras.nickname = nickname
+    charge_code = project.chargeCode
     pextras.charge_code = charge_code
-    pextras.save()
+    pextras.nickname = nickname
+
+    try:
+        pextras.save()
+    except IntegrityError as e:
+        return JsonResponse({'status': 'error', 'message':'Nickname unavailable'}, status=500)
+
     response = {
         'status': 'success'
     }
