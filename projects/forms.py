@@ -2,7 +2,7 @@ from django import forms
 from pytas.http import TASClient
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
-
+from models import ProjectExtras
 
 RESEARCH = 0
 STARTUP = 2
@@ -98,6 +98,28 @@ class ProjectCreateForm( forms.Form ):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
         self.fields['fieldId'].choices = get_fields_choices()
 
+class EditNicknameForm(forms.Form):
+    nickname = forms.CharField(
+        label='',
+        max_length='50',
+        help_text='',
+        required=True,
+        widget=forms.TextInput(attrs={'placeholder': 'Project Nickname'}),
+    )
+
+    def is_valid(self):
+        valid = super(EditNicknameForm, self).is_valid()
+        if not valid:
+            return valid
+        self.cleaned_data['nickname'] = self.cleaned_data['nickname'].strip()
+        if not self.cleaned_data['nickname']:
+            return False
+
+        is_duplicate = ProjectExtras.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
+        if is_duplicate:
+            return False
+
+        return True
 
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
@@ -135,46 +157,6 @@ class AllocationCreateForm(forms.Form):
         label='I agree to abide by Chameleon Acceptable Use Policies',
         help_text=get_accept_project_terms_help_text_lazy(),
     )
-
-
-# class ProjectEditForm( forms.Form ):
-#     title = forms.CharField(
-#         label='Title',
-#         required=True,
-#         widget=forms.TextInput(attrs={'placeholder': 'Research into how...'}),
-#     )
-#     description = forms.CharField(
-#         label='Abstract',
-#         required=True,
-#         widget=forms.Textarea(attrs={'placeholder': 'We propose to...'}),
-#     )
-#     fieldId = forms.ChoiceField(
-#         label='Field of Science',
-#         choices=(),
-#         initial=3,
-#         help_text='Please indicate a primary field of science for this research',
-#     )
-
-#     def __init__(self, *args, **kwargs):
-#         super(ProjectEditForm, self).__init__(*args, **kwargs)
-#         self.fields['fieldId'].choices = get_fields_choices()
-
-# class AllocationEditForm( forms.Form ):
-#     computeRequested = forms.IntegerField(
-#         label='SUs Requested',
-#         required=True,
-#         help_text='Enter the number of SUs you would like to request',
-#     )
-#     justification = forms.CharField(
-#         label='Request Justification',
-#         required=True,
-#         widget=forms.Textarea(attrs={
-#                'placeholder': 'Provide a brief summary of what was achieved under the '
-#                               'previous request, including pointers to papers and '
-#                               'other artifacts'
-#                }),
-#     )
-
 
 class ProjectAddUserForm(forms.Form):
     username = forms.CharField(

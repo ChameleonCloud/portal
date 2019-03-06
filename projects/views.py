@@ -15,7 +15,7 @@ from models import ProjectExtras
 from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
-from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm
+from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm, EditNicknameForm
 from django.db import IntegrityError
 import re
 import logging
@@ -72,6 +72,8 @@ def view_project(request, project_id):
         logger.error(e)
         raise Http404('The requested project does not exist!')
 
+    form = ProjectAddUserForm()
+    nickname_form = EditNicknameForm()
     if request.POST:
         if 'add_user' in request.POST:
             form = ProjectAddUserForm(request.POST)
@@ -91,6 +93,8 @@ def view_project(request, project_id):
             else:
                 form.add_error('__all__', 'There were errors processing your request. '
                     'Please see below for details.')
+        elif 'nickname' in request.POST:
+            nickname_form = edit_nickname(request, project_id)
         else:
             form = ProjectAddUserForm()
 
@@ -104,9 +108,6 @@ def view_project(request, project_id):
                 logger.exception('Failed removing user')
                 messages.error(request, 'An unexpected error occurred while attempting '
                     'to remove this user. Please try again')
-
-    else:
-        form = ProjectAddUserForm()
 
     users = project.get_users()
 
@@ -182,6 +183,7 @@ def view_project(request, project_id):
         'users': user_mashup,
         'is_pi': request.user.username == project.pi.username,
         'form': form,
+        'nickname_form': nickname_form,
     })
 
 
@@ -315,7 +317,7 @@ def create_project(request):
             project = form.cleaned_data.copy()
             # let's check that any provided nickname is unique
             nickname = project.pop('nickname').strip()
-            nickname_valid = ProjectExtras.objects.filter(nickname=nickname).count() < 1
+            nickname_valid = nickname and ProjectExtras.objects.filter(nickname=nickname).count() < 1
 
             if not nickname_valid:
                 form.add_error('__all__',
@@ -386,28 +388,30 @@ def edit_project(request):
     return render(request, 'projects/edit_project.html', context)
 
 @require_POST
-def edit_nickname(request):
-    project_id = request.POST.get('project_id', '')
-    nickname = request.POST.get('nickname', '')
+def edit_nickname(request, project_id):
     project = Project(project_id)
     if not project_pi_or_admin_or_superuser(request.user, project):
-        return JsonResponse({'status': 'error', 'message':'Only PI can make project updates.'}, status=500)
+       messages.error(request, 'Only the project PI can update nickname.')
+       return EditNicknameForm()
 
-    pextras, created = ProjectExtras.objects.get_or_create(tas_project_id=project_id)
-    charge_code = project.chargeCode
-    pextras.charge_code = charge_code
-    pextras.nickname = nickname
-
-    try:
-        pextras.save()
-    except IntegrityError as e:
-        return JsonResponse({'status': 'error', 'message':'Nickname unavailable'}, status=500)
-
-    response = {
-        'status': 'success'
-    }
-    return JsonResponse(response)
-
+    form = EditNicknameForm(request.POST)
+    if form.is_valid():
+        # try to update nickname
+        try:
+            nickname = form.cleaned_data['nickname']
+            pextras, created = ProjectExtras.objects.get_or_create(tas_project_id=project_id)
+            pextras.charge_code = project.chargeCode
+            pextras.nickname = nickname
+            pextras.save()
+            form = EditNicknameForm()
+            messages.success(request, 'Update Successful')
+        except:
+            logger.exception('Failed adding user')
+            messages.error(request, 'Nickname not available')
+        return form
+    else:
+        messages.error(request, 'Nickname not available')
+    return form
 
 def get_extras(request):
     provided_token = request.GET.get('token') if request.GET.get('token') else None

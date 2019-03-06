@@ -8,7 +8,6 @@
 </h2>
 
 <div class="table-responsive">
-    <div id='nickname_message'></div>
   <table class="table">
     <tbody>
       <tr>
@@ -24,12 +23,11 @@
           {% if is_pi %}
             <span id='project_nickname'>{{ project_nickname|default_if_none:'' }}</span><span id='icon_show_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
             <span id='project_edit_form' class='hidden'>
-            <form method="POST" id='frm_edit_nickname' name='frm_edit_nickname' action="/user/projects/edit/nickname/" >
+            <form method="POST" id='frm_edit_nickname' name='frm_edit_nickname'>
               {% csrf_token %}
-            <input id="edit_project_nickname" maxlength="50" name="nickname" type="text" value="{{ project_nickname|default_if_none:'' }}" />
-            <input id="project_id" name="project_id" type="hidden" value="{{project.id}}" />
+              {% bootstrap_form nickname_form %}
             <button type="submit" class="btn btn-xs" id="btn_update_project_nickname">Update</button>
-            <button type="button" class="btn btn-xs" id="btn_cancel_project_nickname">Cancel</button>
+            <button type="button" class="btn btn-xs" id="btn_cancel">Cancel</button>
             </form>
           </span>
           {% else %}
