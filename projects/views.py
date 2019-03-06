@@ -406,7 +406,6 @@ def edit_nickname(request, project_id):
             form = EditNicknameForm()
             messages.success(request, 'Update Successful')
         except:
-            logger.exception('Failed adding user')
             messages.error(request, 'Nickname not available')
         return form
     else:
