@@ -9,6 +9,7 @@ import logging
 import chameleon.os_login as login
 from tas import auth as tas_auth
 from pytas.models import Project
+from projects.models import ProjectExtras
 from webinar_registration.models import Webinar
 from django.utils import timezone
 import sys
@@ -109,6 +110,15 @@ def dashboard(request):
 
     # active projects...
     projects = Project.list(username=request.user)
+
+    for proj in projects:
+        try:
+            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
+            proj.__dict__['nickname'] = extras.nickname
+        except ProjectExtras.DoesNotExist:
+            project_nickname = None
+
+
     context['active_projects'] = [p for p in projects \
                 if p.source == 'Chameleon' and \
                 any(a.status in ['Active', 'Approved', 'Pending'] for a in p.allocations)]

@@ -57,6 +57,13 @@ def user_projects(request):
     projects = Project.list(username=request.user)
     projects = list(p for p in projects if p.source == 'Chameleon')
 
+    for proj in projects:
+        try:
+            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
+            proj.__dict__['nickname'] = extras.nickname
+        except ProjectExtras.DoesNotExist:
+            project_nickname = None
+
     context['projects'] = projects
 
     return render(request, 'projects/user_projects.html', context)
