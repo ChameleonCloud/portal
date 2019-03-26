@@ -62,8 +62,8 @@
                     <tr>
                       <td>
                         {% if project.nickname %}
-                        <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
-                        <div>{{project.nickname}}</div>
+                        <a href="{% url 'projects:view_project' project.id %}">{{ project.nickname }}</a>
+                        <div><small>{{project.chargeCode}}</small></div>
                         {% else %}
                         <a href="{% url 'projects:view_project' project.id %}">{{ project.chargeCode }}</a>
                         {% endif %}

@@ -18,7 +18,7 @@
 
 <h4>
   {{ p.title }} |
-  <small>{{ p.chargeCode }}</small>
+  <small>{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}</small>
   &nbsp;&nbsp;<a href="{% url 'projects:view_project' p.id %}" class="btn btn-default">View Project</a>
 </h4>
 
@@ -29,10 +29,6 @@
     <tr>
       <th>PI</th>
       <td>{{ p.pi.firstName }} {{ p.pi.lastName }} <a href="mailto:{{ p.pi.email }}">&lt;{{ p.pi.email }}&gt;</a></td>
-    </tr>
-    <tr>
-      <th>Nickname</th>
-      <td>{{p.nickname}}</td>
     </tr>
     <tr>
       <th>Abstract</th>
