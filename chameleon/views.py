@@ -12,15 +12,60 @@ from pytas.models import Project
 from projects.models import ProjectExtras
 from webinar_registration.models import Webinar
 from django.utils import timezone
+from datetime import datetime
 import sys
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
+from keystoneclient import client as ks_client
+from keystoneauth1.identity import v3
+from keystoneauth1 import session as ks_session
 
 logger = logging.getLogger(__name__)
 
 @login_required
 def horizon_sso_login(request):
-    next = ''
+    unscoped_token = request.session.get('unscoped_token')
+    '''
+    Because some users with previously active projects may be able to get auth tokens even if they can't access Horizon,
+    we check with Keystone to verify an active project exists
+    If user has an active project, we proceed to log them in
+
+    Users who don't have active projects in Keystone are checked against TAS to see if they have approved projects, if they do
+    we check the project start date and let them know when they can access Horizon
+    '''
+    active_ks_projects_found = False
+    if unscoped_token:
+        active_ks_projects_found = user_has_active_ks_project(unscoped_token.get('auth_token'))
+        logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
+    active_ks_projects_found = False
+    if not active_ks_projects_found: # then check with TAS
+        chameleon_projects = get_user_chameleon_projects(request)
+        if not chameleon_projects.get('active_projects') and not chameleon_projects.get('approved_projects'):
+            logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon but no active or approved projects found in TAS, sending to unavailable page')
+            return HttpResponseRedirect('/sso/horizon/unavailable')
+
+        if chameleon_projects.get('approved_projects') and not chameleon_projects.get('active_projects'):
+            earliest_start_date = None
+            for p in chameleon_projects.get('approved_projects'):
+                for a in p.allocations:
+                    curr_alloc_date = datetime.strptime(a.start,'%Y-%m-%dT%H:%M:%SZ')
+                    if earliest_start_date is None or curr_alloc_date < earliest_start_date:
+                        earliest_start_date = curr_alloc_date
+            # send users to a page that lets them know when their approved project begins
+            logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page')
+            return render(request, 'sso/chameleon_project_approved.html', {'active_date': datetime.strftime(earliest_start_date,'%B %d, %Y at %I:%M %p'),})
+        else:
+            '''
+            If we're here the user has an active project in TAS but is either missing a token or the active projects in TAS don't exist in Keystone
+            Failing to retrieve an unscoped token or projects form KS when the user has active an project in TAS may happen if the user's account is in a transient state so
+            We give the user a chance to retrieve a token
+            '''
+            if not unscoped_token:
+                return manual_ks_login(request)
+
+    '''
+    If we're here, then users have an active project and unscoped token, so we proceed to log them in to Horizon
+    '''
     ## first we get the url params host, webroot, and next
     horizon_webroot = request.GET.get('webroot') if request.GET.get('webroot') else ''
     next = request.GET.get('next') if request.GET.get('next') else ''
@@ -33,17 +78,39 @@ def horizon_sso_login(request):
             + request.user.username + ', callback host was: ' + host)
         return HttpResponseRedirect('/')
 
-    ## get the Keystone token, and add to context 
-    ## if none available, prompt user for username/password to get one
-    context = {}
-    try:
-        context['sso_token'] = request.session['unscoped_token'].get('auth_token')
-    except:
-        return manual_ks_login(request)
-
     protocol = getattr(settings, 'SSO_CALLBACK_PROTOCOL', 'https')
+    context = {}
+    context['sso_token'] = request.session.get('unscoped_token').get('auth_token')
     context['host'] = protocol + '://' + host + horizon_webroot + '/auth/ccwebsso/' + '?next=' + next
     return render(request, 'sso/sso_callback_template.html', context)
+
+def user_has_active_ks_project(auth_token):
+    auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=auth_token, project_id=None)
+    sess = ks_session.Session(auth=auth, verify=None)
+    ks = ks_client.Client(session=sess,insecure=True)
+    ks_projects = ks.federation.projects.list()
+    for p in ks_projects:
+        if p.enabled:
+            return True
+    return False
+
+def get_user_chameleon_projects(request):
+    tas_projects = Project.list(username=request.user)
+    chameleon_projects = {}
+    active_projects = [p for p in tas_projects \
+                if p.source == 'Chameleon' and \
+                (a.status in ['Active'] for a in p.allocations)]
+    approved_projects = [p for p in tas_projects \
+                if p.source == 'Chameleon' and \
+                (a.status in ['Approved'] for a in p.allocations)]
+    pending_projects = [p for p in tas_projects \
+                if p.source == 'Chameleon' and \
+                (a.status in ['Pending'] for a in p.allocations)]
+    
+    chameleon_projects['active_projects'] = active_projects
+    chameleon_projects['approved_projects'] = approved_projects
+    chameleon_projects['pending_projects'] = pending_projects
+    return chameleon_projects
 
 @login_required
 def manual_ks_login(request):
@@ -54,12 +121,14 @@ def manual_ks_login(request):
             unscoped_token = login.get_unscoped_token(request)
             if unscoped_token:
                 # We know login was successful!
+                logger.debug('User: ' + request.user.username + ' retrieved unscoped token successfully via manual_ks_login form.')
                 request.session['unscoped_token'] = unscoped_token
                 return horizon_sso_login(request)
             else:
+                logger.debug('User: ' + request.user.username + ' could not retrieve unscoped token via manual_ks_login form.')
                 return HttpResponseRedirect('/sso/horizon/unavailable')
         else:
-            logger.error('an error occurred on horizon verify')
+            logger.error('An error occurred on form validation for user ' + request.user.username)
             form = KSAuthForm(request)
     else:
         form = KSAuthForm(request)
@@ -70,22 +139,14 @@ def manual_ks_login(request):
     form.fields['username'].widget.attrs['readonly'] = True
     return render(request, 'sso/manual_ks_login.html', context)
 
-## This page is meant for users who were trying to sso to Horizon, 
-## but were unable to retrieve a Keystone token
+
 @login_required
 def horizon_sso_unavailable(request):
-    """
-    Here we're just checking to see if a keystone token is in the session,
-    if it is, we shouldn't be here, let's redirect to the home page
-    """
-    if getattr(request.session, 'unscoped_token', None):
-        return redirect('/')
-    else:
-        """
-        If we're here we've tried to get a token from ks and failed,
-        that means we can't log in to Horizon so we send them to a help page
-        """
-        return render(request, 'sso/keystone_login_unavailable.html', None)
+    #     """
+    #     If we're here we've tried to get a token from ks and failed,
+    #     that means we can't log in to Horizon so we send them to a help page
+    #     """
+    return render(request, 'sso/keystone_login_unavailable.html', None)
 
 class KSAuthForm(AuthenticationForm):
     def __init__(self, request=None, *args, **kwargs):
@@ -107,7 +168,6 @@ class KSAuthForm(AuthenticationForm):
 @login_required
 def dashboard(request):
     context = {}
-
     # active projects...
     projects = Project.list(username=request.user)
 

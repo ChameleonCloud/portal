@@ -1,0 +1,13 @@
+{% extends "layout/default.html" %}
+{% load bootstrap3 %}
+{% block title %}Project Approved{% endblock %}
+{% block content %}
+<h1>Project Active Date: {{active_date}} </h1>
+
+<div class="row">
+    <p>
+     Congratulations, your Chameleon project is approved and will be active on <strong>{{active_date}}</strong>. 
+     Once the project is active you will have access to the Chameleon Dashboard. 
+    </p>
+</div>
+{% endblock %}
