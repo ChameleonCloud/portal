@@ -35,9 +35,14 @@ def horizon_sso_login(request):
     '''
     active_ks_projects_found = False
     if unscoped_token:
-        active_ks_projects_found = user_has_active_ks_project(unscoped_token.get('auth_token'))
-        logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
-    active_ks_projects_found = False
+        try:
+            active_ks_projects_found = user_has_active_ks_project(unscoped_token.get('auth_token'))
+            logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
+        except Exception as e:
+            ## if here, we have a token, but could not use it to connect to keystone so let's invalidate the token
+            request.session['unscoped_token'] = None
+            unscoped_token = None
+            logger.error(e)
     if not active_ks_projects_found: # then check with TAS
         chameleon_projects = get_user_chameleon_projects(request)
         if not chameleon_projects.get('active_projects') and not chameleon_projects.get('approved_projects'):
