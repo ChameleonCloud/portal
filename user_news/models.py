@@ -46,6 +46,7 @@ Implementation for Events
 """
 class Event(News):
     EVENT_TYPES = (
+        ('WEBINAR','Webinar'),
         ('CONFERENCE','Conference'),
         ('MEETING','Meeting'),
         ('PAPER','Paper'),
