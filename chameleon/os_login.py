@@ -5,6 +5,9 @@ from django.conf import settings
 from django.contrib.auth.views import login
 import sys
 from keystoneclient import client as ks_client
+from keystoneclient.v3 import client as v3_ksclient
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
 from keystoneauth1.exceptions.http import NotFound as NotFoundException
 
 import logging
@@ -17,6 +20,7 @@ logger = logging.getLogger(__name__)
 def custom_login(request, current_app=None, extra_context=None):
     login_return = login(request, current_app=None, extra_context=None)
     if request.user.is_authenticated() and request.POST.get('password', False):
+        update_ks_password(request)
         get_unscoped_token(request)
 
     return login_return
@@ -41,3 +45,19 @@ def get_unscoped_token(request):
         except Exception as err2:
             logger.error('Error retrieving Openstack Token from OPENSTACK_ALT_KEYSTONE_URL: {}'.format(err2.message) + str(sys.exc_info()[0]))
             return None
+
+def update_ks_password(request):
+    try:
+        logger.info('Synchronizing password to keystone for user: ' + request.POST.get('username'))
+        auth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, password=settings.OPENSTACK_SERVICE_PASSWORD, \
+            project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
+        sess = session.Session(auth=auth)
+        ks = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
+        user = filter(lambda this: this.name==request.POST.get('username'), ks.users.list())
+        if user:
+            ks.users.update(user=user[0], password=request.POST.get('password'))
+            logger.info('Password sync to keystone successful for user: ' + request.POST.get('username'))
+        else:
+            logger.info('User not found in keystone: ' + request.POST.get('username'))
+    except Exception as e:
+        logger.error('Error synchronizing password to keystone for user: {}'.format(request.POST.get('username') + ': ' + e.message) + str(sys.exc_info()[0]))
