@@ -50,6 +50,7 @@ ALLOWED_HOSTS = [
     'www.tacc.chameleoncloud.org',
     'www.chameleon.tacc.utexas.edu',
     'dev.chameleon.tacc.utexas.edu',
+    'local.chameleoncloud.org',
 ]
 
 # Application definition

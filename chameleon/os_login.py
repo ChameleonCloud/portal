@@ -9,7 +9,7 @@ from keystoneclient.v3 import client as v3_ksclient
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneauth1.exceptions.http import NotFound as NotFoundException
-
+import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,32 +20,30 @@ logger = logging.getLogger(__name__)
 def custom_login(request, current_app=None, extra_context=None):
     login_return = login(request, current_app=None, extra_context=None)
     if request.user.is_authenticated() and request.POST.get('password', False):
-        update_ks_password(request)
         get_unscoped_token(request)
-
     return login_return
 
 def get_unscoped_token(request):
-    try:
-        unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_KEYSTONE_URL).get_raw_token_from_identity_service( \
-            auth_url=settings.OPENSTACK_KEYSTONE_URL,username=request.POST.get('username'), password=request.POST.get('password'), project_id=None, \
-            user_domain_name='default', user_domain_id='default')
-        request.session['unscoped_token'] = unscoped_token
-        logger.info('***Unscoped Token retrieved and stored in session for user: ' + request.POST.get('username'))
-        return unscoped_token
-    except Exception as nfe:
+    update_ks_password(request)
+    time.sleep(1) ## giving keystone a second to catch-up, saw intermittent issues getting tokens without this
+    un = request.POST.get('username')
+    pw = request.POST.get('password')
+    auth_urls = [settings.OPENSTACK_KEYSTONE_URL, settings.OPENSTACK_ALT_KEYSTONE_URL]
+    for auth_url in auth_urls:
         try:
-            logger.error('Error retrieving Openstack Token: {}'.format(nfe.message) + str(sys.exc_info()[0]))
-            unscoped_token = ks_client.Client(auth_url=settings.OPENSTACK_ALT_KEYSTONE_URL).get_raw_token_from_identity_service( \
-                auth_url=settings.OPENSTACK_ALT_KEYSTONE_URL,username=request.POST.get('username'), password=request.POST.get('password'), project_id=None, \
-                user_domain_name='default', user_domain_id='default')
+            auth = v3.Password(auth_url=auth_url,username=un, password=pw, user_domain_name='default', unscoped=True)
+            sess = session.Session(auth=auth)
+            unscoped_token = {'auth_token':auth.get_auth_ref(sess).auth_token}
             request.session['unscoped_token'] = unscoped_token
-            logger.info('***Unscoped Token retrieved from OPENSTACK_ALT_KEYSTONE_URL and stored in session for user: ' + request.POST.get('username'))
+            logger.info('***Unscoped Token retrieved and stored in session for user: ' + request.POST.get('username'))
             return unscoped_token
-        except Exception as err2:
-            logger.error('Error retrieving Openstack Token from OPENSTACK_ALT_KEYSTONE_URL: {}'.format(err2.message) + str(sys.exc_info()[0]))
-            return None
+        except Exception as e:
+            logger.error('Error retrieving Openstack Token from KEYSTONE_URL: {}'.format(auth_url + ', ' + e.message) + str(sys.exc_info()[0]))
+    return None
 
+'''
+    Update keystone with tas-verified password
+'''
 def update_ks_password(request):
     try:
         logger.info('Synchronizing password to keystone for user: ' + request.POST.get('username'))

@@ -16,9 +16,12 @@ from datetime import datetime
 import sys
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
-from keystoneclient import client as ks_client
+from keystoneclient.v3 import client as ks_client
 from keystoneauth1.identity import v3
 from keystoneauth1 import session as ks_session
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +94,8 @@ def horizon_sso_login(request):
 
 def user_has_active_ks_project(auth_token):
     auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=auth_token, project_id=None)
-    sess = ks_session.Session(auth=auth, verify=None)
-    ks = ks_client.Client(session=sess,insecure=True)
+    sess = ks_session.Session(auth=auth)
+    ks = ks_client.Client(session=sess)
     ks_projects = ks.federation.projects.list()
     for p in ks_projects:
         if p.enabled:
@@ -118,26 +121,36 @@ def get_user_chameleon_projects(request):
     return chameleon_projects
 
 @login_required
+@sensitive_post_parameters()
+@csrf_protect
+@never_cache
 def manual_ks_login(request):
     if request.method == 'POST':
         form = KSAuthForm(request, data=request.POST)
         user = None
+        unscoped_token = None
         if request.user.username == request.POST.get('username') and form.is_valid():
+            tbe = tas_auth.TASBackend()
+            try:
+                user = tbe.authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
+            except Exception as e:
+                form.add_error('password', 'Invalid password')
+                logger.error('Invalid password when attempting to retrieve token : {}'.format(request.user.username + ', ' + e.message) + str(sys.exc_info()[0]))
+        else:
+            logger.error('An error occurred on form validation for user ' + request.user.username)
+
+        #if tas auth returned a user, the credentials were valid, let's get a token
+        if user:
             unscoped_token = login.get_unscoped_token(request)
             if unscoped_token:
-                # We know login was successful!
-                logger.debug('User: ' + request.user.username + ' retrieved unscoped token successfully via manual_ks_login form.')
+                logger.info('User: ' + request.user.username + ' retrieved unscoped token successfully via manual_ks_login form.')
                 request.session['unscoped_token'] = unscoped_token
                 return horizon_sso_login(request)
             else:
-                logger.debug('User: ' + request.user.username + ' could not retrieve unscoped token via manual_ks_login form.')
+                logger.info('User: ' + request.user.username + ' could not retrieve unscoped token via manual_ks_login form.')
                 return HttpResponseRedirect('/sso/horizon/unavailable')
-        else:
-            logger.error('An error occurred on form validation for user ' + request.user.username)
-            form = KSAuthForm(request)
-    else:
-        form = KSAuthForm(request)
 
+    form = KSAuthForm(request)
     context = {
         'form': form,
     }
