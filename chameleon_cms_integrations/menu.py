@@ -18,7 +18,7 @@ class UserMenu(CMSAttachMenu):
         # root node
         menu_id += 1
         root_id = menu_id
-        greeting = '&nbsp;'
+        greeting = '&nbsp;{0}&nbsp;'.format(request.user.username ) if request.user.is_authenticated() else ''
         title = '<i class="fa fa-user"></i><span class="hidden-sm">{0}</span>'
         n = NavigationNode(title.format(greeting), "/user/", menu_id)
         nodes.append(n)
