@@ -57,6 +57,7 @@ class Event(News):
         ('OTHER','Other'),
     )
     event_type = models.TextField(choices=EVENT_TYPES)
+    registration_link = models.CharField(max_length=500, blank=False, default='')
     event_date = models.DateTimeField('event date')
 
     def save(self):

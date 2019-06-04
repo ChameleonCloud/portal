@@ -6,7 +6,11 @@
       <h2 title="{{ news.title }}">
         <a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a>
       </h2>
-      <div class="meta">{{ news.created|date:"F d, o" }}</div>
+      {% if news.event.event_type == "WEBINAR" %}
+      <div class="meta">Event Date: {{ news.event.event_date|date:"F d, o" }}</div>
+      {% else %}
+      <div class="meta">{{news.event.event_type }} {{ news.created|date:"F d, o" }}</div>
+      {% endif %}
     </header>
 
     <section class="news-item-summary post-content">
