@@ -27,7 +27,7 @@
                     <strong>Node Type: </strong> {{ node.node_type }}
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Wattmeter: </strong>{% if node.monitoring.wattmeter == 'true' %}Yes{% else %}No{% endif%}
+                    <strong>Wattmeter: </strong>{% if node.monitoring.wattmeter %}Yes{% else %}No{% endif%}
                 </div>
                 <div class="col col-sm-3">
                     <strong>Version: </strong> {{ node.version }}
@@ -60,7 +60,7 @@
             <h5 class="bg-success"><strong>GPU</strong></h5>
             <div class="row">
                 <div class="col col-sm-3">
-                    <strong>GPU: </strong>{% if node.gpu.gpu == 'true' %}Yes{% else %}No{% endif%}
+                    <strong>GPU: </strong>{% if node.gpu.gpu %}Yes{% else %}No{% endif%}
                 </div>
             </div>
             <h5 class="bg-success" data-toggle="collapse" data-target="#network"><strong>Network Adapters</strong>
@@ -71,7 +71,7 @@
                 <h5 class="bg-info"><strong>Network Adapter #{{ forloop.counter0 }}</strong></h5>
                 <div class="row">
                     <div class="col col-sm-3">
-                        <strong>Bridged: </strong> {% if na.bridged == 'false' %}No{% else %}Yes{% endif %}
+                        <strong>Bridged: </strong> {% if na.bridged == False %}No{% else %}Yes{% endif %}
                     </div>
                     <div class="col col-sm-3">
                         <strong>Device: </strong> {{ na.device }}
@@ -86,13 +86,13 @@
                         <strong>Mac: </strong> {{ na.mac }}
                     </div>
                     <div class="col col-sm-3">
-                        <strong>Management: </strong>{% if na.management == 'false' %}No{% else %}Yes{% endif %}
+                        <strong>Management: </strong>{% if na.management == False %}No{% else %}Yes{% endif %}
                     </div>
                     <div class="col col-sm-3">
                         <strong>Model: </strong> {{ na.model }}
                     </div>
                     <div class="col col-sm-3">
-                        <strong>Mounted: </strong>{% if na.mounted == 'false' %}No{% else %}Yes{% endif %}
+                        <strong>Mounted: </strong>{% if na.mounted == False %}No{% else %}Yes{% endif %}
                     </div>
                     <div class="col col-sm-3">
                         <strong>Rate: </strong> {{ na.rate }}
@@ -182,10 +182,10 @@
             <h5 class="bg-success"><strong>Supported Job Types</strong></h5>
             <div class="row">
                 <div class="col col-sm-3">
-                    <strong>Best Effort: </strong> {% if node.supported_job_types.besteffort == 'true' %}Yes{% else %}No{% endif%}
+                    <strong>Best Effort: </strong> {% if node.supported_job_types.besteffort %}Yes{% else %}No{% endif%}
                 </div>
                 <div class="col col-sm-3">
-                    <strong>Deploy: </strong> {% if node.supported_job_types.deploy == 'true' %}Yes{% else %}No{% endif%}
+                    <strong>Deploy: </strong> {% if node.supported_job_types.deploy %}Yes{% else %}No{% endif%}
                 </div>
                 <div class="col col-sm-3">
                     <strong>Virtual: </strong> {{ node.supported_job_types.virtual }}
