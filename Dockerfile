@@ -1,8 +1,10 @@
-
-FROM python:2.7.14
+FROM python:2.7.14-stretch
 MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
 
-RUN apt-get update && apt-get install -y nginx supervisor ruby ruby-dev && gem install sass compass && pip install uwsgi
+RUN apt-get update && apt-get install -y nginx supervisor && pip install uwsgi
+
+RUN apt-get install -y ruby-sass
+RUN apt-get install -y ruby-compass
 
 EXPOSE 80 443
 
@@ -30,7 +32,10 @@ COPY docker-conf /setup/docker-conf
 # install pip dependencies
 RUN pip install -r /setup/requirements-frozen.txt
 
-RUN apt-get install -y node npm
+RUN apt-get install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get install -y build-essential nodejs
+
 RUN npm install -g yuglify
 
 # install non-pip dependencies
