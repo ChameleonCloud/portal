@@ -1,0 +1,47 @@
+{% load static %}
+<link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
+<link rel="stylesheet" type = "text/css" href="{% static 'sharing/artifacts.css' %}">
+
+<div class="main">
+    <div class="container">
+        <ol class="breadcrumb">
+            <li>
+                <a href="../">Experiments</a>
+            </li>
+            <li>
+                {{ artifact.title }}
+            </li>
+        </ol>
+        <div class="artCatalog">
+            <h2> <img src="{{ artifact.image }}" alt="Artifact Icon" height="5%" width="5%">
+                <span class="art-title"> {{ artifact.title }} </span>
+            </h2>
+            {% if artifact.launchable %}
+                <a class="btn btn-primary" href="TODO">Launch with JupyterHub</a>
+            {% endif %}
+            <hr>
+            <h4> Authors </h4>
+            {% for author in artifact.authors.all %}
+                <p> {{ author.title }} {{ author.first_name }} {{ author.last_name }} </p>
+            {% endfor %}
+            <hr>
+            <h4> Description </h4>
+            <div> {{ artifact.description }} </div>
+            {% if artifact.git_repo is not None %}
+                <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}">
+                    View on Github
+                </a>
+            {% endif %}
+            {% if artifact.DOI is not None %}
+                <a class="btn btn-primary" href="https://zenodo.org/record/{{ artifact.DOI }}">
+                    View on Zenodo
+                </a>
+            {% endif %}
+        </div>
+
+
+
+
+
+    </div>
+</div>

@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
+<link rel="stylesheet" type = "text/css" href="{% static 'sharing/artifacts.css' %}">
+<div class="main">
+    <div class="container">
+    <div id="content-main" class="artCatalog" app="researchSharingApp">
+        <div class="content scope" controller="ResearchSharingController">
+            <h2 style="margin-top:1em">Research</h2>
+            <div class="add-artifact-link">
+                <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
+                    <i class="fa fa-plus-circle"></i>
+                    Add your research from JupyterHub
+                </a>
+            </div>
+            
+            <div class="form-group">
+                <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
+ <!--               <div class="project-supported">
+                    <label for="filter.project_supported">Filter by <span class="label label-success">Chameleon Supported</span></label>&nbsp;
+                    <input id="filter.project_supported" type="checkbox" model="filter.project_supported" click="updateFiltered()" aria-label="Toggle Show" class="pristine untouched valid">
+                </div> -->
+<div class="artifact-grid artifact-content">
+{% for artifact in artifacts %}
+    <div class="artifact-grid-item corner-ribbon-container">
+    <div class="thumbnail corner-ribbon-container text-center">
+        <a href="/portal/{{ artifact.id }}">
+        <img src="{{ artifact.image }}" class="scope" alt="Artifact Icon">
+            </a>
+    <div class="caption">
+        <h4>
+        <a href="/portal/{{ artifact.id }}" class="binding" href="{{ artifact.id }}/">
+            {{ artifact.title }}
+        </a>
+        </h4>
+        <p bind="artifact.short_description" class="binding">
+            {{ artifact.short_description }}
+        </p>
+    </div>
+    </div>
+    </div>
+{% endfor %}
+</div>

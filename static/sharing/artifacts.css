@@ -1,0 +1,137 @@
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
+}
+
+.artCatalog .add-artifact-link {
+    color: red
+    position: absolute;
+    top: 0;
+    right: 15px;
+}
+
+@media (max-width:767px) {
+    .artCatalog .art-artifact-link{
+        position: static;
+    }
+}
+
+.artCatalog .thumbnail {
+    cursor: pointer;
+}
+
+.artCatalog .artifact-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -10px;
+    margin-right: -10px;
+ }
+
+.artCatalog .artifact-grid-item {
+    display: flex;
+    width: 50%;
+    padding: 10px;
+ }
+
+.artCatalog .artifact-grid-item .thumbnail {
+    flex: 1;
+    margin-bottom: 0;
+ }
+
+@media (min-width: 768px) {
+    .artCatalog .artifact-grid-item {
+        width: 33.33333%;
+    }
+}
+
+@media (min-width: 992px) {
+    .artCatalog .artifact-grid-item {
+        width: 25%;
+    }
+}
+
+.artCatalog .art-icon {
+    height: 80px;
+}
+
+.artCatalog .art-icon-table {
+    max-height: 80px;
+}
+
+.artCatalog .dropdown-multiselect > .dropdown-toggle {
+    white-space: normal;
+}
+
+.artCatalog .btn {
+    margin-bottom: 5px;
+}
+
+.artCatalog .name-column {
+    text-align: center;
+    min-width: 125px;
+    padding: 15px;
+}
+
+.artCatalog .pseudo-link {
+    cursor: hand;
+    cursor: pointer;
+}
+
+.artCatalog .pagination-summary {
+    float: right;
+    margin-top: 40px;
+    margin-right: 16px;
+}
+
+.artCatalog .pagination-header {
+    clear: both;
+}
+
+.artCatalog .ats-switch {
+    margin-top: 0px;
+}
+
+.artCatalog .project-supported {
+    margin-top: 10px;
+}
+.artCatalog .project-supported label{
+    font-weight: normal;
+}
+
+.artCatalog .art-title {
+    margin-left: 10px;
+    vertical-align: bottom;
+}
+
+.artCatalog hr {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.artCatalog .table {
+    width: 100%;
+    background-color: white;
+}
+
+.artCatalog .dropdown-multiselect {
+    margin-top: 8px;
+    margin-bottom: 3px;
+
+}
+
+
+div.artifact-grid-padding {
+    min-height: 50px;
+}
+
+.corner-ribbon.complex-logo {
+    background: #f0f0f0;
+    color: black;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    font-size: 20px;
+    height: 32px;
+    right: -32px;
+    top: 0;
+    width: 96px;
+}
+
