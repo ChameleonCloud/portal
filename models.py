@@ -1,5 +1,6 @@
 import datetime
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 import requests
 
@@ -13,19 +14,54 @@ class Author(models.Model):
     def __str__(self):
         return self.title+" "+self.first_name+" "+self.last_name
 
+class LabelField(models.CharField):
+    def to_python(self, value):
+        return value.lower()
+'''
+    def __init__(self, *args, **kwargs):
+        super(SnpField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        return str(value).lower()
+
+'''
+class Label(models.Model):
+    label = LabelField(max_length=50)
+    class Meta:
+        ordering = ('label',)
+    def __str__(self):
+        return self.label
+
 class Artifact(models.Model):
     title = models.CharField(max_length=200)
     authors = models.ManyToManyField(Author, related_name='artifacts')
     short_description = models.CharField(max_length=70)
-    description = models.CharField(max_length=5000)
+    description = models.TextField(max_length=5000)
     image = models.CharField(max_length=100)
-    DOI = models.CharField(max_length=50, blank=True, null=True)
-    git_repo = models.CharField(max_length=200, blank=True, null=True)
+
+    def validate_git_repo(value):
+        error = "This must be in the form user_or_organization/repo_name"
+        parts = value.split("/")
+        if (len(parts) != 2):
+            raise ValidationError(error)
+        if (' ' in parts[0]) or (' ' in parts[1]):
+            raise ValidationError(error)
+    def validate_doi(value):
+        error = "Please enter a valid DOI"
+        if ' ' in value:
+            raise ValidationError(error)
+
+    DOI = models.CharField(max_length=50, blank=True, null=True,
+        validators=[validate_doi])
+    git_repo = models.CharField(max_length=200, blank=True,
+        null=True,validators=[validate_git_repo])
+
     launchable = models.BooleanField(default=False)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
+    labels = models.ManyToManyField(Label, related_name='artifacts', blank=True)
 
     class Meta:
         ordering = ('title',)
@@ -54,6 +90,14 @@ class Artifact(models.Model):
         link = base_url + "&source=" + self.src() + "&src_path=" + self.src_path()
         return link
 
+    def related_papers(self):
+        related_list = [artifact 
+            for label in self.labels.all()
+            for artifact in label.artifacts.all()
+            if artifact.id != self.id
+            ]
+        return related_list[:6]
+            
     def __str__(self):
         return self.title
 

@@ -53,8 +53,28 @@
             </div>
             <div>
                 <div class="related-items">
-                   <h4> Related Papers </h4>
-                    Here are some related papers
+                       <h4> Related Papers </h4>
+                        <div class="artifact-grid artifact-content">
+                        {% for related_item in artifact.related_papers %}
+                           <div class="related-grid-item corner-ribbon-container" >
+                               <div class="thumbnail corner-ribbon-container text-center">
+                                   <img src="{{ artifact.image }}" class="scope"
+                                         alt="Artifact Icon">
+                                   <div class="related-caption">
+                                       <h4>
+                                       <a href="/portal/{{ related_item.id }}" class="binding" 
+                                            href="{{ related_item.id }}/">
+                                           {{ related_item.title }}
+                                       </a>
+                                       </h4>
+                                       <p bind="related_item.short_description" class="binding">
+                                           {{ related_item.short_description }}
+                                       </p>
+                                   </div>
+                               </div>
+                           </div>
+                       {% endfor %}
+                        </div>
                     <hr>
                    <h4> Associated Artifacts </h4>
                     Here are some associated artifacts
