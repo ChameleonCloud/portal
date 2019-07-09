@@ -43,8 +43,8 @@
                         View on Github
                     </a>
                 {% endif %}
-                {% if artifact.DOI is not None %}
-                    <a class="btn btn-primary" href="https://zenodo.org/record/{{ artifact.DOI }}"
+                {% if artifact.doi is not None %}
+                    <a class="btn btn-primary" href="{{ artifact.zenodo_link }}"
                         target="_blank">
                         View on Zenodo
                     </a>

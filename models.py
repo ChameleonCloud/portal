@@ -17,14 +17,7 @@ class Author(models.Model):
 class LabelField(models.CharField):
     def to_python(self, value):
         return value.lower()
-'''
-    def __init__(self, *args, **kwargs):
-        super(SnpField, self).__init__(*args, **kwargs)
 
-    def get_prep_value(self, value):
-        return str(value).lower()
-
-'''
 class Label(models.Model):
     label = LabelField(max_length=50)
     class Meta:
@@ -46,13 +39,23 @@ class Artifact(models.Model):
             raise ValidationError(error)
         if (' ' in parts[0]) or (' ' in parts[1]):
             raise ValidationError(error)
-    def validate_doi(value):
-        error = "Please enter a valid DOI"
+    def validate_zenodo_doi(value):
+        error = "Please enter a valid Zenodo DOI"
+        parts = value.split("/")
+        if (len(parts) != 2):
+            raise ValidationError(error)
         if ' ' in value:
             raise ValidationError(error)
+        zparts = parts[1].split('.')
+        if (len(zparts) != 2):
+            raise ValidationError(error)
+        if zparts[0] != "zenodo":
+            raise ValidationError(error)
+        if not zparts[1].isnumeric():
+            raise ValidationError(error)
 
-    DOI = models.CharField(max_length=50, blank=True, null=True,
-        validators=[validate_doi])
+    doi = models.CharField(max_length=50, blank=True, null=True,
+        validators=[validate_zenodo_doi])
     git_repo = models.CharField(max_length=200, blank=True,
         null=True,validators=[validate_git_repo])
 
@@ -65,7 +68,11 @@ class Artifact(models.Model):
 
     class Meta:
         ordering = ('title',)
-    
+
+    def zenodo_link(self):
+        zparts = self.doi.split('.')
+        return "https://zenodo.org/record/"+zparts[len(zparts)-1]
+
     def src(self):
         if self.git_repo is not None:
             return "git"
