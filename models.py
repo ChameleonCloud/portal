@@ -1,6 +1,7 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+import requests
 
 class Author(models.Model):
     title = models.CharField(max_length=200)
@@ -28,6 +29,31 @@ class Artifact(models.Model):
 
     class Meta:
         ordering = ('title',)
+    
+    def src(self):
+        if self.git_repo is not None:
+            return "git"
+        elif self.DOI is not None:
+            return "zenodo"
+        else:
+            return "none"
+
+    def src_path(self):
+        src = src(self)
+        if src == "git":
+            return git_repo+".git"
+        elif src == "zenodo":
+            return Exception("currently not working for zenodo")
+            # Currently not working
+        else:
+            raise Exception("Asked to get source path with no provided source")
+
+    def jupyter_hub_link(self):
+        base_url = "http://localhost:8000/hub/import/exp_name?imported=yes"
+         #TODO: change to real url for deployment
+        link = base_url + "&source=" + self.src + "&src_path=" + self.src_path
+        return str(link)
+
     def __str__(self):
         return self.title
 

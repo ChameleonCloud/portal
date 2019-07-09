@@ -135,3 +135,19 @@ div.artifact-grid-padding {
     width: 96px;
 }
 
+.artifact-description {
+    max-width: 700px;
+}
+
+.related-items {
+    background-color: #ffffff;
+    border:1px solid #ddd;
+    border-radius:4px;
+    padding:10px;
+}
+
+.artifact-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
