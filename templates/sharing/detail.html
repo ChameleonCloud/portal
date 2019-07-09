@@ -50,6 +50,11 @@
                     </a>
                 {% endif %}
                 <hr>
+                <h4> Labels </h4>
+                {% for label in artifact.labels.all %}
+                    <span class="badge">{{ label.label }} </span>
+                {% endfor %}
+                <hr>
             </div>
             <div>
                 <div class="related-items">
