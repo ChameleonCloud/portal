@@ -21,22 +21,20 @@
                 </div> -->
 <div class="artifact-grid artifact-content">
 {% for artifact in artifacts %}
-    <div class="artifact-grid-item corner-ribbon-container">
-    <div class="thumbnail corner-ribbon-container text-center">
-        <a href="/portal/{{ artifact.id }}">
-        <img src="{{ artifact.image }}" class="scope" alt="Artifact Icon">
-            </a>
-    <div class="caption">
-        <h4>
-        <a href="/portal/{{ artifact.id }}" class="binding" href="{{ artifact.id }}/">
-            {{ artifact.title }}
-        </a>
-        </h4>
-        <p bind="artifact.short_description" class="binding">
-            {{ artifact.short_description }}
-        </p>
-    </div>
-    </div>
+    <div class="artifact-grid-item corner-ribbon-container" >
+        <div class="thumbnail corner-ribbon-container text-center">
+            <img src="{{ artifact.image }}" class="scope" alt="Artifact Icon">
+            <div class="caption">
+                <h4>
+                <a href="/portal/{{ artifact.id }}" class="binding" href="{{ artifact.id }}/">
+                    {{ artifact.title }}
+                </a>
+                </h4>
+                <p bind="artifact.short_description" class="binding">
+                    {{ artifact.short_description }}
+                </p>
+            </div>
+        </div>
     </div>
 {% endfor %}
 </div>

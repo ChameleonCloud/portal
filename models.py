@@ -39,20 +39,20 @@ class Artifact(models.Model):
             return "none"
 
     def src_path(self):
-        src = src(self)
-        if src == "git":
-            return git_repo+".git"
+        src = self.src()
+        if (src == "git"):
+            return self.git_repo+".git"
         elif src == "zenodo":
             return Exception("currently not working for zenodo")
             # Currently not working
         else:
             raise Exception("Asked to get source path with no provided source")
 
-    def jupyter_hub_link(self):
+    def jupyterhub_link(self):
         base_url = "http://localhost:8000/hub/import/exp_name?imported=yes"
          #TODO: change to real url for deployment
-        link = base_url + "&source=" + self.src + "&src_path=" + self.src_path
-        return str(link)
+        link = base_url + "&source=" + self.src() + "&src_path=" + self.src_path()
+        return link
 
     def __str__(self):
         return self.title

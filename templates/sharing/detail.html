@@ -22,13 +22,13 @@
         <div class="artifact-container">
             <div class="artifact-description">
                 {% if artifact.launchable %}
-                    {% with artifact.jupyterhub_link as l %}
-                    <a class="btn btn-primary" href="{{ artifact.jupyterhub_link }}">
+                    {% with artifact.jupyterhub_link as l %} 
+                    <a class="btn btn-primary" href="{{ l }}" target="_blank">
                         Launch with JupyterHub
                     </a>
-                    {% endwith %}
-                {% endif %}
+                    {% endwith %} 
                 <hr>
+                {% endif %}
                 <h4> Description </h4>
                 <p width="100%"> {{ artifact.description }} </p>
                 <hr>
@@ -38,15 +38,18 @@
                 {% endfor %}
                 <hr>
                 {% if artifact.git_repo is not None %}
-                    <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}">
+                    <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}"
+                        target="_blank">
                         View on Github
                     </a>
                 {% endif %}
                 {% if artifact.DOI is not None %}
-                    <a class="btn btn-primary" href="https://zenodo.org/record/{{ artifact.DOI }}">
+                    <a class="btn btn-primary" href="https://zenodo.org/record/{{ artifact.DOI }}"
+                        target="_blank">
                         View on Zenodo
                     </a>
                 {% endif %}
+                <hr>
             </div>
             <div>
                 <div class="related-items">
