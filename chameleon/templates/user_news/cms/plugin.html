@@ -1,26 +1,57 @@
 <div class="row">
-{% for news in news_list %}
-<div class="col-sm-6">
-  <article class="block news-item">
-    <header class="post-header">
-      <h2 title="{{ news.title }}">
-        <a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a>
-      </h2>
-      {% if news.event.event_type == "WEBINAR" %}
-      <div class="meta">Event Date: {{ news.event.event_date|date:"F d, o" }}</div>
-      {% else %}
-      <div class="meta">{{news.event.event_type }} {{ news.created|date:"F d, o" }}</div>
-      {% endif %}
-    </header>
+  <div class="col-sm-6">
+    <h2>News</h2>
+    
+    {% for news in news_list %}
+      <article class="block news-item">
+        <header class="post-header">
+          <h2 title="{{ news.title }}">
+            <a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a>
+          </h2>
+          <div class="meta">{{news.event.event_type }} {{ news.created|date:"F d, o" }}</div>
+        </header>
 
-    <section class="news-item-summary post-content">
-      {{ news.summary|safe }}
-    </section>
+        <section class="news-item-summary post-content">
+          {{ news.summary|safe }}
+        </section>
 
-    <div class="read-more">
-      <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+        <div class="read-more">
+          <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
+        </div>
+
+      </article>
+    {% endfor %}
+
+    <div>
+      <a href="/news">Read the Latest News</a>
     </div>
-  </article>
-</div>
-{% endfor %}
+  </div>
+
+  <div class="col-sm-6">
+    <h2>Events</h2>
+
+    {% for event in events_list %}
+      <article class="block news-item">
+        <header class="post-header">
+          <h2 title="{{ event.title }}">
+            <a href="{% url 'user_news:detail' event.slug %}">{{ event.title }}</a>
+          </h2>
+          <div class="meta">Event Date: {{ event.event.event_date|date:"F d, o" }}</div>
+        </header>
+
+        <section class="news-item-summary post-content">
+          {{ event.summary|safe }}
+        </section>
+
+        <div class="read-more">
+          <a href="{% url 'user_news:detail' event.slug %}" class="read-more-link">Read more</a>
+        </div>
+      </article>
+    {% endfor %}
+
+    <div>
+      <a href="/news/events">View all Upcoming and Recent Events</a>
+    </div>
+  </div>
+
 </div>

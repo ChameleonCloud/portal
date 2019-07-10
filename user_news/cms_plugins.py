@@ -12,18 +12,12 @@ class UserNewsPlugin(CMSPluginBase):
 
     def render(self, context, instance, placeholder):
         context['instance'] = instance
-        queryset = News.objects.order_by('-created')
+        queryset = News.objects
+        news_items = queryset.filter(event__isnull=True).order_by('-created')
+        event_items = queryset.filter(event__isnull=False).order_by('-event__event_date')
 
-        if not instance.display_events:
-            queryset = queryset.filter(event__isnull=True)
-
-        if not instance.display_outages:
-            queryset = queryset.filter(outage__isnull=True)
-
-        if not instance.display_news:
-            queryset = queryset.exclude(outage__isnull=True, event__isnull=True)
-
-        context['news_list'] = queryset[:instance.limit]
+        context['news_list'] = news_items[:2]
+        context['events_list'] = event_items[:2]
 
         return context
 

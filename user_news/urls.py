@@ -1,10 +1,11 @@
 from django.conf.urls import patterns, include, url
 from django.core.urlresolvers import reverse_lazy
-from user_news.views import UserNewsListView, UserNewsDetailView, UserNewsRedirectView, UserNewsFeed, OutageListView, OutageDetailView, OutageFeed
+from user_news.views import UserEventsListView, UserNewsListView, UserNewsDetailView, UserNewsRedirectView, UserNewsFeed, OutageListView, OutageDetailView, OutageFeed
 
 urlpatterns = patterns('',
     url(r'^$', UserNewsListView.as_view(), name='list'),
     url(r'^rss/$', UserNewsFeed(), name='feed'),
+    url(r'^events/$', UserEventsListView.as_view(), name='events_list'),
 
     url(r'^outages/$', OutageListView.as_view(), name='outage_list'),
     url(r'^outages/rss/$', OutageFeed(), name='outage_feed'),
