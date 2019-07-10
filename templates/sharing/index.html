@@ -1,24 +1,31 @@
 {% load static %}
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/artifacts.css' %}">
+
 <div class="main">
-    <div class="container">
-    <div id="content-main" class="artCatalog" app="researchSharingApp">
-        <div class="content scope" controller="ResearchSharingController">
-            <h2 style="margin-top:1em">Research</h2>
-            <div class="add-artifact-link">
-                <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
-                    <i class="fa fa-plus-circle"></i>
-                    Add your research from JupyterHub
-                </a>
-            </div>
-            
-            <div class="form-group">
-                <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
- <!--               <div class="project-supported">
-                    <label for="filter.project_supported">Filter by <span class="label label-success">Chameleon Supported</span></label>&nbsp;
-                    <input id="filter.project_supported" type="checkbox" model="filter.project_supported" click="updateFiltered()" aria-label="Toggle Show" class="pristine untouched valid">
-                </div> -->
+<div class="container">
+<div id="content-main" class="artCatalog" app="researchSharingApp">
+
+    <div class="content scope" controller="ResearchSharingController">
+        <h2 style="margin-top:1em">Research</h2>
+        <div class="add-artifact-link">
+            <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
+                <i class="fa fa-plus-circle"></i>
+                Add your research from JupyterHub
+            </a>
+        </div>
+        
+        <div class="form-group">
+            <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
+
+<!--
+Attempt to do filtering:
+<form action="" method="get">
+    {{ filter.form.as_p }}
+    <input type="submit">
+</form>
+-->
+
 <div class="artifact-grid artifact-content">
 {% for artifact in artifacts %}
     <div class="artifact-grid-item corner-ribbon-container" >
@@ -37,4 +44,8 @@
         </div>
     </div>
 {% endfor %}
+</div>
+
+</div>
+</div>
 </div>

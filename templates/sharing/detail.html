@@ -8,7 +8,7 @@
     <div class="container">
         <ol class="breadcrumb">
             <li>
-                <a href="../">Experiments</a>
+                <a href="/portal/">Experiments</a>
             </li>
             <li class="active">
                 <!-- necessary extra line --> 
@@ -82,7 +82,27 @@
                         </div>
                     <hr>
                    <h4> Associated Artifacts </h4>
-                    Here are some associated artifacts
+                         <div class="artifact-grid artifact-content">
+                        {% for related_item in artifact.associated_artifacts.all %}
+                           <div class="related-grid-item corner-ribbon-container" >
+                               <div class="thumbnail corner-ribbon-container text-center">
+                                   <img src="{{ artifact.image }}" class="scope"
+                                         alt="Artifact Icon">
+                                   <div class="related-caption">
+                                       <h4>
+                                       <a href="/portal/{{ related_item.id }}" class="binding" 
+                                            href="{{ related_item.id }}/">
+                                           {{ related_item.title }}
+                                       </a>
+                                       </h4>
+                                       <p bind="related_item.short_description" class="binding">
+                                           {{ related_item.short_description }}
+                                       </p>
+                                   </div>
+                               </div>
+                           </div>
+                       {% endfor %}
+                        </div>
                 </div>
             </div>
         </div>

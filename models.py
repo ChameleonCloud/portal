@@ -65,6 +65,7 @@ class Artifact(models.Model):
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
     labels = models.ManyToManyField(Label, related_name='artifacts', blank=True)
+    associated_artifacts = models.ManyToManyField("Artifact", related_name='associated', blank=True)
 
     class Meta:
         ordering = ('title',)

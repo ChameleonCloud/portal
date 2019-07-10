@@ -159,23 +159,27 @@ div.artifact-grid-padding {
 .related-caption {
     padding: 0px;
 }
-
 .artCatalog .related-grid-item {
 /*    max-width: 235px; */
-    font-size: 12px
+    font-size: 12px;
     display: flex;
     width: 50%;
     padding: 5px;
 }
-/*
-@    media (min-width: 768px) {
+
+@media (min-width: 768px) {
     .artCatalog .related-grid-item {
         width: 33.33333%;
     }
 }
-*/
+
+.artCatalog .related-grid-item .thumbnail {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .related-grid-item h4 {
-    font-size: 16px
+    font-size: 16px;
     flex: 1;
 }
 
