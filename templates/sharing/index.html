@@ -1,4 +1,5 @@
 {% load static %}
+<link rel="stylesheet" type = "text/css" href="{% static 'sharing/slider.css' %}">
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/artifacts.css' %}">
 
@@ -21,14 +22,32 @@
 
         <form action="/portal/" method="post">
             {% csrf_token %}
-            <p>
-            {{ form }}
-            </p>
+
+            <label for="id_labels" multiple>
+            <select name="labels" id="id_labels" multiple>
+                {% for value, text in form.fields.labels.choices %}
+                    <option value="{{ value }}"
+                        {% if value in form.labels.value %}selected{% endif %}>
+                        {{ text }}
+                    </option>
+                {% endfor %}
+            </select>
+            </label>
+            <div>
+            <label class="switch" id="id_is_or">
+                <input type="checkbox" id="id_is_or" name="is_or"
+                    {% if form.is_or.value %}checked{% endif %}>
+                    <div class="slider round">
+                        <span class="on">OR</span>
+                        <span class="off">AND</span>
+                    </div>
+                </input>
+            </label>
+            </div>
+
             <input type="submit" value="Submit">
             <p> Submitted? {{ submitted }} </p>
         </form>
-
-    
 
 <div class="artifact-grid artifact-content">
 {% for artifact in artifacts %}
