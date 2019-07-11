@@ -18,14 +18,6 @@
         <div class="form-group">
             <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
 
-<!--
-Attempt to do filtering:
-<form action="" method="get">
-    {{ filter.form.as_p }}
-    <input type="submit">
-</form>
--->
-
 <div class="artifact-grid artifact-content">
 {% for artifact in artifacts %}
     <div class="artifact-grid-item corner-ribbon-container" >

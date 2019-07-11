@@ -1,8 +1,5 @@
-import datetime
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils import timezone
-import requests
 
 class Author(models.Model):
     title = models.CharField(max_length=200)
@@ -131,6 +128,5 @@ class Artifact(models.Model):
 
 ## AUTHORS ##
 # - string name
-# ForeignKeyList artifacts
+# - ForeignKeyList artifacts
 
-# Create your models here.
