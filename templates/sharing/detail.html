@@ -1,4 +1,5 @@
 {% load static %}
+
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/artifacts.css' %}">
 <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600" rel="stylesheet" type="text/css">
@@ -6,6 +7,7 @@
 
 <div class="main">
     <div class="container">
+        {# Experiments / [current_exp_title] subheader #}
         <ol class="breadcrumb">
             <li>
                 <a href="/portal/">Experiments</a>
@@ -15,11 +17,16 @@
                 {{ artifact.title }}
             </li>
         </ol>
+
+        {# Title #}
         <div class="artCatalog">
             <h2>
                 <span class="art-title"> {{ artifact.title }} </span>
             </h2>
+
         <div class="artifact-container">
+
+            {# Left/top div: basic info about artifact #}
             <div class="artifact-description">
                 {% if artifact.launchable %}
                     {% with artifact.jupyterhub_link as l %} 
@@ -29,14 +36,19 @@
                     {% endwith %} 
                 <hr>
                 {% endif %}
+
                 <h4> Description </h4>
                 <p width="100%"> {{ artifact.description }} </p>
+
                 <hr>
+
                 <h4> Authors </h4>
                 {% for author in artifact.authors.all %}
                     <p> {{ author.title }} {{ author.first_name }} {{ author.last_name }} </p>
                 {% endfor %}
+
                 <hr>
+
                 {% if artifact.git_repo is not None %}
                     <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}"
                         target="_blank">
@@ -49,36 +61,44 @@
                         View on Zenodo
                     </a>
                 {% endif %}
-                <hr>
+                {% if artifact.git_repo is not None or artifact.doi is not None %}
+                    <hr>
+                {% endif %}
+
+                {% if artifact.labels.all %}
                 <h4> Labels </h4>
                 {% for label in artifact.labels.all %}
                     <span class="badge">{{ label.label }} </span>
                 {% endfor %}
                 <hr>
+                {% endif %}
             </div>
             <div>
                 <div class="related-items">
                        <h4> Related Papers </h4>
                         <div class="artifact-grid artifact-content">
                         {% for related_item in artifact.related_papers %}
-                           <div class="related-grid-item corner-ribbon-container" >
-                               <div class="thumbnail corner-ribbon-container text-center">
-                                   <img src="{{ artifact.image }}" class="scope"
-                                         alt="Artifact Icon">
-                                   <div class="related-caption">
-                                       <h4>
-                                       <a href="/portal/{{ related_item.id }}" class="binding" 
-                                            href="{{ related_item.id }}/">
-                                           {{ related_item.title }}
-                                       </a>
-                                       </h4>
-                                       <p bind="related_item.short_description" class="binding">
-                                           {{ related_item.short_description }}
-                                       </p>
-                                   </div>
-                               </div>
-                           </div>
-                       {% endfor %}
+                            <div class="related-grid-item corner-ribbon-container" >
+                                <div class="thumbnail corner-ribbon-container text-center">
+                                    <img src="{{ artifact.image }}" class="scope"
+                                       alt="Artifact Icon">
+                                    <div class="related-caption">
+                                        <h4>
+                                        <a href="/portal/{{ related_item.id }}" class="binding" 
+                                             href="{{ related_item.id }}/">
+                                            {{ related_item.title }}
+                                        </a>
+                                        </h4>
+                                        <p bind="related_item.short_description" class="binding">
+                                            {{ related_item.short_description }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            </div> <div>
+                            <p> No related papers to display </p>
+                        {% endfor %}
                         </div>
                     <hr>
                    <h4> Associated Artifacts </h4>
@@ -101,7 +121,10 @@
                                    </div>
                                </div>
                            </div>
-                       {% endfor %}
+                        {% empty %}
+                            </div> <div>
+                            <p> No associated artifacts to display </p>
+                        {% endfor %}
                         </div>
                 </div>
             </div>
