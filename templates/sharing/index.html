@@ -11,12 +11,24 @@
         <div class="add-artifact-link">
             <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
                 <i class="fa fa-plus-circle"></i>
+            <p> {{ label_options }} </p>
                 Add your research from JupyterHub
             </a>
         </div>
         
         <div class="form-group">
             <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
+
+        <form action="/portal/" method="post">
+            {% csrf_token %}
+            <p>
+            {{ form }}
+            </p>
+            <input type="submit" value="Submit">
+            <p> Submitted? {{ submitted }} </p>
+        </form>
+
+    
 
 <div class="artifact-grid artifact-content">
 {% for artifact in artifacts %}
