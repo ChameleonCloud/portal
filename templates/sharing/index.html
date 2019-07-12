@@ -1,10 +1,5 @@
 {% load static %}
-<!--
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/css/bootstrap-select.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.7.5/js/bootstrap-select.min.js"></script>
-<link rel="stylesheet" type = "text/css" href="{% static 'sharing/dropdown.css' %}">
--->
+<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/slider.css' %}">
 <script src="{% static 'sharing/dropdown.js' %}"></script>
 <link rel="stylesheet" type = "text/css" href="{% static 'sharing/style.css' %}">
@@ -48,7 +43,7 @@
                 {% for value, text in form.fields.labels.choices %}
                     <option value="{{ value }}"
                         {% if value in form.labels.value %}selected{% endif %}>
-                        {{ text }}
+                        &nbsp;{{ text }}
                     </option>
                 {% endfor %}
             </select>
@@ -69,15 +64,11 @@
 
          <div>
             <input type="submit" value="Submit" class="btn btn-primary">
-<!--
-            <p> Submitted? {{ submitted }} </p>
-            <p> Searched? {{ searched }} </p>
--->
          </div>
     </div>
         </form>
 
-<div class="artifact-grid artifact-content">
+<div class="artifact-grid artifact-content" id="index-grid">
 {% for artifact in artifacts %}
     <div class="artifact-grid-item corner-ribbon-container" >
         <div class="thumbnail corner-ribbon-container text-center">

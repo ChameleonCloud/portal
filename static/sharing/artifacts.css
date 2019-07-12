@@ -191,8 +191,19 @@ div.artifact-grid-padding {
     font-family: "Source Sans Pro",Helvetica,sans-serif;
     width: 100%;
     display: none;
-    margin-top: -5px;
+    margin-top: -6px;
+    line-height: 1.25;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.175);
 /*    position: absolute; */
+}
+
+.dropdown-content option {
+    padding-top: 5%;
+    padding-bottom: 5%;
+}
+
+.form-container .btn {
+    line-height: 1.25;
 }
 
 .dropdown .btn {
@@ -202,7 +213,15 @@ div.artifact-grid-padding {
 
 .form-container {
     display: flex;
+    position: absolute;
+    z-index: 100;
 }
+
+#index-grid {
+    margin-top:60px;
+    z-index: 1;
+}
+
 
 .form-container div {
     padding-right: 40px;
