@@ -24,7 +24,7 @@
             <label for="id_search" style="font-weight:normal;display:block">
             <input class="form-control pristine untouched valid" type="text" name="search" 
                 id="id_search" placeholder="Search by name, description or author."
-                {% if form.search.value %}value={{ form.search.value }}{% endif %}>
+                {% if form.search.value %}value="{{ form.search.value }}"{% endif %}>
             </input>
             </label>
         </div>

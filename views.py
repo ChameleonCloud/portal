@@ -16,8 +16,10 @@ def artifacts_from_form(data):
         filtered=filtered.filter(
             Q(title__contains=keywords) |
             Q(description__contains=keywords) |
-            Q(short_description__contains=keywords)
+            Q(short_description__contains=keywords) |
+            Q(authors__full_name__contains=keywords)
         )
+#            Q(authors__last_name__contains=keywords)
 
     if chosen_labels == []:
         filtered = filtered

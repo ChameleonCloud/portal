@@ -5,11 +5,16 @@ class Author(models.Model):
     title = models.CharField(max_length=200)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
+    full_name = models.CharField(max_length=600,editable=False)
 
     class Meta:
         ordering = ('last_name',)
     def __str__(self):
         return self.title+" "+self.first_name+" "+self.last_name
+
+    def save(self):
+        self.full_name = self.title+" "+self.first_name+" "+self.last_name
+        super(Author, self).save()
 
 class LabelField(models.CharField):
     def to_python(self, value):
