@@ -9,12 +9,21 @@ from .forms import LabelForm
 
 def artifacts_from_form(data):
     chosen_labels = data['labels']
+    keywords = data['search']
+
+    filtered = Artifact.objects.all() 
+    if keywords is not None:
+        filtered=filtered.filter(
+            Q(title__contains=keywords) |
+            Q(description__contains=keywords) |
+            Q(short_description__contains=keywords)
+        )
+
     if chosen_labels == []:
-        filtered = Artifact.objects.all() 
+        filtered = filtered
     elif data['is_or']:
-        filtered = Artifact.objects.filter(labels__in=chosen_labels)
+        filtered = filtered.filter(labels__in=chosen_labels)
     else:
-        filtered = Artifact.objects.all()
         for label in chosen_labels:
             filtered = filtered.filter(labels__exact=label)
     return filtered
@@ -29,6 +38,7 @@ def index(request):
             chosen_labels = form.cleaned_data['labels'] 
             context['form'] = form
             context['submitted'] = chosen_labels
+            context['searched'] = form.cleaned_data['search']
             context['artifacts'] = artifacts_from_form(form.cleaned_data)
             return HttpResponse(template.render(context,request))
     else:

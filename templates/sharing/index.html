@@ -12,18 +12,24 @@
         <div class="add-artifact-link">
             <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
                 <i class="fa fa-plus-circle"></i>
-            <p> {{ label_options }} </p>
                 Add your research from JupyterHub
             </a>
         </div>
         
-        <div class="form-group">
-            <input class="form-control pristine untouched valid" type="text" keypress="($event.which === 13)?updateFiltered():angular.noop()" placeholder="Search by name, description or author." model="filter.searchKey">
 
         <form action="/portal/" method="post">
             {% csrf_token %}
 
-            <label for="id_labels" multiple>
+        <div class="form-group">
+            <label for="id_search" style="font-weight:normal;display:block">
+            <input class="form-control pristine untouched valid" type="text" name="search" 
+                id="id_search" placeholder="Search by name, description or author."
+                {% if form.search.value %}value={{ form.search.value }}{% endif %}>
+            </input>
+            </label>
+        </div>
+
+            <label for="id_labels">
             <select name="labels" id="id_labels" multiple>
                 {% for value, text in form.fields.labels.choices %}
                     <option value="{{ value }}"
@@ -47,6 +53,7 @@
 
             <input type="submit" value="Submit">
             <p> Submitted? {{ submitted }} </p>
+            <p> Searched? {{ searched }} </p>
         </form>
 
 <div class="artifact-grid artifact-content">
