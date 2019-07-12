@@ -14,13 +14,9 @@ def artifacts_from_form(data):
     elif data['is_or']:
         filtered = Artifact.objects.filter(labels__in=chosen_labels)
     else:
-        
-            
-        q = Q()
+        filtered = Artifact.objects.all()
         for label in chosen_labels:
-            q &= Q(labels__in=label)
-        filtered = Artifact.objects.get(q)
-#        filtered = Artifact.objects.filter(labels__in=chosen_labels)
+            filtered = filtered.filter(labels__exact=label)
     return filtered
 
 def index(request):
@@ -33,7 +29,6 @@ def index(request):
             chosen_labels = form.cleaned_data['labels'] 
             context['form'] = form
             context['submitted'] = chosen_labels
-#            context['artifacts'] = Artifact.objects.filter(labels=chosen_labels)
             context['artifacts'] = artifacts_from_form(form.cleaned_data)
             return HttpResponse(template.render(context,request))
     else:
