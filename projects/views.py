@@ -20,6 +20,12 @@ from django.db import IntegrityError
 import re
 import logging
 import json
+from keystoneclient.v3 import client as v3_ksclient
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from django.conf import settings
+import uuid
+import sys
 
 logger = logging.getLogger('projects')
 
@@ -81,7 +87,7 @@ def view_project(request, project_id):
 
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
-    if request.POST:
+    if request.POST and project_pi_or_admin_or_superuser(request.user, project):
         if 'add_user' in request.POST:
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
@@ -89,6 +95,7 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data['username']
                     if project.add_user(add_username):
+                        update_user_keystone_project_membership(add_username, project.chargeCode, add_member=True)
                         messages.success(request,
                             'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
@@ -110,6 +117,7 @@ def view_project(request, project_id):
             try:
                 del_username = request.POST['username']
                 if project.remove_user(del_username):
+                    update_user_keystone_project_membership(del_username, project.chargeCode, add_member=False)
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
                 logger.exception('Failed removing user')
@@ -193,6 +201,48 @@ def view_project(request, project_id):
         'nickname_form': nickname_form,
     })
 
+def get_admin_ks_client():
+    auth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, \
+        password=settings.OPENSTACK_SERVICE_PASSWORD, \
+        project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
+    sess = session.Session(auth=auth)
+    ks_client = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
+    return ks_client
+
+def create_user(username, email, domain_id, password):
+    get_admin_ks_client();
+    if not password:
+        password = str(uuid.uuid4())
+    keystone.users.create(user['uid'], domain=domain_id, email=user['email'], password=password)
+
+def update_user_keystone_project_membership(username, charge_code, add_member=True):
+    ks_client = get_admin_ks_client()
+    # Get user from keystone
+    ks_user = get_keystone_user(ks_client, username)
+    # then get domain id from keystone, domain_id = keystone.user_domain_id
+    domain_id = ks_client.user_domain_id
+    # then get member roles, member_role = keystone.roles.list(name='_member_',domain=domain_id)[0]
+    member_role = ks_client.roles.list(name='_member_',domain=domain_id)[0]
+    # now get project by charge_code:
+    project_list = ks_client.projects.list(domain=domain_id)
+    project = filter(lambda this: getattr(this, 'charge_code', None) == charge_code, project_list)
+    if add_member:
+        ks_client.roles.grant(member_role.id, user=ks_user[0], project=project[0])
+    else:
+        ks_client.roles.revoke(member_role.id, user=ks_user[0], project=project[0])
+    return True
+
+def get_keystone_user(ks_client, username):
+    try:
+        logger.debug('Getting user from keystone: ' + username)
+        user = filter(lambda this: this.name==username, ks_client.users.list())
+        if user:
+            logger.debug('User found in keystone : ' + username)
+            return user
+        else:
+            logger.info('User not found in keystone: ' + username)
+    except Exception as e:
+        logger.error('Error retrieving user: {}'.format(username + ': ' + e.message) + str(sys.exc_info()[0]))
 
 @login_required
 @terms_required('project-terms')
