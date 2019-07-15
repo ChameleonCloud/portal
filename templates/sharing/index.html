@@ -72,7 +72,7 @@
 {% for artifact in artifacts %}
     <div class="artifact-grid-item corner-ribbon-container" >
         <div class="thumbnail corner-ribbon-container text-center">
-            <img src="{{ artifact.image }}" class="scope" alt="Artifact Icon">
+            <img src="{% static 'sharing/images/' %}{{ artifact.image_filename }}" class="art-icon" alt="Artifact Icon">
             <div class="caption">
                 <h4>
                 <a href="/portal/{{ artifact.id }}" class="binding" href="{{ artifact.id }}/">

@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -32,7 +34,11 @@ class Artifact(models.Model):
     authors = models.ManyToManyField(Author, related_name='artifacts')
     short_description = models.CharField(max_length=70)
     description = models.TextField(max_length=5000)
-    image = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='sharing/static/sharing/images/')
+
+    def image_filename(self):
+        ilist = self.image.url.split('/')
+        return ilist[len(ilist)-1]
 
     def validate_git_repo(value):
         error = "This must be in the form user_or_organization/repo_name"
