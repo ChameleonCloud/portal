@@ -197,8 +197,7 @@ div.artifact-grid-padding {
 }
 
 .related-grid-item .thumbnail {
-    padding: 0px;
-    padding-top: 4px;
+    padding: 4px;
 }
 
 .dropdown-content{
