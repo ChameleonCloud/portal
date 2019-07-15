@@ -72,7 +72,9 @@
 {% for artifact in artifacts %}
     <div class="artifact-grid-item corner-ribbon-container" >
         <div class="thumbnail corner-ribbon-container text-center">
-            <img src="{% static 'sharing/images/' %}{{ artifact.image_filename }}" class="art-icon" alt="Artifact Icon">
+            {% if artifact.image %}
+                <img src="{% static 'sharing/images/' %}{{ artifact.image_filename }}" class="art-icon" alt="Artifact Icon">
+            {% endif %}
             <div class="caption">
                 <h4>
                 <a href="/portal/{{ artifact.id }}" class="binding" href="{{ artifact.id }}/">
@@ -88,7 +90,11 @@
 {% empty %}
 </div>
 <div style="margin-top: 15px;">
-No results found. Please widen your search.
+    {% if search_failed %}
+        Sorry, something went wrong!
+    {% else %}
+        No results found. Please widen your search.
+    {% endif %}
 {% endfor %}
 </div>
 

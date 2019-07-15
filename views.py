@@ -19,11 +19,8 @@ def artifacts_from_form(data):
             Q(short_description__contains=keywords) |
             Q(authors__full_name__contains=keywords)
         )
-#            Q(authors__last_name__contains=keywords)
-
     if chosen_labels == []:
         filtered = filtered
-        # filtered = [filtered[0]]
     elif data['is_or']:
         filtered = filtered.filter(labels__in=chosen_labels)
     else:
@@ -42,7 +39,12 @@ def index(request):
             context['form'] = form
             context['submitted'] = chosen_labels
             context['searched'] = form.cleaned_data['search']
-            context['artifacts'] = artifacts_from_form(form.cleaned_data)
+            try:
+                context['artifacts'] = artifacts_from_form(form.cleaned_data)
+                context['search_failed'] = False
+            except:
+                context['artifacts'] = []
+                context['search_failed'] = True
             return HttpResponse(template.render(context,request))
     else:
         form=LabelForm()

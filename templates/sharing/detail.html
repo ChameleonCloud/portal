@@ -80,7 +80,9 @@
                         {% for related_item in artifact.related_papers %}
                             <div class="related-grid-item corner-ribbon-container" >
                                 <div class="thumbnail corner-ribbon-container text-center">
+                                    {% if related_item.image %}
                                     <img src="{% static 'sharing/images/' %}{{ related_item.image_filename }}" class="art-icon" alt="Artifact Icon">
+                                    {% endif %}
                                     <div class="related-caption">
                                         <h4>
                                         <a href="/portal/{{ related_item.id }}" class="binding" 
@@ -105,7 +107,9 @@
                         {% for related_item in artifact.associated_artifacts.all %}
                            <div class="related-grid-item corner-ribbon-container" >
                                <div class="thumbnail corner-ribbon-container text-center">
+                                    {% if related_item.image %}
                                     <img src="{% static 'sharing/images/' %}{{ related_item.image_filename }}" class="art-icon" alt="Artifact Icon">
+                                    {% endif %}
                                    <div class="related-caption">
                                        <h4>
                                        <a href="/portal/{{ related_item.id }}" class="binding" 

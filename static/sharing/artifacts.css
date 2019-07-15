@@ -34,6 +34,11 @@
 .artCatalog .artifact-grid-item .thumbnail {
     flex: 1;
     margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
  }
 
 @media (min-width: 768px) {
@@ -179,6 +184,11 @@ div.artifact-grid-padding {
 .artCatalog .related-grid-item .thumbnail {
     flex: 1;
     margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .related-grid-item h4 {
