@@ -115,6 +115,7 @@ class Artifact(models.Model):
             for artifact in label.artifacts.all()
             if artifact.id != self.id
             ]
+        related_list = list(set(related_list))
         return related_list[:6]
             
     def __str__(self):
