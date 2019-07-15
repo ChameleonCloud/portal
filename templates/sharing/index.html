@@ -20,7 +20,7 @@
         </div>
         
 
-        <form action="/portal/" method="post">
+        <form action="/portal/" method="post" id="form1">
             {% csrf_token %}
 
         <div class="form-group">
@@ -64,7 +64,11 @@
 
          <div>
             <input type="submit" value="Search" class="btn btn-primary">
+
          </div>
+        <div>
+            <input type="button" value="Reset" class="btn btn-default" onClick='location=location'>
+        </div>
     </div>
         </form>
 
