@@ -52,6 +52,10 @@
     height: 80px;
 }
 
+.related-items .art-icon {
+    height: 60px;
+}
+
 .artCatalog .art-icon-table {
     max-height: 80px;
 }
@@ -185,6 +189,7 @@ div.artifact-grid-padding {
 
 .related-grid-item .thumbnail {
     padding: 0px;
+    padding-top: 4px;
 }
 
 .dropdown-content{

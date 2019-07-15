@@ -23,12 +23,13 @@ def artifacts_from_form(data):
 
     if chosen_labels == []:
         filtered = filtered
+        # filtered = [filtered[0]]
     elif data['is_or']:
         filtered = filtered.filter(labels__in=chosen_labels)
     else:
         for label in chosen_labels:
             filtered = filtered.filter(labels__exact=label)
-    return filtered
+    return filtered.distinct()
 
 def index(request):
     template = loader.get_template('sharing/index.html')
