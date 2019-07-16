@@ -1,7 +1,29 @@
 import os
+import json
+from urllib.request import urlopen, Request
 
 from django.db import models
 from django.core.exceptions import ValidationError
+
+def get_zenodo_file(record_id):
+    doi_id = record_id
+    host = {
+        "hostname": ["https://zenodo.org/record/", "http://zenodo.org/record/"],
+        "api": "https://zenodo.org/api/records/",
+        "filepath": "files",
+        "filename": "filename",
+        "download": "links.download",
+        "type": "metadata.upload_type",
+    }
+
+    req = Request(
+        "{}{}".format(host["api"], record_id),
+        headers={"accept": "application/json"},
+    )
+    resp = urlopen(req)
+    record = json.loads(resp.read().decode("utf-8"))
+
+    return record['files'][0]['filename']
 
 class Author(models.Model):
     title = models.CharField(max_length=200)
@@ -88,7 +110,7 @@ class Artifact(models.Model):
     def src(self):
         if self.git_repo is not None:
             return "git"
-        elif self.DOI is not None:
+        elif self.doi is not None:
             return "zenodo"
         else:
             return "none"
@@ -98,8 +120,11 @@ class Artifact(models.Model):
         if (src == "git"):
             return self.git_repo+".git"
         elif src == "zenodo":
-            return Exception("currently not working for zenodo")
-            # Currently not working
+            zparts = self.doi.split('.')
+            record_id = zparts[len(zparts)-1]
+            filename = get_zenodo_file(record_id)
+            zen_path = "record/"+record_id+"/files/"+filename
+            return zen_path
         else:
             raise Exception("Asked to get source path with no provided source")
 
@@ -125,23 +150,3 @@ class Artifact(models.Model):
 # 1. Change your models (in models.py).
 # 2. Run python manage.py makemigrations to create migrations for those changes
 # 3. Run python manage.py migrate to apply those changes to the database.
- 
-
-## ARTIFACTS ##
-# - id
-# - string title
-# - string descritipn
-# - string image
-# - string DOI
-# - string git_repo
-# - bool launchable
-# - datetime created_at
-# - datetime updated_at
-# - bool deleted
-# - datetime deleted_at
-# - ForeignKey author
-
-## AUTHORS ##
-# - string name
-# - ForeignKeyList artifacts
-
