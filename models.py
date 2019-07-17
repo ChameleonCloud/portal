@@ -6,23 +6,13 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 def get_zenodo_file(record_id):
-    doi_id = record_id
-    host = {
-        "hostname": ["https://zenodo.org/record/", "http://zenodo.org/record/"],
-        "api": "https://zenodo.org/api/records/",
-        "filepath": "files",
-        "filename": "filename",
-        "download": "links.download",
-        "type": "metadata.upload_type",
-    }
-
+    api = "https://zenodo.org/api/records/"
     req = Request(
-        "{}{}".format(host["api"], record_id),
+        "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
     )
     resp = urlopen(req)
     record = json.loads(resp.read().decode("utf-8"))
-
     return record['files'][0]['filename']
 
 class Author(models.Model):
