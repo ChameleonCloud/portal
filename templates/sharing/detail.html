@@ -49,13 +49,14 @@
 
                 <hr>
 
-                {% if artifact.git_repo is not None %}
+                {% if artifact.git_repo != "" and artifact.git_repo is not None %}
                     <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}"
                         target="_blank">
                         View on Github
+                        -{{ artifact.git_repo }}-
                     </a>
                 {% endif %}
-                {% if artifact.doi is not None %}
+                {% if artifact.doi != "" and artifact.doi is not None %}
                     <a class="btn btn-primary" href="{{ artifact.zenodo_link }}"
                         target="_blank">
                         View on Zenodo

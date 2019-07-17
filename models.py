@@ -108,9 +108,9 @@ class Artifact(models.Model):
         return "https://zenodo.org/record/"+zparts[len(zparts)-1]
 
     def src(self):
-        if self.git_repo is not None:
+        if self.git_repo is not None and self.git_repo != "":
             return "git"
-        elif self.doi is not None:
+        elif self.doi is not None and self.doi != "":
             return "zenodo"
         else:
             return "none"
@@ -129,8 +129,10 @@ class Artifact(models.Model):
             raise Exception("Asked to get source path with no provided source")
 
     def jupyterhub_link(self):
-        base_url = "http://localhost:8000/hub/import/exp_name?imported=yes"
          #TODO: change to real url for deployment
+        hub_url = "http://localhost:8000" 
+        import_indicator = "/hub/import/exp_name?imported=yes"
+        base_url = hub_url + import_indicator
         link = base_url + "&source=" + self.src() + "&src_path=" + self.src_path()
         return link
 

@@ -1,0 +1,13 @@
+th, td {
+    padding: 15px;
+}
+
+.upload_form .submit-btn {
+    margin-top: 10px;
+    margin-left: 15%;
+}
+    
+
+#id_image {
+    font-size: 14px;
+}

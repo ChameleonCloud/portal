@@ -184,7 +184,7 @@ div.artifact-grid-padding {
 }
 
 .artCatalog .related-grid-item .thumbnail {
-    flex: 1;
+    flex: 2;
     margin-bottom: 0;
     display: flex;
     flex-wrap: wrap;
