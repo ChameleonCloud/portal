@@ -245,13 +245,14 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
 
-AUTHENTICATION_BACKENDS = (
-    'tas.auth.TASBackend',
-    'chameleon_openid.backend.OpenIDBackend',
-)
+# AUTHENTICATION_BACKENDS = (
+#     'tas.auth.TASBackend',
+#     'chameleon_openid.backend.OpenIDBackend',
+# )
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/user/dashboard'
+# LOGIN_REDIRECT_URL = '/user/dashboard'
+LOGIN_REDIRECT_URL = '/'
 
 
 OPENID_PROVIDERS = {
