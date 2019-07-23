@@ -21,10 +21,27 @@
         </tr>
         <tr>
           <td><b>Registration Link</b></td>
-          <td>{{ news.event.registration_link }}</td>
+          <td><a href="{{ news.event.registration_link }}" target="_blank" rel="noopener">{{ news.event.registration_link }}</a></td>
+        </tr>
+        <tr>
+          <td><b>Create a Chameleon Account</b></td>
+          <td><a href="https://chameleoncloud.readthedocs.io/en/latest/getting-started" target="_blank" rel="noopener">https://chameleoncloud.readthedocs.io/en/latest/getting-started</a></td>
         </tr>
       </table>
     </section>
+
+    <section class="news-item-content">
+      <h2>Description</h2>
+      {{ news.body|safe }}
+    </section>
+
+    <section>
+      <h2>Presenter Bio</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, accusantium non deserunt illo, quae beatae pariatur itaque reiciendis impedit explicabo amet, hic quo ipsam sunt ratione repellat aperiam perferendis ea.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Facere dolorum excepturi eveniet?</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem tenetur, quia error quo saepe, accusamus sed iusto rem distinctio hic excepturi omnis eum non placeat ipsam nesciunt? Dicta delectus qui possimus, tenetur adipisci magni.</p>
+    </section>
+
   {% endif %}
 
   {% if news.outage %}
@@ -40,10 +57,10 @@
         </tr>
       </table>
     </section>
+    <section class="news-item-content">
+      {{ news.body|safe }}
+    </section>
   {% endif %}
 
-  <section class="news-item-content">
-    {{ news.body|safe }}
-  </section>
 </article>
 {% endblock %}

@@ -1,28 +1,60 @@
+<h1>Webinars</h1>
+
 <div class="alternatives" style="position:relative;top:-25px">
   <a class="pull-right" href="{% url 'user_news:feed' %}"><span class="label label-warning"><i class="fa fa-rss"></i> RSS</span></a>
 </div>
 
-<div class="article-list">
-{% for news in news_items %}
-<article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">
-  <header>
-    <h2><a href="{% url 'user_news:detail' news.slug %}">{{ news.title }}</a></h2>
-    <div class="meta">
-      <span>Posted by {{ news.author.get_full_name }} on {{ news.created|date:"F d, o" }}</span>
+<div>
+  <p>
+    The Chameleon team hosts webinars at least once per month on a variety of topics ranging from how to use the testbed to open sessions soliciting user questions and feedback. 
+  </p>
+  <p>
+    See the upcoming and archived webinars below.
+  </p>
+</div>
+
+<h3>Upcoming</h3>
+
+<div>
+  {% for news in news_items %}
+    <div class="container-fluid">
+      <div class="row">
+        <article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">
+          <div class="col-xs-12 col-md-5" style="font-size: 120%; font-variant: small-caps;"><strong><a href="{% url 'user_news:detail' news.slug %}" class="read-more">{{ news.title }}</a></strong></div>
+          <div class="col-xs-12 col-sm-4 col-md-3">{{ news.event.event_date|date:"l, F d, o"}}</div>
+          <div class="col-xs-12 col-sm-4 col-md-2">{{ news.event.event_date|date:"f a"}} CT</div>
+          <div class="col-xs-12 col-sm-4 col-md-2"><a href="{{ news.event.registration_link }}" target="_blank" rel="noopener">Register</a></div>
+          <div class="col-xs-12" style="padding-top: 1rem;">{{ news.summary|safe }}</div>
+        </article>
+      </div>
     </div>
-  </header>
-  <section class="news-item-summary">
-    {{ news.summary|safe }}
-  </section>
-  <div class="read-more">
-    <a href="{% url 'user_news:detail' news.slug %}" class="read-more-link">Read more</a>
-  </div>
-</article>
-{% empty %}
-  <div class="jumbotron">
-    <p>No news to display!</p>
-  </div>
-{% endfor %}
+  {% empty %}
+    <div class="jumbotron">
+      <p>No upcoming webinars to display!</p>
+    </div>
+  {% endfor %}
+</div>
+
+<h3>Archived</h3>
+
+<div>
+  {% for news in news_items %}
+    <div class="container-fluid">
+      <div class="row">
+        <article class="news-item news-item-type-{% if news.event %}event{% elif news.outage %}outage{% else %}news{% endif %}">
+          <div class="col-xs-12 col-md-5" style="font-size: 120%; font-variant: small-caps;"><strong><a href="{% url 'user_news:detail' news.slug %}" class="read-more">{{ news.title }}</a></strong></div>
+          <div class="col-xs-12 col-sm-4 col-md-3">{{ news.event.event_date|date:"l, F d, o"}}</div>
+          <div class="col-xs-12 col-sm-4 col-md-2">{{ news.event.event_date|date:"f a"}} CT</div>
+          <div class="col-xs-12 col-sm-4 col-md-2"><a href="{{ news.event.registration_link }}" target="_blank" rel="noopener">Register</a></div>
+          <div class="col-xs-12" style="padding-top: 1rem;">{{ news.summary|safe }}</div>
+        </article>
+      </div>
+    </div>
+  {% empty %}
+    <div class="jumbotron">
+      <p>No upcoming webinars to display!</p>
+    </div>
+  {% endfor %}
 </div>
 
 
