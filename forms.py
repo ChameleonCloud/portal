@@ -11,18 +11,19 @@ class LabelForm(forms.Form):
 class UploadForm(forms.Form):
     label_options = [(str(label.id),label.label) for label in Label.objects.all()]
     artifact_options = [(str(artifact.id),artifact.title) for artifact in Artifact.objects.all()]
-    author_options = [(str(author.id), author.full_name) for author in Author.objects.all()]
 
+    # author_options = [(str(author.id), author.full_name) for author in Author.objects.all()]
+    # title = forms.CharField(max_length=200)
+    # authors = forms.MultipleChoiceField(required=False, choices=author_options)
 
-    title = forms.CharField(max_length=200)
-    authors = forms.MultipleChoiceField(required=False, choices=author_options)
     short_description = forms.CharField(max_length=70)
-    description = forms.CharField(max_length=5000)
+
+    # description = forms.CharField(max_length=5000)
     image = forms.ImageField(required=False,label="Icon image")
     git_repo = forms.CharField(max_length=200, required=False)
-    launchable = forms.BooleanField(required=False)
-    created_at = forms.DateTimeField(initial=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), required=False)
-    updated_at = forms.DateTimeField(initial=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), required=False)
+    # launchable = forms.BooleanField(required=False)
+    # created_at = forms.DateTimeField(initial=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), required=False)
+    # updated_at = forms.DateTimeField(initial=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), required=False)
 #    updated_at = forms.DateTimeField()
     labels = forms.MultipleChoiceField(label='Labels',required=False, choices=label_options)
     associated_artifacts = forms.MultipleChoiceField(required=False, choices=artifact_options)

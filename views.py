@@ -1,3 +1,6 @@
+import json 
+
+from datetime import datetime
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
@@ -5,6 +8,7 @@ from django.template import loader
 from django.views import generic
 from .models import Artifact, Author, Label
 
+from urllib.request import urlopen, Request
 from .forms import LabelForm, UploadForm
 
 def artifacts_from_form(data):
@@ -28,22 +32,67 @@ def artifacts_from_form(data):
             filtered = filtered.filter(labels__exact=label)
     return filtered.distinct()
 
+
+def make_author(name_string):
+    name = name_string.split(' ')
+    length = len(name)
+    title=''
+    if length > 3:
+        fname = name_string
+    elif length == 3:
+        if '.' in name[0]:
+            title=name[0]
+            fname=name[1]
+        else:
+            fname=name[0]+' '+name[1]
+        lname = name[2]
+    elif length==2:
+        fname = name[0]
+        lname = name[1]
+    else: 
+        fname = name[0]
+    author = Author(
+        title=title,
+        first_name = fname,
+        last_name = lname
+    )
+    author.save()
+    return author.pk
+            
+
 def upload_artifact(data,doi):
+
+    zparts = doi.split('.')
+    record_id = zparts[len(zparts)-1]
+    api = "https://zenodo.org/api/records/"
+    req = Request(
+        "{}{}".format(api, record_id),
+        headers={"accept": "application/json"},
+    )
+    resp = urlopen(req)
+    record = json.loads(resp.read().decode("utf-8"))
+
     item = Artifact(
-        title=data['title'],
+        title=record['metadata']['title'],
+        description = record['metadata']['description'],
+
         short_description = data['short_description'],
-        description = data['description'],
         image = data['image'],
-        doi = doi,
         git_repo = data['git_repo'],
-        launchable = data['launchable'],
-        created_at = data['created_at'],
-        updated_at = data['updated_at'],
+
+        doi = doi,
+        launchable = True,
+        created_at = datetime.now(),
+        updated_at = datetime.now(),
     )
     item.save()
     item.associated_artifacts.set(data['associated_artifacts'])
     item.labels.set(data['labels'])
-    item.authors.set(data['authors'])
+    author_list = []
+    for author in record['metadata']['creators']:
+        name = author['name']  
+        author_list.append(make_author(name))
+    item.authors.set(author_list)
     item.save()
     return item.pk
 

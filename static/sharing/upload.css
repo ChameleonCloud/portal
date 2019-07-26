@@ -11,3 +11,7 @@ th, td {
 #id_image {
     font-size: 14px;
 }
+
+label {
+    font-weight: normal;
+}
