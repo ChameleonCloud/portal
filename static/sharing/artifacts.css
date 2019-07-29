@@ -241,3 +241,7 @@ div.artifact-grid-padding {
 .form-container div {
     padding-right: 40px;
 }
+
+.error_message {
+    color: #c90202;
+}

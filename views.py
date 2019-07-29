@@ -1,6 +1,7 @@
 import json 
 
 from datetime import datetime
+from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
@@ -61,7 +62,6 @@ def make_author(name_string):
             
 
 def upload_artifact(data,doi):
-
     zparts = doi.split('.')
     record_id = zparts[len(zparts)-1]
     api = "https://zenodo.org/api/records/"
@@ -69,7 +69,10 @@ def upload_artifact(data,doi):
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
     )
-    resp = urlopen(req)
+    try:
+        resp = urlopen(req)
+    except:
+        return None
     record = json.loads(resp.read().decode("utf-8"))
 
     item = Artifact(
@@ -130,9 +133,15 @@ def upload(request, doi):
         form = UploadForm(request.POST)
         if form.is_valid():
             pk = upload_artifact(form.cleaned_data,doi)
-            context['form'] = form
-            print("form was valid")
-            return HttpResponseRedirect('/portal/'+str(pk))
+            if pk is None:
+                error_message = "There is no published Zenodo artifact with that DOI"
+                messages.add_message(request, messages.INFO, error_message)
+                context['error'] = True
+                context['error_message'] = "There is no published Zenodo artifact with that DOI"
+                return HttpResponseRedirect('/portal/')
+            else:
+                context['form'] = form
+                return HttpResponseRedirect('/portal/'+str(pk))
         else:
             return HttpResponse(template.render(context,request))
     else:
