@@ -16,7 +16,7 @@ class UploadForm(forms.Form):
     # title = forms.CharField(max_length=200)
     # authors = forms.MultipleChoiceField(required=False, choices=author_options)
 
-    short_description = forms.CharField(max_length=70)
+    short_description = forms.CharField(max_length=70,required=False)
 
     # description = forms.CharField(max_length=5000)
     image = forms.ImageField(required=False,label="Icon image")

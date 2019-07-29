@@ -44,7 +44,7 @@ class Label(models.Model):
 class Artifact(models.Model):
     title = models.CharField(max_length=200)
     authors = models.ManyToManyField(Author, related_name='artifacts')
-    short_description = models.CharField(max_length=70)
+    short_description = models.CharField(max_length=70, blank=True, null=True)
     description = models.TextField(max_length=5000)
     image = models.ImageField(upload_to='sharing/static/sharing/images/',blank=True,null=True)
 
