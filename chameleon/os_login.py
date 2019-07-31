@@ -32,7 +32,7 @@ def get_unscoped_token(request):
     for auth_url in auth_urls:
         try:
             auth = v3.Password(auth_url=auth_url,username=un, password=pw, user_domain_name='default', unscoped=True)
-            sess = session.Session(auth=auth)
+            sess = session.Session(auth=auth, timeout=5)
             unscoped_token = {'auth_token':auth.get_auth_ref(sess).auth_token}
             request.session['unscoped_token'] = unscoped_token
             logger.info('***Unscoped Token retrieved and stored in session for user: ' + request.POST.get('username'))
@@ -49,7 +49,7 @@ def update_ks_password(request):
         logger.info('Synchronizing password to keystone for user: ' + request.POST.get('username'))
         auth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, password=settings.OPENSTACK_SERVICE_PASSWORD, \
             project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
-        sess = session.Session(auth=auth)
+        sess = session.Session(auth=auth, timeout=5)
         ks = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
         user = filter(lambda this: this.name==request.POST.get('username'), ks.users.list())
         if user:
