@@ -5,7 +5,11 @@ from urllib.request import urlopen, Request
 from django.db import models
 from django.core.exceptions import ValidationError
 
+def get_rec_id(doi):
+    return doi.split('.')[-1]
+
 def get_zenodo_file(record_id):
+    #TODO: remove sandbox
     api = "https://zenodo.org/api/records/"
     req = Request(
         "{}{}".format(api, record_id),
@@ -94,8 +98,8 @@ class Artifact(models.Model):
         ordering = ('title',)
 
     def zenodo_link(self):
-        zparts = self.doi.split('.')
-        return "https://zenodo.org/record/"+zparts[len(zparts)-1]
+        rec_id = get_rec_id(self.doi)
+        return "https://zenodo.org/record/"+ rec_id
 
     def src(self):
         if self.git_repo is not None and self.git_repo != "":
@@ -110,8 +114,7 @@ class Artifact(models.Model):
         if (src == "git"):
             return self.git_repo+".git"
         elif src == "zenodo":
-            zparts = self.doi.split('.')
-            record_id = zparts[len(zparts)-1]
+            record_id = get_rec_id(self.doi)
             filename = get_zenodo_file(record_id)
             zen_path = "record/"+record_id+"/files/"+filename
             return zen_path
