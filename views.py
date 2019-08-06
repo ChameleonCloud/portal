@@ -64,7 +64,8 @@ def make_author(name_string):
 def upload_artifact(data,doi):
     zparts = doi.split('.')
     record_id = zparts[len(zparts)-1]
-    api = "https://zenodo.org/api/records/"
+    #TODO: remove sandbox
+    api = "https://sandbox.zenodo.org/api/records/"
     req = Request(
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
@@ -129,25 +130,27 @@ def upload(request, doi):
     template = loader.get_template('sharing/upload.html')
     context = {}
 
-    if request.method == 'POST':
-        form = UploadForm(request.POST)
-        if form.is_valid():
-            pk = upload_artifact(form.cleaned_data,doi)
-            if pk is None:
-                error_message = "There is no published Zenodo artifact with that DOI"
-                messages.add_message(request, messages.INFO, error_message)
-                context['error'] = True
-                context['error_message'] = "There is no published Zenodo artifact with that DOI"
-                return HttpResponseRedirect('/portal/')
-            else:
-                context['form'] = form
-                return HttpResponseRedirect('/portal/'+str(pk))
+    #if request.method == 'POST':
+    form = UploadForm(request.POST)
+    if form.is_valid():
+        pk = upload_artifact(form.cleaned_data,doi)
+        if pk is None:
+            error_message = "There is no published Zenodo artifact with that DOI"
+            messages.add_message(request, messages.INFO, error_message)
+            context['error'] = True
+            context['error_message'] = "There is no published Zenodo artifact with that DOI"
+            return HttpResponseRedirect('/portal/')
         else:
-            return HttpResponse(template.render(context,request))
+            context['form'] = form
+            return HttpResponseRedirect('/portal/'+str(pk))
+    else:
+        return HttpResponse(template.render(context,request))
+    """
     else:
         form=UploadForm()
         context['form'] = form
         return HttpResponse(template.render(context,request))
+    """
 
 
 class DetailView(generic.DetailView):

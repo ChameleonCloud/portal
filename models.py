@@ -10,7 +10,7 @@ def get_rec_id(doi):
 
 def get_zenodo_file(record_id):
     #TODO: remove sandbox
-    api = "https://zenodo.org/api/records/"
+    api = "https://sandbox.zenodo.org/api/records/"
     req = Request(
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
@@ -99,7 +99,8 @@ class Artifact(models.Model):
 
     def zenodo_link(self):
         rec_id = get_rec_id(self.doi)
-        return "https://zenodo.org/record/"+ rec_id
+        #TODO: remove sandbox
+        return "https://sandbox.zenodo.org/record/"+ rec_id
 
     def src(self):
         if self.git_repo is not None and self.git_repo != "":
