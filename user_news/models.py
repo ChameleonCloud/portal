@@ -75,6 +75,12 @@ class Outage(News):
     resolved = models.BooleanField('resolved', default=False)
     send_email_notification = False
 
+    SEVERITY_LEVEL = (
+        ('SEV-1','SEV-1'),
+        ('SEV-2','SEV-2'),
+    )
+    severity = models.CharField(choices=SEVERITY_LEVEL, blank=False, default='', max_length=50)
+
     def save(self):
         if not self.slug:
             self.slug = '%s-%s' % (self.start_date.strftime('%y-%m-%d'), slugify(self.title))
