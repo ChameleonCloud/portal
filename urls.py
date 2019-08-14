@@ -3,8 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-#    path('upload/', views.upload, name='upload'),
-    path('upload/<path:doi>', views.upload, name='upload'),
+    path('upload', views.upload, name='upload'),
     path('<int:pk>', views.DetailView.as_view(), name='detail')
 ] 
 

@@ -126,9 +126,16 @@ def index(request):
         context['artifacts'] = Artifact.objects.all()
         return HttpResponse(template.render(context,request))
 
-def upload(request, doi):
-    template = loader.get_template('sharing/upload.html')
+def upload(request):
     context = {}
+    doi = request.GET.get('doi')
+    if doi is None:
+        context['error'] = True
+        context['error_message'] = "No doi was provided"
+        return HttpResponseRedirect('/portal/')
+    print("doi: "+doi)
+    
+    template = loader.get_template('sharing/upload.html')
 
     #if request.method == 'POST':
     form = UploadForm(request.POST)
