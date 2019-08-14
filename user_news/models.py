@@ -76,6 +76,7 @@ class Outage(News):
     send_email_notification = False
 
     SEVERITY_LEVEL = (
+        ('',''),
         ('SEV-1','SEV-1'),
         ('SEV-2','SEV-2'),
     )
