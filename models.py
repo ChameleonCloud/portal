@@ -6,70 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .__init__ import DEV as dev
-
-
-def get_rec_id(doi):
-    """Parses Zenodo DOI to isolate record id
-
-    Parameters
-    ----------
-    doi : string
-        doi to isolate record id from; must not be empty
-
-    Returns
-    ------
-    string
-        The Zenodo record id at the end of the doi
-
-    Notes
-    -----
-    - DOIs are expected to be in the form 10.xxxx/zenodo.xxxxx
-    - Behaviour is undefined if they are given in another format
-    """
-
-    if not doi:
-        raise Exception("No doi")
-    elif not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', doi):
-        raise Exception("Doi is invalid (wrong format)")
-    else:
-        record_id = doi.split('.')[-1]
-        return record_id
-
-
-def get_zenodo_file(record_id):
-    """ Get filename from deposition
-    Parameters
-    ----------
-    record_id : string
-        ID of deposition to get file from
-
-    Returns
-    -------
-    string
-        Retrieved file name
-
-    Notes
-    -----
-    - No error handling
-    """
-
-    # Use Zenodo sandbox if in development
-    if dev:
-        api = "https://sandbox.zenodo.org/api/records/"
-    else:
-        api = "https://zenodo.org/api/records/"
-
-    # Send a request to the Zenodo API
-    req = Request(
-        "{}{}".format(api, record_id),
-        headers={"accept": "application/json"},
-    )
-    resp = urlopen(req)
-    record = json.loads(resp.read().decode("utf-8"))
-    print(record)
-
-    # Return the first file's name
-    return record['files'][0]['filename']
+from .utils import get_rec_id, get_zenodo_file
 
 
 class Author(models.Model):
@@ -119,20 +56,8 @@ class Artifact(models.Model):
     Represents artifacts
     These could be research projects, Zenodo depositions, etc
     """
-    title = models.CharField(max_length=200)
-    authors = models.ManyToManyField(Author, related_name='artifacts')
-    short_description = models.CharField(max_length=70, blank=True, null=True)
-    description = models.TextField(max_length=5000)
-    image = models.ImageField(upload_to='sharing/static/sharing/images/',
-                              blank=True, null=True)
 
-    # Extract the filename from an image path
-    def image_filename(self):
-        if self.image:
-            return self.image.url.split('/')[-1]
-        else:
-            return None
-
+    """ Validators """
     def validate_git_repo(repo):
         """ Validator to make sure that the git repo is in the right format
 
@@ -162,18 +87,23 @@ class Artifact(models.Model):
         -------
         void
         """
-
         error = "Please enter a valid Zenodo DOI"
         if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', doi):
             raise ValidationError(error)
 
+    """ Fields """
+    title = models.CharField(max_length=200)
+    authors = models.ManyToManyField(Author, related_name='artifacts')
+    short_description = models.CharField(max_length=70, blank=True, null=True)
+    description = models.TextField(max_length=5000)
+    image = models.ImageField(upload_to='sharing/static/sharing/images/',
+                              blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
     zenodo_id = models.CharField(max_length=50, editable=False,
                                  blank=True, default='')
     git_repo = models.CharField(max_length=200, blank=True,
                                 null=True, validators=[validate_git_repo])
-
     launchable = models.BooleanField(default=False)
     created_at = models.DateTimeField()
     updated_at = models.DateTimeField()
@@ -185,62 +115,10 @@ class Artifact(models.Model):
                                                   related_name='associated',
                                                   blank=True)
 
+    """ Default Methods """
     # Order by title
     class Meta:
         ordering = ('title', )
-
-    def zenodo_link(self):
-        # Zenodo link is based on the record ID
-        if dev:
-            base_url = "https://sandbox.zenodo.org/record/"
-        else:
-            base_url = "https://zenodo.org/record/"
-
-        if not self.zenodo_id:
-            self.zenodo_id = get_rec_id(self.doi)
-        return base_url + self.zenodo_id
-
-    def src(self):
-        if self.git_repo:
-            return "git"
-        elif self.doi:
-            return "zenodo"
-        else:
-            return "none"
-
-    def src_path(self):
-        src = self.src()
-        if (src == "git"):
-            return self.git_repo+".git"
-        elif src == "zenodo":
-            self.zenodo_id = get_rec_id(self.doi)
-            record_id = self.zenodo_id
-            filename = get_zenodo_file(record_id)
-            zen_path = "record/"+record_id+"/files/"+filename
-            return zen_path
-        else:
-            raise Exception("Asked to get source path with no provided source")
-
-    def jupyterhub_link(self):
-        if dev:
-            hub_url = "http://localhost:8000"
-        else:
-            hub_url = "https://jupyter.chameleoncloud.org"
-        import_indicator = "/hub/import?"
-        base_url = hub_url + import_indicator
-        link = (base_url + "&source=" + self.src() + "&src_path="
-                + self.src_path())
-        return link
-
-    def related_papers(self):
-        related_list = [
-            artifact
-            for label in self.labels.all()
-            for artifact in label.artifacts.all()
-            if artifact.id != self.id
-        ]
-        related_list = list(set(related_list))
-        return related_list[:6]
 
     # On save, store Zenodo record ID if applicable
     def save(self):
@@ -251,3 +129,119 @@ class Artifact(models.Model):
     # Printing a record = printing its title
     def __str__(self):
         return self.title
+
+    """ Custom Methods """
+    def zenodo_link(self):
+        """ Method to build a link to view an artifact on Zenodo
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+        string
+            Zenodo URL
+
+        Notes
+        -----
+        - Uses self.doi and self.zenodo_id
+        """
+
+        # Use sandbox if in dev mode
+        if dev:
+            base_url = "https://sandbox.zenodo.org/record/"
+        else:
+            base_url = "https://zenodo.org/record/"
+
+        if not self.zenodo_id:
+            self.zenodo_id = get_rec_id(self.doi)
+        return base_url + self.zenodo_id
+
+    def jupyterhub_link(self):
+        """ Method to build a link to open the artifact files on JupyterHub
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+        string
+            Zenodo URL
+
+        Notes
+        -----
+        - Uses self.git_repo or self.doi and self.zenodo_id
+        """
+        # Hub url is different in development
+        if dev:
+            hub_url = "http://localhost:8000"
+        else:
+            hub_url = "https://jupyter.chameleoncloud.org"
+        import_indicator = "/hub/import?"
+
+        # Add import indicator
+        base_url = hub_url + import_indicator
+
+        if self.git_repo:
+            # Source path is just the git repo
+            src_args = "source=git&src_path=" + self.git_repo + ".git"
+        elif self.doi:
+            # Build source path based on the record's files
+            self.zenodo_id = get_rec_id(self.doi)
+            filename = get_zenodo_file(self.zenodo_id)
+            zen_path = "record/"+self.zenodo_id+"/files/"+filename
+            src_args = "source=zenodo&src_path="+zen_path
+        else:
+            raise Exception("Non-launchable artifact has no JupyterHub link")
+            
+        # Add query parameters before returning
+        return base_url + src_args
+
+    def related_papers(self):
+        """ Method to find related artifacts based on labels
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+        list of artifacts
+            6 artifacts with the same labels
+
+        Notes
+        -----
+        - Uses self.labels.all()
+        """
+        related_list = [
+            artifact
+            for label in self.labels.all()
+            for artifact in label.artifacts.all()
+            if artifact.id != self.id
+        ]
+        related_list = list(set(related_list))
+        return related_list[:6]
+
+    def image_filename(self):
+        """ Method to extract the filename from an image path
+
+        Parameters
+        ----------
+        none
+
+        Returns
+        -------
+        string or None
+            image file name if it exists 
+
+        Notes
+        -----
+        - Uses self.image
+        """
+ 
+        if self.image:
+            return self.image.url.split('/')[-1]
+        else:
+            return None
