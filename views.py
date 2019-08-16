@@ -80,9 +80,9 @@ def upload_artifact(data,doi):
         title=record['metadata']['title'],
         description = record['metadata']['description'],
 
-        short_description = data['short_description'],
-        image = data['image'],
-        git_repo = data['git_repo'],
+        #short_description = data['short_description'],
+        #image = data['image'],
+        #git_repo = data['git_repo'],
 
         doi = doi,
         launchable = True,
@@ -90,8 +90,8 @@ def upload_artifact(data,doi):
         updated_at = datetime.now(),
     )
     item.save()
-    item.associated_artifacts.set(data['associated_artifacts'])
-    item.labels.set(data['labels'])
+    #item.associated_artifacts.set(data['associated_artifacts'])
+    #item.labels.set(data['labels'])
     author_list = []
     for author in record['metadata']['creators']:
         name = author['name']  

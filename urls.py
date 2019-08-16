@@ -1,9 +1,9 @@
 from django.urls import path
-from . import views
+import sharing.views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('upload', views.upload, name='upload'),
-    path('<int:pk>', views.DetailView.as_view(), name='detail')
+    path('', sharing.views.index, name='index'),
+    path('upload', sharing.views.upload, name='upload'),
+    path('<int:pk>', sharing.views.DetailView.as_view(), name='detail')
 ] 
 

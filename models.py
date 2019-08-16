@@ -152,7 +152,7 @@ class Artifact(models.Model):
 
     doi = models.CharField(max_length=50, blank=True, null=True,
         validators=[validate_zenodo_doi])
-    #zenodo_id = models.CharField(max_length=50,editable=False, blank=True, null=True, default='')
+    zenodo_id = models.CharField(max_length=50,editable=False, blank=True, default='')
     git_repo = models.CharField(max_length=200, blank=True,
         null=True,validators=[validate_git_repo])
 
