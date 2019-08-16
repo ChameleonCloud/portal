@@ -8,5 +8,4 @@ class searchFailure(testCase):
     c = Client()
     response = c.post('/portal/',{'
     def search_raies_exception(self):
-        response = 
 '''

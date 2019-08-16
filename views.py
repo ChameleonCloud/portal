@@ -1,24 +1,25 @@
-import json 
-
 from datetime import datetime
+import json
+from urllib.request import urlopen, Request
+
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
-
 from django.views import generic
-from .models import Artifact, Author, Label
 
-from urllib.request import urlopen, Request
+from .models import Artifact, Author, Label
 from .forms import LabelForm, UploadForm
+from .__init__ import DEV as dev
+
 
 def artifacts_from_form(data):
     chosen_labels = data['labels']
     keywords = data['search']
 
-    filtered = Artifact.objects.all() 
-    if keywords is not None:
-        filtered=filtered.filter(
+    filtered = Artifact.objects.all()
+    if keywords:
+        filtered = filtered.filter(
             Q(title__contains=keywords) |
             Q(description__contains=keywords) |
             Q(short_description__contains=keywords) |
@@ -37,64 +38,66 @@ def artifacts_from_form(data):
 def make_author(name_string):
     name = name_string.split(' ')
     length = len(name)
-    title=''
+    title = ''
     if length > 3:
         fname = name_string
     elif length == 3:
         if '.' in name[0]:
-            title=name[0]
-            fname=name[1]
+            title = name[0]
+            fname = name[1]
         else:
-            fname=name[0]+' '+name[1]
+            fname = name[0]+' '+name[1]
         lname = name[2]
-    elif length==2:
+    elif length == 2:
         fname = name[0]
         lname = name[1]
-    else: 
+    else:
         fname = name[0]
     author = Author(
         title=title,
-        first_name = fname,
-        last_name = lname
+        first_name=fname,
+        last_name=lname
     )
     author.save()
     return author.pk
-            
 
-def upload_artifact(data,doi):
+
+def upload_artifact(data, doi):
+    # TODO: use helper
     zparts = doi.split('.')
     record_id = zparts[len(zparts)-1]
-    #TODO: remove sandbox
-    api = "https://sandbox.zenodo.org/api/records/"
+
+    if dev:
+        api = "https://sandbox.zenodo.org/api/records/"
+    else:
+        api = "https://zenodo.org/api/records/"
     req = Request(
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
     )
     try:
         resp = urlopen(req)
-    except:
-        return None
+    except Exception as e:
+        return
     record = json.loads(resp.read().decode("utf-8"))
 
     item = Artifact(
         title=record['metadata']['title'],
-        description = record['metadata']['description'],
-
-        #short_description = data['short_description'],
-        #image = data['image'],
-        #git_repo = data['git_repo'],
-
-        doi = doi,
-        launchable = True,
-        created_at = datetime.now(),
-        updated_at = datetime.now(),
+        description=record['metadata']['description'],
+        # short_description = data['short_description'],
+        # image = data['image'],
+        # git_repo = data['git_repo'],
+        doi=doi,
+        launchable=True,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
     )
     item.save()
-    #item.associated_artifacts.set(data['associated_artifacts'])
-    #item.labels.set(data['labels'])
+    # item.associated_artifacts.set(data['associated_artifacts'])
+    # item.labels.set(data['labels'])
     author_list = []
     for author in record['metadata']['creators']:
-        name = author['name']  
+        name = author['name']
         author_list.append(make_author(name))
     item.authors.set(author_list)
     item.save()
@@ -108,23 +111,24 @@ def index(request):
     if request.method == 'POST':
         form = LabelForm(request.POST)
         if form.is_valid():
-            chosen_labels = form.cleaned_data['labels'] 
+            chosen_labels = form.cleaned_data['labels']
             context['form'] = form
             context['submitted'] = chosen_labels
             context['searched'] = form.cleaned_data['search']
             try:
                 context['artifacts'] = artifacts_from_form(form.cleaned_data)
                 context['search_failed'] = False
-            except:
+            except Exception:
                 context['artifacts'] = []
                 context['search_failed'] = True
-            return HttpResponse(template.render(context,request))
+            return HttpResponse(template.render(context, request))
     else:
-        form=LabelForm()
+        form = LabelForm()
         context['form'] = form
         context['submitted'] = 'no'
         context['artifacts'] = Artifact.objects.all()
-        return HttpResponse(template.render(context,request))
+        return HttpResponse(template.render(context, request))
+
 
 def upload(request):
     context = {}
@@ -134,30 +138,23 @@ def upload(request):
         context['error_message'] = "No doi was provided"
         return HttpResponseRedirect('/portal/')
     print("doi: "+doi)
-    
+
     template = loader.get_template('sharing/upload.html')
 
-    #if request.method == 'POST':
     form = UploadForm(request.POST)
     if form.is_valid():
-        pk = upload_artifact(form.cleaned_data,doi)
+        pk = upload_artifact(form.cleaned_data, doi)
         if pk is None:
-            error_message = "There is no published Zenodo artifact with that DOI"
+            error_message = "There is no Zenodo publication with that DOI"
             messages.add_message(request, messages.INFO, error_message)
             context['error'] = True
-            context['error_message'] = "There is no published Zenodo artifact with that DOI"
+            context['error_message'] = error_message
             return HttpResponseRedirect('/portal/')
         else:
             context['form'] = form
             return HttpResponseRedirect('/portal/'+str(pk))
     else:
-        return HttpResponse(template.render(context,request))
-    """
-    else:
-        form=UploadForm()
-        context['form'] = form
-        return HttpResponse(template.render(context,request))
-    """
+        return HttpResponse(template.render(context, request))
 
 
 class DetailView(generic.DetailView):
@@ -165,4 +162,3 @@ class DetailView(generic.DetailView):
     template_name = 'sharing/detail.html'
     def get_queryset(self):
         return Artifact.objects.filter()
-
