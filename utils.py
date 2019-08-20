@@ -32,7 +32,7 @@ def get_rec_id(doi):
         return record_id
 
 
-def get_zenodo_file(record_id):
+def get_zenodo_file_link(record_id):
     """ Get filename from deposition
     Parameters
     ----------
@@ -42,7 +42,7 @@ def get_zenodo_file(record_id):
     Returns
     -------
     string
-        Retrieved file name
+        url suffix of the form 'record/<rec_id>/files/<filename>'
 
     Notes
     -----
@@ -62,7 +62,36 @@ def get_zenodo_file(record_id):
     )
     resp = urlopen(req)
     record = json.loads(resp.read().decode("utf-8"))
-    print(record)
 
-    # Return the first file's name
-    return record['files'][0]['filename']
+    # If there's a newer version, use that
+    latest = record.get('links',{}).get('latest')
+    if (latest):
+        req = Request(
+            "{}".format(latest),
+            headers={"accept": "application/json"},
+        )
+        resp = urlopen(req)
+        record = json.loads(resp.read().decode("utf-8"))
+        record_id = get_rec_id(record['doi'])
+
+    # Return the assembled string
+    return "record/"+ record_id +"/files/" + record['files'][0]['filename']
+
+def get_permanent_id(doi):
+    record_id = get_rec_id(doi)
+    if dev:
+        api = "https://sandbox.zenodo.org/api/records/"
+    else:
+        api = "https://zenodo.org/api/records/"
+
+    # Send a request to the Zenodo API
+    req = Request(
+        "{}{}".format(api, record_id),
+        headers={"accept": "application/json"},
+    )
+    resp = urlopen(req)
+    record = json.loads(resp.read().decode("utf-8"))
+    permanent_id = record.get('conceptrecid')
+    if not permanent_id:
+        raise Exception("No concept record id in response")
+    return permanent_id

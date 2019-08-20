@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .__init__ import DEV as dev
-from .utils import get_rec_id, get_zenodo_file
+from .utils import get_rec_id, get_zenodo_file_link, get_permanent_id
 
 
 class Author(models.Model):
@@ -100,8 +100,8 @@ class Artifact(models.Model):
                               blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
-    zenodo_id = models.CharField(max_length=50, editable=False,
-                                 blank=True, default='')
+    permanent_id = models.CharField(max_length=50, editable=False,
+                                    blank=True, default='')
     git_repo = models.CharField(max_length=200, blank=True,
                                 null=True, validators=[validate_git_repo])
     launchable = models.BooleanField(default=False)
@@ -119,12 +119,6 @@ class Artifact(models.Model):
     # Order by title
     class Meta:
         ordering = ('title', )
-
-    # On save, store Zenodo record ID if applicable
-    def save(self):
-        if self.doi:
-            self.zenodo_id = get_rec_id(self.doi)
-        super(Artifact, self).save()
 
     # Printing a record = printing its title
     def __str__(self):
@@ -145,7 +139,7 @@ class Artifact(models.Model):
 
         Notes
         -----
-        - Uses self.doi and self.zenodo_id
+        - Uses self.doi
         """
 
         # Use sandbox if in dev mode
@@ -154,9 +148,9 @@ class Artifact(models.Model):
         else:
             base_url = "https://zenodo.org/record/"
 
-        if not self.zenodo_id:
-            self.zenodo_id = get_rec_id(self.doi)
-        return base_url + self.zenodo_id
+        if not self.permanent_id:
+            self.permanent_id = get_permanent_id(self.doi)
+        return base_url + self.permanent_id
 
     def jupyterhub_link(self):
         """ Method to build a link to open the artifact files on JupyterHub
@@ -172,7 +166,7 @@ class Artifact(models.Model):
 
         Notes
         -----
-        - Uses self.git_repo or self.doi and self.zenodo_id
+        - Uses self.git_repo or self.doi
         """
         # Hub url is different in development
         if dev:
@@ -189,9 +183,8 @@ class Artifact(models.Model):
             src_args = "source=git&src_path=" + self.git_repo + ".git"
         elif self.doi:
             # Build source path based on the record's files
-            self.zenodo_id = get_rec_id(self.doi)
-            filename = get_zenodo_file(self.zenodo_id)
-            zen_path = "record/"+self.zenodo_id+"/files/"+filename
+            zenodo_id = get_rec_id(self.doi)
+            zen_path = get_zenodo_file_link(zenodo_id)
             src_args = "source=zenodo&src_path="+zen_path
         else:
             raise Exception("Non-launchable artifact has no JupyterHub link")

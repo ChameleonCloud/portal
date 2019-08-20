@@ -39,6 +39,7 @@ def make_author(name_string):
     name = name_string.split(' ')
     length = len(name)
     title = ''
+    lname = ''
     if length > 3:
         fname = name_string
     elif length == 3:
