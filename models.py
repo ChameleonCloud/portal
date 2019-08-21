@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .__init__ import DEV as dev
-from .utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+from sharing.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
 
 
 class Author(models.Model):
@@ -72,7 +72,7 @@ class Artifact(models.Model):
         """
         error = "This must be in the form user_or_organization/repo_name"
 
-        if not re.match(r'[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+', repo):
+        if not re.match(r"[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+", str(repo)):
             raise ValidationError(error)
 
     def validate_zenodo_doi(doi):
@@ -88,7 +88,7 @@ class Artifact(models.Model):
         void
         """
         error = "Please enter a valid Zenodo DOI"
-        if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', doi):
+        if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
             raise ValidationError(error)
 
     """ Fields """
