@@ -20,10 +20,51 @@ class searchFailure(TestCase):
 """
 Tests for utils.py
 """
+class GetZenodoFileLinkTest(unittest.TestCase):
+    def setUp(self):
+        if dev:
+            self.old_rec_id = '359090'
+            self.old_file_link = ('https://sandbox.zenodo.org/record/'
+                                  '359091/files/new-title.zip')
+            self.current_rec_id = '359165'
+            self.current_file_link = ('https://sandbox.zenodo.org/record/'
+                                      '359165/files/some-title.zip')
+        else:
+            self.old_rec_id = '1205167'
+            self.old_file_link = ('https://zenodo.org/record/'
+                                  '3267438/files/go-release-archive.tgz')
+            self.current_rec_id = '3269114'
+            self.current_file_link = ('https://zenodo.org/record/'
+                                      '3269114/files/figure.png')
+    def get_files_old_version(self):
+        link = get_zenodo_file_link(self.old_rec_id)
+        self.assertEqual(link, self.old_file_link)
 
-class TestTrue(unittest.TestCase):
-    def test_True(self):
-        self.assertTrue(True)
+    def get_files_current_version(self):
+        link = get_zenodo_file_link(self.current_rec_id)
+        self.assertEqual(link, self.current_file_link)
+
+@mock.patch('sharing.utils.get_rec_id')
+class GetPermanantId(unittest.TestCase):
+    def setUp(self):
+        if dev:
+            self.old_version_id = '359090'
+            self.old_version_perm = '359089' 
+            self.only_version_id = '359165'
+            self.only_version_perm = '359164'
+        else:
+            self.old_version_id = '1205167'
+            self.old_version_perm = '1205166' 
+            self.only_version_id = '3269114' 
+            self.only_version_perm = '3269113'
+
+    def get_permanent_id_old_version(self, mock_id): 
+            mock_id.return_value = self.old_version_id
+            self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
+
+    def get_permanent_id_old_version(self, mock_id): 
+            mock_id.return_value = self.only_version_id
+            self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
 
 class GetRecIdTest(unittest.TestCase):
     def test_good_doi(self):
