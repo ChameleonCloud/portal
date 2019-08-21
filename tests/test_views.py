@@ -58,11 +58,12 @@ class ArtifactsFromFormTest(TestCase):
         self.label2 = Label.objects.create(label='label2')
         self.label3 = Label.objects.create(label='label3')
         self.label4 = Label.objects.create(label='label4')
+        self.label5 = Label.objects.create(label='label5')
         self.a.labels.set([self.label1])
         self.b.labels.set([self.label1, self.label2])
         self.c.labels.set([self.label1, self.label3])
-        self.d.labels.set([self.label1, self.label3, self.label4])
-        self.e.labels.set([self.label1])
+        self.d.labels.set([self.label1, self.label4])
+        self.e.labels.set([self.label1, self.label5])
         self.f.labels.set([self.label1, self.label2, self.label3])
 
         # Give Einstein's initials an author
@@ -76,8 +77,8 @@ class ArtifactsFromFormTest(TestCase):
 
     def test_empty_label(self):
         data = {
-            'labels': [8],
-            'keywords': '',
+            'labels': [800000000],
+            'search': '',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -87,7 +88,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_duplicate_matches_or(self):
         data = {
             'labels': [self.label1.id, self.label2.id, self.label3.id],
-            'keywords': '',
+            'search': '',
             'is_or': True
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -97,7 +98,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_some_partial_matches_and(self):
         data = {
             'labels': [self.label1.id, self.label3.id],
-            'keywords': '',
+            'search': '',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -107,7 +108,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_keywords_title(self):
         data = {
             'labels': [],
-            'keywords': 'cool',
+            'search': 'cool',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -117,7 +118,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_keywords_author(self):
         data = {
             'labels': [],
-            'keywords': 'Albert Einstein',
+            'search': 'Albert Einstein',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -127,7 +128,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_keywords_desc(self):
         data = {
             'labels': [],
-            'keywords': 'Apple',
+            'search': 'Apple',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
@@ -137,7 +138,7 @@ class ArtifactsFromFormTest(TestCase):
     def test_keywords_short_desc_no_isor(self):
         data = {
             'labels': [],
-            'keywords': 'voWel',
+            'search': 'voWel',
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
         goal = sorted_list_ids([self.a, self.e])
@@ -145,8 +146,8 @@ class ArtifactsFromFormTest(TestCase):
 
     def test_keywords_and_label(self):
         data = {
-            'labels': [self.label4.id],
-            'keywords': 'vowel',
+            'labels': [self.label5.id],
+            'search': 'vowel',
             'is_or': False
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
