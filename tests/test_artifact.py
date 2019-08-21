@@ -8,6 +8,16 @@ from ..__init__ import DEV as dev
 from ..models import Artifact, Label
 
 # Create your tests here.
+class ArtifactStringTest(unittest.TestCase):
+    def test_to_string(self):
+        now = datetime.now()
+        self.a = Artifact.objects.create(
+                    title='Test Case Artifact a',
+                    created_at=now,
+                    updated_at=now,
+        )
+        self.assertEqual(str(self.a), self.a.title)
+
 class ArtifactImageFilenameTest(unittest.TestCase):
     def setUp(self):
         now = datetime.now()
@@ -88,16 +98,10 @@ class ArtifactRelatedPapersTest(unittest.TestCase):
         self.assertEqual(len(related),0)
 
 
-@mock.patch('sharing.models.get_zenodo_file_link')
-@mock.patch('sharing.models.get_rec_id')
 class ArtifactJupyterHubLinkTest(unittest.TestCase):
     def setUp(self):
         self.the_id = '1234'
         self.the_link = 'file_link'
-        if dev:
-            self.hub = "http://localhost:8000"
-        else:
-            self.hub = "https://jupyter.chameleoncloud.org"
         now = datetime.now()
         self.a = Artifact.objects.create(
                     title='Test Case Artifact',
@@ -105,7 +109,12 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
                     created_at=now,
                     updated_at=now,
         )
-    def test_has_both(self, mock_id, mock_link):
+
+    @mock.patch('sharing.models.dev',False)
+    @mock.patch('sharing.models.get_zenodo_file_link')
+    @mock.patch('sharing.models.get_rec_id')
+    def test_has_both_not_dev(self, mock_id, mock_link):
+        self.hub = "https://jupyter.chameleoncloud.org"
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         self.a.doi='10.1112/zenodo.22222'
@@ -114,29 +123,11 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
         self.assertEqual(jhl, self.hub+("/hub/import?source=git&src_path="
                                         "account/repo.git"))
 
-    def test_just_git(self, mock_id, mock_link):
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
-        self.a.doi='10.1112/zenodo.22222'
-
-class ArtifactJupyterHubLinkTest(unittest.TestCase):
-    def setUp(self):
-        self.the_id = '1234'
-        self.the_link = 'file_link'
-        if dev:
-            self.hub = "http://localhost:8000"
-        else:
-            self.hub = "https://jupyter.chameleoncloud.org"
-        now = datetime.now()
-        self.a = Artifact.objects.create(
-                    title='Test Case Artifact',
-                    image='place/image.png',
-                    created_at=now,
-                    updated_at=now,
-        )
+    @mock.patch('sharing.models.dev',True)
     @mock.patch('sharing.models.get_zenodo_file_link')
     @mock.patch('sharing.models.get_rec_id')
     def test_has_both(self, mock_id, mock_link):
+        self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         self.a.doi='10.1112/zenodo.22222'
@@ -145,9 +136,11 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
         self.assertEqual(jhl, self.hub+("/hub/import?source=git&src_path="
                                         "account/repo.git"))
 
+    @mock.patch('sharing.models.dev',True)
     @mock.patch('sharing.models.get_zenodo_file_link')
     @mock.patch('sharing.models.get_rec_id')
     def test_just_git(self, mock_id, mock_link):
+        self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         self.a.doi='10.1112/zenodo.22222'
@@ -156,9 +149,11 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
         self.assertEqual(jhl, self.hub+("/hub/import?source=git&src_path="
                                         "account/repo.git"))
 
+    @mock.patch('sharing.models.dev',True)
     @mock.patch('sharing.models.get_zenodo_file_link')
     @mock.patch('sharing.models.get_rec_id')
     def test_just_zenodo(self, mock_id, mock_link):
+        self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         self.a.doi='10.1112/zenodo.22222'
@@ -166,9 +161,11 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
         self.assertEqual(jhl, self.hub+("/hub/import?source=zenodo&src_path="
                                         "file_link"))
 
+    @mock.patch('sharing.models.dev',True)
     @mock.patch('sharing.models.get_zenodo_file_link')
     @mock.patch('sharing.models.get_rec_id')
     def test_none(self, mock_id, mock_link):
+        self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         with self.assertRaises(Exception):
@@ -177,11 +174,6 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
 
 class ArtifactZenodoLinkTest(unittest.TestCase):
     def setUp(self):
-        if dev:
-            self.base = "https://sandbox.zenodo.org/record/"
-        else:
-            self.base = "https://zenodo.org/record/"
-
         now = datetime.now()
         self.a = Artifact.objects.create(
                     title='Test Case Artifact',
@@ -191,17 +183,27 @@ class ArtifactZenodoLinkTest(unittest.TestCase):
                     doi='10.1112/zenodo.22222',
                     git_repo='account/repo'
         )
+    @mock.patch('sharing.models.dev', True)
     def test_existing_perm_id(self):
+        base = "https://sandbox.zenodo.org/record/"
         self.a.permanent_id = "22221" 
         link = self.a.zenodo_link()
-        self.assertEqual(self.base+self.a.permanent_id, link)
-        
+        self.assertEqual(base+self.a.permanent_id, link)
+
+    @mock.patch('sharing.models.dev', True)
     @mock.patch('sharing.models.get_permanent_id')
     def test_no_perm_id(self, mock_perm_id):
+        base = "https://sandbox.zenodo.org/record/"
         mock_perm_id.return_value = "12345"
         link = self.a.zenodo_link()
-        self.assertEqual(self.base+"12345", link)
+        self.assertEqual(base+"12345", link)
 
+    @mock.patch('sharing.models.dev', False)
+    def test_non_dev(self):
+        base = "https://zenodo.org/record/"
+        self.a.permanent_id = "22221" 
+        link = self.a.zenodo_link()
+        self.assertEqual(base+self.a.permanent_id, link)
 
 class ArtifactValidateZenodoDoiTest(unittest.TestCase):
     def test_good_doi(self):

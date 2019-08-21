@@ -1,6 +1,7 @@
 import json
 import re
 from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 
 from .__init__ import DEV as dev
 
@@ -89,9 +90,12 @@ def get_permanent_id(doi):
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
     )
-    resp = urlopen(req)
-    record = json.loads(resp.read().decode("utf-8"))
-    permanent_id = record.get('conceptrecid')
-    if not permanent_id:
-        raise Exception("No concept record id in response")
-    return permanent_id
+    try:
+        resp = urlopen(req)
+    except HTTPError as e:
+        raise Exception("Got a 404 response - if the API hasn't changed, "
+                        "the id entered is invalid")
+    else:
+        record = json.loads(resp.read().decode("utf-8"))
+        permanent_id = record.get('conceptrecid')
+        return permanent_id

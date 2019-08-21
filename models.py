@@ -24,12 +24,12 @@ class Author(models.Model):
 
     # Print the author's full name when printing
     def __str__(self):
-        return self.title+" "+self.first_name+" "+self.last_name
+        return self.full_name
 
     # Save the full name along with all the pieces for search purposes
-    def save(self):
+    def save(self, *args, **kwargs):
         self.full_name = self.title+" "+self.first_name+" "+self.last_name
-        super(Author, self).save()
+        super(Author, self).save(*args, **kwargs)
 
 
 class LabelField(models.CharField):

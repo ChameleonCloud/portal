@@ -56,7 +56,7 @@ class GetPermanentIdTest(unittest.TestCase):
             self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
 
 @mock.patch('sharing.utils.dev', True)
-class GetPermanentIdTest_Dev(unittest.TestCase):
+class GetPermanentId_DevTest(unittest.TestCase):
     def setUp(self):
         self.old_version_id = '359090'
         self.old_version_perm = '359089' 
@@ -65,14 +65,19 @@ class GetPermanentIdTest_Dev(unittest.TestCase):
 
     @mock.patch('sharing.utils.get_rec_id')
     def test_get_permanent_id_old_version_dev(self, mock_id): 
-            mock_id.return_value = self.old_version_id
-            self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
+        mock_id.return_value = self.old_version_id
+        self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
 
     @mock.patch('sharing.utils.get_rec_id')
     def test_get_permanent_id_current_version_dev(self, mock_id): 
-            mock_id.return_value = self.only_version_id
-            self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
+        mock_id.return_value = self.only_version_id
+        self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
 
+    @mock.patch('sharing.utils.get_rec_id')
+    def test_bad_id_dev(self, mock_id): 
+        mock_id.return_value = "notanid"
+        with self.assertRaises(Exception):
+            get_permanent_id("doi")
 
 class GetRecIdTest(unittest.TestCase):
     def test_good_doi(self):
