@@ -14,10 +14,32 @@ from .__init__ import DEV as dev
 
 
 def artifacts_from_form(data):
-    chosen_labels = data['labels']
-    keywords = data['search']
+    """Return a filtered artifact list from search form data
+    
+    Parameters
+    ----------
+    data : dict
+        Expected to be of the form:
+        {
+            'labels': list of ints,
+            'search': string,
+            'is_or': bool,
+        }
 
+    Returns
+    -------
+    list of Artifacts
+        Filtered based on search parameters
+    """
+    
+    chosen_labels = data.get('labels', [])
+    keywords = data.get('search', '')
+    is_or = data.get('is_or', False)
+
+    # Start with the full list of artifacts
     filtered = Artifact.objects.all()
+
+    # Filter by those containing the specified keywords
     if keywords:
         filtered = filtered.filter(
             Q(title__contains=keywords) |
@@ -25,13 +47,21 @@ def artifacts_from_form(data):
             Q(short_description__contains=keywords) |
             Q(authors__full_name__contains=keywords)
         )
+
+    # Then, look at the labels
     if chosen_labels == []:
+        # If there are no specified lables, include them all
         filtered = filtered
-    elif data['is_or']:
+    elif is_or:
+        # If you chose 'or', include all artifacts
+        # with any of the specified labels
         filtered = filtered.filter(labels__in=chosen_labels)
     else:
+        # Otherwise, only include artifacts with all chosen labels
         for label in chosen_labels:
             filtered = filtered.filter(labels__exact=label)
+
+    # Don't list any artifact twice in the returned list
     return filtered.distinct()
 
 

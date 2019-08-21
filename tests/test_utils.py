@@ -1,11 +1,11 @@
-import unittest
+from django.test import TestCase
 from unittest import mock
 
 from ..__init__ import DEV as dev
 from ..utils import get_rec_id, get_permanent_id, get_zenodo_file_link
 
 @mock.patch('sharing.utils.dev', False)
-class GetZenodoFileLinkTest(unittest.TestCase):
+class GetZenodoFileLinkTest(TestCase):
     def setUp(self):
         self.old_rec_id = '1205167'
         self.old_file_link = ('record/3267438/files/go-release-archive.tgz')
@@ -22,7 +22,7 @@ class GetZenodoFileLinkTest(unittest.TestCase):
 
 
 @mock.patch('sharing.utils.dev', True)
-class GetZenodoFileLinkTest_Dev(unittest.TestCase):
+class GetZenodoFileLinkTest_Dev(TestCase):
     def setUp(self):
         self.old_rec_id = '359090'
         self.old_file_link = ('record/359091/files/new-title.zip')
@@ -38,7 +38,7 @@ class GetZenodoFileLinkTest_Dev(unittest.TestCase):
 
 
 @mock.patch('sharing.utils.dev', False)
-class GetPermanentIdTest(unittest.TestCase):
+class GetPermanentIdTest(TestCase):
     def setUp(self):
         self.old_version_id = '1205167'
         self.old_version_perm = '1205166' 
@@ -56,7 +56,7 @@ class GetPermanentIdTest(unittest.TestCase):
             self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
 
 @mock.patch('sharing.utils.dev', True)
-class GetPermanentId_DevTest(unittest.TestCase):
+class GetPermanentId_DevTest(TestCase):
     def setUp(self):
         self.old_version_id = '359090'
         self.old_version_perm = '359089' 
@@ -79,7 +79,7 @@ class GetPermanentId_DevTest(unittest.TestCase):
         with self.assertRaises(Exception):
             get_permanent_id("doi")
 
-class GetRecIdTest(unittest.TestCase):
+class GetRecIdTest(TestCase):
     def test_good_doi(self):
         dep_id = get_rec_id('10.5281/zenodo.3357455')
         self.assertEqual(dep_id, '3357455')

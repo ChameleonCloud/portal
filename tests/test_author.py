@@ -1,8 +1,8 @@
-import unittest
+from django.test import TestCase
 
 from ..models import Author
 
-class AuthorStringTest(unittest.TestCase):
+class AuthorStringTest(TestCase):
     def test_to_string(self):
         author = Author.objects.create(
             title='Mr.',
@@ -12,7 +12,7 @@ class AuthorStringTest(unittest.TestCase):
         author.full_name = "That man"
         self.assertEqual(str(author), "That man")
 
-class AuthorFullNameTest(unittest.TestCase):
+class AuthorFullNameTest(TestCase):
     def test_save(self):
         author = Author.objects.create(
             title='Mr.',

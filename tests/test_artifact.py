@@ -1,5 +1,5 @@
 from datetime import datetime
-import unittest
+from django.test import TestCase
 from unittest import mock
 
 from django.core.exceptions import ValidationError
@@ -8,7 +8,7 @@ from ..__init__ import DEV as dev
 from ..models import Artifact, Label
 
 # Create your tests here.
-class ArtifactStringTest(unittest.TestCase):
+class ArtifactStringTest(TestCase):
     def test_to_string(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
@@ -18,7 +18,7 @@ class ArtifactStringTest(unittest.TestCase):
         )
         self.assertEqual(str(self.a), self.a.title)
 
-class ArtifactImageFilenameTest(unittest.TestCase):
+class ArtifactImageFilenameTest(TestCase):
     def setUp(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
@@ -38,7 +38,7 @@ class ArtifactImageFilenameTest(unittest.TestCase):
         self.assertEqual(self.a.image_filename(), None)
 
 
-class ArtifactRelatedPapersTest(unittest.TestCase):
+class ArtifactRelatedPapersTest(TestCase):
     def setUp(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
@@ -98,7 +98,7 @@ class ArtifactRelatedPapersTest(unittest.TestCase):
         self.assertEqual(len(related),0)
 
 
-class ArtifactJupyterHubLinkTest(unittest.TestCase):
+class ArtifactJupyterHubLinkTest(TestCase):
     def setUp(self):
         self.the_id = '1234'
         self.the_link = 'file_link'
@@ -172,7 +172,7 @@ class ArtifactJupyterHubLinkTest(unittest.TestCase):
             jhl = self.a.jupyterhub_link()
 
 
-class ArtifactZenodoLinkTest(unittest.TestCase):
+class ArtifactZenodoLinkTest(TestCase):
     def setUp(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
@@ -205,7 +205,7 @@ class ArtifactZenodoLinkTest(unittest.TestCase):
         link = self.a.zenodo_link()
         self.assertEqual(base+self.a.permanent_id, link)
 
-class ArtifactValidateZenodoDoiTest(unittest.TestCase):
+class ArtifactValidateZenodoDoiTest(TestCase):
     def test_good_doi(self):
         doi='10.1112/zenodo.22222'
         Artifact.validate_zenodo_doi(doi)
@@ -236,7 +236,7 @@ class ArtifactValidateZenodoDoiTest(unittest.TestCase):
             Artifact.validate_zenodo_doi(doi)
 
 
-class Validate_Zenodo_Doi_Test(unittest.TestCase):
+class Validate_Zenodo_Doi_Test(TestCase):
     def test_good_repo(self):
         Artifact.validate_git_repo("something/something-else")
 
