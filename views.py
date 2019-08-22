@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.views import generic
 
-from .forms import LabelForm, UploadForm
+from .forms import LabelForm
 from .__init__ import DEV as dev
 from .models import Artifact, Author, Label
 from .utils import get_rec_id
@@ -194,59 +194,104 @@ def upload_artifact(doi):
 
 
 def index(request):
+    """Load main portal page with search parameters (if relevant)
+
+    Parameters
+    ----------
+    request : Request
+        Get request, possibly with form data
+        If form data is present, it should come in the format:
+        {
+            'search': string,
+            'labels': list of numeric strings,
+            'is_or': boolean
+        }
+
+    Returns
+    -------
+    HTTPResponse
+        Index template, rendered with artifacts matching search specifications    
+    """
+
+    # Use the index template
     template = loader.get_template('sharing/index.html')
+
+    # Initialize the context to return
     context = {}
 
+    # If a 'post' request was made, there are search parameters
     if request.method == 'POST':
         form = LabelForm(request.POST)
+
+        # If the form is valid, parse it
         if form.is_valid():
-            chosen_labels = form.cleaned_data['labels']
-            context['form'] = form
-            context['submitted'] = chosen_labels
-            context['searched'] = form.cleaned_data['search']
             try:
+                # Pass in form so that the template can show search parameters
+                context['form'] = form
+
+                # Pass in the filtered list of artifacts to display
                 context['artifacts'] = artifacts_from_form(form.cleaned_data)
-                context['search_failed'] = False
-            except Exception:
-                context['artifacts'] = []
+            except Exception as e:
+                # If something goes wrong, fail gracefully
                 context['search_failed'] = True
+            else:
+                # Otherwise, if the list is empty the template will
+                # indicate that there were no matching results
+                context['search_failed'] = False
+
+            # Render the index in the response
             return HttpResponse(template.render(context, request))
+
+    # If no post request was made, there were no search parameters
     else:
+        # Pass in an empty form to show that there are no search parameters
         form = LabelForm()
         context['form'] = form
-        context['submitted'] = 'no'
+
+        # Display all the artifacts when rendering the index page
         context['artifacts'] = Artifact.objects.all()
         return HttpResponse(template.render(context, request))
 
 
 def upload(request):
-    context = {}
+    """Handle to upload an item from Zenodo to the portal
+
+    Parameters
+    ----------
+    request: Request
+        request, containing a 'doi' query parameter
+
+    Returns
+    -------
+        Redirect to the portal index
+    """
+    # If there's no doi, redirect with the error that none was provided
     doi = request.GET.get('doi')
     if doi is None:
-        context['error'] = True
-        context['error_message'] = "No doi was provided"
+        error_message = ("No doi was provided. To upload to the portal, include"
+                         " a Zenodo DOI as a query argument")
+        messages.add_message(request, messages.INFO, error_message)
         return HttpResponseRedirect('/portal/')
-    print("doi: "+doi)
 
+    # Otherwise, briefly load the upload template
     template = loader.get_template('sharing/upload.html')
 
-    form = UploadForm(request.POST)
-    if form.is_valid():
-        pk = upload_artifact(form.cleaned_data, doi)
-        if pk is None:
-            error_message = "There is no Zenodo publication with that DOI"
-            messages.add_message(request, messages.INFO, error_message)
-            context['error'] = True
-            context['error_message'] = error_message
-            return HttpResponseRedirect('/portal/')
-        else:
-            context['form'] = form
-            return HttpResponseRedirect('/portal/'+str(pk))
-    else:
-        return HttpResponse(template.render(context, request))
+    # Try to upload the deposition with its doi
+    pk = upload_artifact(doi)
 
+    # If no pk was returned, something went wrong
+    if pk is None:
+        # Return a message to be displayed on the index page
+        error_message = "There is no Zenodo publication with that DOI"
+        messages.add_message(request, messages.INFO, error_message)
+        return HttpResponseRedirect('/portal/')
+    # If a pk was returned, the upload was successful
+    else:
+        # Redirect to the detail page for the newly added artifact
+        return HttpResponseRedirect('/portal/'+str(pk))
 
 class DetailView(generic.DetailView):
+    """Class that returns a basic detailed view of an artifact"""
     model = Artifact
     template_name = 'sharing/detail.html'
     def get_queryset(self):

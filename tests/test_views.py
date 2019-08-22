@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest import mock
 
 from django.test import TestCase
+from django.urls import reverse
 
 from ..models import Artifact, Author, Label
 from ..views import artifacts_from_form, make_author, upload_artifact
@@ -14,6 +15,130 @@ def sorted_list_ids(alist):
     new_list = list(map(lambda x: x.id, list(alist)))
     new_list.sort()
     return new_list
+
+
+class UploadViewTest(TestCase):
+    def test_no_doi_get(self):
+        # If there's no doi gracefully redirect with error
+        error_message = ("No doi was provided. To upload to the portal, include"
+                         " a Zenodo DOI as a query argument")
+        url = reverse('upload')
+        response = self.client.get(url, follow=True)
+        message = list(response.context.get('messages'))[0]
+        self.assertRedirects(response, reverse('index'), status_code=302,
+                             target_status_code=200, msg_prefix='',
+                             fetch_redirect_response=True)
+        self.assertIn(error_message, message.message)
+
+    @mock.patch('sharing.views.upload_artifact')
+    def test_no_deposition_with_doi(self, mock_upload):
+        # If there's no relevant deposition, gracefully redirect with error
+        error_message = "There is no Zenodo publication with that DOI"
+        mock_upload.return_value = None
+        url = reverse('upload')
+        url += "?doi=a.d/o.i"
+        response = self.client.get(url, follow=True)
+        message = list(response.context.get('messages'))[0]
+        self.assertRedirects(response, reverse('index'), status_code=302,
+                             target_status_code=200, msg_prefix='',
+                             fetch_redirect_response=True)
+        self.assertIn(error_message, message.message)
+
+    @mock.patch('sharing.views.upload_artifact')
+    def test_success(self, mock_upload):
+        # A successful upload should cause a redirect to the detail page
+        now = datetime.now()
+        a = Artifact(
+            title='Test Title',
+            created_at=now,
+            updated_at=now,
+        )
+        a.save()
+        mock_upload.return_value = a.pk
+        url = reverse('upload')
+        url += "?doi=a.d/o.i"
+        response = self.client.get(url, follow=True)
+        redirect_url = reverse('detail', args=(a.pk,))
+        self.assertRedirects(response, redirect_url, status_code=302,
+                             target_status_code=200, msg_prefix='',
+                             fetch_redirect_response=True)
+
+
+class IndexViewTest(TestCase):
+    @mock.patch('sharing.views.artifacts_from_form')
+    def test_successful_search(self, mock_artifacts):
+        now = datetime.now()
+        a = Artifact(
+            title='Test Title',
+            created_at=now,
+            updated_at=now,
+        )
+        mock_artifacts.return_value = [a]
+        form_info = {
+            'search': 'thing',
+            'is_or': True,
+            'labels': [1]
+        }
+        url = reverse('index')
+        response = self.client.post(url, form_info)
+        returned_form_data = response.context['form'].cleaned_data
+        self.assertEqual(returned_form_data['search'], 'thing')
+        self.assertEqual(returned_form_data['is_or'], True)
+        self.assertEqual(returned_form_data['labels'], ['1'])
+        self.assertEqual(response.context['artifacts'], [a])
+        self.assertFalse(response.context['search_failed'])
+        self.assertTemplateUsed(response, "sharing/index.html")
+
+    @mock.patch('sharing.views.artifacts_from_form')
+    def test_empty_search(self, mock_artifacts):
+        mock_artifacts.return_value = []
+        form_info = {
+            'search': 'thing',
+            'is_or': True,
+            'labels': [1]
+        }
+        url = reverse('index')
+        response = self.client.post(url, form_info)
+        returned_form_data = response.context['form'].cleaned_data
+        self.assertEqual(returned_form_data['search'], 'thing')
+        self.assertEqual(returned_form_data['is_or'], True)
+        self.assertEqual(returned_form_data['labels'], ['1'])
+        self.assertEqual(response.context['artifacts'], [])
+        self.assertFalse(response.context['search_failed'])
+        self.assertTemplateUsed(response, "sharing/index.html")
+
+    @mock.patch('sharing.views.artifacts_from_form')
+    def test_problem_search(self, mock_art):
+        mock_art.side_effect = (lambda: 1/0);
+        form_info = {
+            'search': 'thing',
+            'is_or': True,
+            'labels': [1]
+        }
+        url = reverse('index')
+        response = self.client.post(url, form_info)
+        self.assertTrue(response.context['search_failed'])
+
+    @mock.patch('sharing.views.artifacts_from_form')
+    def test_no_search(self, mock_artifacts):
+        now = datetime.now()
+        a1 = Artifact(
+            title='Test Title 1',
+            created_at=now,
+            updated_at=now,
+        )
+        a2 = Artifact(
+            title='Test Title 2',
+            created_at=now,
+            updated_at=now,
+        )
+        mock_artifacts.return_value = [a1, a2]
+        url = reverse('index')
+        response = self.client.post(url)
+        self.assertEqual(response.context['form'].cleaned_data['search'],'')
+        self.assertEqual(response.context['artifacts'], [a1, a2])
+        self.assertTemplateUsed(response, "sharing/index.html")
+
 
 class UploadArtifactTest(TestCase):
     # For the purpose of these tests, put all names
