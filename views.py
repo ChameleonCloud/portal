@@ -8,9 +8,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.views import generic
 
-from .models import Artifact, Author, Label
 from .forms import LabelForm, UploadForm
 from .__init__ import DEV as dev
+from .models import Artifact, Author, Label
+from .utils import get_rec_id
 
 
 def artifacts_from_form(data):
@@ -78,18 +79,22 @@ def make_author(name_string):
     int
         Primary key (id) of created author
     """
-
-    # Split name into parts by spaces
-    name = name_string.split(' ')
-
     # Initalize title and last name to be empty
     title = ''
     lname = ''
 
+    # Split name into parts by spaces and commas
+    name = name_string.split(' ')
     length = len(name)
+    comma_split = name_string.split(',')
+
+    # If there's a comma, assume the form lname, fname
+    if len(comma_split) == 2:
+        lname = comma_split[0].strip()
+        fname = comma_split[1].strip()
     # If there are more than three parts, we don't know how to parse
     # So, put the whole name as the first name
-    if length > 3:
+    elif length > 3:
         fname = name_string
 
     # If there are three parts, look at the first
@@ -124,44 +129,66 @@ def make_author(name_string):
     return author.pk
 
 
-def upload_artifact(data, doi):
-    # TODO: use helper
-    zparts = doi.split('.')
-    record_id = zparts[len(zparts)-1]
+def upload_artifact(doi):
+    """ Add item to the portal based on its Zenodo deposition
 
+    Parameters
+    ----------
+    doi : string
+        DOI of deposition to upload
+
+    Returns
+    -------
+    int or None
+        pk of successful upload on success, None on failure
+    """
+    
+    # Extract the record id
+    record_id = get_rec_id(doi)
+
+    # Use the appropriate api base
     if dev:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"
+
+    # Format a request for information on the deposition
     req = Request(
         "{}{}".format(api, record_id),
         headers={"accept": "application/json"},
     )
+
+    # If the request fails, return None 
     try:
         resp = urlopen(req)
     except Exception as e:
-        return
+        return None
+
+    # Otherwise, process information about the deposition
     record = json.loads(resp.read().decode("utf-8"))
 
+    # Get title and description from deposition to create Artifact
+    # (All zenodo depositions must have title and description fields)
     item = Artifact(
         title=record['metadata']['title'],
         description=record['metadata']['description'],
-        # short_description = data['short_description'],
-        # image = data['image'],
-        # git_repo = data['git_repo'],
         doi=doi,
         launchable=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )
     item.save()
-    # item.associated_artifacts.set(data['associated_artifacts'])
-    # item.labels.set(data['labels'])
+
+    # Go through each author, make them into Authors
     author_list = []
     for author in record['metadata']['creators']:
         name = author['name']
         author_list.append(make_author(name))
+
+    # Attach the list of authors to the Artifact
     item.authors.set(author_list)
+
+    # Save Artifact, returns its pk (id)
     item.save()
     return item.pk
 

@@ -1,10 +1,10 @@
 from datetime import datetime
-#import unittest
+from unittest import mock
 
 from django.test import TestCase
 
 from ..models import Artifact, Author, Label
-from ..views import artifacts_from_form, make_author
+from ..views import artifacts_from_form, make_author, upload_artifact
 
 
 def sorted_list_ids(alist):
@@ -15,6 +15,62 @@ def sorted_list_ids(alist):
     new_list.sort()
     return new_list
 
+class UploadArtifactTest(TestCase):
+    # For the purpose of these tests, put all names
+    # into first_name for each author
+    def make_simple_author(name_string):
+        a = Author(title='', first_name=name_string, last_name='')
+        a.save()
+        return a.pk
+
+    @mock.patch('sharing.views.dev', True)
+    @mock.patch('sharing.views.make_author', make_simple_author)
+    @mock.patch('sharing.views.get_rec_id')
+    def test_dev_success(self, mock_id):
+        mock_id.return_value = "361518"
+        pk = upload_artifact("doi")
+        artifact = Artifact.objects.get(pk=pk)
+        self.assertEqual(artifact.title, "Sample Title")
+        self.assertEqual(artifact.description, "This is a description")
+        self.assertEqual(len(list(artifact.authors.all())), 1)
+        self.assertEqual(artifact.authors.all()[0].first_name, "Some Name")
+
+    @mock.patch('sharing.views.dev', False)
+    @mock.patch('sharing.views.make_author', make_simple_author)
+    @mock.patch('sharing.views.get_rec_id')
+    def test_non_dev_success(self, mock_id):
+        mock_id.return_value = "3357455"
+        pk = upload_artifact("doi")
+        artifact = Artifact.objects.get(pk=pk)
+        self.assertEqual(artifact.title,  ("Modelling and Simulation of Water"
+                                           " Networks based on Loop Method"))
+        self.assertIn("Simulator algorithm for water networks", 
+                      artifact.description)
+        self.assertEqual(len(list(artifact.authors.all())), 1)
+        self.assertEqual(artifact.authors.all()[0].first_name, "Arsene, Corneliu")
+    
+    @mock.patch('sharing.views.dev', True)
+    @mock.patch('sharing.views.make_author', make_simple_author)
+    @mock.patch('sharing.views.get_rec_id')
+    def test_failed_request(self, mock_id):
+        # Should fail gracefully when given a bad id
+        mock_id.return_value = "notadoi"
+        pk = upload_artifact("doi")
+        self.assertIsNone(pk)
+
+    @mock.patch('sharing.views.dev', True)
+    @mock.patch('sharing.views.make_author', make_simple_author)
+    @mock.patch('sharing.views.get_rec_id')
+    def test_dev_multiple_authors(self, mock_id):
+        mock_id.return_value = "361531"
+        pk = upload_artifact("doi")
+        artifact = Artifact.objects.get(pk=pk)
+        self.assertEqual(artifact.title, "A title")
+        self.assertEqual(artifact.description, "A thing")
+        self.assertEqual(len(artifact.authors.all()), 2)
+        self.assertEqual(artifact.authors.all()[0].first_name, "A person")
+        self.assertEqual(artifact.authors.all()[1].first_name, "Second person")
+
 
 class MakeAuthorTest(TestCase):
     def test_title_fname_lname(self):
@@ -24,6 +80,22 @@ class MakeAuthorTest(TestCase):
         self.assertEqual(a.title, "Dr.") 
         self.assertEqual(a.first_name, "Albert") 
         self.assertEqual(a.last_name, "Einstein") 
+
+    def test_simple_with_comma(self):
+        author_str = "Skywalker, Luke"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '') 
+        self.assertEqual(a.first_name, "Luke") 
+        self.assertEqual(a.last_name, "Skywalker") 
+
+    def test_multiple_with_comma(self):
+        author_str = "Potter, Harry James"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '') 
+        self.assertEqual(a.first_name, "Harry James") 
+        self.assertEqual(a.last_name, "Potter") 
 
     def test_five_names(self):
         author_str = "Adam Albert John Jacob Samuels"
