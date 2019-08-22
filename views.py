@@ -31,7 +31,7 @@ def artifacts_from_form(data):
     list of Artifacts
         Filtered based on search parameters
     """
-    
+
     chosen_labels = data.get('labels', [])
     keywords = data.get('search', '')
     is_or = data.get('is_or', False)
@@ -66,30 +66,61 @@ def artifacts_from_form(data):
 
 
 def make_author(name_string):
+    """Return a filtered artifact list from search form data
+    
+    Parameters
+    ----------
+    name_string : string
+        Name to be parsed
+
+    Returns
+    -------
+    int
+        Primary key (id) of created author
+    """
+
+    # Split name into parts by spaces
     name = name_string.split(' ')
-    length = len(name)
+
+    # Initalize title and last name to be empty
     title = ''
     lname = ''
+
+    length = len(name)
+    # If there are more than three parts, we don't know how to parse
+    # So, put the whole name as the first name
     if length > 3:
         fname = name_string
+
+    # If there are three parts, look at the first
     elif length == 3:
+        # If part 1 has a '.' it's probably a title (Mr., Dr., etc)
         if '.' in name[0]:
             title = name[0]
             fname = name[1]
+        # If not, group it with the first name
         else:
             fname = name[0]+' '+name[1]
+        # The last part is the last name
         lname = name[2]
+    # If there are two parts, parse as firstname lastname
     elif length == 2:
         fname = name[0]
         lname = name[1]
+    # If there's only one part, call it the first name
     else:
         fname = name[0]
+
+    # Create an 'Author' based on the parsed elements (some may be blank)
     author = Author(
         title=title,
         first_name=fname,
         last_name=lname
     )
+    # Save the author
     author.save()
+
+    # Return the author's id
     return author.pk
 
 

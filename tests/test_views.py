@@ -4,13 +4,59 @@ from datetime import datetime
 from django.test import TestCase
 
 from ..models import Artifact, Author, Label
-from ..views import artifacts_from_form
+from ..views import artifacts_from_form, make_author
 
 
 def sorted_list_ids(alist):
+    """
+    Helper function to turn a list of items into a sorted list of ids
+    """
     new_list = list(map(lambda x: x.id, list(alist)))
     new_list.sort()
     return new_list
+
+
+class MakeAuthorTest(TestCase):
+    def test_title_fname_lname(self):
+        author_str = "Dr. Albert Einstein"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, "Dr.") 
+        self.assertEqual(a.first_name, "Albert") 
+        self.assertEqual(a.last_name, "Einstein") 
+
+    def test_five_names(self):
+        author_str = "Adam Albert John Jacob Samuels"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, author_str) 
+        self.assertEqual(a.last_name, '')
+
+    def test_fname_lname(self):
+        author_str = "Fred Astaire"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, "Fred") 
+        self.assertEqual(a.last_name, "Astaire") 
+
+    def test_three_names_no_title(self):
+        author_str = "Sir Isaac Newton"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, "Sir Isaac") 
+        self.assertEqual(a.last_name, "Newton") 
+
+    def test_one_name(self):
+        author_str = "Sting"
+        author_pk = make_author(author_str)    
+        a = Author.objects.get(pk=author_pk)
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, "Sting") 
+        self.assertEqual(a.last_name, '')
+
 
 class ArtifactsFromFormTest(TestCase):
     def setUp(self):
