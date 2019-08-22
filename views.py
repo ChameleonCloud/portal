@@ -16,7 +16,7 @@ from .utils import get_rec_id
 
 def artifacts_from_form(data):
     """Return a filtered artifact list from search form data
-    
+
     Parameters
     ----------
     data : dict
@@ -68,7 +68,7 @@ def artifacts_from_form(data):
 
 def make_author(name_string):
     """Return a filtered artifact list from search form data
-    
+
     Parameters
     ----------
     name_string : string
@@ -142,7 +142,6 @@ def upload_artifact(doi):
     int or None
         pk of successful upload on success, None on failure
     """
-    
     # Extract the record id
     record_id = get_rec_id(doi)
 
@@ -158,7 +157,7 @@ def upload_artifact(doi):
         headers={"accept": "application/json"},
     )
 
-    # If the request fails, return None 
+    # If the request fails, return None
     try:
         resp = urlopen(req)
     except Exception as e:
@@ -210,7 +209,7 @@ def index(request):
     Returns
     -------
     HTTPResponse
-        Index template, rendered with artifacts matching search specifications    
+        Index template, rendered with artifacts matching search specifications
     """
 
     # Use the index template
@@ -268,8 +267,8 @@ def upload(request):
     # If there's no doi, redirect with the error that none was provided
     doi = request.GET.get('doi')
     if doi is None:
-        error_message = ("No doi was provided. To upload to the portal, include"
-                         " a Zenodo DOI as a query argument")
+        error_message = ("No doi was provided. To upload to the portal, "
+                         "include a Zenodo DOI as a query argument")
         messages.add_message(request, messages.INFO, error_message)
         return HttpResponseRedirect('/portal/')
 
@@ -290,9 +289,11 @@ def upload(request):
         # Redirect to the detail page for the newly added artifact
         return HttpResponseRedirect('/portal/'+str(pk))
 
+
 class DetailView(generic.DetailView):
     """Class that returns a basic detailed view of an artifact"""
     model = Artifact
     template_name = 'sharing/detail.html'
+
     def get_queryset(self):
         return Artifact.objects.filter()

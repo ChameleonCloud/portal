@@ -188,7 +188,7 @@ class Artifact(models.Model):
             src_args = "source=zenodo&src_path="+zen_path
         else:
             raise Exception("Non-launchable artifact has no JupyterHub link")
-            
+
         # Add query parameters before returning
         return base_url + src_args
 
@@ -227,13 +227,12 @@ class Artifact(models.Model):
         Returns
         -------
         string or None
-            image file name if it exists 
+            image file name if it exists
 
         Notes
         -----
         - Uses self.image
         """
- 
         if self.image:
             return self.image.url.split('/')[-1]
         else:

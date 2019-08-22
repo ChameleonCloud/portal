@@ -1,9 +1,11 @@
 import json
 import re
-from urllib.request import urlopen, Request
+
 from urllib.error import HTTPError
+from urllib.request import urlopen, Request
 
 from .__init__ import DEV as dev
+
 
 def get_rec_id(doi):
     """Parses Zenodo DOI to isolate record id
@@ -65,7 +67,7 @@ def get_zenodo_file_link(record_id):
     record = json.loads(resp.read().decode("utf-8"))
 
     # If there's a newer version, use that
-    latest = record.get('links',{}).get('latest')
+    latest = record.get('links', {}).get('latest')
     if (latest):
         req = Request(
             "{}".format(latest),
@@ -76,7 +78,8 @@ def get_zenodo_file_link(record_id):
         record_id = get_rec_id(record['doi'])
 
     # Return the assembled string
-    return "record/"+ record_id +"/files/" + record['files'][0]['filename']
+    return "record/" + record_id + "/files/" + record['files'][0]['filename']
+
 
 def get_permanent_id(doi):
     record_id = get_rec_id(doi)

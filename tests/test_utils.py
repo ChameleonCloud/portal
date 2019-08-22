@@ -4,6 +4,7 @@ from unittest import mock
 from ..__init__ import DEV as dev
 from ..utils import get_rec_id, get_permanent_id, get_zenodo_file_link
 
+
 @mock.patch('sharing.utils.dev', False)
 class GetZenodoFileLinkTest(TestCase):
     def setUp(self):
@@ -28,6 +29,7 @@ class GetZenodoFileLinkTest_Dev(TestCase):
         self.old_file_link = ('record/359091/files/new-title.zip')
         self.current_rec_id = '359165'
         self.current_file_link = ('record/359165/files/some-title.zip')
+
     def test_get_files_old_version_dev(self):
         link = get_zenodo_file_link(self.old_rec_id)
         self.assertEqual(link, self.old_file_link)
@@ -41,43 +43,45 @@ class GetZenodoFileLinkTest_Dev(TestCase):
 class GetPermanentIdTest(TestCase):
     def setUp(self):
         self.old_version_id = '1205167'
-        self.old_version_perm = '1205166' 
-        self.only_version_id = '3269114' 
+        self.old_version_perm = '1205166'
+        self.only_version_id = '3269114'
         self.only_version_perm = '3269113'
 
     @mock.patch('sharing.utils.get_rec_id')
-    def test_get_permanent_id_old_version(self, mock_id): 
-            mock_id.return_value = self.old_version_id
-            self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
+    def test_get_permanent_id_old_version(self, mock_id):
+        mock_id.return_value = self.old_version_id
+        self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
 
     @mock.patch('sharing.utils.get_rec_id')
-    def test_get_permanent_id_current_version(self, mock_id): 
-            mock_id.return_value = self.only_version_id
-            self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
+    def test_get_permanent_id_current_version(self, mock_id):
+        mock_id.return_value = self.only_version_id
+        self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
+
 
 @mock.patch('sharing.utils.dev', True)
 class GetPermanentId_DevTest(TestCase):
     def setUp(self):
         self.old_version_id = '359090'
-        self.old_version_perm = '359089' 
+        self.old_version_perm = '359089'
         self.only_version_id = '359165'
         self.only_version_perm = '359164'
 
     @mock.patch('sharing.utils.get_rec_id')
-    def test_get_permanent_id_old_version_dev(self, mock_id): 
+    def test_get_permanent_id_old_version_dev(self, mock_id):
         mock_id.return_value = self.old_version_id
         self.assertEqual(self.old_version_perm, get_permanent_id("doi"))
 
     @mock.patch('sharing.utils.get_rec_id')
-    def test_get_permanent_id_current_version_dev(self, mock_id): 
+    def test_get_permanent_id_current_version_dev(self, mock_id):
         mock_id.return_value = self.only_version_id
         self.assertEqual(self.only_version_perm, get_permanent_id("doi"))
 
     @mock.patch('sharing.utils.get_rec_id')
-    def test_bad_id_dev(self, mock_id): 
+    def test_bad_id_dev(self, mock_id):
         mock_id.return_value = "notanid"
         with self.assertRaises(Exception):
             get_permanent_id("doi")
+
 
 class GetRecIdTest(TestCase):
     def test_good_doi(self):

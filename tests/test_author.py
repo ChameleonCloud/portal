@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from ..models import Author
 
+
 class AuthorStringTest(TestCase):
     def test_to_string(self):
         author = Author.objects.create(
@@ -11,6 +12,7 @@ class AuthorStringTest(TestCase):
         )
         author.full_name = "That man"
         self.assertEqual(str(author), "That man")
+
 
 class AuthorFullNameTest(TestCase):
     def test_save(self):

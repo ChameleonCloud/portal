@@ -20,8 +20,8 @@ def sorted_list_ids(alist):
 class UploadViewTest(TestCase):
     def test_no_doi_get(self):
         # If there's no doi gracefully redirect with error
-        error_message = ("No doi was provided. To upload to the portal, include"
-                         " a Zenodo DOI as a query argument")
+        error_message = ("No doi was provided. To upload to the portal,"
+                         " include a Zenodo DOI as a query argument")
         url = reverse('upload')
         response = self.client.get(url, follow=True)
         message = list(response.context.get('messages'))[0]
@@ -109,7 +109,7 @@ class IndexViewTest(TestCase):
 
     @mock.patch('sharing.views.artifacts_from_form')
     def test_problem_search(self, mock_art):
-        mock_art.side_effect = (lambda: 1/0);
+        mock_art.side_effect = (lambda: 1/0)
         form_info = {
             'search': 'thing',
             'is_or': True,
@@ -135,7 +135,7 @@ class IndexViewTest(TestCase):
         mock_artifacts.return_value = [a1, a2]
         url = reverse('index')
         response = self.client.post(url)
-        self.assertEqual(response.context['form'].cleaned_data['search'],'')
+        self.assertEqual(response.context['form'].cleaned_data['search'], '')
         self.assertEqual(response.context['artifacts'], [a1, a2])
         self.assertTemplateUsed(response, "sharing/index.html")
 
@@ -169,11 +169,12 @@ class UploadArtifactTest(TestCase):
         artifact = Artifact.objects.get(pk=pk)
         self.assertEqual(artifact.title,  ("Modelling and Simulation of Water"
                                            " Networks based on Loop Method"))
-        self.assertIn("Simulator algorithm for water networks", 
+        self.assertIn("Simulator algorithm for water networks",
                       artifact.description)
         self.assertEqual(len(list(artifact.authors.all())), 1)
-        self.assertEqual(artifact.authors.all()[0].first_name, "Arsene, Corneliu")
-    
+        self.assertEqual(artifact.authors.all()[0].first_name,
+                         "Arsene, Corneliu")
+
     @mock.patch('sharing.views.dev', True)
     @mock.patch('sharing.views.make_author', make_simple_author)
     @mock.patch('sharing.views.get_rec_id')
@@ -200,58 +201,58 @@ class UploadArtifactTest(TestCase):
 class MakeAuthorTest(TestCase):
     def test_title_fname_lname(self):
         author_str = "Dr. Albert Einstein"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
-        self.assertEqual(a.title, "Dr.") 
-        self.assertEqual(a.first_name, "Albert") 
-        self.assertEqual(a.last_name, "Einstein") 
+        self.assertEqual(a.title, "Dr.")
+        self.assertEqual(a.first_name, "Albert")
+        self.assertEqual(a.last_name, "Einstein")
 
     def test_simple_with_comma(self):
         author_str = "Skywalker, Luke"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
-        self.assertEqual(a.title, '') 
-        self.assertEqual(a.first_name, "Luke") 
-        self.assertEqual(a.last_name, "Skywalker") 
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, "Luke")
+        self.assertEqual(a.last_name, "Skywalker")
 
     def test_multiple_with_comma(self):
         author_str = "Potter, Harry James"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
-        self.assertEqual(a.title, '') 
-        self.assertEqual(a.first_name, "Harry James") 
-        self.assertEqual(a.last_name, "Potter") 
+        self.assertEqual(a.title, '')
+        self.assertEqual(a.first_name, "Harry James")
+        self.assertEqual(a.last_name, "Potter")
 
     def test_five_names(self):
         author_str = "Adam Albert John Jacob Samuels"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
         self.assertEqual(a.title, '')
-        self.assertEqual(a.first_name, author_str) 
+        self.assertEqual(a.first_name, author_str)
         self.assertEqual(a.last_name, '')
 
     def test_fname_lname(self):
         author_str = "Fred Astaire"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
         self.assertEqual(a.title, '')
-        self.assertEqual(a.first_name, "Fred") 
-        self.assertEqual(a.last_name, "Astaire") 
+        self.assertEqual(a.first_name, "Fred")
+        self.assertEqual(a.last_name, "Astaire")
 
     def test_three_names_no_title(self):
         author_str = "Sir Isaac Newton"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
         self.assertEqual(a.title, '')
-        self.assertEqual(a.first_name, "Sir Isaac") 
-        self.assertEqual(a.last_name, "Newton") 
+        self.assertEqual(a.first_name, "Sir Isaac")
+        self.assertEqual(a.last_name, "Newton")
 
     def test_one_name(self):
         author_str = "Sting"
-        author_pk = make_author(author_str)    
+        author_pk = make_author(author_str)
         a = Author.objects.get(pk=author_pk)
         self.assertEqual(a.title, '')
-        self.assertEqual(a.first_name, "Sting") 
+        self.assertEqual(a.first_name, "Sting")
         self.assertEqual(a.last_name, '')
 
 
@@ -264,37 +265,37 @@ class ArtifactsFromFormTest(TestCase):
                     short_description="a vowel",
                     created_at=now,
                     updated_at=now,
-        )    
+        )
         self.b = Artifact.objects.create(
                     title='Test Case Artifact b',
                     description="Banana",
                     created_at=now,
                     updated_at=now,
-        )    
+        )
         self.c = Artifact.objects.create(
                     title='Test Case Artifact c',
                     description="Carrot",
                     created_at=now,
                     updated_at=now,
-        )    
+        )
         self.d = Artifact.objects.create(
                     title='Test Case Artifact d',
                     description="Dinosaur",
                     created_at=now,
                     updated_at=now,
-        )    
+        )
         self.e = Artifact.objects.create(
                     title='Test Case Artifact e',
                     description="Elephant",
                     short_description="a vowel",
                     created_at=now,
                     updated_at=now,
-        )    
+        )
         self.f = Artifact.objects.create(
                     title='cool Test Case Artifact f',
                     created_at=now,
                     updated_at=now,
-        )    
+        )
 
         # Adding labels to their multiples
         self.label1 = Label.objects.create(label='label1')
@@ -327,7 +328,7 @@ class ArtifactsFromFormTest(TestCase):
         filtered = sorted_list_ids(artifacts_from_form(data))
         goal = sorted_list_ids([])
         self.assertEqual(filtered, goal)
-        
+
     def test_duplicate_matches_or(self):
         data = {
             'labels': [self.label1.id, self.label2.id, self.label3.id],
@@ -335,9 +336,10 @@ class ArtifactsFromFormTest(TestCase):
             'is_or': True
         }
         filtered = sorted_list_ids(artifacts_from_form(data))
-        goal = sorted_list_ids([self.a, self.b, self.c, self.d, self.e, self.f])
+        goal = sorted_list_ids([self.a, self.b, self.c,
+                                self.d, self.e, self.f])
         self.assertEqual(filtered, goal)
-        
+
     def test_some_partial_matches_and(self):
         data = {
             'labels': [self.label1.id, self.label3.id],
@@ -347,7 +349,7 @@ class ArtifactsFromFormTest(TestCase):
         filtered = sorted_list_ids(artifacts_from_form(data))
         goal = sorted_list_ids([self.c, self.f])
         self.assertEqual(filtered, goal)
-        
+
     def test_keywords_title(self):
         data = {
             'labels': [],
@@ -357,7 +359,7 @@ class ArtifactsFromFormTest(TestCase):
         filtered = sorted_list_ids(artifacts_from_form(data))
         goal = sorted_list_ids([self.a, self.f])
         self.assertEqual(filtered, goal)
-        
+
     def test_keywords_author(self):
         data = {
             'labels': [],
@@ -400,5 +402,6 @@ class ArtifactsFromFormTest(TestCase):
     def test_empty_form(self):
         data = {}
         filtered = sorted_list_ids(artifacts_from_form(data))
-        goal = sorted_list_ids([self.a, self.b, self.c, self.d, self.e, self.f])
+        goal = sorted_list_ids([self.a, self.b, self.c, self.d,
+                                self.e, self.f])
         self.assertEqual(filtered, goal)
