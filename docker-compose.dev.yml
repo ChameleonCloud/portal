@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+  portal:
+    build: .
+    env_file:
+      - .chameleon_env
+    volumes:
+      - .:/project
+    ports:
+      - 8888:8888
+    command: python manage.py runserver 0.0.0.0:8888
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+  referenceapi:
+    image: referenceapi:latest
+    ports:
+      - 8000:8000
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    volumes:
+      - ./db_data:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ccpass
+      MYSQL_DATABASE: cc
+      MYSQL_USER: ccuser
+      MYSQL_PASSWORD: ccpass
+    ports:
+      - 3306:3306
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - '8889:80'
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+    depends_on:
+      - mysql

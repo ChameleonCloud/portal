@@ -284,6 +284,10 @@ LOGGING = {
         },
     },
     'loggers': {
+        'default': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
         'console': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -293,9 +297,13 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'default': {
+        'pipeline': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
+        },
+        'pytas': {
+            'handlers': ['console'],
+            'level': 'INFO',
         },
         'chameleon_openid': {
             'handlers': ['console'],
