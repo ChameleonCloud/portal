@@ -427,7 +427,7 @@ TEXT_ADDITIONAL_ATTRIBUTES = ('scrolling', 'allowfullscreen','frameborder','src'
 PIPELINE_COMPILERS = (
     'pipeline.compilers.sass.SASSCompiler',
 )
-PIPELINE_SASS_ARGUMENTS = '--update --compass --style compressed'
+PIPELINE_SASS_ARGUMENTS = '--compass --style compressed'
 PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.yuglify.YuglifyCompressor'
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
 
