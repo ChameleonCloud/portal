@@ -2,22 +2,11 @@
 
 ## Dependencies
 
-Most dependencies are specified in [requirements.txt](requirements.txt) and can
-be installed via pip. External depdencies not available via pip:
-
-- https://bitbucket.org/taccaci/pytas.git
-- https://gitlab.labs.nic.cz/labs/python-rt.git
-
-These are configured as git submodules and can be checked out using
-
-```
-git submodule update --recursive --init
-```
-
-If using the Docker container to run the portal, the submodules should be
-checked out before building the image.
+Running the portal locally or in production requires Docker and Docker-Compose.j
 
 ## Configuration
+
+A `.chameleon_env` file is sourced and used to configure some parts of the application.
 
 The following environment variables must be configured for `pytas`:
 
@@ -49,7 +38,9 @@ MySQL database connection:
 
 #### Development
 
-The docker-compose.yml included in this repo is setup for running the composition locally. First, clone the reference-api repository and build that image:
+The `docker-compose.dev.yml` included in this repo is setup for running the composition locally. However, a few additional dependencies need to be in place first.
+
+1. First, clone the reference-api repository and build that image:
 
 ```bash
 git clone git@github.com:ChameleonCloud/reference-api.git
@@ -58,25 +49,29 @@ git submodule init && git submodule update
 docker build -t referenceapi .
 ```
 
-Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
+2. Seed the local database (optional, but recommended). Since Portal is a CMS-based system, much of the content is embedded within the database. It can be helpful to seed your local environment with a dump from an existing database (e.g. the development database). You can do a `mysqldump` of the database and extract the SQL dump file to the `./db` folder. This folder is mounted inside a MariaDB container when running Portal locally, and this SQL dump will be automatically detected and used to seed the database when it starts.
 
-Finally, from the root portal projecct folder, run:
+3. Seed the media repository (optiona, but recommended.) If you have seeded the local database, there will be links to files assumed to exist in the media folder. If you want these files to be properly served/displayed locally, you will also have to copy down these media files. A simple way is to create a tarball and extract it to `./media`, which will be mounted as a media directory in the local container.
+
+4. Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
+
+Finally, you can start up the containers:
 
 ```bash
-docker-compose up
+docker-compose -f docker-compose.dev.yml up
 ```
 
 If you need to (re)build the image, simply run:
 
 ```bash
-docker-compose build
+docker-compose -f docker-compose.dev.yml build
 ```
 
 #### Production
 
-There are a few additional requirements for running the composition in production. We want 
-to run Django with uWSGI and Nginx in production 
-(not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!) 
+There are a few additional requirements for running the composition in production. We want
+to run Django with uWSGI and Nginx in production
+(not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!)
 so the ports and command are different. We also need to mount in certificates and sensitive
 configuration for SSL/TLS and the media directory for Django.
 

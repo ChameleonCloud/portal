@@ -12,8 +12,6 @@ services:
     command: python manage.py runserver 0.0.0.0:8888
     depends_on:
       - mysql
-    environment:
-      - DB_HOST=mysql
   referenceapi:
     image: referenceapi:latest
     ports:
@@ -22,11 +20,11 @@ services:
     container_name: mysql
     image: mysql:5.7
     volumes:
-      - ./db_data:/docker-entrypoint-initdb.d
+      - ./db:/docker-entrypoint-initdb.d
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ccpass
-      MYSQL_DATABASE: cc
+      MYSQL_DATABASE: chameleon_dev
       MYSQL_USER: ccuser
       MYSQL_PASSWORD: ccpass
     ports:
