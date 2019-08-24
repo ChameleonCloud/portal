@@ -5,7 +5,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import RedirectView
 from django.contrib.syndication.views import Feed
 from user_news.models import News, Event, Outage, OutageUpdate
-from cms.cms_toolbar import ADMIN_MENU_IDENTIFIER
+from cms.cms_toolbars import ADMIN_MENU_IDENTIFIER
 
 class UserNewsListView(ListView):
     model = News

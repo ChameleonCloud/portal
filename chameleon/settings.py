@@ -88,15 +88,12 @@ INSTALLED_APPS = (
     'djangocms_column',
     'djangocms_file',
     'djangocms_flash',
-    #'djangocms_googlemap',
     'djangocms_inherit',
     'djangocms_link',
     'djangocms_picture',
     'djangocms_teaser',
     'djangocms_video',
     'reversion',
-
-
 
     ##
     # contrib
@@ -113,7 +110,6 @@ INSTALLED_APPS = (
     # custom
     #
     'chameleon_openid',
-    'chameleon_cms_integrations',
     'chameleon_mailman',
     'chameleon_token',
     'usage',
@@ -128,8 +124,9 @@ INSTALLED_APPS = (
     'allocations',
     'appliance_catalog',
     'webinar_registration',
+    'chameleon_cms_integrations',
 
-
+    # djangocms-blog
     'easy_thumbnails',
     'filer',
     'aldryn_apphooks_config',
@@ -139,9 +136,7 @@ INSTALLED_APPS = (
     'taggit_autosuggest',
     'meta',
     'meta_mixin',
-    'aldryn_search',
     'djangocms_blog',
-
 )
 
 MIDDLEWARE_CLASSES = (
@@ -156,6 +151,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'cms.middleware.utils.ApphookReloadMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
     'cms.middleware.toolbar.ToolbarMiddleware',
@@ -234,6 +230,12 @@ MEDIA_URL = "/media/"
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
     '/var/www/static/',
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
 )
 
 '''
@@ -358,11 +360,7 @@ CMS_PERMISSION = True
 
 CMS_PLACEHOLDER_CONF = {}
 
-CMS_STYLE_NAMES = (
-    ('enable-toc', _('Enable TOC (sidebar)')),
-    ('sidebar-toc', _('Sidebar TOC')),
-    ('header-toc', _('Header TOC')),
-)
+DJANGOCMS_STYLE_CHOICES = ['enable-toc', 'sidebar-toc', 'header-toc']
 
 LANGUAGES = [
     ('en', 'English'),
@@ -421,37 +419,36 @@ TEXT_ADDITIONAL_ATTRIBUTES = ('scrolling', 'allowfullscreen','frameborder','src'
 # Pipeline config
 #
 #####
-PIPELINE_COMPILERS = (
-    'pipeline.compilers.sass.SASSCompiler',
-)
-PIPELINE_SASS_ARGUMENTS = '--compass --style compressed'
-PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.yuglify.YuglifyCompressor'
-PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.slimit.SlimItCompressor'
-
-# wildcards put the files in alphabetical order
-PIPELINE_CSS = {
-    'main': {
-        'source_filenames': (
-            'styles/main.scss',
-            'styles/corner-ribbon.css',
-            'djangoRT/css/djangoRT.css',
-            'projects/css/projects.scss',
-        ),
-        'output_filename': 'styles/main.css',
+PIPELINE = {
+    'COMPILERS': (
+        'pipeline.compilers.sass.SASSCompiler',
+    ),
+    'SASS_ARGUMENTS': '--compass --style compressed',
+    'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
+    'JS_COMPRESSOR': 'pipeline.compressors.slimit.SlimItCompressor',
+    'STYLESHEETS': {
+        'main': {
+            'source_filenames': (
+                'styles/main.scss',
+                'styles/corner-ribbon.css',
+                'djangoRT/css/djangoRT.css',
+                'projects/css/projects.scss',
+            ),
+            'output_filename': 'styles/main.css',
+        },
     },
-}
-
-PIPELINE_JS = {
-    'all': {
-        'source_filenames': (
-            'bower_components/jquery/dist/jquery.js',
-            'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
-            'bower_components/toc/dist/toc.js',
-            'scripts/auto-table-of-contents.js',
-            'djangoRT/js/djangoRT.js',
-        ),
-        'output_filename': 'scripts/all.js'
-    }
+    'JAVASCRIPT': {
+        'all': {
+            'source_filenames': (
+                'bower_components/jquery/dist/jquery.js',
+                'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
+                'bower_components/toc/dist/toc.js',
+                'scripts/auto-table-of-contents.js',
+                'djangoRT/js/djangoRT.js',
+            ),
+            'output_filename': 'scripts/all.js',
+        },
+    },
 }
 
 # compress when collect static
@@ -629,15 +626,3 @@ PARLER_LANGUAGES = {
         'fallbacks': ['en'],
     }
 }
-
-HAYSTACK_CONNECTIONS = {
-    'en': {
-        'ENGINE': 'haystack.backends.solr_backend.SolrEngine',
-        'URL': 'http://my-solr-server/solr/my-site-en/',
-        'TIMEOUT': 60 * 5,
-        'INCLUDE_SPELLING': True,
-        'BATCH_SIZE': 100,
-    },
-}
-
-HAYSTACK_ROUTERS = ['aldryn_search.router.LanguageRouter',]
