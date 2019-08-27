@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from django.contrib.auth.models import User

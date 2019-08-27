@@ -32,7 +32,7 @@ urlpatterns = patterns(
         url(r'^logout/', 'django.contrib.auth.views.logout', {'next_page': '/'},
             name='logout'),
 
-        url(r'^register/', RedirectView.as_view(url=reverse_lazy('tas:register'))),
+        url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
         url(r'^user/', include('tas.urls', namespace='tas')),
         url(r'^email-confirmation/', 'tas.views.email_confirmation'),
         url(r'^password-reset/', 'tas.views.password_reset'),
@@ -43,7 +43,7 @@ urlpatterns = patterns(
         url(r'^appliances/', include('appliance_catalog.urls', namespace='appliance_catalog')),
 
         url(r'^news/', include('user_news.urls', namespace='user_news')),
-        url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
+        url(r'^feed\.xml', RedirectView.as_view(permanent=True, url=reverse_lazy('user_news:feed'))),
         url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
         url(r'^user/outages/rss/$', OutageFeed(), name='outage_feed'),
         url(r'^user/outages/(?P<slug>[-_\w]+)/$', OutageDetailView.as_view(),
