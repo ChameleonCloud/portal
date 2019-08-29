@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   portal:
-    build: .
+    image: docker.chameleoncloud.org/portal:latest
     env_file:
       - .chameleon_env
     volumes:
