@@ -369,19 +369,16 @@ LANGUAGES = [
 ]
 
 MIGRATION_MODULES = {
-#    'cms': 'cms.migrations_django',
-#    'menus': 'menus.migrations_django',
-    'djangocms_text_ckeditor': 'djangocms_text_ckeditor.migrations_django',
-    'djangocms_column': 'djangocms_column.migrations_django',
-    'djangocms_flash': 'djangocms_flash.migrations_django',
-#    'djangocms_googlemap': 'djangocms_googlemap.migrations_django',
-    'djangocms_inherit': 'djangocms_inherit.migrations_django',
-    'djangocms_style': 'djangocms_style.migrations_django',
-    'djangocms_file': 'djangocms_file.migrations_django',
-    'djangocms_link': 'djangocms_link.migrations_django',
-    'djangocms_picture': 'djangocms_picture.migrations_django',
-    'djangocms_teaser': 'djangocms_teaser.migrations_django',
-    'djangocms_video': 'djangocms_video.migrations_django',
+    'djangocms_text_ckeditor': 'djangocms_text_ckeditor.migrations',
+    'djangocms_column': 'djangocms_column.migrations',
+    'djangocms_flash': 'djangocms_flash.migrations',
+    'djangocms_inherit': 'djangocms_inherit.migrations',
+    'djangocms_style': 'djangocms_style.migrations',
+    'djangocms_file': 'djangocms_file.migrations',
+    'djangocms_link': 'djangocms_link.migrations',
+    'djangocms_picture': 'djangocms_picture.migrations',
+    'djangocms_teaser': 'djangocms_teaser.migrations',
+    'djangocms_video': 'djangocms_video.migrations',
 }
 
 #####
