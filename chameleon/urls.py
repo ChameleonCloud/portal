@@ -38,6 +38,7 @@ urlpatterns = patterns(
         url(r'^password-reset/', 'tas.views.password_reset'),
         url(r'^forgot-username/$', 'tas.views.recover_username'),
         url(r'^appliances/', include('appliance_catalog.urls')),
+        url(r'^terms/', include('termsandconditions.urls')),
         url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
         url(r'^user/projects/', include('projects.urls', namespace='projects')),
         url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
@@ -55,7 +56,7 @@ urlpatterns = patterns(
         # mailing list resource for mailman autosubscribe
         url(r'^mailman/new_members.txt$',
             'chameleon_mailman.views.mailman_export_list', name='mailman_export_list'),
-        
+
         # cms urls
         url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
         url(r'^', include('blog_comments.urls')),
