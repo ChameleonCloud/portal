@@ -19,7 +19,7 @@ urlpatterns = patterns(
 
         # contrib urls
         url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
-        url(r'^ckeditor/', include('ckeditor.urls')),
+        url(r'^ckeditor/', include('ckeditor_uploader.urls')),
         url(r'^captcha/', include('captcha.urls')),
         url(r'^terms/', include('termsandconditions.urls')),
         url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap',

@@ -118,7 +118,7 @@ INSTALLED_APPS = (
     'djangoRT',
     'projects',
     'user_news',
-    'djangular',
+    'djng',
     'g5k_discovery',
     'cc_early_user_support',
     'allocations',
@@ -141,7 +141,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    'djangular.middleware.DjangularUrlMiddleware',
+    'djng.middleware.AngularUrlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -455,16 +455,6 @@ PIPELINE = {
 # compress when collect static
 STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
 
-#TEMPLATE_CONTEXT_PROCESSORS = django.conf.global_settings.TEMPLATE_CONTEXT_PROCESSORS
-
-'''
-TEMPLATE_CONTEXT_PROCESSORS += (
-    'django.core.context_processors.request',
-    'chameleon.context_processors.google_analytics',
-    'sekizai.context_processors.sekizai',
-    'cms.context_processors.cms_settings',
-)
-'''
 TEMPLATES = [
 {
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -482,11 +472,9 @@ TEMPLATES = [
             'django.template.context_processors.csrf',
             'django.template.context_processors.request',
             'django.contrib.messages.context_processors.messages',
-            'django.core.context_processors.request',
-            #'django.contrib.auth.context_processors.auth',
+            'django.template.context_processors.request',
             'chameleon.context_processors.google_analytics',
             'sekizai.context_processors.sekizai',
-           # 'chameleon.context_processors.sekizai',
             'cms.context_processors.cms_settings',
             ],
 	'debug': os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG',

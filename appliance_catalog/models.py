@@ -35,8 +35,7 @@ class Appliance(models.Model):
     ## Indicates which projects (if any) the appliance is shared with, an empty list indicates a public appliance
     restrict_to_projects = models.CharField(max_length=1000, null=True,blank=True)
     project_flagged = models.BooleanField(default=False, blank=True)
-    keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', null=False,
-                                      blank=True)
+    keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', blank=True)
     version = models.CharField(max_length=100)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='appliances')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL)

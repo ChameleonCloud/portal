@@ -1,11 +1,11 @@
-# Django 1.8-compatible versions
+# Django 1.9-compatible versions
 
-django~=1.8.0
+django~=1.9.0
 aldryn-apphooks-config<0.5.1
 aldryn-boilerplates<0.8.0
-django-angular==0.7.15
+django-angular<1.0.0
 django-bootstrap3<10.0.0
-django-ckeditor<4.5.3
+django-ckeditor~=5.3.0
 django-classy-tags~=0.8.0
 django-cms<3.6.0
 djangocms-attributes-field<0.4.0

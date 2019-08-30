@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from djangoRT import rtUtil, forms, rtModels
 from django.contrib.auth.decorators import login_required
@@ -8,7 +7,7 @@ from django.contrib import messages
 import logging
 import mimetypes
 from .models import TicketCategories
-
+from wsgiref.util import FileWrapper
 
 from keystoneclient import client as ks_client
 from keystoneauth1.identity import v3
