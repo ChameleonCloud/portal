@@ -21,7 +21,7 @@ urlpatterns = patterns(
         url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
         url(r'^ckeditor/', include('ckeditor.urls')),
         url(r'^captcha/', include('captcha.urls')),
-        url(r'^terms/', include('termsandconditions.urls', namespace='terms')),
+        url(r'^terms/', include('termsandconditions.urls')),
         url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap',
             {'sitemaps': {'cmspages': CMSSitemap}}),
 
@@ -38,7 +38,6 @@ urlpatterns = patterns(
         url(r'^password-reset/', 'tas.views.password_reset'),
         url(r'^forgot-username/$', 'tas.views.recover_username'),
         url(r'^appliances/', include('appliance_catalog.urls')),
-        url(r'^terms/', include('termsandconditions.urls')),
         url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
         url(r'^user/projects/', include('projects.urls', namespace='projects')),
         url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
