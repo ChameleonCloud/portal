@@ -10,6 +10,7 @@ import chameleon.os_login as login
 from tas import auth as tas_auth
 from pytas.models import Project
 from projects.models import ProjectExtras
+from projects.views import get_admin_ks_client as get_admin_ks_client
 from webinar_registration.models import Webinar
 from django.utils import timezone
 from datetime import datetime
@@ -39,7 +40,10 @@ def horizon_sso_login(request):
     active_ks_projects_found = False
     if unscoped_token:
         try:
-            active_ks_projects_found = user_has_active_ks_project(unscoped_token.get('auth_token'))
+            auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token.get('auth_token'), project_id=None)
+            sess = ks_session.Session(auth=auth, timeout=5)
+            ks = ks_client.Client(session=sess)
+            active_ks_projects_found = user_has_active_ks_project(ks, request.user)
             logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
         except Exception as e:
             ## if here, we have a token, but could not use it to connect to keystone so let's invalidate the token
@@ -47,11 +51,7 @@ def horizon_sso_login(request):
             unscoped_token = None
             logger.error(e)
     if not active_ks_projects_found: # then check with TAS
-        chameleon_projects = get_user_chameleon_projects(request)
-        if not chameleon_projects.get('active_projects') and not chameleon_projects.get('approved_projects'):
-            logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon but no active or approved projects found in TAS, sending to unavailable page')
-            return HttpResponseRedirect('/sso/horizon/unavailable')
-
+        chameleon_projects = get_user_chameleon_projects(request.user)
         if chameleon_projects.get('approved_projects') and not chameleon_projects.get('active_projects'):
             earliest_start_date = None
             for p in chameleon_projects.get('approved_projects'):
@@ -65,15 +65,21 @@ def horizon_sso_login(request):
         else:
             '''
             If we're here the user has an active project in TAS but is either missing a token or the active projects in TAS don't exist in Keystone
-            Failing to retrieve an unscoped token or projects form KS when the user has active an project in TAS may happen if the user's account is in a transient state so
+            Failing to retrieve an unscoped token or projects from KS when the user has an active project in TAS may happen if the user's account is in a transient state so
             We give the user a chance to retrieve a token
             '''
             if not unscoped_token:
                 return manual_ks_login(request)
-
     '''
     If we're here, then users have an active project and unscoped token, so we proceed to log them in to Horizon
     '''
+    try:
+        return redirect_to_horizon(request)
+    except Exception as e:
+        logger.error(e)
+        return HttpResponseRedirect('/')
+
+def redirect_to_horizon(request):
     ## first we get the url params host, webroot, and next
     horizon_webroot = request.GET.get('webroot') if request.GET.get('webroot') else ''
     next = request.GET.get('next') if request.GET.get('next') else ''
@@ -92,18 +98,31 @@ def horizon_sso_login(request):
     context['host'] = protocol + '://' + host + horizon_webroot + '/auth/ccwebsso/' + '?next=' + next
     return render(request, 'sso/sso_callback_template.html', context)
 
-def user_has_active_ks_project(auth_token):
-    auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=auth_token, project_id=None)
-    sess = ks_session.Session(auth=auth)
-    ks = ks_client.Client(session=sess)
+def sync_user_project_status(ks, username):
+    admin_ks_client = get_admin_ks_client()
+    ks_projects = ks.federation.projects.list()
+    chameleon_projects = get_user_chameleon_projects(username)
+    active_tas_projects = chameleon_projects.get('active_projects')
+    active_tas_charge_codes = list(p.chargeCode for p in active_tas_projects)
+    logger.debug('*** List of active charge codes in tas' + str(active_tas_charge_codes))
+    if ks_projects:
+        for ks_p in ks_projects:
+            logger.debug('Keystone charge code:' + ks_p.charge_code)
+            if ks_p.charge_code in active_tas_charge_codes and not ks_p.enabled:
+                admin_ks_client.projects.update(ks_p, enabled = True)
+            elif not ks_p.charge_code in active_tas_charge_codes and ks_p.enabled:
+                admin_ks_client.projects.update(ks_p, enabled = False)
+
+def user_has_active_ks_project(ks, user):
+    sync_user_project_status(ks, user)
     ks_projects = ks.federation.projects.list()
     for p in ks_projects:
         if p.enabled:
             return True
     return False
 
-def get_user_chameleon_projects(request):
-    tas_projects = Project.list(username=request.user)
+def get_user_chameleon_projects(user):
+    tas_projects = Project.list(username=user)
     chameleon_projects = {}
     active_projects = [p for p in tas_projects \
                 if p.source == 'Chameleon' and \
