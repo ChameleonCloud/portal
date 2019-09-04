@@ -21,46 +21,56 @@ urlpatterns = patterns(
         url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
         url(r'^ckeditor/', include('ckeditor.urls')),
         url(r'^captcha/', include('captcha.urls')),
-        url(r'^terms/', include('termsandconditions.urls', namespace='terms')),
+        url(r'^terms/', include('termsandconditions.urls')),
         url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap',
             {'sitemaps': {'cmspages': CMSSitemap}}),
 
         # custom urls
-        #url(r'^login/', 'django.contrib.auth.views.login', name='login'),
         url(r'^login/', 'chameleon.os_login.custom_login', name='login'),
         url(r'^sso/horizon/$', 'chameleon.views.horizon_sso_login', name='horizon_sso_login'),
         url(r'^sso/horizon/unavailable', 'chameleon.views.horizon_sso_unavailable', name='horizon_sso_unavailable'),
         url(r'^logout/', 'django.contrib.auth.views.logout', {'next_page': '/'},
             name='logout'),
+
         url(r'^register/', RedirectView.as_view(url=reverse_lazy('tas:register'))),
         url(r'^user/', include('tas.urls', namespace='tas')),
         url(r'^email-confirmation/', 'tas.views.email_confirmation'),
         url(r'^password-reset/', 'tas.views.password_reset'),
         url(r'^forgot-username/$', 'tas.views.recover_username'),
-        url(r'^appliances/', include('appliance_catalog.urls')),
+
         url(r'^user/dashboard/', 'chameleon.views.dashboard', name='dashboard'),
-        url(r'^user/projects/', include('projects.urls', namespace='projects')),
+
+        url(r'^appliances/', include('appliance_catalog.urls', namespace='appliance_catalog')),
+
+        url(r'^news/', include('user_news.urls', namespace='user_news')),
+        url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
         url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
         url(r'^user/outages/rss/$', OutageFeed(), name='outage_feed'),
         url(r'^user/outages/(?P<slug>[-_\w]+)/$', OutageDetailView.as_view(),
             name='outage_detail'),
+
+        url(r'^hardware/', include('g5k_discovery.urls', namespace='hardware')),
+
+        url(r'^user/projects/', include('projects.urls', namespace='projects')),
+
         url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
+
         url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
+
         url(r'^user/early-user-program/', include('cc_early_user_support.urls',
                                                   namespace='cc_early_user_support')),
+
         url(r'^user/webinar/', include('webinar_registration.urls',
                                               namespace='webinar_registration')),
-        url(r'^feed\.xml', RedirectView.as_view(url=reverse_lazy('user_news:feed'))),
 
         # mailing list resource for mailman autosubscribe
         url(r'^mailman/new_members.txt$',
             'chameleon_mailman.views.mailman_export_list', name='mailman_export_list'),
-        
+
         # cms urls
         url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
         url(r'^', include('blog_comments.urls')),
         url(r'^', include('cms.urls')),
-
 )
 
 if settings.DEBUG:

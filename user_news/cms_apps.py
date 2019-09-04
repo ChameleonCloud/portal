@@ -4,6 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 
 @apphook_pool.register
 class UserNewsApphook(CMSApp):
-    name = _('User News Apphook')
-    urls = ['user_news.urls']
+    name = _('User News')
     app_name = 'user_news'
+
+    def get_urls(self, page=None, language=None, **kwargs):
+        return ['user_news.urls']

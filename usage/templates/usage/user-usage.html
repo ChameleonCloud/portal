@@ -1,10 +1,10 @@
-{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles compressed %} {% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
+{% extends "admin/base_site.html" %} {% load i18n admin_static %} {% load cms_tags staticfiles pipeline %} {% block title %} Allocation Administration | Chameleon Cloud {% endblock %}
 <!-- Custom CSS -->
-{% block extrastyle %}{{ block.super }} {% compressed_css 'main' %}
+{% block extrastyle %}{{ block.super }} {% stylesheet 'main' %}
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'djangocms_admin_style/css/djangocms-admin.css' %}" />
-<link rel="stylesheet" type="text/css" href="{% static 'usage/css/main.css' %}"> {% endblock %} {% block extrahead %} {% compressed_js 'all' %}
+<link rel="stylesheet" type="text/css" href="{% static 'usage/css/main.css' %}"> {% endblock %} {% block extrahead %} {% javascript 'all' %}
 <script src="{% static 'usage/js/vendor.js' %}"></script>
 <script src="{% static 'usage/js/app.js' %}"></script>
 <script src="{% static 'usage/js/directive.js' %}"></script>

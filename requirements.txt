@@ -23,7 +23,7 @@ djangocms-style
 djangocms-teaser
 djangocms-text-ckeditor
 djangocms-video
-git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/0.8.x#egg=djangocms_blog
+djangocms-blog
 
 httpretty
 mock
@@ -38,7 +38,7 @@ rt
 six
 slimit
 sqlparse
-git+https://github.com/ChameleonCloud/pytas#egg=pytas
+pytas
 
 python-glanceclient
 python-keystoneclient

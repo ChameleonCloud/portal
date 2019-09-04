@@ -91,14 +91,14 @@
 
   <ul class="list-unstyled">
     <li>
-      <a href="{% url 'terms:tc_view_specific_version_page' 'user-terms' '1.00' %}">
+      <a href="{% url 'tc_view_specific_version_page' 'user-terms' '1.00' %}">
         <small>Chameleon User Terms of Use</small>
       </a>
     </li>
 
     {% if profile.piEligibility == 'Eligible' %}
     <li>
-      <a href="{% url 'terms:tc_view_specific_version_page' 'project-terms' '1.00' %}">
+      <a href="{% url 'tc_view_specific_version_page' 'project-terms' '1.00' %}">
         <small>Chameleon Project Lead Terms of Use</small>
       </a>
     </li>
