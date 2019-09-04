@@ -1,54 +1,28 @@
 FROM python:2.7.14-stretch
 MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
 
-RUN apt-get update && apt-get install -y nginx supervisor && pip install uwsgi
-
-RUN apt-get install -y ruby-sass
-RUN apt-get install -y ruby-compass
-
-EXPOSE 80 443
-
+RUN apt-get update \
+  && curl -sL https://deb.nodesource.com/setup_6.x | bash \
+  && apt-get install -y \
+    nginx supervisor gettext curl build-essential nodejs ruby-sass ruby-compass \
+  && rm -rf /var/lib/apt/lists/* \
+  && pip install uwsgi \
+  && npm install -g yuglify
 
 CMD ["supervisord", "-n"]
 
-
-# gettext for i18n
-RUN apt-get update && apt-get install -y gettext
-
-# kramdown for parsing static site content
-#RUN gem install kramdown
-
-
-# copy requirements.txt, deps, and config separate from the rest of the project
-COPY requirements-frozen.txt /setup/requirements-frozen.txt
-
-### REMOVE THIS AFTER INTEGRATION IS COMPLETE
-#COPY deps /setup/deps
-###
-
 COPY docker-conf /setup/docker-conf
 
-
-# install pip dependencies
-RUN pip install -r /setup/requirements-frozen.txt
-
-RUN apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get install -y build-essential nodejs
-
-RUN npm install -g yuglify
-
-# install non-pip dependencies
-### REMOVE THIS AFTER INTEGRATION IS COMPLETE
-#RUN cd /setup/deps/pytas && python setup.py install
-###
-
 # configure nginx, uwsgi, supervisord
-RUN \
-    echo "daemon off;" >> /etc/nginx/nginx.conf \
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
     && rm /etc/nginx/sites-enabled/default \
     && ln -s /setup/docker-conf/nginx-app.conf /etc/nginx/sites-enabled/ \
     && ln -s /setup/docker-conf/supervisor-app.conf /etc/supervisor/conf.d/
+
+COPY requirements.txt /setup/requirements.txt
+COPY upper-constraints.txt /setup/upper-constraints.txt
+# install pip dependencies
+RUN pip install -r /setup/requirements.txt -c /setup/upper-constraints.txt
 
 # setup project code
 COPY . /project
@@ -61,4 +35,8 @@ RUN mkdir /var/log/django
 RUN python manage.py compilemessages
 
 # setup static assets
-RUN mkdir -p /var/www/static && mkdir -p /var/www/chameleoncloud.org/static && python manage.py collectstatic --noinput
+RUN mkdir -p /var/www/static \
+  && mkdir -p /var/www/chameleoncloud.org/static \
+  && python manage.py collectstatic --noinput
+
+EXPOSE 80 443

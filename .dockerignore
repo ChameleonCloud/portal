@@ -1,1 +1,4 @@
-*/.sass-cache*
+**/.git
+**/.sass-cache
+db/
+media/
