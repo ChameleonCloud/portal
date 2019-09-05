@@ -11,6 +11,9 @@ build:
 .PHONY: publish
 publish:
 	docker push $(DOCKER_IMAGE)
+
+.PHONY: publish-latest
+publish-latest:
 	docker push $(DOCKER_IMAGE_LATEST)
 
 .PHONY: start
