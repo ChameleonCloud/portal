@@ -22,7 +22,8 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
 COPY requirements.txt /setup/requirements.txt
 COPY upper-constraints.txt /setup/upper-constraints.txt
 # install pip dependencies
-RUN pip install -r /setup/requirements.txt -c /setup/upper-constraints.txt
+RUN pip install --upgrade pip \
+    && pip install -r /setup/requirements.txt -c /setup/upper-constraints.txt
 
 # setup project code
 COPY . /project
