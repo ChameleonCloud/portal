@@ -13,12 +13,15 @@ window.print();
 {% block header %}{% endblock %}
 
 {% block content %}
-<h1>{{ terms.name|safe }}</h1>
-<h3>Version {{ terms.version_number|safe }}</h3>
-
-<div>
-  {{ terms.text|safe }}
-</div>
+    {% for terms in terms_list %}
+        <div class="toc-print-container">
+            <h1>{{ terms.name|safe }}</h1>
+            <h3>Version {{ terms.version_number|safe }}</h3>
+            <div>
+                {{ terms.text|safe }}
+            </div>
+        </div>
+    {% endfor %}
 {% endblock %}
 
 {% block footer %}{% endblock %}
