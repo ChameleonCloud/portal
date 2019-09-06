@@ -26,6 +26,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 logger = logging.getLogger(__name__)
 
+WHITELISTED_PROJECTS = ['openstack', 'maintenance']
+
 @login_required
 def horizon_sso_login(request):
     unscoped_token = request.session.get('unscoped_token')
@@ -107,10 +109,14 @@ def sync_user_project_status(ks, username):
     logger.debug('*** List of active charge codes in tas' + str(active_tas_charge_codes))
     if ks_projects:
         for ks_p in ks_projects:
-            logger.debug('Keystone charge code:' + ks_p.charge_code)
-            if ks_p.charge_code in active_tas_charge_codes and not ks_p.enabled:
+            charge_code = ks_p.charge_code
+            if charge_code in WHITELISTED_PROJECTS:
+                logger.debug('Ignoring project with charge code {}'.format(charge_code))
+                continue
+            logger.debug('Keystone charge code: ' + charge_code)
+            if charge_code in active_tas_charge_codes and not ks_p.enabled:
                 admin_ks_client.projects.update(ks_p, enabled = True)
-            elif not ks_p.charge_code in active_tas_charge_codes and ks_p.enabled:
+            elif not charge_code in active_tas_charge_codes and ks_p.enabled:
                 admin_ks_client.projects.update(ks_p, enabled = False)
 
 def user_has_active_ks_project(ks, user):
@@ -133,7 +139,7 @@ def get_user_chameleon_projects(user):
     pending_projects = [p for p in tas_projects \
                 if p.source == 'Chameleon' and \
                 (a.status in ['Pending'] for a in p.allocations)]
-    
+
     chameleon_projects['active_projects'] = active_projects
     chameleon_projects['approved_projects'] = approved_projects
     chameleon_projects['pending_projects'] = pending_projects
