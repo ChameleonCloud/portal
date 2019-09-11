@@ -127,15 +127,16 @@ INSTALLED_APPS = (
     'chameleon_cms_integrations',
 
     # djangocms-blog
-    'easy_thumbnails',
+
     'filer',
+    'easy_thumbnails',
     'aldryn_apphooks_config',
     'cmsplugin_filer_image',
     'parler',
     'taggit',
     'taggit_autosuggest',
     'meta',
-    'meta_mixin',
+    'sortedm2m',
     'djangocms_blog',
 )
 
