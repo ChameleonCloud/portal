@@ -2,10 +2,10 @@ import json
 import re
 from urllib.request import urlopen, Request
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .__init__ import DEV as dev
 from sharing.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
 
 
@@ -143,7 +143,7 @@ class Artifact(models.Model):
         """
 
         # Use sandbox if in dev mode
-        if dev:
+        if settings.DEBUG:
             base_url = "https://sandbox.zenodo.org/record/"
         else:
             base_url = "https://zenodo.org/record/"
@@ -169,7 +169,7 @@ class Artifact(models.Model):
         - Uses self.git_repo or self.doi
         """
         # Hub url is different in development
-        if dev:
+        if settings.DEBUG:
             hub_url = "http://localhost:8000"
         else:
             hub_url = "https://jupyter.chameleoncloud.org"

@@ -1,10 +1,9 @@
 import json
 import re
 
+from django.conf import settings
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
-
-from .__init__ import DEV as dev
 
 
 def get_rec_id(doi):
@@ -53,7 +52,7 @@ def get_zenodo_file_link(record_id):
     """
 
     # Use Zenodo sandbox if in development
-    if dev:
+    if settings.DEBUG:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"
@@ -83,7 +82,7 @@ def get_zenodo_file_link(record_id):
 
 def get_permanent_id(doi):
     record_id = get_rec_id(doi)
-    if dev:
+    if settings.DEBUG:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"

@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 from urllib.request import urlopen, Request
 
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,7 +10,6 @@ from django.template import loader
 from django.views import generic
 
 from .forms import LabelForm
-from .__init__ import DEV as dev
 from .models import Artifact, Author, Label
 from .utils import get_rec_id
 
@@ -146,7 +146,7 @@ def upload_artifact(doi):
     record_id = get_rec_id(doi)
 
     # Use the appropriate api base
-    if dev:
+    if settings.DEBUG:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"
