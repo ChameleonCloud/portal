@@ -47,6 +47,8 @@ urlpatterns = [
 
     url(r'^appliances/', include('appliance_catalog.urls', namespace='appliance_catalog')),
 
+    url(r'^share/', include('sharing_portal.urls', namespace='sharing_portal')),
+
     url(r'^news/', include('user_news.urls', namespace='user_news')),
     url(r'^feed\.xml', RedirectView.as_view(permanent=True, url=reverse_lazy('user_news:feed'))),
     url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),

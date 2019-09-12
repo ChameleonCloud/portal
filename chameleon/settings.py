@@ -122,6 +122,7 @@ INSTALLED_APPS = (
     'cc_early_user_support',
     'allocations',
     'appliance_catalog',
+    'sharing_portal',
     'webinar_registration',
     'chameleon_cms_integrations',
 

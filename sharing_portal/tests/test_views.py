@@ -30,7 +30,7 @@ class UploadViewTest(TestCase):
                              fetch_redirect_response=True)
         self.assertIn(error_message, message.message)
 
-    @mock.patch('sharing.views.upload_artifact')
+    @mock.patch('sharing_portal.views.upload_artifact')
     def test_no_deposition_with_doi(self, mock_upload):
         # If there's no relevant deposition, gracefully redirect with error
         error_message = "There is no Zenodo publication with that DOI"
@@ -44,7 +44,7 @@ class UploadViewTest(TestCase):
                              fetch_redirect_response=True)
         self.assertIn(error_message, message.message)
 
-    @mock.patch('sharing.views.upload_artifact')
+    @mock.patch('sharing_portal.views.upload_artifact')
     def test_success(self, mock_upload):
         # A successful upload should cause a redirect to the detail page
         now = datetime.now()
@@ -65,7 +65,7 @@ class UploadViewTest(TestCase):
 
 
 class IndexViewTest(TestCase):
-    @mock.patch('sharing.views.artifacts_from_form')
+    @mock.patch('sharing_portal.views.artifacts_from_form')
     def test_successful_search(self, mock_artifacts):
         now = datetime.now()
         a = Artifact(
@@ -87,9 +87,9 @@ class IndexViewTest(TestCase):
         self.assertEqual(returned_form_data['labels'], ['1'])
         self.assertEqual(response.context['artifacts'], [a])
         self.assertFalse(response.context['search_failed'])
-        self.assertTemplateUsed(response, "sharing/index.html")
+        self.assertTemplateUsed(response, "sharing_portal/index.html")
 
-    @mock.patch('sharing.views.artifacts_from_form')
+    @mock.patch('sharing_portal.views.artifacts_from_form')
     def test_empty_search(self, mock_artifacts):
         mock_artifacts.return_value = []
         form_info = {
@@ -105,9 +105,9 @@ class IndexViewTest(TestCase):
         self.assertEqual(returned_form_data['labels'], ['1'])
         self.assertEqual(response.context['artifacts'], [])
         self.assertFalse(response.context['search_failed'])
-        self.assertTemplateUsed(response, "sharing/index.html")
+        self.assertTemplateUsed(response, "sharing_portal/index.html")
 
-    @mock.patch('sharing.views.artifacts_from_form')
+    @mock.patch('sharing_portal.views.artifacts_from_form')
     def test_problem_search(self, mock_art):
         mock_art.side_effect = (lambda: 1/0)
         form_info = {
@@ -119,7 +119,7 @@ class IndexViewTest(TestCase):
         response = self.client.post(url, form_info)
         self.assertTrue(response.context['search_failed'])
 
-    @mock.patch('sharing.views.artifacts_from_form')
+    @mock.patch('sharing_portal.views.artifacts_from_form')
     def test_no_search(self, mock_artifacts):
         now = datetime.now()
         a1 = Artifact(
@@ -137,7 +137,7 @@ class IndexViewTest(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.context['form'].cleaned_data['search'], '')
         self.assertEqual(response.context['artifacts'], [a1, a2])
-        self.assertTemplateUsed(response, "sharing/index.html")
+        self.assertTemplateUsed(response, "sharing_portal/index.html")
 
 
 class UploadArtifactTest(TestCase):
@@ -148,9 +148,9 @@ class UploadArtifactTest(TestCase):
         a.save()
         return a.pk
 
-    @mock.patch('sharing.views.dev', True)
-    @mock.patch('sharing.views.make_author', make_simple_author)
-    @mock.patch('sharing.views.get_rec_id')
+    @mock.patch('sharing_portal.views.dev', True)
+    @mock.patch('sharing_portal.views.make_author', make_simple_author)
+    @mock.patch('sharing_portal.views.get_rec_id')
     def test_dev_success(self, mock_id):
         mock_id.return_value = "361518"
         pk = upload_artifact("doi")
@@ -160,9 +160,9 @@ class UploadArtifactTest(TestCase):
         self.assertEqual(len(list(artifact.authors.all())), 1)
         self.assertEqual(artifact.authors.all()[0].first_name, "Some Name")
 
-    @mock.patch('sharing.views.dev', False)
-    @mock.patch('sharing.views.make_author', make_simple_author)
-    @mock.patch('sharing.views.get_rec_id')
+    @mock.patch('sharing_portal.views.dev', False)
+    @mock.patch('sharing_portal.views.make_author', make_simple_author)
+    @mock.patch('sharing_portal.views.get_rec_id')
     def test_non_dev_success(self, mock_id):
         mock_id.return_value = "3357455"
         pk = upload_artifact("doi")
@@ -175,18 +175,18 @@ class UploadArtifactTest(TestCase):
         self.assertEqual(artifact.authors.all()[0].first_name,
                          "Arsene, Corneliu")
 
-    @mock.patch('sharing.views.dev', True)
-    @mock.patch('sharing.views.make_author', make_simple_author)
-    @mock.patch('sharing.views.get_rec_id')
+    @mock.patch('sharing_portal.views.dev', True)
+    @mock.patch('sharing_portal.views.make_author', make_simple_author)
+    @mock.patch('sharing_portal.views.get_rec_id')
     def test_failed_request(self, mock_id):
         # Should fail gracefully when given a bad id
         mock_id.return_value = "notadoi"
         pk = upload_artifact("doi")
         self.assertIsNone(pk)
 
-    @mock.patch('sharing.views.dev', True)
-    @mock.patch('sharing.views.make_author', make_simple_author)
-    @mock.patch('sharing.views.get_rec_id')
+    @mock.patch('sharing_portal.views.dev', True)
+    @mock.patch('sharing_portal.views.make_author', make_simple_author)
+    @mock.patch('sharing_portal.views.get_rec_id')
     def test_dev_multiple_authors(self, mock_id):
         mock_id.return_value = "361531"
         pk = upload_artifact("doi")

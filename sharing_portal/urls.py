@@ -1,8 +1,8 @@
-from django.urls import path
+from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('upload', views.upload, name='upload'),
-    path('<int:pk>', views.DetailView.as_view(), name='detail')
+    url(r'^$', views.index, name='index'),
+    url(r'^upload$', views.upload, name='upload'),
+    url(r'^(\d+)/$', views.DetailView.as_view(), name='detail'),
 ]

@@ -113,9 +113,9 @@ class ArtifactJupyterHubLinkTest(TestCase):
                     updated_at=now,
         )
 
-    @mock.patch('sharing.models.dev', False)
-    @mock.patch('sharing.models.get_zenodo_file_link')
-    @mock.patch('sharing.models.get_rec_id')
+    @mock.patch('sharing_portal.models.dev', False)
+    @mock.patch('sharing_portal.models.get_zenodo_file_link')
+    @mock.patch('sharing_portal.models.get_rec_id')
     def test_has_both_not_dev(self, mock_id, mock_link):
         self.hub = "https://jupyter.chameleoncloud.org"
         mock_id.return_value = self.the_id
@@ -126,9 +126,9 @@ class ArtifactJupyterHubLinkTest(TestCase):
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
-    @mock.patch('sharing.models.dev', True)
-    @mock.patch('sharing.models.get_zenodo_file_link')
-    @mock.patch('sharing.models.get_rec_id')
+    @mock.patch('sharing_portal.models.dev', True)
+    @mock.patch('sharing_portal.models.get_zenodo_file_link')
+    @mock.patch('sharing_portal.models.get_rec_id')
     def test_has_both(self, mock_id, mock_link):
         self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
@@ -139,9 +139,9 @@ class ArtifactJupyterHubLinkTest(TestCase):
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
-    @mock.patch('sharing.models.dev', True)
-    @mock.patch('sharing.models.get_zenodo_file_link')
-    @mock.patch('sharing.models.get_rec_id')
+    @mock.patch('sharing_portal.models.dev', True)
+    @mock.patch('sharing_portal.models.get_zenodo_file_link')
+    @mock.patch('sharing_portal.models.get_rec_id')
     def test_just_git(self, mock_id, mock_link):
         self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
@@ -152,9 +152,9 @@ class ArtifactJupyterHubLinkTest(TestCase):
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
-    @mock.patch('sharing.models.dev', True)
-    @mock.patch('sharing.models.get_zenodo_file_link')
-    @mock.patch('sharing.models.get_rec_id')
+    @mock.patch('sharing_portal.models.dev', True)
+    @mock.patch('sharing_portal.models.get_zenodo_file_link')
+    @mock.patch('sharing_portal.models.get_rec_id')
     def test_just_zenodo(self, mock_id, mock_link):
         self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
@@ -164,9 +164,9 @@ class ArtifactJupyterHubLinkTest(TestCase):
         self.assertEqual(jhl, self.hub + ("/hub/import?source=zenodo&src_path="
                                           "file_link"))
 
-    @mock.patch('sharing.models.dev', True)
-    @mock.patch('sharing.models.get_zenodo_file_link')
-    @mock.patch('sharing.models.get_rec_id')
+    @mock.patch('sharing_portal.models.dev', True)
+    @mock.patch('sharing_portal.models.get_zenodo_file_link')
+    @mock.patch('sharing_portal.models.get_rec_id')
     def test_none(self, mock_id, mock_link):
         self.hub = "http://localhost:8000"
         mock_id.return_value = self.the_id
@@ -187,22 +187,22 @@ class ArtifactZenodoLinkTest(TestCase):
                     git_repo='account/repo'
         )
 
-    @mock.patch('sharing.models.dev', True)
+    @mock.patch('sharing_portal.models.dev', True)
     def test_existing_perm_id(self):
         base = "https://sandbox.zenodo.org/record/"
         self.a.permanent_id = "22221"
         link = self.a.zenodo_link()
         self.assertEqual(base+self.a.permanent_id, link)
 
-    @mock.patch('sharing.models.dev', True)
-    @mock.patch('sharing.models.get_permanent_id')
+    @mock.patch('sharing_portal.models.dev', True)
+    @mock.patch('sharing_portal.models.get_permanent_id')
     def test_no_perm_id(self, mock_perm_id):
         base = "https://sandbox.zenodo.org/record/"
         mock_perm_id.return_value = "12345"
         link = self.a.zenodo_link()
         self.assertEqual(base+"12345", link)
 
-    @mock.patch('sharing.models.dev', False)
+    @mock.patch('sharing_portal.models.dev', False)
     def test_non_dev(self):
         base = "https://zenodo.org/record/"
         self.a.permanent_id = "22221"

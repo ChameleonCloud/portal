@@ -6,7 +6,43 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from sharing.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+from sharing_portal.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+
+
+""" Validators """
+def validate_git_repo(repo):
+    """ Validator to make sure that the git repo is in the right format
+
+    Parameters
+    ----------
+    repo : string
+        Git repo to validate
+
+    Returns
+    -------
+    void
+    """
+    error = "This must be in the form user_or_organization/repo_name"
+
+    if not re.match(r"[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+", str(repo)):
+        raise ValidationError(error)
+
+
+def validate_zenodo_doi(doi):
+    """ Validator to make sure that the Zenodo DOI is in the right format
+
+    Parameters
+    ----------
+    doi : string
+        Zenodo doi to validate
+
+    Returns
+    -------
+    void
+    """
+    error = "Please enter a valid Zenodo DOI"
+    if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
+        raise ValidationError(error)
 
 
 class Author(models.Model):
@@ -56,47 +92,11 @@ class Artifact(models.Model):
     Represents artifacts
     These could be research projects, Zenodo depositions, etc
     """
-
-    """ Validators """
-    def validate_git_repo(repo):
-        """ Validator to make sure that the git repo is in the right format
-
-        Parameters
-        ----------
-        repo : string
-            Git repo to validate
-
-        Returns
-        -------
-        void
-        """
-        error = "This must be in the form user_or_organization/repo_name"
-
-        if not re.match(r"[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+", str(repo)):
-            raise ValidationError(error)
-
-    def validate_zenodo_doi(doi):
-        """ Validator to make sure that the Zenodo DOI is in the right format
-
-        Parameters
-        ----------
-        doi : string
-            Zenodo doi to validate
-
-        Returns
-        -------
-        void
-        """
-        error = "Please enter a valid Zenodo DOI"
-        if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
-            raise ValidationError(error)
-
-    """ Fields """
     title = models.CharField(max_length=200)
     authors = models.ManyToManyField(Author, related_name='artifacts')
     short_description = models.CharField(max_length=70, blank=True, null=True)
     description = models.TextField(max_length=5000)
-    image = models.ImageField(upload_to='sharing/static/sharing/images/',
+    image = models.ImageField(upload_to='sharing_portal/images/',
                               blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
