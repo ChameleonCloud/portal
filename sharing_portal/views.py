@@ -288,7 +288,7 @@ def upload(request):
     # If a pk was returned, the upload was successful
     else:
         # Redirect to the detail page for the newly added artifact
-        return HttpResponseRedirect(reverse('sharing_portal:detail', pk))
+        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
 
 class DetailView(generic.DetailView):
