@@ -303,7 +303,12 @@ def edit_artifact(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
 
     if request.method == 'POST':
+        if not (request.user.is_staff or artifact.created_by == request.user):
+            messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
+            return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
+
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
+        
         if form.is_valid():
             artifact.updated_by = request.user
             form.save()
@@ -328,5 +333,7 @@ class DetailView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(DetailView, self).get_context_data(**kwargs)
-        context['editable'] = self.object.created_by == self.request.user
+        context['editable'] = (
+            self.request.user.is_staff or (
+            self.object.created_by == self.request.user))
         return context
