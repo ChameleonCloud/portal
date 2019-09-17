@@ -109,6 +109,9 @@ class Artifact(models.Model):
     updated_at = models.DateTimeField()
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='artifacts',
+                                   null=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
     labels = models.ManyToManyField(Label, related_name='artifacts',
                                     blank=True)
     associated_artifacts = models.ManyToManyField("Artifact",
