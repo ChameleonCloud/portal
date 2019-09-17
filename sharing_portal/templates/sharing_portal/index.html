@@ -17,21 +17,12 @@
   <div class="content scope" controller="ResearchSharingController">
     <h2 style="margin-top:1em">Research</h2>
 
-    {% if messages %}
-    <div>
-      {% for message in messages %}
-      <p class="error_message"> Error: {{ message }} </p>
-      {% endfor %}
-    </div>
-    {% endif %}
-
     <div class="add-artifact-link">
       <a class="btn btn-success" href="https://jupyter.chameleoncloud.org">
         <i class="fa fa-plus-circle"></i>
         Add your research from JupyterHub
       </a>
     </div>
-
 
     <form action="{% url 'sharing_portal:index' %}" method="post" id="form1">
       {% csrf_token %}

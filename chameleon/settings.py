@@ -332,6 +332,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
+        'sharing_portal': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
         'allocations': {
             'handlers': ['console'],
             'level': 'DEBUG',

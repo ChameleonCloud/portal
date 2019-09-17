@@ -1,19 +1,23 @@
 from datetime import datetime
+import logging
 import json
 from urllib.request import urlopen, Request
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.views import generic
 
-from .forms import LabelForm
+from .forms import ArtifactForm, LabelForm
 from .models import Artifact, Author, Label
 from .utils import get_rec_id
 
+LOG = logging.getLogger(__name__)
 
 def artifacts_from_form(data):
     """Return a filtered artifact list from search form data
@@ -130,7 +134,7 @@ def make_author(name_string):
     return author.pk
 
 
-def upload_artifact(doi):
+def upload_artifact(doi, user):
     """ Add item to the portal based on its Zenodo deposition
 
     Parameters
@@ -176,6 +180,8 @@ def upload_artifact(doi):
         launchable=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        created_by=user,
+        updated_by=user,
     )
     item.save()
 
@@ -253,6 +259,7 @@ def index(request):
         return HttpResponse(template.render(context, request))
 
 
+@login_required
 def upload(request):
     """Handle to upload an item from Zenodo to the portal
 
@@ -277,7 +284,7 @@ def upload(request):
     template = loader.get_template('sharing_portal/upload.html')
 
     # Try to upload the deposition with its doi
-    pk = upload_artifact(doi)
+    pk = upload_artifact(doi, user=request.user)
 
     # If no pk was returned, something went wrong
     if pk is None:
@@ -291,10 +298,35 @@ def upload(request):
         return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
 
+@login_required
+def edit_artifact(request, pk):
+    artifact = get_object_or_404(Artifact, pk=pk)
+
+    if request.method == 'POST':
+        form = ArtifactForm(request.POST, request.FILES, instance=artifact)
+        if form.is_valid():
+            artifact.updated_by = request.user
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Success')
+            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+    else:
+        form = ArtifactForm(instance=artifact)
+    
+    template = loader.get_template('sharing_portal/edit.html')
+    context = {
+        'artifact_form': form, 
+        'artifact': artifact,
+        'pk': pk,
+    }
+
+    return HttpResponse(template.render(context, request))
+
 class DetailView(generic.DetailView):
     """Class that returns a basic detailed view of an artifact"""
     model = Artifact
     template_name = 'sharing_portal/detail.html'
 
-    def get_queryset(self):
-        return Artifact.objects.filter()
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context['editable'] = self.object.created_by == self.request.user
+        return context

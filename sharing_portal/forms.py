@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Label
+from .models import Artifact, Label
 
 
 class LabelForm(forms.Form):
@@ -18,3 +18,13 @@ class LabelForm(forms.Form):
 
     # Boolean and vs or search style
     is_or = forms.BooleanField(required=False)
+
+
+class ArtifactForm(forms.ModelForm):
+    class Meta:
+        model = Artifact
+        fields = ['title', 'short_description', 'description', 
+                  'image', 'labels', 'authors', 'doi']
+        widgets = {
+            'doi': forms.TextInput(attrs={'readonly': True}),
+        }

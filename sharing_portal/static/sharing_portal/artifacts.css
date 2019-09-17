@@ -156,6 +156,7 @@ div.artifact-grid-padding {
 .artifact-description {
     max-width: 700px;
     margin-right: 30px;
+    flex: 2;
 }
 
 .related-items {
