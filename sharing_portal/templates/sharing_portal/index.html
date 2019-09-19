@@ -75,7 +75,7 @@
       <div class="artifact-grid-item corner-ribbon-container">
         <div class="thumbnail corner-ribbon-container text-center">
           {% if artifact.image %}
-          <img src="{% static 'sharing_portal/images/' %}{{ artifact.image_filename }}" class="art-icon" alt="Artifact Icon">
+          <img src="{{ artifact.image.url }}" class="art-icon" alt="Artifact Icon">
           {% endif %}
           <div class="caption">
             <h4>

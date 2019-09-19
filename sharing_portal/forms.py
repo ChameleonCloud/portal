@@ -28,3 +28,4 @@ class ArtifactForm(forms.ModelForm):
         widgets = {
             'doi': forms.TextInput(attrs={'readonly': True}),
         }
+        

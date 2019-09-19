@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class SharingConfig(AppConfig):
-    name = 'sharing'
+class SharingPortalConfig(AppConfig):
+    name = 'sharing_portal'
