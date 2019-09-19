@@ -80,10 +80,9 @@ INSTALLED_APPS = (
     # django-cms
     #
     'cms',
-    'treebeard',
-    'mptt',
     'menus',
     'sekizai',
+    'treebeard',
     'djangocms_style',
     'djangocms_column',
     'djangocms_file',

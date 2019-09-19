@@ -55,12 +55,12 @@ urlpatterns = [
         name='outage_detail'),
 
     url(r'^hardware/', include('g5k_discovery.urls', namespace='hardware')),
+    # Unclear if this legacy route still needs to be supported
+    url(r'^user/discovery/', RedirectView.as_view(permanent=True, url=reverse_lazy('hardware:discovery'))),
 
     url(r'^user/projects/', include('projects.urls', namespace='projects')),
 
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
-
-    url(r'^user/discovery/', include('g5k_discovery.urls', namespace='g5k_discovery')),
 
     url(r'^user/early-user-program/', include('cc_early_user_support.urls',
                                               namespace='cc_early_user_support')),
