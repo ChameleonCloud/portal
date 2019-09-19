@@ -1,9 +1,9 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
+from . import views
 
-urlpatterns = patterns(
-    'webinar_registration.views',
-    url(r'^$', 'index', name='index'),
-    url(r'^webinar/(?P<id>\d+)/$', 'webinar', name='webinar'),
-    url(r'^webinar/(?P<id>\d+)/register/$', 'register', name='register'),
-    url(r'^webinar/(?P<id>\d+)/unregister/$', 'unregister', name='unregister'),
-)
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+    url(r'^webinar/(?P<id>\d+)/$', views.webinar, name='webinar'),
+    url(r'^webinar/(?P<id>\d+)/register/$', views.register, name='register'),
+    url(r'^webinar/(?P<id>\d+)/unregister/$', views.unregister, name='unregister'),
+]
