@@ -7,14 +7,22 @@ class LabelForm(forms.Form):
     """
     Form to allow search on the index page
     """
+
+    class LabelChoiceField(forms.ModelChoiceField):
+        """
+        Custom model choice field that can display a choice
+        of existing Label models.
+        """
+        def label_from_instance(self, obj):
+            return str(obj.id)
+
+    
     # Text input search
     search = forms.CharField(required=False)
 
     # Labels to allow user to choose from
-    label_options = [(str(label.id), label.label)
-                     for label in Label.objects.all()]
-    labels = forms.MultipleChoiceField(label='Labels', required=False,
-                                       choices=label_options)
+    labels = LabelChoiceField(label='Labels', required=False,
+                              queryset=Label.objects.all())
 
     # Boolean and vs or search style
     is_or = forms.BooleanField(required=False)
