@@ -2,11 +2,19 @@
 
 ## Dependencies
 
-Running the portal locally or in production requires Docker and Docker-Compose.j
+Running the portal locally or in production requires Docker and Docker-Compose.
 
 ## Configuration
 
 A `.chameleon_env` file is sourced and used to configure some parts of the application.
+
+The database is configured via the following environment variables:
+
+- `DB_HOST`: The hostname to connect to, e.g., database.example.com
+- `DB_PORT`: The MySQL port, e.g., 3306
+- `DB_NAME`: The database name
+- `DB_USER`: The username to authenticate
+- `DB_PASSWORD`: The password to authenticate
 
 The following environment variables must be configured for `pytas`:
 
@@ -21,20 +29,9 @@ The following environment variables must be configured for `djangoRT`:
 - `RT_PASSWORD`: the RT account password
 - `RT_DEFAULT_QUEUE`: The default queue to which tickets will be submitted
 
-If you omit the `DB_*` environment variables, Django will create and use
-the default SQLite database. This is intended only for development/testing.
-For production, provide the following environment variables to configure the
-MySQL database connection:
-
-- `DB_HOST`: The hostname to connect to, e.g., database.example.com
-- `DB_PORT`: The MySQL port, e.g., 3306
-- `DB_NAME`: The database name
-- `DB_USER`: The username to authenticate
-- `DB_PASSWORD`: The password to authenticate
-
 ## Running the portal
 
-~~Use the docker container! See the `Dockerfile`~~ Use [Docker Compose](https://docs.docker.com/compose/)! The portal now uses the [reference-api](https://github.com/ChameleonCloud/reference-api) container for Resource Discovery. See [docker-compose.yml](docker-compose.yml) and [the reference-api repository](https://github.com/ChameleonCloud/reference-api).
+Use [Docker Compose](https://docs.docker.com/compose/)! The portal now uses the [reference-api](https://github.com/ChameleonCloud/reference-api) container for Resource Discovery. See [docker-compose.yml](docker-compose.yml) and [the reference-api repository](https://github.com/ChameleonCloud/reference-api).
 
 #### Development
 
@@ -51,7 +48,7 @@ docker build -t referenceapi .
 
 2. Seed the local database (optional, but recommended). Since Portal is a CMS-based system, much of the content is embedded within the database. It can be helpful to seed your local environment with a dump from an existing database (e.g. the development database). You can do a `mysqldump` of the database and extract the SQL dump file to the `./db` folder. This folder is mounted inside a MariaDB container when running Portal locally, and this SQL dump will be automatically detected and used to seed the database when it starts.
 
-3. Seed the media repository (optiona, but recommended.) If you have seeded the local database, there will be links to files assumed to exist in the media folder. If you want these files to be properly served/displayed locally, you will also have to copy down these media files. A simple way is to create a tarball and extract it to `./media`, which will be mounted as a media directory in the local container.
+3. Seed the media repository (optional, but recommended.) If you have seeded the local database, there will be links to files assumed to exist in the media folder. If you want these files to be properly served/displayed locally, you will also have to copy down these media files. A simple way is to create a tarball and extract it to `./media`, which will be mounted as a media directory in the local container.
 
 4. Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
 
@@ -79,7 +76,7 @@ The Production `docker-compose.yml` would look more like the following:
 
 ```yaml
 portal:
-  image: mrhanlon/chameleon_portal:v#.#.#
+  image: docker.chameleoncloud.org/portal:1.8
   env_file:
     - /path/to/chameleon.env
   volumes:
@@ -93,9 +90,6 @@ portal:
     - 443:443
   links:
     - referenceapi:referenceapi
-  log_driver: syslog
-  log_opt:
-    syslog-tag: portal
 referenceapi:
   image: referenceapi:latest
   ports:
