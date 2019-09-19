@@ -16,12 +16,12 @@ contextlib2==0.5.5
 cookies==2.2.1
 cryptography==2.7
 debtcollector==1.21.0
-Django==1.8.19
-django-angular==0.7.15
+Django==1.9.13
+django-angular==0.8.6
 django-appconf==1.0.3
 django-appdata==0.2.1
 django-bootstrap3==9.1.0
-django-ckeditor==4.5.1
+django-ckeditor==5.3.1
 django-classy-tags==0.8.0
 django-cms==3.5.3
 django-filer==1.5.0
