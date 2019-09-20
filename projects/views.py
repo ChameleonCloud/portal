@@ -245,7 +245,7 @@ def update_user_keystone_project_membership(username, tas_project, add_member=Tr
             if not ks_user.enabled:
                 ks_client.users.update(ks_user,enabled=True)
         else:
-            email = User.objects.get(username=username).email
+            email = TASClient().get_user(username=username).email
             ks_user = create_user(username, email, None, ks_client)
         if not project:
             project = create_ks_project(tas_project, ks_client)
