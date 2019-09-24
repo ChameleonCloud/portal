@@ -151,7 +151,7 @@ class Artifact(models.Model):
         - Uses self.doi
         """
 
-        if SHARING_PORTAL_ZENODO_SANDBOX:
+        if ZENODO_SANDBOX:
             base_url = "https://sandbox.zenodo.org/record/"
         else:
             base_url = "https://zenodo.org/record/"
