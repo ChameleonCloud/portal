@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.views import generic
 
+from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from .forms import ArtifactForm, LabelForm
 from .models import Artifact, Author, Label
 from .utils import get_rec_id
@@ -151,7 +152,7 @@ def upload_artifact(doi, user):
     record_id = get_rec_id(doi)
 
     # Use the appropriate api base
-    if settings.DEBUG:
+    if ZENODO_SANDBOX:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"
@@ -223,7 +224,9 @@ def index(request):
     template = loader.get_template('sharing_portal/index.html')
 
     # Initialize the context to return
-    context = {}
+    context = {
+        'hub_url': JUPYTERHUB_URL,
+    }
 
     # If a 'post' request was made, there are search parameters
     if request.method == 'POST':
@@ -234,7 +237,6 @@ def index(request):
             try:
                 # Pass in form so that the template can show search parameters
                 context['form'] = form
-
                 # Pass in the filtered list of artifacts to display
                 context['artifacts'] = artifacts_from_form(form.cleaned_data)
             except Exception as e:

@@ -5,6 +5,8 @@ from django.conf import settings
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
 
+from .conf import ZENODO_SANDBOX
+
 
 def get_rec_id(doi):
     """Parses Zenodo DOI to isolate record id
@@ -52,7 +54,7 @@ def get_zenodo_file_link(record_id):
     """
 
     # Use Zenodo sandbox if in development
-    if settings.DEBUG:
+    if ZENODO_SANDBOX:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"
@@ -82,7 +84,7 @@ def get_zenodo_file_link(record_id):
 
 def get_permanent_id(doi):
     record_id = get_rec_id(doi)
-    if settings.DEBUG:
+    if ZENODO_SANDBOX:
         api = "https://sandbox.zenodo.org/api/records/"
     else:
         api = "https://zenodo.org/api/records/"

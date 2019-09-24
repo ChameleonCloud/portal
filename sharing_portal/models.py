@@ -2,11 +2,17 @@ import json
 import re
 from urllib.request import urlopen, Request
 
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+    
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from sharing_portal.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 
 
 """ Validators """
@@ -145,14 +151,14 @@ class Artifact(models.Model):
         - Uses self.doi
         """
 
-        # Use sandbox if in dev mode
-        if settings.DEBUG:
+        if SHARING_PORTAL_ZENODO_SANDBOX:
             base_url = "https://sandbox.zenodo.org/record/"
         else:
             base_url = "https://zenodo.org/record/"
 
         if not self.permanent_id:
             self.permanent_id = get_permanent_id(self.doi)
+
         return base_url + self.permanent_id
 
     def jupyterhub_link(self):
@@ -171,29 +177,23 @@ class Artifact(models.Model):
         -----
         - Uses self.git_repo or self.doi
         """
-        # Hub url is different in development
-        if settings.DEBUG:
-            hub_url = "http://localhost:8000"
-        else:
-            hub_url = "https://jupyter.chameleoncloud.org"
-        import_indicator = "/hub/import?"
-
-        # Add import indicator
-        base_url = hub_url + import_indicator
+        base_url = JUPYTERHUB_URL + '/hub/import'
 
         if self.git_repo:
-            # Source path is just the git repo
-            src_args = "source=git&src_path=" + self.git_repo + ".git"
+            query = dict(
+                source='github',
+                src_path=self.git_repo,
+            )
         elif self.doi:
-            # Build source path based on the record's files
-            zenodo_id = get_rec_id(self.doi)
-            zen_path = get_zenodo_file_link(zenodo_id)
-            src_args = "source=zenodo&src_path="+zen_path
+            query = dict(
+                source=('zenodo_sandbox' if ZENODO_SANDBOX else 'zenodo'),
+                src_path=self.doi,
+            )
         else:
             raise Exception("Non-launchable artifact has no JupyterHub link")
 
         # Add query parameters before returning
-        return base_url + src_args
+        return base_url + '?' + urlencode(query)
 
     def related_papers(self):
         """ Method to find related artifacts based on labels
