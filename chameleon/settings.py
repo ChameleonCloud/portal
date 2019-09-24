@@ -36,8 +36,11 @@ OPENSTACK_SERVICE_PASSWORD = os.environ.get('OPENSTACK_SERVICE_PASSWORD', '')
 OPENSTACK_SERVICE_PROJECT_ID = os.environ.get('OPENSTACK_SERVICE_PROJECT_ID', '')
 ## Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get('SSO_CALLBACK_PROTOCOL', 'https')
-
 SSO_CALLBACK_VALID_HOSTS = os.environ.get('SSO_CALLBACK_VALID_HOSTS', [])
+
+# Sharing portal
+SHARING_PORTAL_JUPYTERHUB_URL = os.environ.get('SHARING_PORTAL_JUPYTERHUB_URL', 'https://jupyter.chameleoncloud.org')
+SHARING_PORTAL_ZENODO_SANDBOX = os.environ.get('SHARING_PORTAL_ZENODO_SANDBOX') is not None
 
 #TEMPLATE_DEBUG = DEBUG
 
