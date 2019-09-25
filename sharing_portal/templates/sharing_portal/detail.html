@@ -1,10 +1,8 @@
 {% extends 'layout/default.html' %}
-{% load i18n cms_tags staticfiles pipeline bootstrap3 %}
+{% load i18n cms_tags markdown_deux_tags staticfiles pipeline bootstrap3 %}
 {% block title %}Sharing Portal | Chameleon Cloud {% endblock %}
 {% block styles %}
 {{ block.super }}
-<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/slider.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
 {% endblock %}
 {% block scripts %}
@@ -46,38 +44,36 @@
       <hr>
       {% endif %}
 
-      <h4> Description </h4>
-      <p width="100%"> {{ artifact.description }} </p>
+      <div>
+        {{ artifact.description|markdown|safe }}
+      </div>
 
       <hr>
 
-      <h4> Authors </h4>
+      <h4>Authors</h4>
       {% for author in artifact.authors.all %}
-      <p> {{ author.title }} {{ author.first_name }} {{ author.last_name }} </p>
+      <p>{{ author.title }} {{ author.first_name }} {{ author.last_name }}</p>
       {% endfor %}
 
       <hr>
 
-      {% if artifact.git_repo != "" and artifact.git_repo is not None %}
+      {% if artifact.git_repo %}
       <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
         View on Github
       </a>
       {% endif %}
-      {% if artifact.doi != "" and artifact.doi is not None %}
+      {% if artifact.doi %}
       <a class="btn btn-primary" href="{{ artifact.zenodo_link }}" target="_blank">
         View on Zenodo
       </a>
       {% endif %}
-      {% if artifact.git_repo is not None or artifact.doi is not None %}
-      <hr>
-      {% endif %}
 
       {% if artifact.labels.all %}
-      <h4> Labels </h4>
+      <hr>
+      <h4>Labels</h4>
       {% for label in artifact.labels.all %}
       <span class="badge">{{ label.label }} </span>
       {% endfor %}
-      <hr>
       {% endif %}
     </div>
     <div class="related-items">
