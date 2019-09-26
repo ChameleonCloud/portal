@@ -32,11 +32,10 @@ WHITELISTED_PROJECTS = ['openstack', 'maintenance']
 def horizon_sso_login(request):
     unscoped_token = request.session.get('unscoped_token')
     '''
-    Because some users with previously active projects may be able to get auth tokens even if they can't access Horizon,
-    we check with Keystone to verify an active project exists
-    If user has an active project, we proceed to log them in
+    First, we check with Keystone to verify an active project exists (that process includes synchronizing TAS & Keystone projects)
+    If a user has a token and active project, we send the user to Horizon
 
-    Users who don't have active projects in Keystone are checked against TAS to see if they have approved projects, if they do
+    Users who don't have active projects are checked against TAS to see if they have approved projects, if they do
     we check the project start date and let them know when they can access Horizon
     '''
     active_ks_projects_found = False
@@ -48,38 +47,46 @@ def horizon_sso_login(request):
             active_ks_projects_found = user_has_active_ks_project(ks, request.user)
             logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
         except Exception as e:
-            ## if here, we have a token, but could not use it to connect to keystone so let's invalidate the token
-            request.session['unscoped_token'] = None
-            unscoped_token = None
             logger.error(e)
-    if not active_ks_projects_found: # then check with TAS
-        chameleon_projects = get_user_chameleon_projects(request.user)
-        if chameleon_projects.get('approved_projects') and not chameleon_projects.get('active_projects'):
-            earliest_start_date = None
-            for p in chameleon_projects.get('approved_projects'):
-                for a in p.allocations:
-                    curr_alloc_date = datetime.strptime(a.start,'%Y-%m-%dT%H:%M:%SZ')
-                    if earliest_start_date is None or curr_alloc_date < earliest_start_date:
-                        earliest_start_date = curr_alloc_date
-            # send users to a page that lets them know when their approved project begins
-            logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page')
-            return render(request, 'sso/chameleon_project_approved.html', {'active_date': datetime.strftime(earliest_start_date,'%B %d, %Y at %I:%M %p'),})
+            # Error accessing Keystone, if this is the result of a form post, let's not propogate form posts any further
+            if request.method == 'POST':
+                logger.error("Encountered an error while accessing keystone to check for user projects, lets send to unavailable page")
+                return HttpResponseRedirect('/sso/horizon/unavailable')
+        if active_ks_projects_found: 
+            '''
+            If we're here, then users have an active project and an unscoped token, so we proceed to log them in to Horizon
+            '''
+            try:
+                return redirect_to_horizon(request)
+            except Exception as e:
+                logger.error(e)
+                return HttpResponseRedirect('/sso/horizon/unavailable')
         else:
-            '''
-            If we're here the user has an active project in TAS but is either missing a token or the active projects in TAS don't exist in Keystone
-            Failing to retrieve an unscoped token or projects from KS when the user has an active project in TAS may happen if the user's account is in a transient state so
-            We give the user a chance to retrieve a token
-            '''
-            if not unscoped_token:
-                return manual_ks_login(request)
+            # no projects found in Keystone and we also did a sync at "user_has_active_ks_project(ks, request.user)", so check with TAS for approved projects
+            chameleon_projects = get_user_chameleon_projects(request.user)
+            # there are no approved projects, let's check for pending projects and their start-date
+            if chameleon_projects.get('approved_projects'):
+                earliest_start_date = None
+                for p in chameleon_projects.get('approved_projects'):
+                    for a in p.allocations:
+                        curr_alloc_date = datetime.strptime(a.start,'%Y-%m-%dT%H:%M:%SZ')
+                        if earliest_start_date is None or curr_alloc_date < earliest_start_date:
+                            earliest_start_date = curr_alloc_date
+                # send users to a page that lets them know when their approved project begins
+                logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page')
+                return render(request, 'sso/chameleon_project_approved.html', {'active_date': datetime.strftime(earliest_start_date,'%B %d, %Y at %I:%M %p'),})
+            else:
+                return HttpResponseRedirect('/sso/horizon/noprojects')
     '''
-    If we're here, then users have an active project and unscoped token, so we proceed to log them in to Horizon
+    Don't propogate form posts further from here, otherwise we end up in a loop
     '''
-    try:
-        return redirect_to_horizon(request)
-    except Exception as e:
-        logger.error(e)
-        return HttpResponseRedirect('/')
+    if request.method == 'POST':
+        return HttpResponseRedirect('/sso/horizon/unavailable')
+    '''
+    if the request is made with "GET", we can try and get a token
+    '''
+    logger.info("User has no Keystone token or an error occurred accessing Keystone, give the user a chance to get a token at the manual login form")
+    return manual_ks_login(request)
 
 def redirect_to_horizon(request):
     ## first we get the url params host, webroot, and next
@@ -175,6 +182,7 @@ def manual_ks_login(request):
                 logger.info('User: ' + request.user.username + ' could not retrieve unscoped token via manual_ks_login form.')
                 return HttpResponseRedirect('/sso/horizon/unavailable')
 
+def manual_ks_login_form(request):
     form = KSAuthForm(request)
     context = {
         'form': form,
@@ -182,6 +190,12 @@ def manual_ks_login(request):
     form.fields['username'].widget.attrs['readonly'] = True
     return render(request, 'sso/manual_ks_login.html', context)
 
+def no_project_found(request):
+    #     """
+    #     If we're here we've tried to get a token from ks and failed,
+    #     that means we can't log in to Horizon so we send them to a help page
+    #     """
+    return render(request, 'sso/keystone_project_not_found.html', None)
 
 @login_required
 def horizon_sso_unavailable(request):
@@ -189,7 +203,7 @@ def horizon_sso_unavailable(request):
     #     If we're here we've tried to get a token from ks and failed,
     #     that means we can't log in to Horizon so we send them to a help page
     #     """
-    return render(request, 'sso/keystone_login_unavailable.html', None)
+    return render(request, 'sso/keystone_project_not_found.html', None)
 
 class KSAuthForm(AuthenticationForm):
     def __init__(self, request=None, *args, **kwargs):
