@@ -260,7 +260,7 @@ def create_ks_project(tas_project, ks_client):
     if project_extras:
         name = project_extras[0].nickname
     ks_project = ks_client.projects.create(charge_code=tas_project.chargeCode,name=name, \
-        domain=ks_client.user_domain_id,description=project_description)
+        domain=ks_client.user_domain_id,description=tas_project.description)
     return ks_project
 
 def get_keystone_user(ks_client, username):
