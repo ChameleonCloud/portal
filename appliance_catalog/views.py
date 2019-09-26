@@ -25,6 +25,8 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client
 from glanceclient import Client
 from smtplib import SMTPException
+from six.moves import http_client, urllib
+import uuid
 
 logger = logging.getLogger('default')
 
@@ -141,8 +143,23 @@ def get_appliance_template(request, pk):
     logger.info('Getting and displaying YAML template for appliance')
 
     appliance = Appliance.objects.filter(pk=pk).get()
-    return HttpResponse(appliance.template, content_type="text/yaml")
 
+    # send message to GA
+    if settings.GOOGLE_ANALYTICS_PROPERTY_ID:
+        try:
+            params = urllib.parse.urlencode({'v': 1,
+                                             'tid': settings.GOOGLE_ANALYTICS_PROPERTY_ID,
+                                             'cid': uuid.uuid1(),
+                                             't': 'event',
+                                             'ec': 'heat_template',
+                                             'ea': 'download',
+                                             'el': '{}-{}'.format(pk, appliance.name),
+                                             'ev': 0})
+            conn = http_client.HTTPConnection('www.google-analytics.com')
+            conn.request('POST', '/collect', params)
+        except:
+            logger.exception("Failed to report to Google Analytics")
+    return HttpResponse(appliance.template, content_type="text/yaml")
 
 def _add_keywords(request, cleaned_data, appliance):
     logger.info('Add keyword requested by user %s with data: %s. Appliance %s will be tagged with this keyword.', request.user.username, cleaned_data, appliance)
