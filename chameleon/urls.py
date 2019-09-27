@@ -2,13 +2,13 @@ from cms.sitemaps import CMSSitemap
 from chameleon import views as chameleon_views
 from chameleon import os_login as chameleon_os_login
 from chameleon_mailman import views as chameleon_mailman_views
+from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.auth.views import logout
-from django.conf import settings
 from django.views.generic import RedirectView
 from django.views.static import serve
 from tas import views as tas_views
@@ -47,6 +47,8 @@ urlpatterns = [
 
     url(r'^appliances/', include('appliance_catalog.urls', namespace='appliance_catalog')),
 
+    url(r'^share/', include('sharing_portal.urls', namespace='sharing_portal')),
+
     url(r'^news/', include('user_news.urls', namespace='user_news')),
     url(r'^feed\.xml', RedirectView.as_view(permanent=True, url=reverse_lazy('user_news:feed'))),
     url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
@@ -76,12 +78,4 @@ urlpatterns = [
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
     url(r'^', include('blog_comments.urls')),
     url(r'^', include('cms.urls')),
-]
-
-if settings.DEBUG:
-    urlpatterns = [
-        url(r'^media/(?P<path>.*)$', serve,  # NOQA
-            {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-    ] + staticfiles_urlpatterns() + urlpatterns  # NOQA
-else:
-    urlpatterns = staticfiles_urlpatterns() + urlpatterns
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

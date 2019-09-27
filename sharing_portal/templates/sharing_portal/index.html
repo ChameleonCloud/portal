@@ -1,0 +1,103 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags staticfiles pipeline bootstrap3 %}
+{% block title %}Sharing Portal | Chameleon Cloud {% endblock %}
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'sharing_portal/dropdown.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div id="content-main" class="artCatalog" app="researchSharingApp">
+
+  <div class="content scope" controller="ResearchSharingController">
+    <h2 style="margin-top:1em">Research</h2>
+
+    <div class="add-artifact-link">
+      <a class="btn btn-success" href="{{ hub_url }}">
+        <i class="fa fa-plus-circle"></i>
+        Add your research from JupyterHub
+      </a>
+    </div>
+
+    <form action="{% url 'sharing_portal:index' %}" method="post" id="form1">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_search" style="font-weight:normal;display:block">
+          <input class="form-control pristine untouched valid" type="text" name="search" id="id_search" placeholder="Search by name, description or author." {% if form.search.value %}value="{{ form.search.value }}" {% endif %}>
+          </input>
+        </label>
+      </div>
+
+      <div class="form-container">
+        <div class="dropdown">
+          <label for="id_labels">
+            <button type="button" onclick="dropdown()" class="dropdown-toggle btn btn-default">
+              Filter by label <span class="caret"> </span>
+            </button>
+
+            <select name="labels" id="id_labels" class="dropdown-content" multiple>
+              {% for value, text in form.fields.labels.choices %}
+              <option value="{{ value }}" {% if value in form.labels.value %}selected{% endif %}>
+                &nbsp;{{ text }}
+              </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
+        <div>
+          <label class="switch" id="id_is_or">
+            <input type="checkbox" id="id_is_or" name="is_or" {% if form.is_or.value %}checked{% endif %} />
+            <div class="slider round">
+              <span class="on">OR</span>
+              <span class="off">AND</span>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <input type="submit" value="Search" class="btn btn-primary">
+        </div>
+        <div>
+          <input type="button" value="Reset" class="btn btn-default" onClick='location=location'>
+        </div>
+      </div>
+    </form>
+
+    <div class="artifact-grid artifact-content" id="index-grid">
+      {% for artifact in artifacts %}
+      <div class="artifact-grid-item corner-ribbon-container">
+        <div class="thumbnail corner-ribbon-container text-center">
+          {% if artifact.image %}
+          <img src="{{ artifact.image.url }}" class="art-icon" alt="Artifact Icon">
+          {% endif %}
+          <div class="caption">
+            <h4>
+              <a href="{% url 'sharing_portal:detail' artifact.id %}" class="binding">
+                {{ artifact.title }}
+              </a>
+            </h4>
+            <p bind="artifact.short_description" class="binding">
+              {{ artifact.short_description }}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+    </div>
+    <div style="margin-top: 15px;">
+      {% if search_failed %}
+      Sorry, something went wrong!
+      {% else %}
+      No results found. Please widen your search.
+      {% endif %}
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

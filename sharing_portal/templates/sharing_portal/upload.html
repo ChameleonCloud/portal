@@ -1,0 +1,16 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags staticfiles pipeline bootstrap3 %}
+{% block title %}Sharing Portal | Chameleon Cloud {% endblock %}
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'sharing_portal/dropdown.js' %}"></script>
+{% endblock %}
+{% block content %}
+<div id="content-main" class="artCatalog" app="researchSharingApp">
+  <p> Please wait while your content is uploaded </p>
+</div>
+{% endblock %}
