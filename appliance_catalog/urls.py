@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^create/image/$', views.app_create_image, name='app_create_image'),
     url(r'^template/(?P<resource>.+?)\.html/$', views.app_template, name='app_template'),
     url(r'^api/appliances/$', views.get_appliances, name='get_appliances'),
+    url(r'^api/appliances/uuid/$', views.get_published_appliances_uuid, name='get_published_appliances_uuid'),
     url(r'^api/appliances/(?P<pk>\d+)/$', views.get_appliance, name='get_appliance'),
     url(r'^api/appliances/appliance_id/(?P<appliance_id>[0-9a-f-]+)/$', views.get_appliance_by_id, name='get_appliance_by_id'),
     url(r'^api/appliances/(?P<pk>\d+)/template$', views.get_appliance_template, name='get_appliance_template'),

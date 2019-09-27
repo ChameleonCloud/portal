@@ -74,6 +74,27 @@ def get_appliances(request):
     }
     return JsonResponse(response)
 
+def get_published_appliances_uuid(request):
+    appliances = Appliance.objects.exclude(needs_review = True)
+    appliances_by_uuid = {}
+    for appliance in appliances:
+        if appliance.chi_uc_appliance_id:
+            appliances_by_uuid[appliance.chi_uc_appliance_id] = \
+            {'project_supported': appliance.project_supported, 'id': appliance.id}
+        if appliance.chi_tacc_appliance_id:
+            appliances_by_uuid[appliance.chi_tacc_appliance_id] = \
+            {'project_supported': appliance.project_supported, 'id': appliance.id}
+        if appliance.kvm_tacc_appliance_id:
+            appliances_by_uuid[appliance.kvm_tacc_appliance_id] = \
+            {'project_supported': appliance.project_supported, 'id': appliance.id}
+
+    response = {
+        'status': 'success',
+        'message': '',
+        'result': appliances_by_uuid
+    }
+    return JsonResponse(response)
+
 
 def app_detail(request, pk):
     logger.info('Detail requested for appliance id: %s.', pk)
