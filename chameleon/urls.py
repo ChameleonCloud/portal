@@ -74,6 +74,10 @@ urlpatterns = [
     url(r'^mailman/new_members.txt$',
         chameleon_mailman_views.mailman_export_list, name='mailman_export_list'),
 
+    # ensure default djangocms_blog namespace is registered at /blog
+    # (the auto-setup hook doesn't work well if the page is moved in the hierarchy)
+    url(r'^blog/', include('djangocms_blog.urls', namespace='Blog')),
+
     # cms urls
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
     url(r'^', include('blog_comments.urls')),
