@@ -1,21 +1,30 @@
 {% load i18n menu_tags cache %}
 
 {% for child in children %}
-<li class="{% if child.ancestor or child.selected or request.get_full_path == child.url %}active{% endif %} {% if child.children %}dropdown{% endif %} {{child.attr.class}}">
+  {% if child.menu_level < 1 %}
+
+    {# Render interactive dropdowns on first-level navigation #}
+    <li class="{% if child.ancestor or child.selected or request.get_full_path == child.url %}active {% endif %}{% if child.children %}dropdown {% endif %}{{ child.attr.class }}">
+      {% if child.children %}
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ child.get_menu_title | safe }} <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          {% show_menu from_level to_level extra_inactive extra_active template "" "" child %}
+        </ul>
+      {% else %}
+        <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
+      {% endif %}
+    </li>
+
+  {% else %}
+
+    {# Render deeper hierarchies inline with static dividers #}
     {% if child.children %}
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ child.get_menu_title | safe }} <span class="caret"></span></a>
-      <ul class="dropdown-menu">
-        <!--
-        {% if preserve_parent %}
-          <li {%if child.selected %}class="active"{% endif %}>
-            <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
-          </li>
-        {% endif %}
-        -->
-        {% show_menu from_level to_level extra_inactive extra_active template "" "" child %}
-      </ul>
+      <div class="dropdown-divider">{{ child.get_menu_title | safe }}</div>
+      {% show_menu from_level to_level extra_inactive extra_active template "" "" child %}
     {% else %}
-      <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
+      <li class="{% if child.ancestor or child.selected or request.get_full_path == child.url %}active{% endif %} {% if child.children %}dropdown{% endif %} {{child.attr.class}}">
+          <a href="{{ child.get_absolute_url }}"><span>{{ child.get_menu_title | safe }}</span></a>
+      </li>
     {% endif %}
-</li>
+  {% endif %}
 {% endfor %}

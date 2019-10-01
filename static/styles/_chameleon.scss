@@ -134,6 +134,25 @@ html, body {
   }
 }
 
+.dropdown-divider {
+  margin-top: 5px;
+  padding: 3px 20px;
+  color: $grey-med;
+}
+
+.dropdown-menu > li.new > a > span::after {
+  content: "New";
+  display: inline-block;
+  background: darken($brand-primary, 5%);
+  color: white;
+  margin-left: 10px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 12px;
+  position: relative;
+  top: -1px;
+}
+
 .site-header {
   background-image: url(../images/nav-bg.jpg);
 

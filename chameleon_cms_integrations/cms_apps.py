@@ -41,3 +41,11 @@ class ApplianceCatalogApphook(CMSApp):
 
     def get_urls(self, page=None, language=None, **kwargs):
         return ['appliance_catalog.urls']
+
+@apphook_pool.register
+class SharingPortalApphook(CMSApp):
+    name = _('Sharing Portal')
+    app_name = 'sharing_portal'
+
+    def get_urls(self, page=None, language=None, **kwargs):
+        return ['sharing_portal.urls']
