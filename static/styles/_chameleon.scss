@@ -140,6 +140,10 @@ html, body {
   color: $grey-med;
 }
 
+.navbar-nav .open .dropdown-divider {
+  color: white;
+}
+
 .dropdown-menu > li.new > a > span::after {
   content: "New";
   display: inline-block;
