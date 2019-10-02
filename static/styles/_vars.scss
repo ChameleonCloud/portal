@@ -4,13 +4,14 @@ $brand-info: #239ff0;
 $brand-success: #74a93c;
 $brand-danger: red;
 $grey: #7e7e7e;
+$grey-med: #aaaaaa;
 $grey-light: #e5e5e5;
 $grey-lighter: #f2f2f2;
 
 $grey-dark: #494949;
 
 $link-color: #4564E2;
-$link-hover-color: darken(#4564E2, 10%);
+$link-hover-color: darken($link-color, 10%);
 $link-active-color: $link-hover-color;
 
 $font-size-base: 16px;

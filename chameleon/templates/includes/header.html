@@ -17,15 +17,10 @@
       </div>
       <div class="collapse navbar-collapse" id="main-nav">
         <ul class="nav navbar-nav">
-          <li><a href="/"><i class="fa fa-home"></i><span class="sr-only">Home</span></a></li>
-          {% with preserve_parent=True %}
-            {% show_menu_below_id "main_menu" 0 1 100 100 "includes/navigation.html" %}
-          {% endwith %}
+          {% show_menu_below_id "main_menu" 0 2 100 100 "includes/navigation.html" %}
         </ul>
         <ul class="nav navbar-nav navbar-right navbar-user">
-          {% with preserve_parent=False %}
-            {% show_menu_below_id "user_menu" 0 1 100 100 "includes/navigation.html"%}
-          {% endwith %}
+          {% show_menu_below_id "user_menu" 0 1 100 100 "includes/navigation.html"%}
         </ul>
       </div>
     </nav>

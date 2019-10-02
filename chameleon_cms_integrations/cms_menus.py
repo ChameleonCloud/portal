@@ -1,4 +1,4 @@
-from menus.base import NavigationNode
+from menus.base import NavigationNode, Modifier
 from cms.menu_bases import CMSAttachMenu
 from menus.menu_pool import menu_pool
 from django.utils.translation import ugettext_lazy as _
@@ -34,19 +34,11 @@ class UserMenu(CMSAttachMenu):
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Experiment'), "/docs/getting-started/experiment-quickstart/", menu_id, root_id)
-        nodes.append(n)
-
-        #menu_id += 1
-        #n = NavigationNode(_('Early User Program'), "/user/early-user-program/", menu_id, root_id)
-        #nodes.append(n)
-
-        menu_id += 1
-        n = NavigationNode(_('HelpDesk'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('Help Desk'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('HelpDesk'), "/user/help/", menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Help Desk'), "/user/help/", menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
@@ -85,4 +77,27 @@ class UserMenu(CMSAttachMenu):
 
         return nodes
 
+
+class NewContentModifier(Modifier):
+    """
+    This modifier tags certain pages (by title) as "new", so additional
+    UI can be shown to highlight them in the navbar.
+    """
+    def modify(self, request, nodes, namespace, root_id, post_cut, breadcrumb):
+        # only do something when the menu has already been cut
+        if post_cut:
+            [self.mark_new(node) for node in nodes]
+
+        return nodes
+
+    def mark_new(self, node):
+        reverse_id = node.attr.get('reverse_id')
+
+        if reverse_id and reverse_id in ['jupyter', 'share']:
+            node.attr['class'] = 'new'
+
+        if node.children:
+            [self.mark_new(child) for child in node.children]
+
+menu_pool.register_modifier(NewContentModifier)
 menu_pool.register_menu(UserMenu)
