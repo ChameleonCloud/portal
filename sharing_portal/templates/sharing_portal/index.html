@@ -4,6 +4,7 @@
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/slider.css' %}">
 {% endblock %}
 {% block scripts %}
 {{ block.super }}
@@ -13,7 +14,7 @@
 <div id="content-main" class="artCatalog" app="researchSharingApp">
 
   <div class="content scope" controller="ResearchSharingController">
-    <h2 style="margin-top:1em">Research</h2>
+    <h2>All artifacts</h2>
 
     <div class="add-artifact-link">
       <a class="btn btn-success" href="{{ hub_url }}">
@@ -26,10 +27,15 @@
       {% csrf_token %}
 
       <div class="form-group">
-        <label for="id_search" style="font-weight:normal;display:block">
+        <div class="input-group">
           <input class="form-control pristine untouched valid" type="text" name="search" id="id_search" placeholder="Search by name, description or author." {% if form.search.value %}value="{{ form.search.value }}" {% endif %}>
-          </input>
-        </label>
+          <span class="input-group-btn">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </span>
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" onClick='location=location'>Reset</button>
+          </span>
+        </div>
       </div>
 
       <div class="form-container">
@@ -57,13 +63,6 @@
               <span class="off">AND</span>
             </div>
           </label>
-        </div>
-
-        <div>
-          <input type="submit" value="Search" class="btn btn-primary">
-        </div>
-        <div>
-          <input type="button" value="Reset" class="btn btn-default" onClick='location=location'>
         </div>
       </div>
     </form>

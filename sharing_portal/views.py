@@ -39,9 +39,9 @@ def artifacts_from_form(data):
         Filtered based on search parameters
     """
 
-    chosen_labels = data.get('labels', [])
-    keywords = data.get('search', '')
-    is_or = data.get('is_or', False)
+    chosen_labels = data.get('labels') or []
+    keywords = data.get('search') or ''
+    is_or = data.get('is_or') or False
 
     # Start with the full list of artifacts
     filtered = Artifact.objects.all()
@@ -240,6 +240,7 @@ def index(request):
                 # Pass in the filtered list of artifacts to display
                 context['artifacts'] = artifacts_from_form(form.cleaned_data)
             except Exception as e:
+                LOG.exception(e)
                 # If something goes wrong, fail gracefully
                 context['search_failed'] = True
             else:

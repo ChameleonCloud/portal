@@ -2,10 +2,14 @@
   display: none !important;
 }
 
+.artCatalog {
+    position: relative;
+}
+
 .artCatalog .add-artifact-link {
     position: absolute;
-    top: 0;
-    right: 15px;
+    top: -10px;
+    right: 0;
 }
 
 @media (max-width:767px) {
