@@ -311,6 +311,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'chameleon_cms_integrations': {
+            'handlers': ['console'], 
+            'level': 'INFO'
+        },
         'chameleon_openid': {
             'handlers': ['console'],
             'level': 'DEBUG',

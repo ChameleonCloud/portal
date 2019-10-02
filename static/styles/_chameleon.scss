@@ -140,8 +140,10 @@ html, body {
   color: $grey-med;
 }
 
-.navbar-nav .open .dropdown-divider {
-  color: white;
+@media screen and (max-width:767px) {
+  .dropdown-divider {
+    color: white;
+  }
 }
 
 .dropdown-menu > li.new > a > span::after {

@@ -77,6 +77,7 @@ class UserMenu(CMSAttachMenu):
 
         return nodes
 
+
 class NewContentModifier(Modifier):
     """
     This modifier tags certain pages (by title) as "new", so additional
@@ -90,8 +91,11 @@ class NewContentModifier(Modifier):
         return nodes
 
     def mark_new(self, node):
-        if node.title in ['Jupyter', 'Ceres']:
+        reverse_id = node.attr.get('reverse_id')
+
+        if reverse_id and reverse_id in ['jupyter', 'share']:
             node.attr['class'] = 'new'
+
         if node.children:
             [self.mark_new(child) for child in node.children]
 
