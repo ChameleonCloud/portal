@@ -35,7 +35,6 @@ urlpatterns = [
     url(r'^login/', chameleon_os_login.custom_login, name='login'),
     url(r'^sso/horizon/$', chameleon_views.horizon_sso_login, name='horizon_sso_login'),
     url(r'^sso/horizon/unavailable', chameleon_views.horizon_sso_unavailable, name='horizon_sso_unavailable'),
-    url(r'^sso/horizon/noprojects', chameleon_views.no_project_found, name='no_project_found'),
     url(r'^logout/', logout, {'next_page': '/'}, name='logout'),
 
     url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
