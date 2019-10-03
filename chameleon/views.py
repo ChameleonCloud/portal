@@ -62,10 +62,14 @@ def horizon_sso_login(request):
                 logger.error(e)
                 return HttpResponseRedirect('/sso/horizon/unavailable')
         else:
-            # no projects found in Keystone and we also did a sync at "user_has_active_ks_project(ks, request.user)", so check with TAS for approved projects
+            # no projects found in Keystone, or there was an error, probably communicating with keystone 
+            # "user_has_active_ks_project(ks, request.user)", so check with TAS for approved projects
             chameleon_projects = get_user_chameleon_projects(request.user)
-            # there are no approved projects, let's check for pending projects and their start-date
-            if chameleon_projects.get('approved_projects'):
+            if not chameleon_projects.get('approved_projects') and not chameleon_projects.get('active_projects'):
+                # there are no approved or active projects, can't do much
+                return HttpResponseRedirect('/sso/horizon/noprojects')
+            # if here we have either approved or active projects, if approved but not active, give them the date proj goes live
+            if chameleon_projects.get('approved_projects') and not chameleon_projects.get('active_projects'):
                 earliest_start_date = None
                 for p in chameleon_projects.get('approved_projects'):
                     for a in p.allocations:
@@ -75,9 +79,9 @@ def horizon_sso_login(request):
                 # send users to a page that lets them know when their approved project begins
                 logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page')
                 return render(request, 'sso/chameleon_project_approved.html', {'active_date': datetime.strftime(earliest_start_date,'%B %d, %Y at %I:%M %p'),})
-            else:
-                return HttpResponseRedirect('/sso/horizon/noprojects')
+
     '''
+    If here, we've found at least one active project, but still saw some error somewhere, try again if not a POST
     Don't propogate form posts further from here, otherwise we end up in a loop
     '''
     if request.method == 'POST':
