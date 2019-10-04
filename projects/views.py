@@ -100,7 +100,8 @@ def view_project(request, project_id):
                         messages.success(request,
                             'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
-                except:
+                except Exception as e:
+                    logger.error(e)
                     logger.exception('Failed adding user')
                     form.add_error('username', '')
                     form.add_error('__all__', 'Unable to add user. Confirm that the '
@@ -245,7 +246,7 @@ def update_user_keystone_project_membership(username, tas_project, add_member=Tr
             if not ks_user.enabled:
                 ks_client.users.update(ks_user,enabled=True)
         else:
-            email = TASClient().get_user(username=username).email
+            email = TASClient().get_user(username=username).get('email')
             ks_user = create_user(username, email, None, ks_client)
         if not project:
             project = create_ks_project(tas_project, ks_client)
