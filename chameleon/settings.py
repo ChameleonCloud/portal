@@ -626,3 +626,8 @@ PARLER_LANGUAGES = {
         'fallbacks': ['en'],
     }
 }
+
+### overwrite default django params
+# ref: https://github.com/divio/django-filer/issues/1031
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10000000
+FILE_UPLOAD_PERMISSIONS = 0o644
