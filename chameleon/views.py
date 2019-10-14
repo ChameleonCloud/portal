@@ -11,6 +11,7 @@ from tas import auth as tas_auth
 from pytas.models import Project
 from projects.models import ProjectExtras
 from projects.views import get_admin_ks_client as get_admin_ks_client
+from projects.views import get_unique_projects as get_unique_projects
 from webinar_registration.models import Webinar
 from django.utils import timezone
 from datetime import datetime
@@ -212,7 +213,7 @@ class KSAuthForm(AuthenticationForm):
 def dashboard(request):
     context = {}
     # active projects...
-    projects = Project.list(username=request.user)
+    projects = get_unique_projects(Project.list(username=request.user))
 
     for proj in projects:
         try:

@@ -60,7 +60,7 @@ def user_projects(request):
     user = tas.get_user(username=request.user)
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
 
-    projects = Project.list(username=request.user)
+    projects = get_unique_projects(Project.list(username=request.user))
     projects = list(p for p in projects if p.source == 'Chameleon')
 
     for proj in projects:
@@ -74,6 +74,17 @@ def user_projects(request):
 
     return render(request, 'projects/user_projects.html', context)
 
+def get_unique_projects(projects):
+    charge_codes = []
+    unique_projects = []
+    if not projects:
+        return unique_projects
+    for p in projects:
+        if p.source == 'Chameleon':
+            if p.chargeCode not in charge_codes:
+                unique_projects.append(p)
+                charge_codes.append(p.chargeCode)
+    return unique_projects
 
 @login_required
 def view_project(request, project_id):
