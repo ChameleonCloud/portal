@@ -213,7 +213,9 @@ class KSAuthForm(AuthenticationForm):
 def dashboard(request):
     context = {}
     # active projects...
-    projects = get_unique_projects(Project.list(username=request.user))
+    projects = Project.list(username=request.user)
+    alloc_status = ['Active', 'Approved', 'Pending']
+    projects = get_unique_projects(projects, alloc_status=alloc_status)
 
     for proj in projects:
         try:
