@@ -262,6 +262,23 @@ def index(request):
         return HttpResponse(template.render(context, request))
 
 
+def edit_redirect(request):
+    doi = request.GET.get('doi')
+    if not doi:
+        error_message = ("A valid DOI is needed to look up an artifact.")
+        messages.add_message(request, messages.INFO, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
+    try:
+        artifact = Artifact.objects.get(doi=doi)
+    except Artifact.DoesNotExist:
+        error_message = ("No artifact found for DOI {}".format(doi))
+        messages.add_message(request, messages.ERROR, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
+    return HttpResponseRedirect(reverse('sharing_portal:edit', args=[artifact.pk]))
+
+
 @login_required
 def upload(request):
     """Handle to upload an item from Zenodo to the portal
@@ -305,11 +322,11 @@ def upload(request):
 def edit_artifact(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
 
-    if request.method == 'POST':
-        if not (request.user.is_staff or artifact.created_by == request.user):
-            messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
-            return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
+    if not (request.user.is_staff or artifact.created_by == request.user):
+        messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
+        return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
 
+    if request.method == 'POST':
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
         
         if form.is_valid():
@@ -328,6 +345,7 @@ def edit_artifact(request, pk):
     }
 
     return HttpResponse(template.render(context, request))
+
 
 class DetailView(generic.DetailView):
     """Class that returns a basic detailed view of an artifact"""
