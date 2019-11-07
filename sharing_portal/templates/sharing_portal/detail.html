@@ -29,6 +29,9 @@
     <a class="btn btn-warning pull-right" href="{% url 'sharing_portal:edit' artifact.id %}">
       <i class="fa fa-edit"></i> Edit
     </a>
+    <a class="btn pull-right" href="{% url 'sharing_portal:sync_versions' artifact.id %}">
+      <i class="fa fa-sync"></i> Sync versions
+    </a>
     {% endif %}
   </h2>
 

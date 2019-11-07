@@ -11,7 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from sharing_portal.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+from sharing_portal.utils import get_rec_id, get_zenodo_file_link
 from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 
 
@@ -55,7 +55,7 @@ class Author(models.Model):
     """
     Represents authors of an artifact
     """
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     full_name = models.CharField(max_length=600, editable=False)
@@ -106,8 +106,6 @@ class Artifact(models.Model):
                               blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
-    permanent_id = models.CharField(max_length=50, editable=False,
-                                    blank=True, default='')
     git_repo = models.CharField(max_length=200, blank=True,
                                 null=True, validators=[validate_git_repo])
     launchable = models.BooleanField(default=False)
@@ -134,33 +132,16 @@ class Artifact(models.Model):
         return self.title
 
     """ Custom Methods """
+    @property
     def zenodo_link(self):
-        """ Method to build a link to view an artifact on Zenodo
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-        string
-            Zenodo URL
-
-        Notes
-        -----
-        - Uses self.doi
-        """
-
         if ZENODO_SANDBOX:
             base_url = "https://sandbox.zenodo.org/record/"
         else:
             base_url = "https://zenodo.org/record/"
 
-        if not self.permanent_id:
-            self.permanent_id = get_permanent_id(self.doi)
+        return base_url + get_rec_id(self.doi)
 
-        return base_url + self.permanent_id
-
+    @property
     def jupyterhub_link(self):
         """ Method to build a link to open the artifact files on JupyterHub
 
@@ -195,6 +176,7 @@ class Artifact(models.Model):
         # Add query parameters before returning
         return base_url + '?' + urlencode(query)
 
+    @property
     def related_papers(self):
         """ Method to find related artifacts based on labels
 
@@ -220,6 +202,7 @@ class Artifact(models.Model):
         related_list = list(set(related_list))
         return related_list[:6]
 
+    @property
     def image_filename(self):
         """ Method to extract the filename from an image path
 
@@ -240,3 +223,10 @@ class Artifact(models.Model):
             return self.image.url.split('/')[-1]
         else:
             return None
+
+
+class ArtifactVersion(models.Model):
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
+    created_at = models.DateTimeField()
+    doi = models.CharField(max_length=50, blank=True, 
+                           validators=[validate_zenodo_doi])

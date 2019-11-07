@@ -80,26 +80,3 @@ def get_zenodo_file_link(record_id):
 
     # Return the assembled string
     return "record/" + record_id + "/files/" + record['files'][0]['filename']
-
-
-def get_permanent_id(doi):
-    record_id = get_rec_id(doi)
-    if ZENODO_SANDBOX:
-        api = "https://sandbox.zenodo.org/api/records/"
-    else:
-        api = "https://zenodo.org/api/records/"
-
-    # Send a request to the Zenodo API
-    req = Request(
-        "{}{}".format(api, record_id),
-        headers={"accept": "application/json"},
-    )
-    try:
-        resp = urlopen(req)
-    except HTTPError as e:
-        raise Exception("Got a 404 response - if the API hasn't changed, "
-                        "the id entered is invalid")
-    else:
-        record = json.loads(resp.read().decode("utf-8"))
-        permanent_id = record.get('conceptrecid')
-        return permanent_id

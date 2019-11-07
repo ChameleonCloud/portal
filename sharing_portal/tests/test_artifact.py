@@ -30,14 +30,14 @@ class ArtifactImageFilenameTest(TestCase):
 
     def test_normal_name(self):
         self.a.image = 'directory/name.png'
-        self.assertEqual(self.a.image_filename(), 'name.png')
+        self.assertEqual(self.a.image_filename, 'name.png')
 
     def test_no_dir(self):
         self.a.image = 'name.png'
-        self.assertEqual(self.a.image_filename(), 'name.png')
+        self.assertEqual(self.a.image_filename, 'name.png')
 
     def test_no_image(self):
-        self.assertEqual(self.a.image_filename(), None)
+        self.assertEqual(self.a.image_filename, None)
 
 
 class ArtifactRelatedPapersTest(TestCase):
@@ -67,7 +67,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.a.labels.set(llist)
         self.b.labels.set(llist)
         self.c.labels.set(llist)
-        related = self.a.related_papers()
+        related = self.a.related_papers
         self.assertEqual(len(related), 2)
         self.assertEqual([a.id for a in related].sort(),
                          [self.b.id, self.c.id].sort())
@@ -77,7 +77,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.a.labels.set(llist)
         self.b.labels.set([self.label2])
         self.c.labels.set([self.label3])
-        related = self.a.related_papers()
+        related = self.a.related_papers
         self.assertEqual(len(related), 2)
         self.assertEqual([a.id for a in related].sort(),
                          [self.b.id, self.c.id].sort())
@@ -87,7 +87,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.a.labels.set(llist)
         self.b.labels.set([self.label2])
         self.c.labels.set([self.label3])
-        related = self.a.related_papers()
+        related = self.a.related_papers
         self.assertEqual(len(related), 1)
         self.assertEqual([a.id for a in related].sort(),
                          [self.b.id].sort())
@@ -97,7 +97,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.a.labels.set([self.label3])
         self.b.labels.set(llist)
         self.c.labels.set(llist)
-        related = self.a.related_papers()
+        related = self.a.related_papers
         self.assertEqual(len(related), 0)
 
 
@@ -122,7 +122,7 @@ class ArtifactJupyterHubLinkTest(TestCase):
         mock_link.return_value = self.the_link
         self.a.doi = '10.1112/zenodo.22222'
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link()
+        jhl = self.a.jupyterhub_link
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
@@ -135,7 +135,7 @@ class ArtifactJupyterHubLinkTest(TestCase):
         mock_link.return_value = self.the_link
         self.a.doi = '10.1112/zenodo.22222'
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link()
+        jhl = self.a.jupyterhub_link
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
@@ -148,7 +148,7 @@ class ArtifactJupyterHubLinkTest(TestCase):
         mock_link.return_value = self.the_link
         self.a.doi = '10.1112/zenodo.22222'
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link()
+        jhl = self.a.jupyterhub_link
         self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
                                           "account/repo.git"))
 
@@ -160,7 +160,7 @@ class ArtifactJupyterHubLinkTest(TestCase):
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         self.a.doi = '10.1112/zenodo.22222'
-        jhl = self.a.jupyterhub_link()
+        jhl = self.a.jupyterhub_link
         self.assertEqual(jhl, self.hub + ("/hub/import?source=zenodo&src_path="
                                           "file_link"))
 
@@ -172,7 +172,7 @@ class ArtifactJupyterHubLinkTest(TestCase):
         mock_id.return_value = self.the_id
         mock_link.return_value = self.the_link
         with self.assertRaises(Exception):
-            jhl = self.a.jupyterhub_link()
+            jhl = self.a.jupyterhub_link
 
 
 class ArtifactZenodoLinkTest(TestCase):
@@ -188,26 +188,16 @@ class ArtifactZenodoLinkTest(TestCase):
         )
 
     @mock.patch('sharing_portal.models.dev', True)
-    def test_existing_perm_id(self):
-        base = "https://sandbox.zenodo.org/record/"
-        self.a.permanent_id = "22221"
-        link = self.a.zenodo_link()
-        self.assertEqual(base+self.a.permanent_id, link)
-
-    @mock.patch('sharing_portal.models.dev', True)
-    @mock.patch('sharing_portal.models.get_permanent_id')
-    def test_no_perm_id(self, mock_perm_id):
-        base = "https://sandbox.zenodo.org/record/"
-        mock_perm_id.return_value = "12345"
-        link = self.a.zenodo_link()
-        self.assertEqual(base+"12345", link)
+    def test_dev(self):
+        self.assertEqual(
+            "https://sandbox.zenodo.org/record/22222", 
+            self.a.zenodo_link)
 
     @mock.patch('sharing_portal.models.dev', False)
     def test_non_dev(self):
-        base = "https://zenodo.org/record/"
-        self.a.permanent_id = "22221"
-        link = self.a.zenodo_link()
-        self.assertEqual(base+self.a.permanent_id, link)
+        self.assertEqual(
+            "https://zenodo.org/record/22222", 
+            self.a.zenodo_link)
 
 
 class ArtifactValidateZenodoDoiTest(TestCase):
