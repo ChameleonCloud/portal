@@ -12,7 +12,6 @@ django-termsandconditions
 
 # django-cms
 django-cms
-cmsplugin-filer
 djangocms-column
 djangocms-file
 djangocms-flash
