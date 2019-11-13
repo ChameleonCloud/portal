@@ -359,25 +359,27 @@ def sync_artifact_versions(request, pk):
     # For each DOI, ensure it exists in our DB (create missing versions)
 
     messages.add_message(request, messages.SUCCESS, 'The latest versions of this artifact have been synced.')
-    return HttpResponseRedirect(reverse('sharing_portal:edit', args=[artifact.pk]))
+    return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
 
 
 def sync_artifact_versions_redirect(request):
-    doi = request.GET.get('previous_doi')
+    doi = request.GET.get('previous_doi', request.GET.get('doi'))
+
     if not doi:
         error_message = ("A valid DOI is needed to look up an artifact.")
         messages.add_message(request, messages.INFO, error_message)
         return HttpResponseRedirect(reverse('sharing_portal:index'))
 
     try:
-        artifact = Artifact.objects.get(doi=doi)
-    except Artifact.DoesNotExist:
-        error_message = ("No artifact found for DOI {}".format(doi))
+        artifact_version = ArtifactVersion.objects.get(doi=doi)
+        artifact = artifact_version.artifact
+    except ArtifactVersion.DoesNotExist:
+        error_message = ("No artifact version found for DOI {}".format(doi))
         messages.add_message(request, messages.ERROR, error_message)
-        return HttpResponseRedirect(reverse('sharing_portal:index'))
+        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
 
     # TODO: change to something else
-    return HttpResponseRedirect(reverse('sharing_portal:edit', args=[artifact.pk]))
+    return HttpResponseRedirect(reverse('sharing_portal:sync_versions', args=[artifact.pk]))
 
 
 class DetailView(generic.DetailView):
