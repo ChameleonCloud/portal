@@ -230,6 +230,16 @@ def get_admin_ks_client():
     ks_client = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
     return ks_client
 
+def set_ks_project_nickname(chargeCode, nickname):
+    ks = get_admin_ks_client()
+    project_list = ks.federation.projects.list()
+    project = filter(lambda this: getattr(this, 'charge_code', None) == chargeCode, project_list)
+    logger.info('Assigning nickname {0} to project with charge code {1}'.format(nickname, chargeCode))
+    if project and project[0]:
+        project = project[0]
+    ks.projects.update(project, name=nickname)
+    logger.info('Successfully assigned nickname {0} to project with charge code {1}'.format(nickname, chargeCode))
+
 def create_user(username, email, password, ks_client):
     ks_user = None
     try:
@@ -514,6 +524,7 @@ def edit_nickname(request, project_id):
             pextras.nickname = nickname
             pextras.save()
             form = EditNicknameForm()
+            set_ks_project_nickname(project.chargeCode, nickname)
             messages.success(request, 'Update Successful')
         except:
             messages.error(request, 'Nickname not available')
