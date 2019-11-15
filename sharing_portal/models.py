@@ -11,8 +11,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from sharing_portal.utils import get_rec_id, get_zenodo_file_link
+from sharing_portal.utils import get_zenodo_file_link
 from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
+from sharing_portal.zenodo import ZenodoClient
 
 
 """ Validators """
@@ -135,11 +136,11 @@ class Artifact(models.Model):
     @property
     def zenodo_link(self):
         if ZENODO_SANDBOX:
-            base_url = "https://sandbox.zenodo.org/record/"
+            base_url = "https://sandbox.zenodo.org"
         else:
-            base_url = "https://zenodo.org/record/"
+            base_url = "https://zenodo.org"
 
-        return base_url + get_rec_id(self.doi)
+        return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
 
     @property
     def jupyterhub_link(self):

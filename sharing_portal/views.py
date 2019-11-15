@@ -16,7 +16,7 @@ from django.views import generic
 from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from .forms import ArtifactForm, LabelForm
 from .models import Artifact, ArtifactVersion, Author, Label
-from .utils import get_rec_id
+from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def make_author(name_string):
     return author.pk
 
 
-def upload_artifact(doi, user):
+def upload_artifact(doi, user=None):
     """ Add item to the portal based on its Zenodo deposition
 
     Parameters
@@ -149,7 +149,7 @@ def upload_artifact(doi, user):
         pk of successful upload on success, None on failure
     """
     # Extract the record id
-    record_id = get_rec_id(doi)
+    record_id = ZenodoClient.to_record(doi)
 
     # Use the appropriate api base
     if ZENODO_SANDBOX:

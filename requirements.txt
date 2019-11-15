@@ -33,6 +33,7 @@ ply
 python-openid
 pytz
 PyYAML
+requests
 rt
 six
 slimit

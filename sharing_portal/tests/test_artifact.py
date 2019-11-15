@@ -4,7 +4,7 @@ from unittest import mock
 
 from django.core.exceptions import ValidationError
 
-from ..__init__ import DEV as dev
+from .. import DEV as dev
 from ..models import Artifact, Label
 
 
@@ -114,65 +114,35 @@ class ArtifactJupyterHubLinkTest(TestCase):
         )
 
     @mock.patch('sharing_portal.models.dev', False)
-    @mock.patch('sharing_portal.models.get_zenodo_file_link')
-    @mock.patch('sharing_portal.models.get_rec_id')
-    def test_has_both_not_dev(self, mock_id, mock_link):
-        self.hub = "https://jupyter.chameleoncloud.org"
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
+    def test_has_both(self):
         self.a.doi = '10.1112/zenodo.22222'
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link
-        self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
-                                          "account/repo.git"))
+        self.assertEqual(self.a.jupyterhub_link, ("https://jupyter.chameleoncloud.org/hub/import"
+                                                  "?source=git&src_path=account/repo.git"))
 
     @mock.patch('sharing_portal.models.dev', True)
-    @mock.patch('sharing_portal.models.get_zenodo_file_link')
-    @mock.patch('sharing_portal.models.get_rec_id')
-    def test_has_both(self, mock_id, mock_link):
-        self.hub = "http://localhost:8000"
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
+    def test_has_both_dev(self):
         self.a.doi = '10.1112/zenodo.22222'
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link
-        self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
-                                          "account/repo.git"))
+        self.assertEqual(self.a.jupyterhub_link, ("http://localhost:8000/hub/import"
+                                                  "?source=git&src_path=account/repo.git"))
 
-    @mock.patch('sharing_portal.models.dev', True)
-    @mock.patch('sharing_portal.models.get_zenodo_file_link')
-    @mock.patch('sharing_portal.models.get_rec_id')
-    def test_just_git(self, mock_id, mock_link):
-        self.hub = "http://localhost:8000"
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
-        self.a.doi = '10.1112/zenodo.22222'
+    @mock.patch('sharing_portal.models.dev', False)
+    def test_just_git(self):
         self.a.git_repo = 'account/repo'
-        jhl = self.a.jupyterhub_link
-        self.assertEqual(jhl, self.hub + ("/hub/import?source=git&src_path="
-                                          "account/repo.git"))
+        self.assertEqual(self.a.jupyterhub_link, ("https://jupyter.chameleoncloud.org/hub/import"
+                                                  "?source=git&src_path=account/repo.git"))
 
-    @mock.patch('sharing_portal.models.dev', True)
-    @mock.patch('sharing_portal.models.get_zenodo_file_link')
-    @mock.patch('sharing_portal.models.get_rec_id')
-    def test_just_zenodo(self, mock_id, mock_link):
-        self.hub = "http://localhost:8000"
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
+    @mock.patch('sharing_portal.models.dev', False)
+    def test_just_zenodo(self):
         self.a.doi = '10.1112/zenodo.22222'
-        jhl = self.a.jupyterhub_link
-        self.assertEqual(jhl, self.hub + ("/hub/import?source=zenodo&src_path="
-                                          "file_link"))
+        self.assertEqual(self.a.jupyterhub_link, ("https://jupyter.chameleoncloud.org/hub/import"
+                                                  "?source=zenodo&src_path=file_link"))
 
     @mock.patch('sharing_portal.models.dev', True)
-    @mock.patch('sharing_portal.models.get_zenodo_file_link')
-    @mock.patch('sharing_portal.models.get_rec_id')
-    def test_none(self, mock_id, mock_link):
-        self.hub = "http://localhost:8000"
-        mock_id.return_value = self.the_id
-        mock_link.return_value = self.the_link
+    def test_none(self):
         with self.assertRaises(Exception):
-            jhl = self.a.jupyterhub_link
+            self.a.jupyterhub_link
 
 
 class ArtifactZenodoLinkTest(TestCase):

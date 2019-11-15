@@ -1,8 +1,9 @@
 from django.test import TestCase
 from unittest import mock
 
-from ..__init__ import DEV as dev
-from ..utils import get_rec_id, get_zenodo_file_link
+from .. import DEV as dev
+from jupyterlab_zenodo.zenodo import ZenodoClient
+from jupyterlab_zenodo.utils import get_zenodo_file_link
 
 
 @mock.patch('sharing_portal.utils.dev', False)
@@ -41,25 +42,24 @@ class GetZenodoFileLinkTest_Dev(TestCase):
 
 class GetRecIdTest(TestCase):
     def test_good_doi(self):
-        dep_id = get_rec_id('10.5281/zenodo.3357455')
-        self.assertEqual(dep_id, '3357455')
+        self.assertEqual(ZenodoClient.to_record('10.5281/zenodo.3357455'), '3357455')
 
     def test_invalid_doi(self):
         with self.assertRaises(Exception):
-            get_rec_id('notadoi')
+            ZenodoClient.to_record('notadoi')
 
     def test_num_invalid_doi(self):
         with self.assertRaises(Exception):
-            get_rec_id('127381273')
+            ZenodoClient.to_record('127381273')
 
     def test_non_zenodo_doi(self):
         with self.assertRaises(Exception):
-            get_rec_id('11111/notzenodo.123123')
+            ZenodoClient.to_record('11111/notzenodo.123123')
 
     def test_empty_doi(self):
         with self.assertRaises(Exception):
-            get_rec_id('')
+            ZenodoClient.to_record('')
 
     def test_no_doi(self):
         with self.assertRaises(Exception):
-            get_rec_id(None)
+            ZenodoClient.to_record(None)
