@@ -179,7 +179,7 @@ def upload_artifact(doi, user=None):
     item = Artifact(
         title=record['metadata']['title'],
         description=record['metadata']['description'],
-        doi=record['conceptrecid'],
+        doi=record['conceptdoi'],
         launchable=True,
         created_at=now,
         updated_at=now,
@@ -187,12 +187,12 @@ def upload_artifact(doi, user=None):
         updated_by=user,
     )
 
+    item.save()
+
     item.authors.set([
         make_author(author['name'])
         for author in record['metadata']['creators']
     ])
-
-    item.save()
 
     # Create a first version
     item.artifact_versions.create(doi=record['doi'], created_at=now)
@@ -355,8 +355,18 @@ def sync_artifact_versions(request, pk):
         messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
         return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
 
-    # Given artifact DOI, fetch all known Zenodo DOIs
-    # For each DOI, ensure it exists in our DB (create missing versions)
+    zenodo = ZenodoClient()
+    versions = zenodo.get_versions(artifact.doi)
+
+    if not versions:
+        messages.add_message(request, messages.ERROR, 'Could not fetch versions for this artifact.')
+        return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
+    
+    for version in versions:
+        version_doi = version['doi']
+        if artifact.artifact_versions.filter(doi=version_doi).count() > 0:
+            continue
+        artifact.artifact_versions.create(doi=version_doi, created_at=version['created'])
 
     messages.add_message(request, messages.SUCCESS, 'The latest versions of this artifact have been synced.')
     return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))

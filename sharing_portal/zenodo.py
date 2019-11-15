@@ -3,6 +3,9 @@ import requests
 
 from .conf import ZENODO_SANDBOX
 
+import logging
+LOG = logging.getLogger(__name__)
+
 class ZenodoClient:
   @staticmethod
   def to_record(doi):
@@ -24,6 +27,7 @@ class ZenodoClient:
       headers={'accept': 'application/json'},
       **kwargs
     )
+    LOG.info(res.text)
     return res.json()
 
 
@@ -33,4 +37,10 @@ class ZenodoClient:
       'q': 'conceptdoi:"{}"'.format(record['conceptdoi']),
       'all_versions': True
     })
-    return search_result.get('hits', {}).get('hits', [])
+
+    if isinstance(search_result, list):
+      return search_result
+    elif 'hits' in search_result:
+      return search_result.get('hits', {}).get('hits', [])
+    else:
+      raise ValueError('Got invalid response when fetching all versions for {}'.format(doi))

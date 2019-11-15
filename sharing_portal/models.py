@@ -227,7 +227,7 @@ class Artifact(models.Model):
 
 
 class ArtifactVersion(models.Model):
-    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
     created_at = models.DateTimeField()
     doi = models.CharField(max_length=50, blank=True, 
                            validators=[validate_zenodo_doi])
