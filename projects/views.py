@@ -232,7 +232,7 @@ def get_admin_ks_client():
 
 def set_ks_project_nickname(chargeCode, nickname):
     ks = get_admin_ks_client()
-    project_list = ks.federation.projects.list()
+    project_list = ks.projects.list()
     project = filter(lambda this: getattr(this, 'charge_code', None) == chargeCode, project_list)
     logger.info('Assigning nickname {0} to project with charge code {1}'.format(nickname, chargeCode))
     if project and project[0]:
