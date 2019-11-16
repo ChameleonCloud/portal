@@ -15,6 +15,7 @@ class ZenodoClient:
         raise Exception('DOI is invalid (wrong format)')
     else:
         return doi.split('.')[-1]
+        
   
   def __init__(self):
     self.base_url = 'https://sandbox.zenodo.org/api/' if ZENODO_SANDBOX else 'https://zenodo.org/api/'
@@ -27,7 +28,7 @@ class ZenodoClient:
       headers={'accept': 'application/json'},
       **kwargs
     )
-    LOG.info(res.text)
+    res.raise_for_status()
     return res.json()
 
 
@@ -38,9 +39,16 @@ class ZenodoClient:
       'all_versions': True
     })
 
+    versions = None
+    # Zenodo seems to return a list of results when requesting via
+    # 'requests' library, yet returns a wrapped standard Elasticsearch
+    # response otherwise (e.g., with cURL). Assume either could happen.
     if isinstance(search_result, list):
-      return search_result
+      versions = search_result
     elif 'hits' in search_result:
-      return search_result.get('hits', {}).get('hits', [])
-    else:
+      versions = search_result.get('hits', {}).get('hits', [])
+    
+    if not versions:
       raise ValueError('Got invalid response when fetching all versions for {}'.format(doi))
+
+    return versions

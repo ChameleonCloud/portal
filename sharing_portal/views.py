@@ -349,27 +349,36 @@ def edit_redirect(request):
 
 @login_required
 def sync_artifact_versions(request, pk):
+    zenodo = ZenodoClient()
     artifact = get_object_or_404(Artifact, pk=pk)
+    # We will always go back to the detail view
+    response = HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
     if not (request.user.is_staff or artifact.created_by == request.user):
         messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
-        return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
+        return response
 
-    zenodo = ZenodoClient()
-    versions = zenodo.get_versions(artifact.doi)
+    try:
+        versions = zenodo.get_versions(artifact.doi)
 
-    if not versions:
-        messages.add_message(request, messages.ERROR, 'Could not fetch versions for this artifact.')
-        return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
-    
-    for version in versions:
-        version_doi = version['doi']
-        if artifact.artifact_versions.filter(doi=version_doi).count() > 0:
-            continue
-        artifact.artifact_versions.create(doi=version_doi, created_at=version['created'])
+        for version in versions:
+            version_doi = version['doi']
+            existing = artifact.artifact_versions.filter(doi=version_doi).first()
+            if existing:
+                if existing.created_at != version['created']:
+                    LOG.info('Updating existing version')
+                    existing.created_at = version['created']
+                    existing.save()
+            else:
+                artifact.artifact_versions.create(doi=version_doi, created_at=version['created'])
+
+    except Exception as e:
+        LOG.exception(e)
+        messages.add_message(request, messages.ERROR, 'Could not sync versions for this artifact.')
+        return response
 
     messages.add_message(request, messages.SUCCESS, 'The latest versions of this artifact have been synced.')
-    return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
+    return response
 
 
 def sync_artifact_versions_redirect(request):
@@ -388,18 +397,38 @@ def sync_artifact_versions_redirect(request):
         messages.add_message(request, messages.ERROR, error_message)
         return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
 
-    # TODO: change to something else
     return HttpResponseRedirect(reverse('sharing_portal:sync_versions', args=[artifact.pk]))
 
 
-class DetailView(generic.DetailView):
-    """Class that returns a basic detailed view of an artifact"""
-    model = Artifact
-    template_name = 'sharing_portal/detail.html'
+def artifact(request, pk, version_idx=None):
+    artifact = get_object_or_404(Artifact, pk=pk)
 
-    def get_context_data(self, **kwargs):
-        context = super(DetailView, self).get_context_data(**kwargs)
-        context['editable'] = (
-            self.request.user.is_staff or (
-            self.object.created_by == self.request.user))
-        return context
+    template = loader.get_template('sharing_portal/detail.html')
+
+    artifact_versions = list(artifact.versions)
+    if artifact_versions:
+        version = artifact_versions[-1]
+    else:
+        LOG.error('Artifact {} has no versions'.format(pk))
+        version = None
+    
+    if version_idx:
+        try:
+            # Version path parameters are 1-indexed
+            version = artifact_versions[int(version_idx) - 1]
+        except IndexError, ValueError:
+            error_message = 'This artifact has no version {}'.format(version_idx)
+            messages.add_message(request, messages.ERROR, error_message)
+            pass
+        
+    context = {
+        'artifact': artifact,
+        'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
+        'version': version,
+        'related_artifacts': artifact.related_items,
+        'editable': (
+            request.user.is_staff or (
+            artifact.created_by == request.user)),
+    }
+
+    return HttpResponse(template.render(context, request))

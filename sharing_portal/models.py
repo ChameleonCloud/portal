@@ -132,16 +132,6 @@ class Artifact(models.Model):
     def __str__(self):
         return self.title
 
-    """ Custom Methods """
-    @property
-    def zenodo_link(self):
-        if ZENODO_SANDBOX:
-            base_url = "https://sandbox.zenodo.org"
-        else:
-            base_url = "https://zenodo.org"
-
-        return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
-
     @property
     def jupyterhub_link(self):
         """ Method to build a link to open the artifact files on JupyterHub
@@ -178,21 +168,18 @@ class Artifact(models.Model):
         return base_url + '?' + urlencode(query)
 
     @property
-    def related_papers(self):
-        """ Method to find related artifacts based on labels
+    def versions(self):
+        return self.artifact_versions.order_by('created_at')
 
-        Parameters
-        ----------
-        none
+    @property
+    def related_items(self):
+        """
+        Find related artifacts based on labels
 
-        Returns
-        -------
-        list of artifacts
-            6 artifacts with the same labels
-
-        Notes
-        -----
-        - Uses self.labels.all()
+        FIXME: this method looks to use an expensive query to get all the related
+        items from the database. It could likely be simplified into a more efficient
+        query with some QuerySet wrangling. Could also not really be a problem
+        depending on how it executes under the hood.
         """
         related_list = [
             artifact
@@ -231,3 +218,15 @@ class ArtifactVersion(models.Model):
     created_at = models.DateTimeField()
     doi = models.CharField(max_length=50, blank=True, 
                            validators=[validate_zenodo_doi])
+
+    @property
+    def zenodo_link(self):
+        if not self.doi:
+            return None
+        
+        if ZENODO_SANDBOX:
+            base_url = "https://sandbox.zenodo.org"
+        else:
+            base_url = "https://zenodo.org"
+
+        return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))

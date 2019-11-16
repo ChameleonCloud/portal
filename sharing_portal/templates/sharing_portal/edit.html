@@ -9,7 +9,7 @@
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
     <li>
-        <a href="{% url 'sharing_portal:index' %}">Experiments</a>
+        <a href="{% url 'sharing_portal:index' %}">All</a>
     </li>
     <li class="active">
         <!-- necessary extra line -->
@@ -19,9 +19,8 @@
 
 {# Title #}
 <div class="artCatalog">
-    <h2>
-        <span class="art-title">Edit {{ artifact.title }}</span>
-    </h2>
+    <h2 class="artCatalog__title">Edit {{ artifact.title }}</h2>
+    
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% bootstrap_form artifact_form %}
