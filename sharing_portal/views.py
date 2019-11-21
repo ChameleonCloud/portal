@@ -283,7 +283,12 @@ def upload(request):
         messages.add_message(request, messages.INFO, error_message)
         return HttpResponseRedirect(reverse('sharing_portal:index'))
 
-    # Otherwise, briefly load the upload template
+    # Make sure no artifact version exists already for this DOI
+    if ArtifactVersion.objects.filter(doi=doi).count() > 0:
+        error_message = "An artifact already exists for that DOI"
+        messages.add_message(request, messages.ERROR, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
     template = loader.get_template('sharing_portal/upload.html')
 
     # Try to upload the deposition with its doi
