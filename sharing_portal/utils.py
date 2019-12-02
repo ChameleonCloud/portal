@@ -6,34 +6,7 @@ from urllib.error import HTTPError
 from urllib.request import urlopen, Request
 
 from .conf import ZENODO_SANDBOX
-
-
-def get_rec_id(doi):
-    """Parses Zenodo DOI to isolate record id
-
-    Parameters
-    ----------
-    doi : string
-        doi to isolate record id from; must not be empty
-
-    Returns
-    ------
-    string
-        The Zenodo record id at the end of the doi
-
-    Notes
-    -----
-    - DOIs are expected to be in the form 10.xxxx/zenodo.xxxxx
-    - Behaviour is undefined if they are given in another format
-    """
-
-    if not doi:
-        raise Exception("No doi")
-    elif not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', doi):
-        raise Exception("Doi is invalid (wrong format)")
-    else:
-        record_id = doi.split('.')[-1]
-        return record_id
+from .zenodo import ZenodoClient
 
 
 def get_zenodo_file_link(record_id):
@@ -76,30 +49,7 @@ def get_zenodo_file_link(record_id):
         )
         resp = urlopen(req)
         record = json.loads(resp.read().decode("utf-8"))
-        record_id = get_rec_id(record['doi'])
+        record_id = ZenodoClient.to_record(record['doi'])
 
     # Return the assembled string
     return "record/" + record_id + "/files/" + record['files'][0]['filename']
-
-
-def get_permanent_id(doi):
-    record_id = get_rec_id(doi)
-    if ZENODO_SANDBOX:
-        api = "https://sandbox.zenodo.org/api/records/"
-    else:
-        api = "https://zenodo.org/api/records/"
-
-    # Send a request to the Zenodo API
-    req = Request(
-        "{}{}".format(api, record_id),
-        headers={"accept": "application/json"},
-    )
-    try:
-        resp = urlopen(req)
-    except HTTPError as e:
-        raise Exception("Got a 404 response - if the API hasn't changed, "
-                        "the id entered is invalid")
-    else:
-        record = json.loads(resp.read().decode("utf-8"))
-        permanent_id = record.get('conceptrecid')
-        return permanent_id

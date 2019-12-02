@@ -11,9 +11,9 @@
 <script src="{% static 'sharing_portal/dropdown.js' %}"></script>
 {% endblock %}
 {% block content %}
-<div id="content-main" class="artCatalog" app="researchSharingApp">
+<div class="artCatalog">
 
-  <div class="content scope" controller="ResearchSharingController">
+  <div class="artCatalog__fullContent">
     <h2>All artifacts</h2>
 
     <div class="add-artifact-link">
@@ -39,13 +39,13 @@
       </div>
 
       <div class="form-container">
-        <div class="dropdown">
-          <label for="id_labels">
+        <div class="artifactSearch__input dropdown">
+          <label for="artifactSearch__labelSelect">
             <button type="button" onclick="dropdown()" class="dropdown-toggle btn btn-default">
               Filter by label <span class="caret"> </span>
             </button>
 
-            <select name="labels" id="id_labels" class="dropdown-content" multiple>
+            <select name="labels" id="artifactSearch__labelSelect" class="dropdown-content" multiple>
               {% for value, text in form.fields.labels.choices %}
               <option value="{{ value }}" {% if value in form.labels.value %}selected{% endif %}>
                 &nbsp;{{ text }}
@@ -55,48 +55,41 @@
           </label>
         </div>
 
-        <div>
-          <label class="switch" id="id_is_or">
-            <input type="checkbox" id="id_is_or" name="is_or" {% if form.is_or.value %}checked{% endif %} />
-            <div class="slider round">
-              <span class="on">OR</span>
-              <span class="off">AND</span>
-            </div>
-          </label>
-        </div>
+        <label class="artifactSearch__input switch" id="id_is_or">
+          <input type="checkbox" id="id_is_or" name="is_or" {% if form.is_or.value %}checked{% endif %} />
+          <div class="slider round">
+            <span class="on">OR</span>
+            <span class="off">AND</span>
+          </div>
+        </label>
       </div>
     </form>
 
-    <div class="artifact-grid artifact-content" id="index-grid">
+    {% if artifacts %}
+    <div class="artifactGrid">
       {% for artifact in artifacts %}
-      <div class="artifact-grid-item corner-ribbon-container">
-        <div class="thumbnail corner-ribbon-container text-center">
+      <div class="artifactGridItem">
+        <a class="thumbnail" href="{% url 'sharing_portal:detail' artifact.pk %}">
           {% if artifact.image %}
           <img src="{{ artifact.image.url }}" class="art-icon" alt="Artifact Icon">
           {% endif %}
-          <div class="caption">
-            <h4>
-              <a href="{% url 'sharing_portal:detail' artifact.id %}" class="binding">
-                {{ artifact.title }}
-              </a>
-            </h4>
-            <p bind="artifact.short_description" class="binding">
-              {{ artifact.short_description }}
-            </p>
-          </div>
-        </div>
+          <span class="artifactGridItem__title">{{ artifact.title }}</span>
+          {% if artifact.short_description %}
+          <span class="artifactGridItem__description">{{ artifact.short_description }}</span>
+          {% endif %}
+        </a>
       </div>
-      {% empty %}
+      {% endfor %}
     </div>
+    {% else %}
     <div style="margin-top: 15px;">
       {% if search_failed %}
       Sorry, something went wrong!
       {% else %}
       No results found. Please widen your search.
       {% endif %}
-      {% endfor %}
     </div>
-
+    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -8,15 +8,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.views import generic
 
 from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from .forms import ArtifactForm, LabelForm
-from .models import Artifact, Author, Label
-from .utils import get_rec_id
+from .models import Artifact, ArtifactVersion, Author, Label
+from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def make_author(name_string):
     return author.pk
 
 
-def upload_artifact(doi, user):
+def upload_artifact(doi, user=None):
     """ Add item to the portal based on its Zenodo deposition
 
     Parameters
@@ -149,7 +149,7 @@ def upload_artifact(doi, user):
         pk of successful upload on success, None on failure
     """
     # Extract the record id
-    record_id = get_rec_id(doi)
+    record_id = ZenodoClient.to_record(doi)
 
     # Use the appropriate api base
     if ZENODO_SANDBOX:
@@ -172,31 +172,31 @@ def upload_artifact(doi, user):
     # Otherwise, process information about the deposition
     record = json.loads(resp.read().decode("utf-8"))
 
+    now = datetime.now()
+
     # Get title and description from deposition to create Artifact
     # (All zenodo depositions must have title and description fields)
     item = Artifact(
         title=record['metadata']['title'],
         description=record['metadata']['description'],
-        doi=doi,
+        doi=record['conceptdoi'],
         launchable=True,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=now,
+        updated_at=now,
         created_by=user,
         updated_by=user,
     )
+
     item.save()
 
-    # Go through each author, make them into Authors
-    author_list = []
-    for author in record['metadata']['creators']:
-        name = author['name']
-        author_list.append(make_author(name))
+    item.authors.set([
+        make_author(author['name'])
+        for author in record['metadata']['creators']
+    ])
 
-    # Attach the list of authors to the Artifact
-    item.authors.set(author_list)
-
-    # Save Artifact, returns its pk (id)
-    item.save()
+    # Create a first version
+    item.artifact_versions.create(doi=record['doi'], created_at=now)
+    
     return item.pk
 
 
@@ -262,23 +262,6 @@ def index(request):
         return HttpResponse(template.render(context, request))
 
 
-def edit_redirect(request):
-    doi = request.GET.get('doi')
-    if not doi:
-        error_message = ("A valid DOI is needed to look up an artifact.")
-        messages.add_message(request, messages.INFO, error_message)
-        return HttpResponseRedirect(reverse('sharing_portal:index'))
-
-    try:
-        artifact = Artifact.objects.get(doi=doi)
-    except Artifact.DoesNotExist:
-        error_message = ("No artifact found for DOI {}".format(doi))
-        messages.add_message(request, messages.ERROR, error_message)
-        return HttpResponseRedirect(reverse('sharing_portal:index'))
-
-    return HttpResponseRedirect(reverse('sharing_portal:edit', args=[artifact.pk]))
-
-
 @login_required
 def upload(request):
     """Handle to upload an item from Zenodo to the portal
@@ -300,7 +283,12 @@ def upload(request):
         messages.add_message(request, messages.INFO, error_message)
         return HttpResponseRedirect(reverse('sharing_portal:index'))
 
-    # Otherwise, briefly load the upload template
+    # Make sure no artifact version exists already for this DOI
+    if ArtifactVersion.objects.filter(doi=doi).count() > 0:
+        error_message = "An artifact already exists for that DOI"
+        messages.add_message(request, messages.ERROR, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
     template = loader.get_template('sharing_portal/upload.html')
 
     # Try to upload the deposition with its doi
@@ -347,14 +335,105 @@ def edit_artifact(request, pk):
     return HttpResponse(template.render(context, request))
 
 
-class DetailView(generic.DetailView):
-    """Class that returns a basic detailed view of an artifact"""
-    model = Artifact
-    template_name = 'sharing_portal/detail.html'
+def edit_redirect(request):
+    doi = request.GET.get('doi')
+    if not doi:
+        error_message = ("A valid DOI is needed to look up an artifact.")
+        messages.add_message(request, messages.INFO, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
 
-    def get_context_data(self, **kwargs):
-        context = super(DetailView, self).get_context_data(**kwargs)
-        context['editable'] = (
-            self.request.user.is_staff or (
-            self.object.created_by == self.request.user))
-        return context
+    try:
+        artifact = Artifact.objects.get(doi=doi)
+    except Artifact.DoesNotExist:
+        error_message = ("No artifact found for DOI {}".format(doi))
+        messages.add_message(request, messages.ERROR, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
+    return HttpResponseRedirect(reverse('sharing_portal:edit', args=[artifact.pk]))
+
+
+@login_required
+def sync_artifact_versions(request, pk):
+    zenodo = ZenodoClient()
+    artifact = get_object_or_404(Artifact, pk=pk)
+    # We will always go back to the detail view
+    response = HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+
+    if not (request.user.is_staff or artifact.created_by == request.user):
+        messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
+        return response
+
+    try:
+        versions = zenodo.get_versions(artifact.doi)
+
+        for version in versions:
+            version_doi = version['doi']
+            existing = artifact.artifact_versions.filter(doi=version_doi).first()
+            if existing:
+                if existing.created_at != version['created']:
+                    LOG.info('Updating existing version')
+                    existing.created_at = version['created']
+                    existing.save()
+            else:
+                artifact.artifact_versions.create(doi=version_doi, created_at=version['created'])
+
+    except Exception as e:
+        LOG.exception(e)
+        messages.add_message(request, messages.ERROR, 'Could not sync versions for this artifact.')
+        return response
+
+    messages.add_message(request, messages.SUCCESS, 'The latest versions of this artifact have been synced.')
+    return response
+
+
+def sync_artifact_versions_redirect(request):
+    doi = request.GET.get('previous_doi', request.GET.get('doi'))
+
+    if not doi:
+        error_message = ("A valid DOI is needed to look up an artifact.")
+        messages.add_message(request, messages.INFO, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:index'))
+
+    try:
+        artifact_version = ArtifactVersion.objects.get(doi=doi)
+        artifact = artifact_version.artifact
+    except ArtifactVersion.DoesNotExist:
+        error_message = ("No artifact version found for DOI {}".format(doi))
+        messages.add_message(request, messages.ERROR, error_message)
+        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
+
+    return HttpResponseRedirect(reverse('sharing_portal:sync_versions', args=[artifact.pk]))
+
+
+def artifact(request, pk, version_idx=None):
+    artifact = get_object_or_404(Artifact, pk=pk)
+
+    template = loader.get_template('sharing_portal/detail.html')
+
+    artifact_versions = list(artifact.versions)
+    if artifact_versions:
+        version = artifact_versions[-1]
+    else:
+        LOG.error('Artifact {} has no versions'.format(pk))
+        version = None
+    
+    if version_idx:
+        try:
+            # Version path parameters are 1-indexed
+            version = artifact_versions[int(version_idx) - 1]
+        except IndexError, ValueError:
+            error_message = 'This artifact has no version {}'.format(version_idx)
+            messages.add_message(request, messages.ERROR, error_message)
+            pass
+        
+    context = {
+        'artifact': artifact,
+        'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
+        'version': version,
+        'related_artifacts': artifact.related_items,
+        'editable': (
+            request.user.is_staff or (
+            artifact.created_by == request.user)),
+    }
+
+    return HttpResponse(template.render(context, request))

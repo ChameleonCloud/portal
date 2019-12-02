@@ -13,128 +13,105 @@
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
   <li>
-    <a href="{% url 'sharing_portal:index' %}">Experiments</a>
+    <a href="{% url 'sharing_portal:index' %}">Artifacts</a>
   </li>
-  <li class="active">
-    <!-- necessary extra line -->
-    {{ artifact.title }}
-  </li>
+  <li class="active">{{ artifact.title }}</li>
 </ol>
 
-{# Title #}
 <div class="artCatalog">
-  <h2>
-    <span class="art-title">{{ artifact.title }}</span>
-    {% if editable %}
-    <a class="btn btn-warning pull-right" href="{% url 'sharing_portal:edit' artifact.id %}">
-      <i class="fa fa-edit"></i> Edit
-    </a>
-    {% endif %}
-  </h2>
+  <h2 class="artCatalog__title">{{ artifact.title }}</h2>
 
-  <div class="artifact-container">
-    {# Left/top div: basic info about artifact #}
-    <div class="artifact-description">
+  <div class="artCatalog__content">
+    <div class="artCatalog__actions">
+      {% if editable %}
+      <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
+        <i class="fa fa-edit"></i> Edit
+      </a>
+      {% endif %}
       {% if artifact.launchable %}
-      {% with artifact.jupyterhub_link as l %}
-      <a class="btn btn-primary" href="{{ l }}" target="_blank">
+      <a class="btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
         Launch with JupyterHub
       </a>
-      {% endwith %}
-      <hr>
       {% endif %}
+      {% if artifact.git_repo %}
+      <a class="btn" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
+        <i class="fa fa-github"></i>&nbsp;GitHub: {{ artifact.git_repo }}
+      </a>
+      {% endif %}
+    </div>
 
-      <div>
-        {{ artifact.description|markdown|safe }}
-      </div>
+    <div class="artifactDescription">
+      {{ artifact.description|markdown|safe }}
+    </div>
 
-      <hr>
-
+    <section>
       <h4>Authors</h4>
       {% for author in artifact.authors.all %}
       <p>{{ author.title }} {{ author.first_name }} {{ author.last_name }}</p>
       {% endfor %}
+    </section>
 
-      <hr>
+    {% if version and version.zenodo_link %}
+    <section>
+      <h4>Digital Object Identifier (DOI)</h4>
+      <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
+    </section>
+    {% endif %}
 
-      {% if artifact.git_repo %}
-      <a class="btn btn-primary" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
-        View on Github
-      </a>
-      {% endif %}
-      {% if artifact.doi %}
-      <a class="btn btn-primary" href="{{ artifact.zenodo_link }}" target="_blank">
-        View on Zenodo
-      </a>
-      {% endif %}
-
-      {% if artifact.labels.all %}
-      <hr>
+    {% if artifact.labels.all %}
+    <section>
       <h4>Labels</h4>
       {% for label in artifact.labels.all %}
       <span class="badge">{{ label.label }} </span>
       {% endfor %}
-      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="artCatalog__sidebar">
+    {% if editable %}
+    <a class="btn pull-right" href="{% url 'sharing_portal:sync_versions' artifact.pk %}">
+      <i class="fa fa-refresh"></i>&nbsp;Sync versions
+    </a>
+    {% endif %}
+    
+    <h4>Versions</h4>
+    <ol class="artifactVersion">
+    {% for i, v in all_versions %}
+      <li class="{% if version == v %}selected{% endif %}">
+        <a class="artifactVersion__link" href="{% url 'sharing_portal:detail_version' artifact.pk i %}">
+          <span>Version {{ i }}</span>
+          <span>{{ v.created_at }}</span>
+        </a>
+      </li>
+    {% endfor %}
+    </ol>
+
+    {% if artifact.associated_artifacts.count > 0 %}
+    <h4>Associated Artifacts</h4>
+    <ul class="artCatalog__associated">
+      {% for related_item in artifact.associated_artifacts.all %}
+      <li>
+        <a href="{% url 'sharing_portal:detail' related_item.pk %}">{{ related_item.title }}</a>
+      </li>
+      {% endfor %}
     </div>
-    <div class="related-items">
-      <h4> Related Papers </h4>
-      <div class="artifact-grid artifact-content">
-        {% for related_item in artifact.related_papers %}
-        <div class="related-grid-item corner-ribbon-container">
-          <div class="thumbnail corner-ribbon-container text-center">
-            {% if related_item.image %}
-            <img src="{% static 'sharing_portal/images/' %}{{ related_item.image_filename }}" class="art-icon"
-              alt="Artifact Icon">
-            {% endif %}
-            <div class="related-caption">
-              <h4>
-                <a href="{% url 'sharing_portal:detail' related_item.id %}" class="binding"
-                  href="{{ related_item.id }}/">
-                  {{ related_item.title }}
-                </a>
-              </h4>
-              <p bind="related_item.short_description" class="binding">
-                {{ related_item.short_description }}
-              </p>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-      </div>
-      <div>
-        <p>No related papers to display</p>
+    {% endif %}
+
+    {% if related_artifacts %}
+    <h4>Similar Artifacts</h4>
+    <ul class="artCatalog__related">
+      {% for related in related_artifacts %}
+      <li>
+        <a href="{% url 'sharing_portal:detail' related.id %}">{{ related.title }}</a>
+        {% for label in related.labels.all %}
+        <span class="badge">{{ label.label }}</span>
         {% endfor %}
-      </div>
-      <hr>
-      <h4>Associated Artifacts</h4>
-      <div class="artifact-grid artifact-content">
-        {% for related_item in artifact.associated_artifacts.all %}
-        <div class="related-grid-item corner-ribbon-container">
-          <div class="thumbnail corner-ribbon-container text-center">
-            {% if related_item.image %}
-            <img src="{% static 'sharing_portal/images/' %}{{ related_item.image_filename }}" class="art-icon"
-              alt="Artifact Icon">
-            {% endif %}
-            <div class="related-caption">
-              <h4>
-                <a href="{% url 'sharing_portal:detail' related_item.id %}" class="binding"
-                  href="{{ related_item.id }}/">
-                  {{ related_item.title }}
-                </a>
-              </h4>
-              <p bind="related_item.short_description" class="binding">
-                {{ related_item.short_description }}
-              </p>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-      </div>
-      <div>
-        <p> No associated artifacts to display </p>
-        {% endfor %}
-      </div>
-    </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
   </div>
 
 </div>

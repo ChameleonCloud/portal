@@ -141,6 +141,9 @@ class IndexViewTest(TestCase):
 
 
 class UploadArtifactTest(TestCase):
+    def setUp(self):
+        self.doi = '10.1112/zenodo.22222'
+
     # For the purpose of these tests, put all names
     # into first_name for each author
     def make_simple_author(name_string):
@@ -150,10 +153,8 @@ class UploadArtifactTest(TestCase):
 
     @mock.patch('sharing_portal.views.dev', True)
     @mock.patch('sharing_portal.views.make_author', make_simple_author)
-    @mock.patch('sharing_portal.views.get_rec_id')
-    def test_dev_success(self, mock_id):
-        mock_id.return_value = "361518"
-        pk = upload_artifact("doi")
+    def test_dev_success(self):
+        pk = upload_artifact(self.doi)
         artifact = Artifact.objects.get(pk=pk)
         self.assertEqual(artifact.title, "Sample Title")
         self.assertEqual(artifact.description, "This is a description")
@@ -162,10 +163,8 @@ class UploadArtifactTest(TestCase):
 
     @mock.patch('sharing_portal.views.dev', False)
     @mock.patch('sharing_portal.views.make_author', make_simple_author)
-    @mock.patch('sharing_portal.views.get_rec_id')
-    def test_non_dev_success(self, mock_id):
-        mock_id.return_value = "3357455"
-        pk = upload_artifact("doi")
+    def test_non_dev_success(self):
+        pk = upload_artifact(self.doi)
         artifact = Artifact.objects.get(pk=pk)
         self.assertEqual(artifact.title,  ("Modelling and Simulation of Water"
                                            " Networks based on Loop Method"))
@@ -177,19 +176,16 @@ class UploadArtifactTest(TestCase):
 
     @mock.patch('sharing_portal.views.dev', True)
     @mock.patch('sharing_portal.views.make_author', make_simple_author)
-    @mock.patch('sharing_portal.views.get_rec_id')
-    def test_failed_request(self, mock_id):
+    def test_failed_request(self):
         # Should fail gracefully when given a bad id
-        mock_id.return_value = "notadoi"
-        pk = upload_artifact("doi")
+        pk = upload_artifact(self.doi)
         self.assertIsNone(pk)
 
     @mock.patch('sharing_portal.views.dev', True)
     @mock.patch('sharing_portal.views.make_author', make_simple_author)
-    @mock.patch('sharing_portal.views.get_rec_id')
     def test_dev_multiple_authors(self, mock_id):
         mock_id.return_value = "361531"
-        pk = upload_artifact("doi")
+        pk = upload_artifact(self.doi)
         artifact = Artifact.objects.get(pk=pk)
         self.assertEqual(artifact.title, "A title")
         self.assertEqual(artifact.description, "A thing")

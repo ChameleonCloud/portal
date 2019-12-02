@@ -11,8 +11,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from sharing_portal.utils import get_rec_id, get_zenodo_file_link, get_permanent_id
+from sharing_portal.utils import get_zenodo_file_link
 from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
+from sharing_portal.zenodo import ZenodoClient
 
 
 """ Validators """
@@ -55,7 +56,7 @@ class Author(models.Model):
     """
     Represents authors of an artifact
     """
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     full_name = models.CharField(max_length=600, editable=False)
@@ -106,8 +107,6 @@ class Artifact(models.Model):
                               blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
-    permanent_id = models.CharField(max_length=50, editable=False,
-                                    blank=True, default='')
     git_repo = models.CharField(max_length=200, blank=True,
                                 null=True, validators=[validate_git_repo])
     launchable = models.BooleanField(default=False)
@@ -133,34 +132,7 @@ class Artifact(models.Model):
     def __str__(self):
         return self.title
 
-    """ Custom Methods """
-    def zenodo_link(self):
-        """ Method to build a link to view an artifact on Zenodo
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-        string
-            Zenodo URL
-
-        Notes
-        -----
-        - Uses self.doi
-        """
-
-        if ZENODO_SANDBOX:
-            base_url = "https://sandbox.zenodo.org/record/"
-        else:
-            base_url = "https://zenodo.org/record/"
-
-        if not self.permanent_id:
-            self.permanent_id = get_permanent_id(self.doi)
-
-        return base_url + self.permanent_id
-
+    @property
     def jupyterhub_link(self):
         """ Method to build a link to open the artifact files on JupyterHub
 
@@ -195,21 +167,19 @@ class Artifact(models.Model):
         # Add query parameters before returning
         return base_url + '?' + urlencode(query)
 
-    def related_papers(self):
-        """ Method to find related artifacts based on labels
+    @property
+    def versions(self):
+        return self.artifact_versions.order_by('created_at')
 
-        Parameters
-        ----------
-        none
+    @property
+    def related_items(self):
+        """
+        Find related artifacts based on labels
 
-        Returns
-        -------
-        list of artifacts
-            6 artifacts with the same labels
-
-        Notes
-        -----
-        - Uses self.labels.all()
+        FIXME: this method looks to use an expensive query to get all the related
+        items from the database. It could likely be simplified into a more efficient
+        query with some QuerySet wrangling. Could also not really be a problem
+        depending on how it executes under the hood.
         """
         related_list = [
             artifact
@@ -220,6 +190,7 @@ class Artifact(models.Model):
         related_list = list(set(related_list))
         return related_list[:6]
 
+    @property
     def image_filename(self):
         """ Method to extract the filename from an image path
 
@@ -240,3 +211,22 @@ class Artifact(models.Model):
             return self.image.url.split('/')[-1]
         else:
             return None
+
+
+class ArtifactVersion(models.Model):
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
+    created_at = models.DateTimeField()
+    doi = models.CharField(max_length=50, blank=True, 
+                           validators=[validate_zenodo_doi])
+
+    @property
+    def zenodo_link(self):
+        if not self.doi:
+            return None
+        
+        if ZENODO_SANDBOX:
+            base_url = "https://sandbox.zenodo.org"
+        else:
+            base_url = "https://zenodo.org"
+
+        return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
