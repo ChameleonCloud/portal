@@ -21,6 +21,9 @@
         </h4>
         <div class="row">
             <div class="col col-sm-3">
+                <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['compute_cascadelake']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'compute_cascadelake'], filters.node_type['compute_cascadelake'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['compute_cascadelake'] || filters.node_type['compute_cascadelake'].length === filteredNodesOrg.length"></i> Compute Cascade Lake <span ng-show="filters.node_type['compute_cascadelake'].length > 0">([[filters.node_type['compute_cascadelake'].length]])</span></button>
+            </div>
+            <div class="col col-sm-3">
                 <button type="button" class="btn btn-lg btn-primary btn-filter btn-block" ng-model="appliedFilters.node_type['compute_skylake']" ng-change="applyFilter()" ng-disabled="shouldDisable(['node_type', 'compute_skylake'], filters.node_type['compute_skylake'].length)" btn-checkbox><i class="fa fa-check-square-o" ng-show="appliedFilters.node_type['compute_skylake'] || filters.node_type['compute_skylake'].length === filteredNodesOrg.length"></i> Compute Skylake <span ng-show="filters.node_type['compute_skylake'].length > 0">([[filters.node_type['compute_skylake'].length]])</span></button>
             </div>
             <div class="col col-sm-3">
