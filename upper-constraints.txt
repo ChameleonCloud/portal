@@ -23,6 +23,7 @@ django-reversion~=3.0.1
 django-sekizai~=1.0.0
 django-sortedm2m~=2.0.0
 django-taggit<1.0.0
+django-termsandconditions<2.0.0
 djangocms-column~=1.9.0
 djangocms-text-ckeditor~=3.7.0
 django-parler~=2.0
