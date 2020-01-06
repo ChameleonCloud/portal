@@ -37,7 +37,7 @@ class ApplianceForm(ModelForm):
                 '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
             'kvm_tacc_appliance_id':
                 'Appliance ID for '
-                '<a href="https://openstack.tacc.chameleoncloud.org">KVM@TACC</a>',
+                '<a href="https://kvm.tacc.chameleoncloud.org">KVM@TACC</a>',
             'template': 'Template (Complex Appliances Only)',
             'author_url': 'Author: Contact URL or Email',
             'support_contact_name': 'Support: Contact Name',

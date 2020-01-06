@@ -45,7 +45,7 @@
         {% endif %}
         {% if appliance.kvm_tacc_appliance_id %}
             <a target="_blank" class="btn btn-primary"
-               href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
+               href="https://kvm.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">Launch
                 at KVM@TACC</a>
         {% endif %}
         {% if appliance.template %}
@@ -118,7 +118,7 @@
                 <tr>
                     <td><strong>KVM@TACC:&nbsp;</strong></td>
                     <td><a target="_blank" title="Launch at KVM@TACC"
-                           href="https://openstack.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">
+                           href="https://kvm.tacc.chameleoncloud.org/dashboard/project/images/{{ appliance.kvm_tacc_appliance_id }}/">
                         {{ appliance.kvm_tacc_appliance_id }}</a></td>
                 </tr>
             {% endif %}
