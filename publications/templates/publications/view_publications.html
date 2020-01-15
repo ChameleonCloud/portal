@@ -1,0 +1,10 @@
+{% extends 'layout/user.html' %}
+{% load staticfiles bootstrap3 chameleon_tags %}
+{% block title %}Publications{% endblock %}
+{% block content %}
+
+<a href="{% url 'publications:add_publications' %}" class="btn btn-info pull-right">
+    <i class="fa fa-plus-circle"></i> Add a Publication
+  </a>
+<h2>Publications</h2>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'layout/user.html' %}
+{% load staticfiles bootstrap3 chameleon_tags %}
+{% block title %}Add Publications{% endblock %}
+{% block content %}
+
+<h2>Add Publications</h2>
+
+<form method="post">
+    {% csrf_token %}
+  
+    {% bootstrap_form form %}
+  
+    <div class="form-group">
+      <button type="submit" class="btn btn-success">Submit Publication(s)</button>
+    </div>
+  </form>
+
+{% endblock %}

@@ -60,16 +60,7 @@ def user_projects(request):
     user = tas.get_user(username=request.user)
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
 
-    projects = Project.list(username=request.user)
-    projects = get_unique_projects(projects)
-    projects = list(p for p in projects if p.source == 'Chameleon')
-
-    for proj in projects:
-        try:
-            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
-            proj.__dict__['nickname'] = extras.nickname
-        except ProjectExtras.DoesNotExist:
-            project_nickname = None
+    projects = get_projects(request)
 
     context['projects'] = projects
 
@@ -93,6 +84,21 @@ def get_unique_projects(projects, alloc_status=[]):
                     unique_projects.append(p)
                     charge_codes.append(p.chargeCode)
     return unique_projects
+
+def get_projects(request, alloc_status=[]):
+    projects = Project.list(username=request.user)
+    projects = get_unique_projects(projects, alloc_status)
+    projects = list(p for p in projects if p.source == 'Chameleon')
+
+    for proj in projects:
+        try:
+            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
+            proj.__dict__['nickname'] = extras.nickname
+        except ProjectExtras.DoesNotExist:
+            project_nickname = None
+
+    return projects
+
 
 @login_required
 def view_project(request, project_id):
