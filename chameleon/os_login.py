@@ -4,10 +4,9 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.conf import settings
 from django.contrib.auth.views import login
 import sys
-from keystoneclient import client as ks_client
-from keystoneclient.v3 import client as v3_ksclient
+from keystoneclient.v3 import client as ks_client
 from keystoneauth1.identity import v3
-from keystoneauth1 import session
+from keystoneauth1 import adapter, session
 from keystoneauth1.exceptions.http import NotFound as NotFoundException
 import time
 import logging
@@ -50,7 +49,8 @@ def update_ks_password(request):
         auth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, password=settings.OPENSTACK_SERVICE_PASSWORD, \
             project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
         sess = session.Session(auth=auth, timeout=5)
-        ks = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
+        sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
+        ks = ks_client.Client(session=sess)
         user = filter(lambda this: this.name==request.POST.get('username'), ks.users.list())
         if user:
             ks.users.update(user=user[0], password=request.POST.get('password'))

@@ -11,7 +11,7 @@ from wsgiref.util import FileWrapper
 
 from keystoneclient import client as ks_client
 from keystoneauth1.identity import v3
-from keystoneauth1 import session as ks_session
+from keystoneauth1 import adapter, session
 import json
 from novaclient import client as nova_client
 from blazarclient import client as blazar_client
@@ -207,8 +207,9 @@ def get_openstack_data(unscoped_token, region):
     current_region['name'] = region
     current_region['projects'] = []
     auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=None)
-    sess = ks_session.Session(auth=auth, verify=None)
-    ks = ks_client.Client(session=sess,insecure=True)
+    sess = session.Session(auth=auth, verify=None)
+    sess = adapter.Adapter(sess, interface='public')
+    ks = ks_client.Client(session=sess, insecure=True)
     projects = ks.federation.projects.list()
     for project in projects:
         current_project = {}
@@ -216,15 +217,15 @@ def get_openstack_data(unscoped_token, region):
         current_project['id'] = project.id
         current_region['projects'].append(current_project)
         pauth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=project.id)
-        psess = ks_session.Session(auth=pauth, verify=None)
-        current_project['leases'] = get_lease_info(psess, region)
-
-        current_project['servers'] = get_server_info(psess, region)
+        psess = session.Session(auth=pauth, verify=None)
+        psess = adapter.Adapter(psess, interface='public', region_name=region)
+        current_project['leases'] = get_lease_info(psess)
+        current_project['servers'] = get_server_info(psess)
     return current_region
 
-def get_lease_info(psess, region):
+def get_lease_info(psess):
     lease_list=[]
-    blazar = blazar_client.Client('1', service_type='reservation', interface='publicURL', session=psess,region_name=region)
+    blazar = blazar_client.Client('1', service_type='reservation', interface='publicURL', session=psess)
     leases = blazar.lease.list()
     for lease in leases:
         lease_dict = {}
@@ -236,10 +237,10 @@ def get_lease_info(psess, region):
         lease_list.append(lease_dict)
     return lease_list
 
-def get_server_info(psess, region):
+def get_server_info(psess):
     server_list=[]
-    nova = nova_client.Client('2', session=psess,region_name=region)
-    glance = glance_client('2', service_type='image', interface='publicURL', session=psess,region_name=region)
+    nova = nova_client.Client('2', session=psess)
+    glance = glance_client('2', service_type='image', session=psess)
     servers = nova.servers.list()
     for server in servers:
         server_dict = {}
