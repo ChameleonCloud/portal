@@ -20,7 +20,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
 from keystoneclient.v3 import client as ks_client
 from keystoneauth1.identity import v3
-from keystoneauth1 import session as ks_session
+from keystoneauth1 import adapter, session
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
@@ -44,7 +44,8 @@ def horizon_sso_login(request):
     if unscoped_token:
         try:
             auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token.get('auth_token'), project_id=None)
-            sess = ks_session.Session(auth=auth, timeout=5)
+            sess = session.Session(auth=auth, timeout=5)
+            sess = adapter.Adapter(sess, interface='public')
             ks = ks_client.Client(session=sess)
             active_ks_projects_found = user_has_active_ks_project(ks, request.user)
             logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))

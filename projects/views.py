@@ -20,9 +20,9 @@ from django.db import IntegrityError
 import re
 import logging
 import json
-from keystoneclient.v3 import client as v3_ksclient
+from keystoneclient.v3 import client as ks_client
 from keystoneauth1.identity import v3
-from keystoneauth1 import session
+from keystoneauth1 import adapter, session
 from django.conf import settings
 import uuid
 import sys
@@ -227,8 +227,8 @@ def get_admin_ks_client():
         password=settings.OPENSTACK_SERVICE_PASSWORD, \
         project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
     sess = session.Session(auth=auth, timeout=5)
-    ks_client = v3_ksclient.Client(session=sess, region_name=settings.OPENSTACK_TACC_REGION)
-    return ks_client
+    sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
+    return ks_client.Client(session=sess)
 
 def set_ks_project_nickname(chargeCode, nickname):
     ks = get_admin_ks_client()
