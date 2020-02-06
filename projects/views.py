@@ -228,7 +228,7 @@ def get_admin_ks_client():
         project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
     sess = session.Session(auth=auth, timeout=5)
     sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
-    return ks_client.Client(session=sess)
+    return ks_client.Client(session=sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
 
 def set_ks_project_nickname(chargeCode, nickname):
     ks = get_admin_ks_client()

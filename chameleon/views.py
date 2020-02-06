@@ -46,7 +46,7 @@ def horizon_sso_login(request):
             auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token.get('auth_token'), project_id=None)
             sess = session.Session(auth=auth, timeout=5)
             sess = adapter.Adapter(sess, interface='public')
-            ks = ks_client.Client(session=sess)
+            ks = ks_client.Client(session=sess, interface='public')
             active_ks_projects_found = user_has_active_ks_project(ks, request.user)
             logger.debug('User: ' + request.user.username + ' is attempting to log in to Horizon; active_keystone_projects_found: ' + str(active_ks_projects_found))
         except Exception as e:

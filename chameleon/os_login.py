@@ -50,7 +50,7 @@ def update_ks_password(request):
             project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
         sess = session.Session(auth=auth, timeout=5)
         sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
-        ks = ks_client.Client(session=sess)
+        ks = ks_client.Client(session=sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
         user = filter(lambda this: this.name==request.POST.get('username'), ks.users.list())
         if user:
             ks.users.update(user=user[0], password=request.POST.get('password'))

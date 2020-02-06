@@ -209,7 +209,7 @@ def get_openstack_data(unscoped_token, region):
     auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=None)
     sess = session.Session(auth=auth, verify=None)
     sess = adapter.Adapter(sess, interface='public')
-    ks = ks_client.Client(session=sess, insecure=True)
+    ks = ks_client.Client(session=sess, interface='public', insecure=True)
     projects = ks.federation.projects.list()
     for project in projects:
         current_project = {}
