@@ -115,12 +115,11 @@ def add_publications(request, project_id):
         pubs_form = AddBibtexPublicationForm(request.POST)
         if pubs_form.is_valid():
             bib_database = bibtexparser.loads(pubs_form.cleaned_data['bibtex_string'])
-            logger.info(bib_database.entries)
             for entry in bib_database.entries:
                 Publication.objects.create_from_bibtex(entry, project, request.user.username)
             messages.success(request, 'Publication added successfully')
         else:
-            messages.error(request, 'Error adding publication, BibTeX required fields: "publication/journal, title, year, author"')
+            messages.error(request, 'Error adding publication, BibTeX required fields: "publication/journal/booktitle, title, year, author"')
     try:
         project = Project(project_id)
         if project.source != 'Chameleon':

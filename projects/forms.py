@@ -182,16 +182,17 @@ class AddBibtexPublicationForm(forms.Form):
 
     def is_valid(self):
         valid = super(AddBibtexPublicationForm, self).is_valid()
- 
         if not valid:
             return valid
-
         bib_database = bibtexparser.loads(self.cleaned_data['bibtex_string'])
         logger.info(bib_database.entries)
+
         for entry in bib_database.entries:
-            if not ((entry.get('journal') or entry.get('publisher')) \
-                and entry.get('title') and entry.get('year') \
-                and entry.get('author')):
+            logger.info('entry valid?' + str((('journal' in entry or 'publisher' in entry or 'booktitle' in entry))))
+            if not ('journal' in entry or 'publisher' in entry or 'booktitle' in entry) \
+                or not 'title' in entry or not 'year' in entry or not 'author' in entry:
                 self.add_error('bibtex_string', 'Missing one of required fields ' \
-                    + '"publication/journal, title, year, author} in BibTeX entry"')
+                    + '"publication/journal/booktitle, title, year, author} in BibTeX entry"')
+                logger.info('returning False, conditions met')
                 return False;
+        return True

@@ -15,11 +15,17 @@ class PublicationManager(models.Manager):
         pub = Publication()
 
         pub.tas_project_id = project.id
-        pub.journal = bibtex_entry.get('journal')
+        if 'booktitle' in bibtex_entry:
+            pub.booktitle = bibtex_entry.get('booktitle')
+        if 'journal' in bibtex_entry:
+            pub.journal = bibtex_entry.get('journal')
+        if 'publisher' in bibtex_entry:
+            pub.publisher = bibtex_entry.get('publisher')
         pub.title = bibtex_entry.get('title')
         pub.year = bibtex_entry.get('year')
         pub.author = bibtex_entry.get('author')
-        pub.abstract =  bibtex_entry.get('abstract')
+        if bibtex_entry.get('abstract'):
+            pub.abstract =  bibtex_entry.get('abstract')
         pub.bibtex_source = json.dumps(bibtex_entry)
         pub.added_by_username = username
         pub.save()
@@ -27,7 +33,9 @@ class PublicationManager(models.Manager):
 
 class Publication(models.Model):
     tas_project_id = models.IntegerField(null=False)
-    journal =  models.CharField(max_length=100, null=False)
+    journal =  models.CharField(max_length=500, null=True)
+    publisher =  models.CharField(max_length=500, null=True)
+    booktitle =  models.CharField(max_length=500, null=True)
     title =  models.CharField(max_length=500, null=False)
     year =  models.IntegerField(null=False)
     author =  models.CharField(max_length=500, null=False)
