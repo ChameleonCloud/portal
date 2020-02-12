@@ -118,9 +118,9 @@ def add_publications(request, project_id):
             logger.info(bib_database.entries)
             for entry in bib_database.entries:
                 Publication.objects.create_from_bibtex(entry, project, request.user.username)
-            messages.success(request, 'Publication(s) added successfully')
+            messages.success(request, 'Publication added successfully')
         else:
-            messages.error(request, 'Error adding publication, please verify format')
+            messages.error(request, 'Error adding publication, BibTeX required fields: "publication/journal, title, year, author"')
     try:
         project = Project(project_id)
         if project.source != 'Chameleon':

@@ -3,6 +3,10 @@ from pytas.http import TASClient
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
 from models import ProjectExtras
+import bibtexparser
+import logging
+
+logger = logging.getLogger('projects')
 
 RESEARCH = 0
 STARTUP = 2
@@ -166,11 +170,6 @@ class ProjectAddUserForm(forms.Form):
     )
 
 class AddBibtexPublicationForm(forms.Form):
-    # related_allocations = forms.MultipleChoiceField(
-    #     label='Related Allocations',
-    #     required=False,
-    #     widget=forms.CheckboxSelectMultiple,
-    # )
 
     project_id = forms.CharField(widget=forms.HiddenInput())
 
@@ -181,7 +180,18 @@ class AddBibtexPublicationForm(forms.Form):
         widget=forms.Textarea(attrs={'placeholder': '@article{...'}),
     )
 
-    # def __init__(self, *args, **kwargs):
-    #     self.ALLOCATIONS_LIST = kwargs.pop('ALLOCATIONS_LIST')
-    #     super(AddBibtexPublicationForm, self).__init__(*args, **kwargs)
-    #     self.fields['related_allocations'].choices = self.ALLOCATIONS_LIST
+    def is_valid(self):
+        valid = super(AddBibtexPublicationForm, self).is_valid()
+ 
+        if not valid:
+            return valid
+
+        bib_database = bibtexparser.loads(self.cleaned_data['bibtex_string'])
+        logger.info(bib_database.entries)
+        for entry in bib_database.entries:
+            if not ((entry.get('journal') or entry.get('publisher')) \
+                and entry.get('title') and entry.get('year') \
+                and entry.get('author')):
+                self.add_error('bibtex_string', 'Missing one of required fields ' \
+                    + '"publication/journal, title, year, author} in BibTeX entry"')
+                return False;
