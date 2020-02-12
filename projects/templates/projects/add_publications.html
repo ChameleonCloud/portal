@@ -1,0 +1,51 @@
+{% extends 'layout/user.html' %}
+{% load staticfiles bootstrap3 chameleon_tags %}
+{% block title %}Add Publications for Project - {{ project.chargeCode }}{% endblock %}
+{% block content %}
+
+<h2>
+    Add Publication |
+  <small>{{ project.chargeCode }}</small>
+</h2>
+
+<div class="table-responsive">
+  <table class="table">
+    <tbody>
+      <tr>
+        <th>PI</th>
+        <td>
+          {{ project.pi.firstName }} {{ project.pi.lastName }} <a href="mailto:{{ project.pi.email }}">&lt;{{ project.pi.email }}&gt;</a>,
+          {{ project.pi.institution}}
+        </td>
+      </tr>
+      <tr>
+        <th>Nickname</th>
+        <td>
+        <span id='project_nickname'>{{ project_nickname|default_if_none:'' }}</span>
+          </td>
+      </tr>
+      <tr>
+        <th>Abstract</th>
+        <td style="white-space:pre-wrap;">{{ project.description }}</td>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <td>{{ project.type }}</td>
+      </tr>
+      <tr>
+        <th>Field of Science</th>
+        <td>{{ project.field }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<form method="post">
+        {% csrf_token %}
+        {% bootstrap_form pubs_form %}
+        <div class="form-group">
+          <button type="submit" class="btn btn-success">Add</button>
+        </div>
+      </form>
+
+{% endblock %}

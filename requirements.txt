@@ -39,6 +39,7 @@ six
 slimit
 sqlparse
 pytas
+bibtexparser
 
 python-glanceclient
 python-keystoneclient

@@ -11,11 +11,12 @@ from datetime import datetime
 from django.conf import settings
 from pytas.http import TASClient
 from pytas.models import Project
-from models import ProjectExtras
+from models import ProjectExtras, Publication
 from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
-from forms import ProjectCreateForm, ProjectAddUserForm, AllocationCreateForm, EditNicknameForm
+from forms import ProjectCreateForm, ProjectAddUserForm,\
+    AllocationCreateForm, EditNicknameForm, AddBibtexPublicationForm
 from django.db import IntegrityError
 import re
 import logging
@@ -26,6 +27,7 @@ from keystoneauth1 import adapter, session
 from django.conf import settings
 import uuid
 import sys
+import bibtexparser
 
 logger = logging.getLogger('projects')
 
@@ -99,6 +101,47 @@ def get_projects(request, alloc_status=[]):
 
     return projects
 
+@login_required
+def add_publications(request, project_id):
+    try:
+        project = Project(project_id)
+        if project.source != 'Chameleon' or not \
+            project_pi_or_admin_or_superuser(request.user, project):
+            raise Http404('The requested project does not exist!')
+    except Exception as e:
+        logger.error(e)
+        raise Http404('The requested project does not exist!')
+    if request.POST:
+        pubs_form = AddBibtexPublicationForm(request.POST)
+        if pubs_form.is_valid():
+            bib_database = bibtexparser.loads(pubs_form.cleaned_data['bibtex_string'])
+            logger.info(bib_database.entries)
+            for entry in bib_database.entries:
+                Publication.objects.create_from_bibtex(entry, project, request.user.username)
+            messages.success(request, 'Publication(s) added successfully')
+        else:
+            messages.error(request, 'Error adding publication, please verify format')
+    try:
+        project = Project(project_id)
+        if project.source != 'Chameleon':
+            raise Http404('The requested project does not exist!')
+    except Exception as e:
+        logger.error(e)
+        raise Http404('The requested project does not exist!')
+    pubs_form = AddBibtexPublicationForm(initial={'project_id':project.id})
+    try:
+        extras = ProjectExtras.objects.get(tas_project_id=project_id)
+        project_nickname = extras.nickname
+    except ProjectExtras.DoesNotExist:
+        project_nickname = None
+
+    return render(request, 'projects/add_publications.html', {
+        'project': project,
+        'project_nickname': project_nickname,
+        'is_pi': request.user.username == project.pi.username,
+        'pubs_form': pubs_form,
+        'form': pubs_form
+    })
 
 @login_required
 def view_project(request, project_id):
@@ -112,6 +155,7 @@ def view_project(request, project_id):
 
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
+    pubs_form = AddBibtexPublicationForm()
     if request.POST and project_pi_or_admin_or_superuser(request.user, project):
         if 'add_user' in request.POST:
             form = ProjectAddUserForm(request.POST)
@@ -226,6 +270,7 @@ def view_project(request, project_id):
         'is_pi': request.user.username == project.pi.username,
         'form': form,
         'nickname_form': nickname_form,
+        'pubs_form': pubs_form
     })
 
 def get_admin_ks_client():
