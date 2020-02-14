@@ -27,7 +27,6 @@ from keystoneauth1 import adapter, session
 from django.conf import settings
 import uuid
 import sys
-import bibtexparser
 
 logger = logging.getLogger('projects')
 
@@ -60,7 +59,9 @@ def user_projects(request):
 
     tas = TASClient()
     user = tas.get_user(username=request.user)
+    
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
+    context['username'] = request.user.username
 
     projects = get_projects(request)
 
@@ -100,47 +101,6 @@ def get_projects(request, alloc_status=[]):
             project_nickname = None
 
     return projects
-
-@login_required
-def add_publications(request, project_id):
-    try:
-        project = Project(project_id)
-        if project.source != 'Chameleon' or not \
-            project_pi_or_admin_or_superuser(request.user, project):
-            raise Http404('The requested project does not exist!')
-    except Exception as e:
-        logger.error(e)
-        raise Http404('The requested project does not exist!')
-    if request.POST:
-        pubs_form = AddBibtexPublicationForm(request.POST)
-        if pubs_form.is_valid():
-            bib_database = bibtexparser.loads(pubs_form.cleaned_data['bibtex_string'])
-            for entry in bib_database.entries:
-                Publication.objects.create_from_bibtex(entry, project, request.user.username)
-            messages.success(request, 'Publication added successfully')
-        else:
-            messages.error(request, 'Error adding publication, BibTeX required fields: "publication/journal/booktitle, title, year, author"')
-    try:
-        project = Project(project_id)
-        if project.source != 'Chameleon':
-            raise Http404('The requested project does not exist!')
-    except Exception as e:
-        logger.error(e)
-        raise Http404('The requested project does not exist!')
-    pubs_form = AddBibtexPublicationForm(initial={'project_id':project.id})
-    try:
-        extras = ProjectExtras.objects.get(tas_project_id=project_id)
-        project_nickname = extras.nickname
-    except ProjectExtras.DoesNotExist:
-        project_nickname = None
-
-    return render(request, 'projects/add_publications.html', {
-        'project': project,
-        'project_nickname': project_nickname,
-        'is_pi': request.user.username == project.pi.username,
-        'pubs_form': pubs_form,
-        'form': pubs_form
-    })
 
 @login_required
 def view_project(request, project_id):

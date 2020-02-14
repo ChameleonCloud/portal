@@ -62,8 +62,6 @@ urlpatterns = [
 
     url(r'^user/projects/', include('projects.urls', namespace='projects')),
 
-    url(r'^user/publications/', include('publications.urls', namespace='publications')),
-
     url(r'^user/help/', include('djangoRT.urls', namespace='djangoRT')),
 
     url(r'^user/early-user-program/', include('cc_early_user_support.urls',

@@ -128,7 +128,6 @@ INSTALLED_APPS = (
     'sharing_portal',
     'webinar_registration',
     'chameleon_cms_integrations',
-    'publications',
 
     # djangocms-blog
 

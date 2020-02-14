@@ -20,6 +20,11 @@
   {{ p.title }} |
   <small>{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}</small>
   &nbsp;&nbsp;<a href="{% url 'projects:view_project' p.id %}" class="btn btn-default">View Project</a>
+  {% ifequal p.pi.username username  %}
+  <a href="/user/projects/add/publications/{{p.id}}" class="btn btn-info pull-right">
+    <i class="fa fa-plus-circle"></i> Add Publications
+  </a>
+  {% endifequal %}
 </h4>
 
 

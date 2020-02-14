@@ -76,7 +76,7 @@ class UserMenu(CMSAttachMenu):
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Publications'), "/user/publications/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Publications'), "/user/projects/publications/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         return nodes
