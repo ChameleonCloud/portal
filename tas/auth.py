@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ValidationError
 from pytas.http import TASClient
-from tas.models import activate_local_user
+from projects.views import update_keystone_user_status
+from tas.models import activate_local_user, user_is_active
 import logging
 import re
 
@@ -23,10 +24,12 @@ class TASBackend(ModelBackend):
             else:
                 logger.info('Attempting login for user "%s" from IP "%s"' % (username, 'unknown'))
             try:
+                if not user_is_active(username):
+                    update_keystone_user_status(username, enabled=False)
+                    raise ValidationError('Account Status Error', 'Your account is disabled, for assistance please open a Helpdesk ticket.')
                 # Check if this user is valid on the mail server
                 if self.tas.authenticate(username, password):
                     tas_user = self.tas.get_user(username=username)
-                    activate_local_user(username)
                     logger.info('Login successful for user "%s"' % username)
                 else:
                     raise ValidationError('Authentication Error', 'Your username or password is incorrect.')

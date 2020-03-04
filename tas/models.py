@@ -9,3 +9,12 @@ def activate_local_user(username):
         local_user.save()
     except:
         pass
+
+def user_is_active(username):
+    try:
+        UserModel = get_user_model()
+        local_user = UserModel.objects.get(username=username)
+        return local_user.is_active
+    except:
+        pass
+

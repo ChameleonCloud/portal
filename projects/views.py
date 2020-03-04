@@ -307,6 +307,22 @@ def get_keystone_user(ks_client, username):
         logger.error('Error retrieving user: {}'.format(username + ': ' + e.message) + str(sys.exc_info()[0]))
         return None
 
+def update_keystone_user_status(username, enabled=False):
+    ks_client = get_admin_ks_client()
+    # then get domain id from keystone, domain_id = keystone.user_domain_id
+    domain_id = ks_client.user_domain_id
+    # then get member roles, member_role = keystone.roles.list(name='_member_',domain=domain_id)[0]
+    member_role = ks_client.roles.list(name='_member_',domain=domain_id)[0]
+
+   # Get user from keystone
+    ks_user = get_keystone_user(ks_client, username)
+    if ks_user:
+        logger.info('Updating keystone user status for: ' + username + ' to: ' + str(enabled))
+        ks_client.users.update(ks_user, enabled=enabled)
+    else:
+        logger.info('Tried disabling keystone user: ' + username+ ' to: ' + str(enabled) + ' but user not found')
+
+
 @login_required
 @terms_required('project-terms')
 def create_allocation(request, project_id, allocation_id=-1):
