@@ -24,9 +24,6 @@ class TASBackend(ModelBackend):
             else:
                 logger.info('Attempting login for user "%s" from IP "%s"' % (username, 'unknown'))
             try:
-                if not user_is_active(username):
-                    update_keystone_user_status(username, enabled=False)
-                    raise ValidationError('Account Status Error', 'Your account is disabled, for assistance please open a Helpdesk ticket.')
                 # Check if this user is valid on the mail server
                 if self.tas.authenticate(username, password):
                     tas_user = self.tas.get_user(username=username)
@@ -45,6 +42,10 @@ class TASBackend(ModelBackend):
                 try:
                     # Check if the user exists in Django's local database
                     user = UserModel.objects.get(username=username)
+                    if not user.is_active:
+                        update_keystone_user_status(username, enabled=False)
+                        raise ValidationError('Your account is inactive, for assistance please open a Helpdesk ticket.')
+
                     user.first_name = tas_user['firstName']
                     user.last_name = tas_user['lastName']
                     user.email = tas_user['email']
