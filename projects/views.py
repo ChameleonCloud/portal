@@ -256,7 +256,9 @@ def create_user(username, email, password, ks_client):
         logger.info('Creating user with username: {0}, email:{1}, domain_id: {2} '.format(username,email,ks_client.user_domain_id))
         if not password:
             password = str(uuid.uuid4())
-        ks_user = ks_client.users.create(username, domain=ks_client.user_domain_id, email=email, password=password)
+        ks_user_options = {'lock_password':True}
+        ks_user = ks_client.users.create(username, domain=ks_client.user_domain_id, email=email,\
+            password=password, options=ks_user_options)
         logger.info('Created user with username: {0}, email:{1}, domain_id: {2} '.format(ks_user.name, ks_user.email, ks_client.user_domain_id))
     except Exception as e:
         logger.error('Error creating user with username: {0}, email:{1}, domain_id: {2} '.format(username, email, ks_client.user_domain_id))
