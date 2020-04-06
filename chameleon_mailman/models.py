@@ -6,9 +6,13 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.utils.html import strip_tags
 
+from .tasks import schedule_email
+
+from datetime import timedelta
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MailmanSubscription(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='subscriptions')
@@ -19,23 +23,32 @@ class MailmanSubscription(models.Model):
             default=True,
             help_text=_('Mailing list for discussion among Chameleon Users'))
 
+
 @receiver(post_save, sender='user_news.Outage')
 def send_outage_notification(sender, instance, using, **kwargs):
     """
     Sends email notification to the address configured in `settings.OUTAGE_NOTIFICATION_EMAIL`.
     Will send "new" notifications when the object is new.
     """
+    subject = instance.title
+    if instance.resolved:
+        subject = 'RESOLVED: %s' % subject
+
+    body = "<b>Outage Start:</b> " + instance.start_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
+    body += "<b>Outage End:</b> " + instance.end_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
+    body += instance.body
+    sender = settings.DEFAULT_FROM_EMAIL
+    recipients = settings.OUTAGE_NOTIFICATION_EMAIL.split(',')
+
     if instance.send_email_notification:
         logger.debug('Sending outage notification for id=%s: %s' % (instance.id, instance.title))
 
-        subject = instance.title
-        if instance.resolved:
-            subject = 'RESOLVED: %s' % subject
-
-        body = "<b>Outage Start:</b> " + instance.start_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
-        body += "<b>Outage End:</b> " + instance.end_date.strftime('%Y-%m-%d %H:%M') + "<br /><br />"
-        body += instance.body
-        sender = settings.DEFAULT_FROM_EMAIL
-        recipients = settings.OUTAGE_NOTIFICATION_EMAIL.split(',')
-
         send_mail(subject, strip_tags(body), sender, recipients, html_message=body)
+
+    if instance.send_email_reminder:
+        eta = instance.start_date - timedelta(
+            seconds=settings.OUTAGE_EMAIL_REMINDER_TIMEDELTA)
+        subject = 'Outage Reminder: {}'.format(subject)
+        schedule_email.apply_async(
+            (subject, strip_tags(body), sender, recipients),
+            kwargs=dict(html_message=body), eta=eta)
