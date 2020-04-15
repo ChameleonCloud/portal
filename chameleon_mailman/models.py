@@ -6,9 +6,11 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.utils.html import strip_tags
 
+from chameleon.celery import app
 from .tasks import schedule_email
 
 from datetime import timedelta
+from itertools import chain
 import logging
 
 logger = logging.getLogger(__name__)
@@ -46,9 +48,27 @@ def send_outage_notification(sender, instance, using, **kwargs):
         send_mail(subject, strip_tags(body), sender, recipients, html_message=body)
 
     if instance.send_email_reminder:
+
+        celery_queue = app.control.inspect()
+        scheduled_tasks = list(chain(*celery_queue.scheduled().values()))
+        existing_tasks = [
+            int(x['request']['id'].split('-')[-1]) for x in scheduled_tasks
+            if str(instance.id) in x['request']['id']]
+
+        task_id = "{}-0".format(str(instance.id))
+
+        if existing_tasks:
+            last_task_id = "{}-{}".format(
+                str(instance.id), str(max(existing_tasks)))
+            app.control.revoke(last_task_id)
+
+            task_id = "{}-{}".format(
+                str(instance.id), str(max(existing_tasks) + 1))
+
         eta = instance.start_date - timedelta(
             seconds=settings.OUTAGE_EMAIL_REMINDER_TIMEDELTA)
         subject = 'Outage Reminder: {}'.format(subject)
+
         schedule_email.apply_async(
             (subject, strip_tags(body), sender, recipients),
-            kwargs=dict(html_message=body), eta=eta)
+            kwargs=dict(html_message=body), eta=eta, task_id=task_id)
