@@ -38,3 +38,8 @@ python-novaclient===11.0.0
 python-blazarclient===2.0.1
 
 git+https://github.com/ChameleonCloud/pytas#egg=pytas
+
+# Celery requirements
+celery==4.2.1
+redis==2.10.6
+kombu==4.2.1

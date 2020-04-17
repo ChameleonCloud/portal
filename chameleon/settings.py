@@ -311,7 +311,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'chameleon_cms_integrations': {
-            'handlers': ['console'], 
+            'handlers': ['console'],
             'level': 'INFO'
         },
         'chameleon_openid': {
@@ -630,3 +630,12 @@ PARLER_LANGUAGES = {
 # ref: https://github.com/divio/django-filer/issues/1031
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10000000
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+# OUTAGE EMAIL REMINDER
+
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+OUTAGE_EMAIL_REMINDER_TIMEDELTA = (60 * 60 * 2)

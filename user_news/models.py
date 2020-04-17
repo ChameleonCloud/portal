@@ -74,6 +74,7 @@ class Outage(News):
     end_date = models.DateTimeField('expected end of outage')
     resolved = models.BooleanField('resolved', default=False)
     send_email_notification = False
+    send_email_reminder = False
 
     SEVERITY_LEVEL = (
         ('',''),
