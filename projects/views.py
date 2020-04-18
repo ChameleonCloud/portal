@@ -308,7 +308,7 @@ def create_ks_project(tas_project, ks_client):
 def get_keystone_user(ks_client, username):
     try:
         logger.debug('Getting user from keystone: ' + username)
-        user = filter(lambda this: this.name==username, ks_client.users.list())
+        user = ks_client.users.list(name=username)
         if user and user[0]:
             logger.debug('User found in keystone : ' + username)
             return user[0]
