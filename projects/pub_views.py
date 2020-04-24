@@ -19,7 +19,7 @@ def user_publications(request):
     for pub in pubs:
         pextras = ProjectExtras.objects.filter(tas_project_id=pub.tas_project_id)
         nickname = None
-        if pextras.count > 0:
+        if pextras and pextras.count() > 0:
             nickname = pextras[0].nickname
         context['publications'].append({'title':pub.title, 'author':pub.author, 'abstract':pub.abstract, \
             'nickname': nickname, 'chargeCode': pub.tas_project_id})

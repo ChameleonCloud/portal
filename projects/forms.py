@@ -187,12 +187,18 @@ class AddBibtexPublicationForm(forms.Form):
         bib_database = bibtexparser.loads(self.cleaned_data['bibtex_string'])
         logger.info(bib_database.entries)
 
+        if not bib_database.entries:
+            self.add_error('bibtex_string', 'Invalid formatting or missing one of required fields, ' \
+                    + '"publication/journal/booktitle, title, year, author} in BibTeX entry"')
+            logger.info('returning False, conditions not met')
+            return False
+
         for entry in bib_database.entries:
             logger.info('entry valid?' + str((('journal' in entry or 'publisher' in entry or 'booktitle' in entry))))
             if not ('journal' in entry or 'publisher' in entry or 'booktitle' in entry) \
                 or not 'title' in entry or not 'year' in entry or not 'author' in entry:
                 self.add_error('bibtex_string', 'Missing one of required fields ' \
                     + '"publication/journal/booktitle, title, year, author} in BibTeX entry"')
-                logger.info('returning False, conditions met')
+                logger.info('returning False, conditions not met')
                 return False;
         return True
