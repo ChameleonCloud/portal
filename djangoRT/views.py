@@ -62,7 +62,7 @@ def ticketcreate(request):
         form = forms.TicketForm(request.POST, request.FILES)
 
         if form.is_valid():
-            requestor_meta = '%s %s &lt;%s&gt;' % ( form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['email'] )
+            requestor_meta = '%s %s %s' % ( form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['email'] )
             meta = (
                 ('Opened by', request.user),
                 ('Category', form.cleaned_data['category']),

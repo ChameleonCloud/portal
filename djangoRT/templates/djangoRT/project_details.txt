@@ -1,4 +1,6 @@
-________________________________________ Project Support Details ________________________________________
+
+
+________________________________ Project Support Details ________________________________
 
 {% for region in regions %}
 Region: {{region.name}}{% for project in region.projects %}
