@@ -19,6 +19,7 @@ from glanceclient import Client as glance_client
 from django.conf import settings
 from datetime import datetime
 from dateutil import parser
+from projects.views import get_admin_ks_client
 import sys
 from django.template.loader import render_to_string
 
@@ -42,7 +43,8 @@ def ticketdetail(request, ticketId):
     for history in ticket_history:
         history['Attachments'] = filter(lambda a: not a[1].startswith('untitled ('), history['Attachments'])
 
-    return render(request, 'djangoRT/ticketDetail.html', { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
+    return render(request, 'djangoRT/ticketDetail.html',\
+        { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
 
 def ticketcreate(request):
     rt = rtUtil.DjangoRt()
@@ -55,8 +57,6 @@ def ticketcreate(request):
         'first_name' : request.user.first_name,
         'last_name' : request.user.last_name
     }
-
-    # header = "[Ticket created from Chameleon Portal by " + request.user.first_name + " " + request.user.last_name + " (" + request.user.email + ")]\n\n"
 
     if request.method == 'POST':
         form = forms.TicketForm(request.POST, request.FILES)
@@ -79,7 +79,7 @@ def ticketcreate(request):
                 region_list = []
                 for ch_region in ch_regions:
                     try:
-                        region_list.append(get_openstack_data(unscoped_token, ch_region))
+                        region_list.append(get_openstack_data(request.user.username, unscoped_token, ch_region))
                     except Exception as err:
                         logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
 
@@ -92,12 +92,12 @@ def ticketcreate(request):
                                       cc = form.cleaned_data['cc'] )
 
             logger.debug('Creating ticket for user: %s' % form.cleaned_data + ' with project details: ' + user_details)
-
             ticket_id = rt.createTicket(ticket)
 
             if ticket_id > -1:
                 if 'attachment' in request.FILES:
-                    rt.replyToTicket(ticket_id, files=([request.FILES['attachment'].name, request.FILES['attachment'], mimetypes.guess_type(request.FILES['attachment'].name)],))
+                    rt.replyToTicket(ticket_id, files=([request.FILES['attachment'].name,\
+                        request.FILES['attachment'], mimetypes.guess_type(request.FILES['attachment'].name)],))
                 return HttpResponseRedirect( reverse( 'djangoRT:ticketdetail', args=[ ticket_id ]) )
             else:
                 messages.error(request, 'There was an error creating your ticket. Please try again.')
@@ -159,7 +159,8 @@ def ticketreply(request, ticketId):
 
         if form.is_valid():
             if 'attachment' in request.FILES:
-                if rt.replyToTicket(ticketId, text=form.cleaned_data['reply'], files=([request.FILES['attachment'].name, request.FILES['attachment'], mimetypes.guess_type(request.FILES['attachment'].name)],)):
+                if rt.replyToTicket(ticketId, text=form.cleaned_data['reply'],\
+                    files=([request.FILES['attachment'].name, request.FILES['attachment'], mimetypes.guess_type(request.FILES['attachment'].name)],)):
                     return HttpResponseRedirect(reverse( 'djangoRT:ticketdetail', args=[ ticketId ] ) )
                 else:
                     data['reply'] = form.cleaned_data['reply']
@@ -202,25 +203,28 @@ def ticketattachment(request, ticketId, attachmentId):
         response['Content-Disposition'] = attachment['Headers']['Content-Disposition']
         return response
 
-def get_openstack_data(unscoped_token, region):
+def get_openstack_data(username, unscoped_token, region):
     current_region = {}
     current_region['name'] = region
     current_region['projects'] = []
-    auth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=None)
-    sess = session.Session(auth=auth, verify=None)
-    sess = adapter.Adapter(sess, interface='public')
-    ks = ks_client.Client(session=sess, interface='public', insecure=True)
-    projects = ks.federation.projects.list()
+    ks_admin = get_admin_ks_client()
+    ks_user = ks_admin.users.list(name=username)
+    projects = []
+    if ks_user:
+        projects = ks_admin.projects.list(user=ks_user[0])
     for project in projects:
-        current_project = {}
-        current_project['name'] = project.name
-        current_project['id'] = project.id
-        current_region['projects'].append(current_project)
-        pauth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=project.id)
-        psess = session.Session(auth=pauth, verify=None)
-        psess = adapter.Adapter(psess, interface='public', region_name=region)
-        current_project['leases'] = get_lease_info(psess)
-        current_project['servers'] = get_server_info(psess)
+        try:
+            current_project = {}
+            current_project['name'] = project.name
+            current_project['id'] = project.id
+            current_region['projects'].append(current_project)
+            pauth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=project.id)
+            psess = session.Session(auth=pauth)
+            psess = adapter.Adapter(psess, interface='public', region_name=region)
+            current_project['leases'] = get_lease_info(psess)
+            current_project['servers'] = get_server_info(psess)
+        except Exception as err:
+            logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
     return current_region
 
 def get_lease_info(psess):
