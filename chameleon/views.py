@@ -21,11 +21,10 @@ import sys
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
 from keystoneclient.v3 import client as ks_client
-from keystoneauth1.identity import v3
-from keystoneauth1 import adapter, session
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from allocations.allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger(__name__)
 
@@ -231,7 +230,9 @@ def dashboard(request):
             proj.__dict__['nickname'] = extras.nickname
         except ProjectExtras.DoesNotExist:
             project_nickname = None
-
+        
+        mapper = ProjectAllocationMapper(request)
+        proj = mapper.map(proj)
 
     context['active_projects'] = [p for p in projects \
                 if p.source == 'Chameleon' and \

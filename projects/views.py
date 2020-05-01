@@ -22,11 +22,12 @@ import re
 import logging
 import json
 from keystoneclient.v3 import client as ks_client
-from keystoneauth1.identity import v3
-from keystoneauth1 import adapter, session
+from keystoneauth1 import adapter
 from django.conf import settings
 import uuid
 import sys
+from allocations.allocation_mapper import ProjectAllocationMapper
+from util.auth.keystone_auth import get_ks_auth_and_session
 
 logger = logging.getLogger('projects')
 
@@ -158,31 +159,11 @@ def view_project(request, project_id):
 
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
-
-    project.active_allocations = []
-    project.approved_allocations = []
-    project.pending_allocations = []
-    project.rejected_allocations = []
-    project.inactive_allocations = []
+    
+    mapper = ProjectAllocationMapper(request)
+    project = mapper.map(project)
 
     for a in project.allocations:
-        if a.status == 'Active' and a.resource == 'Chameleon':
-            project.active_allocations.append(a)
-            project.has_active_allocations = True
-        if a.status == 'Approved' and a.resource == 'Chameleon':
-            project.approved_allocations.append(a)
-            project.has_approved_allocations = True
-        if a.status == 'Pending' and a.resource == 'Chameleon':
-            project.pending_allocations.append(a)
-            project.has_pending_allocations = True
-        if a.status == 'Inactive' and a.resource == 'Chameleon':
-            project.inactive_allocations.append(a)
-            project.has_inactive_allocations = True
-        if a.status == 'Rejected' and a.resource == 'Chameleon':
-            project.rejected_allocations.append(a)
-            project.has_rejected_allocations = True
-
-
         if a.start and isinstance(a.start, basestring):
             a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
         if a.dateRequested:
@@ -194,11 +175,6 @@ def view_project(request, project_id):
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
-
-            days_left = (a.end - datetime.today()).days
-            if days_left >= 0 and days_left <= 90:
-                a.up_for_renewal = True
-                a.renewal_days = days_left
 
     try:
         extras = ProjectExtras.objects.get(tas_project_id=project_id)
@@ -233,10 +209,7 @@ def view_project(request, project_id):
     })
 
 def get_admin_ks_client():
-    auth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, \
-        password=settings.OPENSTACK_SERVICE_PASSWORD, \
-        project_id=settings.OPENSTACK_SERVICE_PROJECT_ID, project_name='services', user_domain_id="default")
-    sess = session.Session(auth=auth, timeout=5)
+    auth, sess = get_ks_auth_and_session()
     sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
     return ks_client.Client(session=sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
 
