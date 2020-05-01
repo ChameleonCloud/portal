@@ -643,6 +643,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 OUTAGE_EMAIL_REMINDER_TIMEDELTA = (60 * 60 * 2)
 OUTAGE_REMINDER_FREQUENCY = (60 * 10)
+
+# ALLOCATIONS
+ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get('ALLOCATIONS_BALANCE_SERVICE_ROOT_URL', '')
+PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get('PENDING_ALLOCATION_NOTIFICATION_EMAIL', '')
+ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY_IN_MINUTES = 30
+
+# CELERY BEAT SCHEDULER
 CELERY_BEAT_SCHEDULE = {
     'send-outage-reminders': {
         'task': 'chameleon_mailman.tasks.send_outage_reminders',
@@ -650,8 +657,9 @@ CELERY_BEAT_SCHEDULE = {
             int(OUTAGE_REMINDER_FREQUENCY / 60))),
         'args': (OUTAGE_REMINDER_FREQUENCY, OUTAGE_EMAIL_REMINDER_TIMEDELTA)
     },
+    'activate-expire-allocations': {
+        'task': 'allocations.tasks.activate_expire_allocations',
+        'schedule': crontab(minute="*/{}".format(
+            int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY_IN_MINUTES)))
+    },
 }
-
-# ALLOCATIONS
-ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get('ALLOCATIONS_BALANCE_SERVICE_ROOT_URL', '')
-

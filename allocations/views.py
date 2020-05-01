@@ -10,6 +10,7 @@ from pytas.http import TASClient
 from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
+from allocations.allocation_mapper import ProjectAllocationMapper
 
 import re
 import logging
@@ -49,6 +50,8 @@ def view( request ):
         tas = TASClient()
         resp = tas.projects_for_group('Chameleon')
         for p in resp:
+            mapper = ProjectAllocationMapper(request)
+            p = mapper.map(p, fetch_balance = False)
             tempAlloc = []
             for a in p['allocations']:
                 if a['resource'] == 'Chameleon':
@@ -90,7 +93,7 @@ def user_projects( request, username ):
                 temp = {}
                 # run through and make sure all the allocations are associated with one project
                 for p in userProjects:
-                     if p['source'] == 'Chameleon':
+                    if p['source'] == 'Chameleon':
                         if p['chargeCode'] not in temp:
                             logger.debug('Project ' + p['chargeCode'] + ' is not in the temp yet, adding')
                             temp[p['chargeCode']] = p
@@ -121,10 +124,10 @@ def approval( request ):
     status = ''
     if request.POST:
         tas = TASClient()
-        userData = tas.get_user( username=request.user )
+        mapper = ProjectAllocationMapper(request)
         data = json.loads(request.body)
-        data['reviewer'] = userData['username']
-        data['reviewerId'] = userData['id']
+        data['reviewer'] = request.user.username
+        data['reviewerId'] = mapper.get_user_id(request, tas)
         logger.info( 'Allocation approval requested by admin: %s', request.user )
         logger.info( 'Allocation approval request data: %s', json.dumps( data ) )
         validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}$' )
@@ -143,7 +146,7 @@ def approval( request ):
                 except ValidationError:
                     errors['start'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
-                 errors['start'] = 'Start date is required.'
+                errors['start'] = 'Start date is required.'
 
             if data['end']:
                 try:
@@ -151,7 +154,7 @@ def approval( request ):
                 except ValidationError:
                     errors['end'] = 'Start date must be a valid date string e.g. "2015-05-20" .'
             elif data['status'].lower() == 'approved':
-                 errors['end'] = 'Start date is required.'
+                errors['end'] = 'Start date is required.'
 
         if data['computeAllocated']:
             try:
@@ -225,17 +228,13 @@ def approval( request ):
             except ValidationError:
                 errors['dateReviewed'] = 'Reviewed date must be a valid date string e.g. "2015-05-20" .'
         else:
-             errors['dateReviewed'] = 'Reviewed date is required.'
+            errors['dateReviewed'] = 'Reviewed date is required.'
         if len( errors ) == 0:
             # source
             data['source'] = 'Chameleon'
 
-            # log the request
-            logger.info( 'Request data passed validation. Calling TAS ...')
-
             try:
-                resp['result'] = tas.allocation_approval( data['id'], data )
-                logger.info('Allocation approval TAS response: data=%s', json.dumps(resp['result']))
+                mapper.allocation_approval(data, tas, request.get_host())
                 status = 'success'
             except Exception as e:
                 logger.exception('Error processing allocation approval.')

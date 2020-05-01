@@ -230,7 +230,7 @@ def dashboard(request):
             proj.__dict__['nickname'] = extras.nickname
         except ProjectExtras.DoesNotExist:
             project_nickname = None
-        
+
         mapper = ProjectAllocationMapper(request)
         proj = mapper.map(proj)
 
