@@ -25,6 +25,7 @@ urlpatterns = [
 
     # contrib urls
     url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
+    url(r'^oidc/', include('mozilla_django_oidc.urls')),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^captcha/', include('captcha.urls')),
     url(r'^terms/', include('termsandconditions.urls')),
