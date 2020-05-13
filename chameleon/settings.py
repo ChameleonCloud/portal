@@ -263,7 +263,7 @@ OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
     'chameleon_openid.backend.OpenIDBackend',
-    'mozilla_django_oidc.auth.OIDCAuthenticationBackend',
+    'chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB',
 )
 
 LOGIN_URL = '/login/'
