@@ -12,18 +12,13 @@ class EventForm(ModelForm):
 
 class OutageForm(ModelForm):
     send_email_notification = BooleanField(required=False)
-    send_email_reminder = BooleanField(required=False)
 
     class Meta:
         model = Outage
+        exclude = ['reminder_sent']
 	fields = '__all__'
 
     def clean_send_email_notification(self):
         send = self.cleaned_data.get('send_email_notification')
         self.instance.send_email_notification = send
-        return send
-
-    def clean_send_email_reminder(self):
-        send = self.cleaned_data.get('send_email_reminder')
-        self.instance.send_email_reminder = send
         return send

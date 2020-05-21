@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   portal:
-    image: docker.chameleoncloud.org/portal:latest
+    build: .
     env_file:
       - .chameleon_env
     volumes:
@@ -48,7 +48,7 @@ services:
         - '6379:6379'
   celery:
     build: .
-    command: celery -A chameleon worker -l info
+    command: celery -A chameleon worker -l info --concurrency=1 -B
     env_file:
       - .chameleon_env
     volumes:
