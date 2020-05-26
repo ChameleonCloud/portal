@@ -7,10 +7,13 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
+from __future__ import absolute_import
 
 import os
 import django
+from celery.schedules import crontab
 from django.utils.translation import ugettext_lazy as _
+
 gettext = lambda s: s
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -639,6 +642,16 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 OUTAGE_EMAIL_REMINDER_TIMEDELTA = (60 * 60 * 2)
+OUTAGE_REMINDER_FREQUENCY = (60 * 10)
+CELERY_BEAT_SCHEDULE = {
+    'send-outage-reminders': {
+        'task': 'chameleon_mailman.tasks.send_outage_reminders',
+        'schedule': crontab(minute="*/{}".format(
+            int(OUTAGE_REMINDER_FREQUENCY / 60))),
+        'args': (OUTAGE_REMINDER_FREQUENCY, OUTAGE_EMAIL_REMINDER_TIMEDELTA)
+    },
+}
 
 # ALLOCATIONS
 ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get('ALLOCATIONS_BALANCE_SERVICE_ROOT_URL', '')
+

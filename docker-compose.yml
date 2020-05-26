@@ -1,32 +1,34 @@
-portal:
-  build: .
-  env_file:
-    - .chameleon_env
-  volumes:
-    - ../media:/project/media
-    - ../static:/var/www/chameleoncloud.org/static
-    - .:/project
-  ports:
-    - 8888:8888
-  links:
-    - referenceapi:referenceapi
-  command: python manage.py runserver 0.0.0.0:8888
-referenceapi:
-  image: referenceapi:latest
-  ports:
-    - 8000:8000
-redis:
-  image: "redis:alpine"
-  expose:
-    - '6379'
-  ports:
-    - '6379:6379'
-celery:
-  build: .
-  command: celery -A chameleon worker -l info
-  env_file:
-    - .chameleon_env
-  volumes:
-    - .:/project
-  depends_on:
-    - redis
+version: '3.3'
+services:
+  portal:
+    build: .
+    env_file:
+      - .chameleon_env
+    volumes:
+      - ../media:/project/media
+      - ../static:/var/www/chameleoncloud.org/static
+      - .:/project
+    ports:
+      - 8888:8888
+    links:
+      - referenceapi:referenceapi
+    command: python manage.py runserver 0.0.0.0:8888
+  referenceapi:
+    image: referenceapi:latest
+    ports:
+      - 8000:8000
+  redis:
+    image: "redis:alpine"
+    expose:
+      - '6379'
+    ports:
+      - '6379:6379'
+  celery:
+    build: .
+    command: celery -A chameleon worker -l info --concurrency=1 -B
+    env_file:
+      - .chameleon_env
+    volumes:
+      - .:/project
+    depends_on:
+      - redis
