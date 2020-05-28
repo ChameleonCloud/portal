@@ -112,6 +112,7 @@ INSTALLED_APPS = (
     ##
     # custom
     #
+    'chameleon',
     'chameleon_openid',
     'chameleon_mailman',
     'chameleon_token',
