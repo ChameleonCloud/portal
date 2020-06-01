@@ -6,8 +6,6 @@ logger = logging.getLogger('auth')
 
 class ChameleonOIDCAB(OIDCAuthenticationBackend):
     def create_user(self, claims):
-        if self.get_settings('OIDC_USERNAME_ALGO', None):
-            return super(ChameleonOIDCAB, self).create_user(claims)
         logger.debug('Creating user from keycloak with claims: {0}'.format(claims))
         email = claims.get('email')
         username = claims.get('preferred_username', '')
@@ -16,7 +14,7 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         user.last_name = claims.get('family_name', '')
         user.save()
         props = UserProperties(user=user)
-        props.is_pi_eligible = ('principal_investigator' in claims.get('realm_access.roles', []))
+        props.is_pi = ('principal_investigator' in claims.get('realm_access.roles', []))
         props.save()
         return user
 
@@ -31,7 +29,7 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
             props = UserProperties.objects.get(user=user)
         except UserProperties.DoesNotExist:
             props = UserProperties(user=user)
-        props.is_pi_eligible = ('principal_investigator' in claims.get('realm_access.roles', []))
+        props.is_pi = ('principal_investigator' in claims.get('realm_access.roles', []))
         props.save()
 
         return user
