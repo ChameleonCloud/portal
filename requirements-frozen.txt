@@ -15,7 +15,7 @@ contextlib2==0.5.5
 cookies==2.2.1
 cryptography==2.7
 debtcollector==1.22.0
-Django==1.11.24
+Django==1.11.28
 django-angular==2.2.1
 django-appconf==1.0.3
 django-appdata==0.2.1
