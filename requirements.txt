@@ -43,6 +43,7 @@ slimit
 sqlparse
 pytas
 bibtexparser
+mozilla-django-oidc
 
 python-glanceclient
 python-keystoneclient

@@ -81,6 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mozilla_django_oidc',
 
     ##
     # django-cms
@@ -114,6 +115,7 @@ INSTALLED_APPS = (
     ##
     # custom
     #
+    'chameleon',
     'chameleon_openid',
     'chameleon_mailman',
     'chameleon_token',
@@ -253,9 +255,19 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
 
+## Keycloak OIDC Authentication
+OIDC_RP_CLIENT_ID = os.environ.get('OIDC_RP_CLIENT_ID')
+OIDC_RP_CLIENT_SECRET = os.environ.get('OIDC_RP_CLIENT_SECRET')
+OIDC_RP_SIGN_ALGO = os.environ.get('OIDC_RP_SIGN_ALGO')
+OIDC_OP_JWKS_ENDPOINT = os.environ.get('OIDC_OP_JWKS_ENDPOINT')
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get('OIDC_OP_AUTHORIZATION_ENDPOINT')
+OIDC_OP_TOKEN_ENDPOINT = os.environ.get('OIDC_OP_TOKEN_ENDPOINT')
+OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
+
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
     'chameleon_openid.backend.OpenIDBackend',
+    'chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB',
 )
 
 LOGIN_URL = '/login/'
