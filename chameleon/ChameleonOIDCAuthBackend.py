@@ -10,7 +10,6 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         if login:
             access_token = request.session.get('oidc_access_token','')
             user_info = self.get_userinfo(access_token, None, None)
-            logger.info(user_info)
             request.session['is_federated'] = True
             request.session['is_pi'] = ('principal_investigator' in user_info.get('realm_access.roles', []))
         return login
