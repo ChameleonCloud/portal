@@ -1,10 +1,20 @@
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
-from chameleon.models import UserProperties
 import logging
 
 logger = logging.getLogger('auth')
 
 class ChameleonOIDCAB(OIDCAuthenticationBackend):
+
+    def authenticate(self, request, **kwargs):
+        login = super(ChameleonOIDCAB, self).authenticate(request, **kwargs)
+        if login:
+            access_token = request.session.get('oidc_access_token','')
+            user_info = self.get_userinfo(access_token, None, None)
+            logger.info(user_info)
+            request.session['is_federated'] = True
+            request.session['is_pi'] = ('principal_investigator' in user_info.get('realm_access.roles', []))
+        return login
+
     def create_user(self, claims):
         logger.debug('Creating user from keycloak with claims: {0}'.format(claims))
         email = claims.get('email')
@@ -13,9 +23,6 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
         user.save()
-        props = UserProperties(user=user)
-        props.is_pi = ('principal_investigator' in claims.get('realm_access.roles', []))
-        props.save()
         return user
 
     def update_user(self, user, claims):
@@ -24,12 +31,5 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
         user.save()
-
-        try:
-            props = UserProperties.objects.get(user=user)
-        except UserProperties.DoesNotExist:
-            props = UserProperties(user=user)
-        props.is_pi = ('principal_investigator' in claims.get('realm_access.roles', []))
-        props.save()
 
         return user

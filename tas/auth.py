@@ -27,6 +27,7 @@ class TASBackend(ModelBackend):
                 # Check if this user is valid on the mail server
                 if self.tas.authenticate(username, password):
                     tas_user = self.tas.get_user(username=username)
+                    request.session['is_federated'] = False
                     logger.info('Login successful for user "%s"' % username)
                 else:
                     raise ValidationError('Authentication Error', 'Your username or password is incorrect.')
