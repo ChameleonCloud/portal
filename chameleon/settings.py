@@ -115,7 +115,6 @@ INSTALLED_APPS = (
     ##
     # custom
     #
-    'chameleon',
     'chameleon_openid',
     'chameleon_mailman',
     'chameleon_token',
@@ -263,6 +262,8 @@ OIDC_OP_JWKS_ENDPOINT = os.environ.get('OIDC_OP_JWKS_ENDPOINT')
 OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get('OIDC_OP_AUTHORIZATION_ENDPOINT')
 OIDC_OP_TOKEN_ENDPOINT = os.environ.get('OIDC_OP_TOKEN_ENDPOINT')
 OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_STORE_ID_TOKEN = True
 
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
