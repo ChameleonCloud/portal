@@ -15,27 +15,39 @@ class Allocation(models.Model):
         ('approved', 'approved but not active')
     )
     project_charge_code = models.CharField(max_length=50,blank=False)
-    status = models.CharField(max_length=50, blank=False,choices=STATUS)
-    justification = models.CharField(max_length=500,null=True)
+    status = models.CharField(max_length=50, blank=False, choices=STATUS)
+    justification = models.TextField(null=True)
     requestor = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='allocation_requestor', null=True)
-    date_requested = models.DateTimeField(null=True)
-    decision_summary = models.CharField(max_length=500,null=True)
+    date_requested = models.DateTimeField()
+    decision_summary = models.TextField(null=True)
     reviewer = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='allocation_reviewer',null=True)
     date_reviewed = models.DateTimeField(null=True)
     expiration_date = models.DateTimeField(null=True)
     su_requested = models.FloatField()
-    start_date = models.DateTimeField()
-    su_allocated = models.FloatField()
+    start_date = models.DateTimeField(null=True)
+    su_allocated = models.FloatField(null=True)
     su_used = models.FloatField(null=True)
     
     def requestor_username(self):
-        return self.requestor.username
+        if self.requestor:
+            return self.requestor.username
+        else:
+            return None
 
     def requestor_id(self):
-        return self.requestor.id
+        if self.requestor:
+            return self.requestor.id
+        else:
+            return None
     
     def reviewer_username(self):
-        return self.reviewer.username
+        if self.reviewer:
+            return self.reviewer.username
+        else:
+            return None
     
     def reviewer_id(self):
-        return self.reviewer.id
+        if self.reviewer:
+            return self.reviewer.id
+        else:
+            return None
