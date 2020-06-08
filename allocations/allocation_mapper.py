@@ -18,9 +18,7 @@ class ProjectAllocationMapper:
         self.allocations_from_db = self._wants_db_allocations(request)
         
     def _wants_db_allocations(self, request):
-        if request.user.is_superuser:
-            return True
-        return False
+        return request.user.is_superuser
 
     def _send_allocation_request_notification(self, charge_code, host):
         subject = 'Pending allocation request for project {}'.format(charge_code)
