@@ -60,7 +60,7 @@ def user_projects(request):
 
     tas = TASClient()
     user = tas.get_user(username=request.user)
-
+    
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
     context['username'] = request.user.username
 
@@ -299,7 +299,7 @@ def update_keystone_user_status(username, enabled=False):
     # then get member roles, member_role = keystone.roles.list(name='_member_',domain=domain_id)[0]
     member_role = ks_client.roles.list(name='_member_',domain=domain_id)[0]
 
-   # Get user from keystone
+    # Get user from keystone
     ks_user = get_keystone_user(ks_client, username)
     if ks_user:
         logger.info('Updating keystone user status for: ' + username + ' to: ' + str(enabled))
@@ -312,6 +312,7 @@ def update_keystone_user_status(username, enabled=False):
 @terms_required('project-terms')
 def create_allocation(request, project_id, allocation_id=-1):
     tas = TASClient()
+    mapper = ProjectAllocationMapper(request)
 
     user = tas.get_user(username=request.user)
     if user['piEligibility'] != 'Eligible':
@@ -323,6 +324,8 @@ def create_allocation(request, project_id, allocation_id=-1):
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
     project = Project(project_id)
+    project = mapper.map(project)
+    
     allocation = None
     if allocation_id > 0:
         for a in project.allocations:
@@ -384,7 +387,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 allocation['justification'] = supplemental_details
 
             allocation['projectId'] = project_id
-            allocation['requestorId'] = tas.get_user(username=request.user)['id']
+            allocation['requestorId'] = mapper.get_user_id(request, tas)
             allocation['resourceId'] = '39'
 
             if allocation_id > 0:
@@ -394,7 +397,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 logger.info('Submitting allocation request for project %s: %s' %
                             (project.id, allocation))
                 updated_project = tas.edit_project(project.as_dict())
-                tas.create_allocation(allocation)
+                mapper.save_allocation(allocation, project.chargeCode, tas, request.get_host())
                 messages.success(request, 'Your allocation request has been submitted!')
                 return HttpResponseRedirect(
                     reverse('projects:view_project', args=[updated_project['id']]))
