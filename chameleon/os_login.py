@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 def custom_login(request, current_app=None, extra_context=None):
     login_return = login(request, current_app=None, extra_context=None)
     if request.user.is_authenticated() and request.POST.get('password', False):
+        request.session['is_federated'] = False
         get_unscoped_token(request)
     return login_return
 
