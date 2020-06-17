@@ -1,7 +1,6 @@
 TAS_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-TAS_TO_PORTAL_MAP = {'project': 'project_charge_code',
-                     'status': 'status',
+TAS_TO_PORTAL_MAP = {'status': 'status',
                      'justification': 'justification',
                      'requestorId': 'requestor_id',
                      'dateRequested': 'date_requested',

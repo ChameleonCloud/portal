@@ -9,9 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
 from django.conf import settings
-from pytas.http import TASClient
-from pytas.models import Project
-from models import ProjectExtras, Publication
+from models import Project, ProjectExtras
 from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
@@ -27,8 +25,8 @@ from keystoneauth1 import adapter
 from django.conf import settings
 import uuid
 import sys
-from allocations.allocation_mapper import ProjectAllocationMapper
 from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger('projects')
 
@@ -59,8 +57,8 @@ def project_member_or_admin_or_superuser(user, project, project_user):
 def user_projects(request):
     context = {}
 
-    tas = TASClient()
-    user = tas.get_user(username=request.user)
+    mapper = ProjectAllocationMapper(request)
+    user = mapper.get_user(request.user.username)
 
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
     context['username'] = request.user.username
@@ -91,23 +89,18 @@ def get_unique_projects(projects, alloc_status=[]):
     return unique_projects
 
 def get_projects(request, alloc_status=[]):
-    projects = Project.list(username=request.user)
+    mapper = ProjectAllocationMapper(request)
+    projects = mapper.get_user_projects(request.user.username, to_pytas_model=True)
     projects = get_unique_projects(projects, alloc_status)
     projects = list(p for p in projects if p.source == 'Chameleon')
-
-    for proj in projects:
-        try:
-            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
-            proj.__dict__['nickname'] = extras.nickname
-        except ProjectExtras.DoesNotExist:
-            project_nickname = None
 
     return projects
 
 @login_required
 def view_project(request, project_id):
+    mapper = ProjectAllocationMapper(request)
     try:
-        project = Project(project_id)
+        project = mapper.get_project(project_id)
         if project.source != 'Chameleon':
             raise Http404('The requested project does not exist!')
     except Exception as e:
@@ -124,8 +117,9 @@ def view_project(request, project_id):
             if form.is_valid():
                 # try to add user
                 try:
+                    pi_user = mapper.get_user(project.pi.username, to_pytas_model = True)
                     add_username = form.cleaned_data['username']
-                    if project.add_user(add_username):
+                    if mapper.add_user_to_project(project, add_username):
                         sync_project_memberships(request, add_username)
                         messages.success(request,
                             'User "%s" added to project!' % add_username)
@@ -148,7 +142,7 @@ def view_project(request, project_id):
             # try to remove user
             try:
                 del_username = request.POST['username']
-                if project.remove_user(del_username):
+                if mapper.remove_user_from_project(project, del_username):
                     sync_project_memberships(request, del_username)
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
@@ -156,13 +150,10 @@ def view_project(request, project_id):
                 messages.error(request, 'An unexpected error occurred while attempting '
                     'to remove this user. Please try again')
 
-    users = project.get_users()
+    users = mapper.get_project_members(project)
 
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
-
-    mapper = ProjectAllocationMapper(request)
-    project = mapper.map(project)
 
     for a in project.allocations:
         if a.start and isinstance(a.start, basestring):
@@ -176,12 +167,6 @@ def view_project(request, project_id):
         if a.end:
             if isinstance(a.end, basestring):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
-
-    try:
-        extras = ProjectExtras.objects.get(tas_project_id=project_id)
-        project_nickname = extras.nickname
-    except ProjectExtras.DoesNotExist:
-        project_nickname = None
 
     user_mashup = []
     for u in users:
@@ -201,7 +186,7 @@ def view_project(request, project_id):
 
     return render(request, 'projects/view_project.html', {
         'project': project,
-        'project_nickname': project_nickname,
+        'project_nickname': project.nickname,
         'users': user_mashup,
         'is_pi': request.user.username == project.pi.username,
         'form': form,
@@ -256,10 +241,9 @@ def sync_project_memberships(request, username):
 @login_required
 @terms_required('project-terms')
 def create_allocation(request, project_id, allocation_id=-1):
-    tas = TASClient()
     mapper = ProjectAllocationMapper(request)
 
-    user = tas.get_user(username=request.user)
+    user = mapper.get_user(request.user.username)
     if user['piEligibility'] != 'Eligible':
         messages.error(request,
                        'Only PI Eligible users can request allocations. If you would '
@@ -268,8 +252,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                        'request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
 
-    project = Project(project_id)
-    project = mapper.map(project)
+    project = mapper.get_project(project_id)
 
     allocation = None
     if allocation_id > 0:
@@ -332,7 +315,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 allocation['justification'] = supplemental_details
 
             allocation['projectId'] = project_id
-            allocation['requestorId'] = mapper.get_user_id(request, tas)
+            allocation['requestorId'] = mapper.get_user_id(request)
             allocation['resourceId'] = '39'
 
             if allocation_id > 0:
@@ -341,8 +324,8 @@ def create_allocation(request, project_id, allocation_id=-1):
             try:
                 logger.info('Submitting allocation request for project %s: %s' %
                             (project.id, allocation))
-                updated_project = tas.edit_project(project.as_dict())
-                mapper.save_allocation(allocation, project.chargeCode, tas, request.get_host())
+                updated_project = mapper.save_project(project.as_dict())
+                mapper.save_allocation(allocation, project.chargeCode, request.get_host())
                 messages.success(request, 'Your allocation request has been submitted!')
                 return HttpResponseRedirect(
                     reverse('projects:view_project', args=[updated_project['id']]))
@@ -370,8 +353,10 @@ def create_allocation(request, project_id, allocation_id=-1):
 @login_required
 @terms_required('project-terms')
 def create_project(request):
-    tas = TASClient()
-    user = tas.get_user(username=request.user)
+    mapper = ProjectAllocationMapper(request)
+    form_args = {'request': request}
+
+    user = mapper.get_user(request.user.username)
     if user['piEligibility'] != 'Eligible':
         messages.error(request,
                        'Only PI Eligible users can create new projects. '
@@ -380,13 +365,15 @@ def create_project(request):
                        'request</a>.')
         return HttpResponseRedirect(reverse('projects:user_projects'))
     if request.POST:
-        form = ProjectCreateForm(request.POST)
+        form = ProjectCreateForm(request.POST, **form_args)
         if form.is_valid():
             # title, description, typeId, fieldId
             project = form.cleaned_data.copy()
             # let's check that any provided nickname is unique
-            nickname = project.pop('nickname').strip()
-            nickname_valid = nickname and ProjectExtras.objects.filter(nickname=nickname).count() < 1
+            project['nickname'] = project['nickname'].strip()
+            nickname_valid = project['nickname'] and \
+                             ProjectExtras.objects.filter(nickname=project['nickname']).count() < 1 and \
+                             Project.objects.filter(nickname=project['nickname']).count() < 1
 
             if not nickname_valid:
                 form.add_error('__all__',
@@ -396,7 +383,7 @@ def create_project(request):
             project.pop('accept_project_terms', None)
 
             # pi
-            pi_user = tas.get_user(username=request.user)
+            pi_user = mapper.get_user(request.user.username)
             project['piId'] = pi_user['id']
 
             # allocations
@@ -428,12 +415,8 @@ def create_project(request):
             # source
             project['source'] = 'Chameleon'
             try:
-                created_project = tas.create_project(project)
+                created_project = mapper.save_project(project, request.get_host())
                 logger.info('newly created project: ' + json.dumps(created_project))
-                tas_project_id = created_project['id']
-                charge_code = created_project['chargeCode']
-                pextras = ProjectExtras.objects.create(tas_project_id=tas_project_id, nickname=nickname,charge_code=charge_code)
-                pextras.save()
                 messages.success(request, 'Your project has been created!')
                 return HttpResponseRedirect(
                     reverse('projects:view_project', args=[created_project['id']]))
@@ -446,7 +429,7 @@ def create_project(request):
                            'There were errors processing your request. '
                            'Please see below for details.')
     else:
-        form = ProjectCreateForm()
+        form = ProjectCreateForm(**form_args)
 
     return render(request, 'projects/create_project.html', {'form': form})
 
@@ -458,21 +441,19 @@ def edit_project(request):
 
 @require_POST
 def edit_nickname(request, project_id):
-    project = Project(project_id)
+    mapper = ProjectAllocationMapper(request)
+    project = mapper.get_project(project_id)
     if not project_pi_or_admin_or_superuser(request.user, project):
-       messages.error(request, 'Only the project PI can update nickname.')
-       return EditNicknameForm()
+        messages.error(request, 'Only the project PI can update nickname.')
+        return EditNicknameForm()
 
     form = EditNicknameForm(request.POST)
-    if form.is_valid():
+    if form.is_valid(request):
         # try to update nickname
         try:
             nickname = form.cleaned_data['nickname']
-            pextras, created = ProjectExtras.objects.get_or_create(tas_project_id=project_id)
-            pextras.charge_code = project.chargeCode
-            pextras.nickname = nickname
-            pextras.save()
-            # Reset the form
+            ProjectAllocationMapper.update_project_nickname(project_id,
+                project.chargeCode, nickname)
             form = EditNicknameForm()
             set_ks_project_nickname(project.chargeCode, nickname)
             messages.success(request, 'Update Successful')

@@ -32,6 +32,7 @@ MySQL-python
 opbeat
 Pillow
 ply
+python-keycloak-client
 python-openid
 pytz
 PyYAML

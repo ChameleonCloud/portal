@@ -6,18 +6,12 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django import forms
-from pytas.http import TASClient
-from tas.forms import PasswordResetRequestForm, PasswordResetConfirmForm
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
-from allocations.allocation_mapper import ProjectAllocationMapper
+from util.project_allocation_mapper import ProjectAllocationMapper
 
-import re
 import logging
-import traceback
 import json
-import math
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +41,9 @@ def denied( request ):
 def view( request ):
     #resp = ''
     try:
-        tas = TASClient()
-        resp = tas.projects_for_group('Chameleon')
+        mapper = ProjectAllocationMapper(request)
+        resp = mapper.get_all_projects()
         for p in resp:
-            mapper = ProjectAllocationMapper(request)
-            p = mapper.map(p, fetch_balance = False)
             tempAlloc = []
             for a in p['allocations']:
                 if a['resource'] == 'Chameleon':
@@ -83,37 +75,32 @@ def user_projects( request, username ):
         'result': []
     }
     if username:
-        tas = TASClient()
         try:
-            userData = tas.get_user(username=username)
-            try:
-                userProjects = tas.projects_for_user( username=username )
-                #logger.debug(userProjects)
+            mapper = ProjectAllocationMapper(request)
+            userProjects = mapper.get_user_projects(username)
+            #logger.debug(userProjects)
 
-                temp = {}
-                # run through and make sure all the allocations are associated with one project
-                for p in userProjects:
-                    if p['source'] == 'Chameleon':
-                        if p['chargeCode'] not in temp:
-                            logger.debug('Project ' + p['chargeCode'] + ' is not in the temp yet, adding')
-                            temp[p['chargeCode']] = p
-                        else:
-                            logger.debug('Project ' + p['chargeCode'] + ' is in temp...appending allocations')
-                            tempProj = temp[p['chargeCode']]
-                            for a in p['allocations']:
-                                if a['resource'] == 'Chameleon':
-                                    tempProj['allocations'].extend(a)
-                            temp[p['chargeCode']] = tempProj
-                for code, proj in temp.items():
-                    resp['status'] = 'success'
-                    resp['result'].append(proj)
-                logger.info('Total chameleon projects for user %s: %s', username, len(resp))
-            except Exception as e:
-                logger.debug('Error loading projects for user: %s with error %s', username, e)
-                resp['msg'] = 'Error loading projects for user: %s' %username
+            temp = {}
+            # run through and make sure all the allocations are associated with one project
+            for p in userProjects:
+                if p['source'] == 'Chameleon':
+                    if p['chargeCode'] not in temp:
+                        logger.debug('Project ' + p['chargeCode'] + ' is not in the temp yet, adding')
+                        temp[p['chargeCode']] = p
+                    else:
+                        logger.debug('Project ' + p['chargeCode'] + ' is in temp...appending allocations')
+                        tempProj = temp[p['chargeCode']]
+                        for a in p['allocations']:
+                            if a['resource'] == 'Chameleon':
+                                tempProj['allocations'].extend(a)
+                        temp[p['chargeCode']] = tempProj
+            for code, proj in temp.items():
+                resp['status'] = 'success'
+                resp['result'].append(proj)
+            logger.info('Total chameleon projects for user %s: %s', username, len(resp))
         except Exception as e:
-            logger.debug('User not found with username: %s', username)
-            resp['msg'] = 'User not found.'
+            logger.debug('Error loading projects for user: %s with error %s', username, e)
+            resp['msg'] = 'Error loading projects for user: %s' %username
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
@@ -123,11 +110,10 @@ def approval( request ):
     errors = {}
     status = ''
     if request.POST:
-        tas = TASClient()
         mapper = ProjectAllocationMapper(request)
         data = json.loads(request.body)
         data['reviewer'] = request.user.username
-        data['reviewerId'] = mapper.get_user_id(request, tas)
+        data['reviewerId'] = mapper.get_user_id(request)
         logger.info( 'Allocation approval requested by admin: %s', request.user )
         logger.info( 'Allocation approval request data: %s', json.dumps( data ) )
         validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}$' )
@@ -234,7 +220,7 @@ def approval( request ):
             data['source'] = 'Chameleon'
 
             try:
-                mapper.allocation_approval(data, tas, request.get_host())
+                mapper.allocation_approval(data, request.get_host())
                 status = 'success'
             except Exception as e:
                 logger.exception('Error processing allocation approval.')

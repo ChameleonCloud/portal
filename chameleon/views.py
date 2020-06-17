@@ -9,9 +9,6 @@ from urlparse import urlparse
 import logging
 import chameleon.os_login as login
 from tas import auth as tas_auth
-from tas.util import get_user_projects
-from pytas.models import Project
-from projects.models import ProjectExtras
 from projects.views import get_unique_projects
 from webinar_registration.models import Webinar
 from django.utils import timezone
@@ -23,8 +20,8 @@ from keystoneclient.v3 import client as ks_client
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from allocations.allocation_mapper import ProjectAllocationMapper
 from chameleon.keystone_auth import admin_ks_client, sync_projects, sync_user, get_user, regenerate_tokens, get_token, has_valid_token
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +58,8 @@ def horizon_sso_login(request):
     date and let them know when they can access Horizon.
     '''
     username = request.user.username
-    active_projects, approved_projects = get_user_projects(username)
+    mapper = ProjectAllocationMapper(request)
+    active_projects, approved_projects = mapper.get_user_projects(username)
     ks_admin = admin_ks_client(request=request)
     ks_user = get_user(ks_admin, username)
     if not ks_user:
@@ -200,19 +198,10 @@ class KSAuthForm(AuthenticationForm):
 def dashboard(request):
     context = {}
     # active projects...
-    projects = Project.list(username=request.user)
+    mapper = ProjectAllocationMapper(request)
+    projects = mapper.get_user_projects(request.user.username, to_pytas_model=True)
     alloc_status = ['Active', 'Approved', 'Pending']
     projects = get_unique_projects(projects, alloc_status=alloc_status)
-
-    for proj in projects:
-        try:
-            extras = ProjectExtras.objects.get(tas_project_id=proj.id)
-            proj.__dict__['nickname'] = extras.nickname
-        except ProjectExtras.DoesNotExist:
-            project_nickname = None
-
-        mapper = ProjectAllocationMapper(request)
-        proj = mapper.map(proj)
 
     context['active_projects'] = [p for p in projects \
                 if p.source == 'Chameleon' and \
@@ -257,9 +246,7 @@ def _check_geni_federation_status(request):
 
     if on_geni_project:
         try:
-            fed_proj = Project(settings.GENI_FEDERATION_PROJECTS['chameleon']['id'])
-            on_chameleon_project = any(u.username == request.user.username \
-                                        for u in fed_proj.get_users())
+            on_chameleon_project = ProjectAllocationMapper.is_geni_user_on_chameleon_project(request.user.username)
         except:
             logger.warn('Could not locate Chameleon federation project: %s' % \
                 settings.GENI_FEDERATION_PROJECTS['chameleon'])
