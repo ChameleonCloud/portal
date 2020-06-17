@@ -10,7 +10,6 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
             access_token = request.session.get('oidc_access_token','')
             user_info = self.get_userinfo(access_token, None, None)
             request.session['is_federated'] = True
-            request.session['is_pi'] = ('principal_investigator' in user_info.get('realm_access.roles', []))
         return login
 
     def create_user(self, claims):
@@ -29,5 +28,4 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
         user.save()
-
         return user
