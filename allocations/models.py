@@ -3,6 +3,7 @@ import json
 import logging
 from django.conf import settings
 from datetime import datetime
+from projects.models import Project
 
 logger = logging.getLogger('allocations')
 
@@ -14,13 +15,13 @@ class Allocation(models.Model):
         ('rejected', 'rejected'),
         ('approved', 'approved but not active')
     )
-    project_charge_code = models.CharField(max_length=50,blank=False)
+    project = models.ForeignKey(Project, related_name='allocations')
     status = models.CharField(max_length=50, blank=False, choices=STATUS)
     justification = models.TextField(null=True)
-    requestor = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='allocation_requestor', null=True)
+    requestor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='allocation_requestor', null=True)
     date_requested = models.DateTimeField()
     decision_summary = models.TextField(null=True)
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='allocation_reviewer',null=True)
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='allocation_reviewer',null=True)
     date_reviewed = models.DateTimeField(null=True)
     expiration_date = models.DateTimeField(null=True)
     su_requested = models.FloatField()

@@ -1,36 +1,12 @@
 from django import forms
-from pytas.http import TASClient
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
-from models import ProjectExtras
+from models import Project, ProjectExtras
 import bibtexparser
 import logging
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger('projects')
-
-RESEARCH = 0
-STARTUP = 2
-PROJECT_TYPES = (
-    ('', 'Choose One'),
-    (RESEARCH, 'Research'),
-    (STARTUP, 'Startup'),
-)
-
-
-def get_fields_choices():
-    choices = (('', 'Choose One'),)
-    tas = TASClient()
-    fields = tas.fields()
-    for f in fields:
-        choices = choices + ((f['id'], f['name']),)
-        if f['children']:
-            for c in f['children']:
-                choices = choices + ((c['id'], '--- ' + c['name']),)
-                if c['children']:
-                    for g in c['children']:
-                        choices = choices + ((g['id'], '--- --- ' + g['name']),)
-    return choices
-
 
 def get_accept_project_terms_help_text():
     user_terms_url = reverse_lazy('tc_view_specific_version_page',
@@ -99,8 +75,14 @@ class ProjectCreateForm( forms.Form ):
     )
 
     def __init__(self, *args, **kwargs):
-        super(ProjectCreateForm, self).__init__(*args, **kwargs)
-        self.fields['fieldId'].choices = get_fields_choices()
+        if 'request' in kwargs:
+            request = kwargs['request']
+            del kwargs['request']
+            super(ProjectCreateForm, self).__init__(*args, **kwargs)
+            mapper = ProjectAllocationMapper(request)
+            self.fields['fieldId'].choices = mapper.get_fields_choices()
+        else:
+            logger.error('Couldn\'t get field list.')
 
 class EditNicknameForm(forms.Form):
     nickname = forms.CharField(
@@ -111,7 +93,8 @@ class EditNicknameForm(forms.Form):
         widget=forms.TextInput(attrs={'placeholder': 'Project Nickname'}),
     )
 
-    def is_valid(self):
+    def is_valid(self, request):
+        mapper = ProjectAllocationMapper(request)
         valid = super(EditNicknameForm, self).is_valid()
         if not valid:
             return valid
@@ -119,11 +102,12 @@ class EditNicknameForm(forms.Form):
         if not self.cleaned_data['nickname']:
             return False
 
-        is_duplicate = ProjectExtras.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
-        if is_duplicate:
-            return False
+        if mapper.is_from_db:
+            is_duplicate = Project.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
+        else:
+            is_duplicate = ProjectExtras.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
 
-        return True
+        return not is_duplicate
 
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(

@@ -271,6 +271,12 @@ OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
 OIDC_STORE_ACCESS_TOKEN = True
 OIDC_STORE_ID_TOKEN = True
 
+## Keycloak Client
+KEYCLOAK_SERVER_URL = os.environ.get('KEYCLOAK_SERVER_URL')
+KEYCLOAK_REALM_NAME = os.environ.get('KEYCLOAK_REALM_NAME', 'chameleon')
+KEYCLOAK_PORTAL_ADMIN_CLIENT_ID = os.environ.get('KEYCLOAK_PORTAL_ADMIN_CLIENT_ID')
+KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET = os.environ.get('KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET')
+
 AUTHENTICATION_BACKENDS = (
     'tas.auth.TASBackend',
     'chameleon_openid.backend.OpenIDBackend',
@@ -609,7 +615,8 @@ GENI_FEDERATION_PROJECTS = {
     'chameleon': {
         'id': '26427',
         'name': 'GENI-Federation',
-        'url': 'https://www.chameleoncloud.org/user/projects/26427/'
+        'url': 'https://www.chameleoncloud.org/user/projects/26427/',
+        'charge_code': 'CH-817201',
     },
 }
 

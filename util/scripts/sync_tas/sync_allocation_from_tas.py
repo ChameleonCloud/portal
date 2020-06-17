@@ -16,11 +16,12 @@ logging.basicConfig(level=logging.INFO)
 
 PORTAL_ALLOCATION_TABLE_NAME = 'allocations_allocation'
 PORTAL_AUTH_USER_TABLE_NAME = 'auth_user'
+PORTAL_PROJECT_TABLE_NAME = 'projects_project'
 
-REQUIRED_FIELDS = ['project_charge_code', 'status', 'date_requested', 'su_requested']
+REQUIRED_FIELDS = ['project_id', 'status', 'date_requested', 'su_requested']
 
 def init_reformated_alloc():
-    alloc = {}
+    alloc = {'project_id': None}
     for key in TAS_TO_PORTAL_MAP.values():
         alloc[key] = None
 
@@ -49,6 +50,15 @@ def get_allocations_from_tas(tas, db):
             if a['resource'] == 'Chameleon':
                 reformated_a = init_reformated_alloc()
                 for key, val in a.items():
+                    if key == 'project':
+                        cursor.execute("SELECT id FROM {table} WHERE charge_code = '{charge_code}'".format(table = PORTAL_PROJECT_TABLE_NAME,
+                                                                                                           charge_code = a[key]))
+                        project = cursor.fetchone()
+                        if project:
+                            reformated_a['project_id'] = project['id']
+                        else:
+                            logger.warning('can not find project with charge_code {} in portal'.format(a[key]))
+                        continue
                     if key in TAS_TO_PORTAL_MAP:
                         if key == 'status':
                             val = val.lower()
@@ -98,7 +108,11 @@ def get_allocations_from_portal(db):
 def sync(db, tas_allocs, portal_allocs):
     records_to_insert = []
     records_to_update = []
+    columns = None
+
     for tas_alloc in tas_allocs:
+        if not columns:
+            columns = tas_alloc.keys()
         # tas projects_for_group gives inconsistent computeUsed
         compare_tas_alloc = tas_alloc.copy()
         del compare_tas_alloc['su_used']
@@ -120,7 +134,7 @@ def sync(db, tas_allocs, portal_allocs):
 
     insert_query = '''INSERT INTO {table} ({columns})
                       VALUES ({variable})'''.format(table = PORTAL_ALLOCATION_TABLE_NAME,
-                                                    columns = ','.join(sorted(TAS_TO_PORTAL_MAP.values())),
+                                                    columns = ','.join(sorted(columns)),
                                                     variable = ','.join(['%s'] * len(TAS_TO_PORTAL_MAP)))
     cursor.executemany(insert_query, records_to_insert)
     db.commit()

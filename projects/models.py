@@ -1,8 +1,49 @@
 from django.db import models
 import json
 import logging
+from django.conf import settings
 
 logger = logging.getLogger('projects')
+    
+class Type(models.Model):
+    name = models.CharField(max_length=255,blank=False,unique=True)
+    
+class Field(models.Model):
+    name = models.CharField(max_length=255,blank=False,unique=True)
+    
+class FieldHierarchy(models.Model):
+    parent = models.ForeignKey(Field,related_name='field_parent')
+    child = models.ForeignKey(Field,related_name='field_child')
+    class Meta:
+        unique_together = ('parent', 'child')
+
+class Project(models.Model):
+    type = models.ForeignKey(Type,related_name='project_type')
+    description = models.TextField()
+    pi = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='project_pi')
+    title = models.TextField(blank=False)
+    nickname = models.CharField(max_length=255,blank=False,unique=True)
+    field = models.ForeignKey(Field,related_name='project_field',null=True)
+    charge_code = models.CharField(max_length=50,blank=False)
+    
+    def type_id(self):
+        return self.type.id
+    
+    def type_name(self):
+        return self.type.name
+    
+    def field_id(self):
+        if self.field:
+            return self.field.id
+        return None
+    
+    def field_name(self):
+        if self.field:
+            return self.field.name
+        return None
+    
+    def pi_id(self):
+        return self.pi.id
 
 class ProjectExtras(models.Model):
     tas_project_id = models.IntegerField(primary_key=True)
@@ -11,10 +52,13 @@ class ProjectExtras(models.Model):
 
 class PublicationManager(models.Manager):
 
-    def create_from_bibtex(self, bibtex_entry, project, username):
+    def create_from_bibtex(self, bibtex_entry, project, username, is_tas):
         pub = Publication()
 
-        pub.tas_project_id = project.id
+        if is_tas:
+            pub.tas_project_id = project.id
+        else:
+            pub.project_id = project.id
         if 'booktitle' in bibtex_entry:
             pub.booktitle = bibtex_entry.get('booktitle')
         if 'journal' in bibtex_entry:
@@ -32,7 +76,8 @@ class PublicationManager(models.Manager):
         return pub
 
 class Publication(models.Model):
-    tas_project_id = models.IntegerField(null=False)
+    tas_project_id = models.IntegerField(null=True)
+    project = models.ForeignKey(Project,related_name='project_publication',null=True)
     journal =  models.CharField(max_length=500, null=True)
     publisher =  models.CharField(max_length=500, null=True)
     booktitle =  models.CharField(max_length=500, null=True)
