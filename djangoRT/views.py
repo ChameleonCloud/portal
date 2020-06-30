@@ -19,9 +19,9 @@ from glanceclient import Client as glance_client
 from django.conf import settings
 from datetime import datetime
 from dateutil import parser
-from projects.views import get_admin_ks_client
 import sys
 from django.template.loader import render_to_string
+from chameleon.keystone_auth import admin_ks_client, get_user, get_token, project_scoped_session
 
 
 logger = logging.getLogger('default')
@@ -72,19 +72,16 @@ def ticketcreate(request):
             header = '\n'.join('[%s] %s' % m for m in meta)
             ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
 
-            user_details = ''
-            if 'unscoped_token' in request.session:
-                unscoped_token = request.session['unscoped_token'].get('auth_token')
-                ch_regions = [settings.OPENSTACK_TACC_REGION, settings.OPENSTACK_UC_REGION]
-                region_list = []
-                for ch_region in ch_regions:
-                    try:
-                        region_list.append(get_openstack_data(request.user.username, unscoped_token, ch_region))
-                    except Exception as err:
-                        logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
+            region_list = []
+            for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+                try:
+                    token = get_token(request, region=region)
+                    region_list.append(get_openstack_data(request.user.username, token, region))
+                except Exception as err:
+                    logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
 
-                user_details = render_to_string('djangoRT/project_details.txt', {'regions': region_list})
-                ticket_body = ticket_body + user_details
+            user_details = render_to_string('djangoRT/project_details.txt', {'regions': region_list})
+            ticket_body = ticket_body + user_details
 
             ticket = rtModels.Ticket( subject = form.cleaned_data['subject'],
                                       problem_description = ticket_body,
@@ -207,8 +204,8 @@ def get_openstack_data(username, unscoped_token, region):
     current_region = {}
     current_region['name'] = region
     current_region['projects'] = []
-    ks_admin = get_admin_ks_client()
-    ks_user = ks_admin.users.list(name=username)
+    ks_admin = admin_ks_client(region=region)
+    ks_user = get_user(ks_admin, username)
     projects = []
     if ks_user:
         projects = ks_admin.projects.list(user=ks_user[0])
@@ -218,9 +215,10 @@ def get_openstack_data(username, unscoped_token, region):
             current_project['name'] = project.name
             current_project['id'] = project.id
             current_region['projects'].append(current_project)
-            pauth = v3.Token(auth_url=settings.OPENSTACK_KEYSTONE_URL, token=unscoped_token, project_id=project.id)
-            psess = session.Session(auth=pauth)
-            psess = adapter.Adapter(psess, interface='public', region_name=region)
+            psess = project_scoped_session(
+                unscoped_token=unscoped_token,
+                project_id=project.id,
+                region=region)
             current_project['leases'] = get_lease_info(psess)
             current_project['servers'] = get_server_info(psess)
         except Exception as err:

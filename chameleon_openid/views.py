@@ -151,7 +151,7 @@ def openid_connect(request):
 
     try:
         user = get_user_model().objects.filter(email=openid['sreg']['email'])
-    except Exception, e:
+    except Exception as e:
         user = None
         logger.error(e)
 

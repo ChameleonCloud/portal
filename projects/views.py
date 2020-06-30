@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 from forms import ProjectCreateForm, ProjectAddUserForm,\
     AllocationCreateForm, EditNicknameForm, AddBibtexPublicationForm
 from django.db import IntegrityError
+from tas.util import get_user_projects
 import re
 import logging
 import json
@@ -27,7 +28,7 @@ from django.conf import settings
 import uuid
 import sys
 from allocations.allocation_mapper import ProjectAllocationMapper
-from util.auth.keystone_auth import get_ks_auth_and_session
+from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user
 
 logger = logging.getLogger('projects')
 
@@ -60,7 +61,7 @@ def user_projects(request):
 
     tas = TASClient()
     user = tas.get_user(username=request.user)
-    
+
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
     context['username'] = request.user.username
 
@@ -116,6 +117,7 @@ def view_project(request, project_id):
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
     pubs_form = AddBibtexPublicationForm()
+
     if request.POST and project_pi_or_admin_or_superuser(request.user, project):
         if 'add_user' in request.POST:
             form = ProjectAddUserForm(request.POST)
@@ -124,8 +126,7 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data['username']
                     if project.add_user(add_username):
-                        update_user_keystone_project_membership(project.pi.username, project, add_member=True)
-                        update_user_keystone_project_membership(add_username, project, add_member=True)
+                        sync_project_memberships(request, add_username)
                         messages.success(request,
                             'User "%s" added to project!' % add_username)
                         form = ProjectAddUserForm()
@@ -148,7 +149,7 @@ def view_project(request, project_id):
             try:
                 del_username = request.POST['username']
                 if project.remove_user(del_username):
-                    update_user_keystone_project_membership(del_username, project, add_member=False)
+                    sync_project_memberships(request, del_username)
                     messages.success(request, 'User "%s" removed from project' % del_username)
             except:
                 logger.exception('Failed removing user')
@@ -208,105 +209,49 @@ def view_project(request, project_id):
         'pubs_form': pubs_form
     })
 
-def get_admin_ks_client():
-    auth, sess = get_ks_auth_and_session()
-    sess = adapter.Adapter(sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
-    return ks_client.Client(session=sess, interface='public', region_name=settings.OPENSTACK_TACC_REGION)
-
 def set_ks_project_nickname(chargeCode, nickname):
-    ks = get_admin_ks_client()
-    project_list = ks.projects.list()
-    project = filter(lambda this: getattr(this, 'charge_code', None) == chargeCode, project_list)
-    logger.info('Assigning nickname {0} to project with charge code {1}'.format(nickname, chargeCode))
-    if project and project[0]:
-        project = project[0]
-    ks.projects.update(project, name=nickname)
-    logger.info('Successfully assigned nickname {0} to project with charge code {1}'.format(nickname, chargeCode))
+    for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+        ks_admin = admin_ks_client(region=region)
+        project_list = ks_admin.projects.list(domain=ks_admin.user_domain_id)
+        project = filter(lambda this: getattr(this, 'charge_code', None) == chargeCode, project_list)
+        logger.info('Assigning nickname {0} to project with charge code {1} at {2}'.format(nickname, chargeCode, region))
+        if project and project[0]:
+            project = project[0]
+        ks_admin.projects.update(project, name=nickname)
+        logger.info('Successfully assigned nickname {0} to project with charge code {1} at {2}'.format(nickname, chargeCode, region))
 
-def create_user(username, email, password, ks_client):
-    ks_user = None
+
+def sync_project_memberships(request, username):
+    """Re-sync a user's Keystone project memberships.
+
+    This calls utils.auth.keystone_auth.sync_projects under the hood, which
+    will dynamically create missing projects as well.
+
+    Args:
+        request (Request): the parent request; used for region detection.
+        username (str): the username to sync memberships for.
+
+    Return:
+        List[keystone.Project]: a list of Keystone projects the user is a
+            member of.
+    """
     try:
-        logger.info('Creating user with username: {0}, email:{1}, domain_id: {2} '.format(username,email,ks_client.user_domain_id))
-        if not password:
-            password = str(uuid.uuid4())
-        ks_user_options = {'lock_password':True}
-        ks_user = ks_client.users.create(username, domain=ks_client.user_domain_id, email=email,\
-            password=password, options=ks_user_options)
-        logger.info('Created user with username: {0}, email:{1}, domain_id: {2} '.format(ks_user.name, ks_user.email, ks_client.user_domain_id))
+        ks_admin = admin_ks_client(request=request)
+        ks_user = get_user(ks_admin, username)
+
+        if not ks_user:
+            logger.error((
+                'Could not fetch Keystone user for {}, skipping membership syncing'
+                .format(username)))
+            return
+
+        active, _ = get_user_projects(username)
+
+        return sync_projects(ks_admin, ks_user, active)
     except Exception as e:
-        logger.error('Error creating user with username: {0}, email:{1}, domain_id: {2} '.format(username, email, ks_client.user_domain_id))
-        logger.error(e)
-    return ks_user
-
-def update_user_keystone_project_membership(username, tas_project, add_member=True):
-    ks_client = get_admin_ks_client()
-    # then get domain id from keystone, domain_id = keystone.user_domain_id
-    domain_id = ks_client.user_domain_id
-    # then get member roles, member_role = keystone.roles.list(name='_member_',domain=domain_id)[0]
-    member_role = ks_client.roles.list(name='_member_',domain=domain_id)[0]
-    # now get project by charge_code:
-    project_list = ks_client.projects.list(domain=domain_id)
-    project = filter(lambda this: getattr(this, 'charge_code', None) == tas_project.chargeCode, project_list)
-    if project and project[0]:
-        project = project[0]
-    else:
-        project = None
-
-   # Get user from keystone
-    ks_user = get_keystone_user(ks_client, username)
-    if add_member:
-        # If we're adding a member to a project, let's make sure the user exists and is enabled
-        if ks_user:
-            if not ks_user.enabled:
-                ks_client.users.update(ks_user,enabled=True)
-        else:
-            email = TASClient().get_user(username=username).get('email')
-            ks_user = create_user(username, email, None, ks_client)
-        if not project:
-            project = create_ks_project(tas_project, ks_client)
-        ks_client.roles.grant(member_role.id, user=ks_user, project=project)
-    else:
-        if project and ks_user:
-            ks_client.roles.revoke(member_role.id, user=ks_user, project=project)
-
-def create_ks_project(tas_project, ks_client):
-    project_extras = ProjectExtras.objects.filter(tas_project_id=tas_project.id)
-    name = tas_project.chargeCode
-    if project_extras:
-        name = project_extras[0].nickname
-    ks_project = ks_client.projects.create(charge_code=tas_project.chargeCode,name=name, \
-        domain=ks_client.user_domain_id,description=tas_project.description)
-    return ks_project
-
-def get_keystone_user(ks_client, username):
-    try:
-        logger.debug('Getting user from keystone: ' + username)
-        user = ks_client.users.list(name=username)
-        if user and user[0]:
-            logger.debug('User found in keystone : ' + username)
-            return user[0]
-        else:
-            logger.info('User not found in keystone: ' + username)
-            return None
-    except Exception as e:
-        logger.error('Error retrieving user: {}'.format(username + ': ' + e.message) + str(sys.exc_info()[0]))
-        return None
-
-def update_keystone_user_status(username, enabled=False):
-    ks_client = get_admin_ks_client()
-    # then get domain id from keystone, domain_id = keystone.user_domain_id
-    domain_id = ks_client.user_domain_id
-    # then get member roles, member_role = keystone.roles.list(name='_member_',domain=domain_id)[0]
-    member_role = ks_client.roles.list(name='_member_',domain=domain_id)[0]
-
-    # Get user from keystone
-    ks_user = get_keystone_user(ks_client, username)
-    if ks_user:
-        logger.info('Updating keystone user status for: ' + username + ' to: ' + str(enabled))
-        ks_client.users.update(ks_user, enabled=enabled)
-    else:
-        logger.info('Tried disabling keystone user: ' + username+ ' to: ' + str(enabled) + ' but user not found')
-
+        logger.error('Could not sync project memberships for %s: %s',
+            username, e)
+        return []
 
 @login_required
 @terms_required('project-terms')
@@ -325,7 +270,7 @@ def create_allocation(request, project_id, allocation_id=-1):
 
     project = Project(project_id)
     project = mapper.map(project)
-    
+
     allocation = None
     if allocation_id > 0:
         for a in project.allocations:
@@ -527,14 +472,15 @@ def edit_nickname(request, project_id):
             pextras.charge_code = project.chargeCode
             pextras.nickname = nickname
             pextras.save()
+            # Reset the form
             form = EditNicknameForm()
             set_ks_project_nickname(project.chargeCode, nickname)
             messages.success(request, 'Update Successful')
         except:
             messages.error(request, 'Nickname not available')
-        return form
     else:
         messages.error(request, 'Nickname not available')
+
     return form
 
 def get_extras(request):
