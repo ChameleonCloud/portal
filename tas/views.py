@@ -76,7 +76,8 @@ def profile_edit(request):
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        form = UserProfileForm(initial=tas_user)
+        kwargs = {'is_federated':request.session.get('is_federated', False)}
+        form = UserProfileForm(initial=tas_user,**kwargs)
 
     context = {
         'form': form,
