@@ -82,3 +82,4 @@ package-lock.json
 
 #tmp folder
 */.tmp
+celerybeat-schedule

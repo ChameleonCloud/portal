@@ -2,7 +2,7 @@ from django import forms
 from pytas.http import TASClient
 import re
 import logging
-
+logger = logging.getLogger(__name__)
 
 ELIGIBLE = 'Eligible'
 INELIGIBLE = 'Ineligible'
@@ -158,15 +158,16 @@ class UserProfileForm(forms.Form):
     citizenshipId = forms.CharField(label='Country of citizenship', widget=forms.HiddenInput(), error_messages={'invalid': 'Please select your Country of citizenship'})
 
     def __init__(self, *args, **kwargs):
+        is_federated = kwargs.pop('is_federated', False)
         super(UserProfileForm, self).__init__(*args, **kwargs)
         self.fields['institutionId'].choices = get_institution_choices()
-
         data = self.data or self.initial
         if (data is not None and 'institutionId' in data and data['institutionId']):
             self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
-
+        if is_federated:
+            for field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
         self.fields['countryId'].choices = get_country_choices()
-        #self.fields['citizenshipId'].choices = get_country_choices()
         self.fields['citizenshipId'].widget.attrs['readonly'] = True
 
 
