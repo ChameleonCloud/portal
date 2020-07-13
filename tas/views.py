@@ -15,6 +15,7 @@ from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, \
                       PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, RecoverUsernameForm
 from tas.models import activate_local_user
+from chameleon.models import PIEligibility
 from djangoRT import rtUtil, rtModels
 import re
 import logging
@@ -30,9 +31,12 @@ def profile(request):
         tas = TASClient()
         resp = tas.get_user(username=request.user)
         context['profile'] = resp
+        if request.session.get('is_federated', False):
+            context['piEligibility'] = request.user.pi_eligibility()
+        else:
+            context['piEligibility'] = resp.piEligibility
     except:
         context['profile'] = False
-        # raise Exception('error loading profile')
 
     return render(request, 'tas/profile.html', context)
 
@@ -45,30 +49,49 @@ def get_departments_json(request):
         departments = {}
     return HttpResponse(json.dumps(departments), content_type='application/json')
 
-def _create_ticket_for_pi_request(user):
+def _create_ticket_for_pi_request(user, is_federated=False):
     """
     This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
     """
     rt = rtUtil.DjangoRt()
     subject = "Chameleon PI Eligibility Request: %s" % user['username']
+    if is_federated:
+        problem_description = "This PI Eligibility request can be reviewed at " +\
+            "https://wwww.chameleoncloud.org/admin/chameleon/pieligibility/"
+    else:
+        problem_description = ""
     ticket = rtModels.Ticket(subject = subject,
-                             problem_description = "",
+                             problem_description = problem_description,
                              requestor = "us@tacc.utexas.edu")
     rt.createTicket(ticket)
 
 @login_required
 def profile_edit(request):
+    is_federated = request.session.get('is_federated', False)
+    logger.info(request.user.pi_eligibility())
     tas = TASClient()
     tas_user = tas.get_user(username=request.user)
-
+    if is_federated:
+        piEligibility = request.user.pi_eligibility()
+    else:
+        piEligibility = tas_user['piEligibility']
 
     if request.method == 'POST':
+        request_pi_eligibility = request.POST.get('request_pi_eligibility')
         form = UserProfileForm(request.POST, initial=tas_user)
         if form.is_valid():
             data = form.cleaned_data
-            if request.POST.get('request_pi_eligibility'):
-                data['piEligibility'] = 'Requested'
-                _create_ticket_for_pi_request(tas_user)
+            if request_pi_eligibility:
+                if is_federated:
+                    _create_ticket_for_pi_request(tas_user, is_federated)
+                    pie_request = PIEligibility()
+                    pie_request.requestor = request.user
+                    pie_request.save()
+                    messages.success(request, 'Your profile has been updated!')
+                    return HttpResponseRedirect(reverse('tas:profile'))
+                else:
+                    data['piEligibility'] = 'Requested'
+                    _create_ticket_for_pi_request(tas_user)
             else:
                 data['piEligibility'] = tas_user['piEligibility']
             data['source'] = 'Chameleon'
@@ -76,12 +99,13 @@ def profile_edit(request):
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        kwargs = {'is_federated':request.session.get('is_federated', False)}
+        kwargs = {'is_federated':is_federated}
         form = UserProfileForm(initial=tas_user,**kwargs)
 
     context = {
         'form': form,
         'user': tas_user,
+        'piEligibility': piEligibility,
         }
     return render(request, 'tas/profile_edit.html', context)
 

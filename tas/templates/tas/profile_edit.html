@@ -15,14 +15,14 @@
           </p>
       <div class="form-group">
         <label>PI Eligibility</label>
-        {% if user.piEligibility|lower == 'eligible' %}
+        {% if piEligibility|lower == 'eligible' %}
           <div class="checkbox">
             <label>
               <input type="checkbox" checked disabled>
               Eligible
             </label>
           </div>
-        {% elif user.piEligibility|lower == 'requested' %}
+        {% elif piEligibility|lower == 'requested' %}
           <div class="checkbox">
             <label>
               <input type="checkbox" checked disabled>
