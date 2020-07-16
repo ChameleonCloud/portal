@@ -1,5 +1,4 @@
 from django.contrib import admin
-from chameleon.models import UserProperties
 from functools import wraps
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model

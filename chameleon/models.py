@@ -3,20 +3,6 @@ from django.conf import settings
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
-class UserProperties(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True)
-
-    class Meta:
-        verbose_name = ("User Properties")
-        verbose_name_plural = ("User Properties")
-
-    def pi_eligibility():
-        try:
-            return PIEligibility.objects.filter(requestor=self).latest('request_date').status
-        except ObjectDoesNotExist:
-            return 'Ineligible'
-
-
 class PIEligibility(models.Model):
     STATUS = [
         ('REQUESTED', 'Requested'),
