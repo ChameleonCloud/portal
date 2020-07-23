@@ -166,7 +166,8 @@ class UserProfileForm(forms.Form):
             self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
         if is_federated:
             for field in self.fields:
-                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['disabled'] = True
+                self.fields[field].required = False
         self.fields['countryId'].choices = get_country_choices()
         self.fields['citizenshipId'].widget.attrs['readonly'] = True
 
