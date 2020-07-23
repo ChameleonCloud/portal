@@ -26,7 +26,14 @@ logger = logging.getLogger(__name__)
 @login_required
 def profile(request):
     context = {}
-
+    if request.session.get('is_federated', False):
+            context['piEligibility'] = request.user.pi_eligibility()
+            profile = {}
+            profile['firstName'] = request.user.first_name
+            profile['lastName'] = request.user.last_name
+            profile['email'] = request.user.email
+            context['profile'] = profile
+            return render(request, 'tas/profile.html', context)
     try:
         tas = TASClient()
         resp = tas.get_user(username=request.user)
@@ -68,9 +75,15 @@ def _create_ticket_for_pi_request(user, is_federated=False):
 @login_required
 def profile_edit(request):
     is_federated = request.session.get('is_federated', False)
-    logger.info(request.user.pi_eligibility())
-    tas = TASClient()
-    tas_user = tas.get_user(username=request.user)
+    kwargs = {'is_federated':is_federated}
+    if is_federated:
+        tas_user = {}
+        tas_user['firstName'] = request.user.first_name
+        tas_user['lastName'] = request.user.last_name
+        tas_user['email'] = request.user.email
+    else:
+        tas = TASClient()
+        tas_user = tas.get_user(username=request.user)
     if is_federated:
         piEligibility = request.user.pi_eligibility()
     else:
@@ -79,17 +92,22 @@ def profile_edit(request):
     if request.method == 'POST':
         request_pi_eligibility = request.POST.get('request_pi_eligibility')
         form = UserProfileForm(request.POST, initial=tas_user)
+        '''
+            if user is federated only check/update PI Eligibility Requests
+        '''
+        if is_federated and request_pi_eligibility:
+            pie_request = PIEligibility()
+            pie_request.requestor = request.user
+            pie_request.save()
+            _create_ticket_for_pi_request(tas_user, is_federated)
+            messages.success(request, 'Your profile has been updated!')
+            return HttpResponseRedirect(reverse('tas:profile'))
+        '''
+            If not federated validate form and update TAS profile info
+        '''
         if form.is_valid():
             data = form.cleaned_data
             if request_pi_eligibility:
-                if is_federated:
-                    _create_ticket_for_pi_request(tas_user, is_federated)
-                    pie_request = PIEligibility()
-                    pie_request.requestor = request.user
-                    pie_request.save()
-                    messages.success(request, 'Your profile has been updated!')
-                    return HttpResponseRedirect(reverse('tas:profile'))
-                else:
                     data['piEligibility'] = 'Requested'
                     _create_ticket_for_pi_request(tas_user)
             else:
@@ -99,7 +117,6 @@ def profile_edit(request):
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        kwargs = {'is_federated':is_federated}
         form = UserProfileForm(initial=tas_user,**kwargs)
 
     context = {
