@@ -37,6 +37,11 @@ OPENSTACK_TACC_REGION = os.environ.get('OPENSTACK_TACC_REGION', 'CHI@TACC')
 OPENSTACK_SERVICE_USERNAME = os.environ.get('OPENSTACK_SERVICE_USERNAME', '')
 OPENSTACK_SERVICE_PASSWORD = os.environ.get('OPENSTACK_SERVICE_PASSWORD', '')
 OPENSTACK_SERVICE_PROJECT_ID = os.environ.get('OPENSTACK_SERVICE_PROJECT_ID', '')
+OPENSTACK_SERVICE_PROJECT_NAME = os.environ.get('OPENSTACK_SERVICE_PROJECT_NAME', 'services')
+OPENSTACK_AUTH_REGIONS = {
+    OPENSTACK_UC_REGION:   os.environ.get('OPENSTACK_UC_AUTH_URL', 'https://chi.uc.chameleoncloud.org:5000/v3'),
+    OPENSTACK_TACC_REGION: os.environ.get('OPENSTACK_TACC_AUTH_URL', 'https://chi.tacc.chameleoncloud.org:5000/v3'),
+}
 ## Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get('SSO_CALLBACK_PROTOCOL', 'https')
 SSO_CALLBACK_VALID_HOSTS = os.environ.get('SSO_CALLBACK_VALID_HOSTS', [])

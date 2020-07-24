@@ -27,17 +27,20 @@ from glanceclient import Client
 from smtplib import SMTPException
 from six.moves import http_client, urllib
 import uuid
+from chameleon.keystone_auth import admin_session
 
 logger = logging.getLogger('default')
 
 def make_image_public(username, image_id, region_name):
-    glanceAuth = v3.Password(auth_url=settings.OPENSTACK_KEYSTONE_URL,username=settings.OPENSTACK_SERVICE_USERNAME, \
-        password=settings.OPENSTACK_SERVICE_PASSWORD,project_id=settings.OPENSTACK_SERVICE_PROJECT_ID,user_domain_name='default',user_domain_id='default')
-    newsession = session.Session(auth=glanceAuth)
-    glance = Client('2', session=newsession,region_name=region_name)
-    logger.info('User: ' + username +  ' requesting visibility=public for image id: ' + image_id + ' in region: ' + region_name + ' at endpoint: ' + settings.OPENSTACK_KEYSTONE_URL)
+    sess = admin_session(region_name)
+    glance = Client('2', session=sess)
+    logger.info((
+        'User: {} requesting visibility=public for image id: {} in region: {}'
+        .format(username, image_id, region_name)))
     glance.images.update(image_id, visibility='public')
-    logger.info('User: ' + username +  ' image status after update: ' + str(glance.images.get(image_id)))
+    logger.info((
+        'User: {} image status after update: {}'.format(
+            username, glance.images.get(image_id))))
 
 def app_list(request):
     logger.info('App catalog requested.')
@@ -394,4 +397,3 @@ class ApplianceDeleteView(DeleteView):
     @method_decorator(staff_member_required)
     def dispatch(self, *args, **kwargs):
         return super(ApplianceDeleteView, self).dispatch(*args, **kwargs)
-
