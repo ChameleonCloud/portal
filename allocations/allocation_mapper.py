@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class ProjectAllocationMapper:
     def __init__(self, request):
         self.allocations_from_db = self._wants_db_allocations(request)
-        
+
     def _wants_db_allocations(self, request):
         return request.user.is_superuser
 
@@ -34,12 +34,12 @@ class ProjectAllocationMapper:
         subject = 'Decision of your allocation request for project {}'.format(charge_code)
         body = '''
                 <p>Dear {first} {last},</p>
-                <p>Your allocation request for project {project_charge_code} has been {status}, 
+                <p>Your allocation request for project {project_charge_code} has been {status},
                 due to the following reason:</p>
                 <p>{decision_summary}</p>
                 <br/>
                 <p><i>This is an automatic email, please <b>DO NOT</b> reply!
-                If you have any question or issue, please submit a ticket on our 
+                If you have any question or issue, please submit a ticket on our
                 <a href='https://{host}/user/help/' target='_blank'>help desk</a>.
                 </i></p>
                 <br/>
@@ -52,7 +52,7 @@ class ProjectAllocationMapper:
                            decision_summary = decision_summary,
                            host = host)
         send_mail(subject, strip_tags(body), settings.DEFAULT_FROM_EMAIL, [user.email], html_message=body)
-    
+
     def map(self, project, fetch_balance = True):
         if self.allocations_from_db:
             balance_service = BalanceServiceClient()
@@ -61,7 +61,7 @@ class ProjectAllocationMapper:
             convert_to_dict = isinstance(project, dict)
             for alloc in portal_alloc.objects.filter(project_charge_code=project_charge_code):
                 if fetch_balance and alloc.status == 'active':
-                    balance = balance_service.call(project_charge_code)
+                    balance = balance_service.call(project_charge_code) or {}
                     su_used = balance.get('used')
                     if su_used is not None:
                         alloc.su_used = float(su_used)
@@ -73,7 +73,7 @@ class ProjectAllocationMapper:
                 reformated_allocations.append(reformated_alloc)
             self.set_attr(project, 'allocations', reformated_allocations)
         return project
-    
+
     def save_allocation(self, alloc, project_charge_code, tas, host):
         if self.allocations_from_db:
             reformated_alloc = self.tas_to_portal_obj(alloc, project_charge_code)
@@ -140,17 +140,17 @@ class ProjectAllocationMapper:
         return reformated_alloc
 
     def tas_to_portal_obj(self, alloc, project_charge_code):
-        reformated_alloc = {}        
+        reformated_alloc = {}
         for key, val in alloc.items():
             if key in TAS_TO_PORTAL_MAP:
                 reformated_alloc[TAS_TO_PORTAL_MAP[key]] = val
-        
+
         reformated_alloc['date_requested'] = datetime.now(pytz.utc)
         reformated_alloc['status'] = 'pending'
         reformated_alloc['project_charge_code'] = project_charge_code
-                
+
         reformated_alloc = portal_alloc(**reformated_alloc)
-        
+
         return reformated_alloc
 
     def get_attr(self, obj, key):
