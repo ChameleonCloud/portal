@@ -1,3 +1,5 @@
+import time
+
 from keystoneauth1.identity import v3
 from keystoneauth1 import adapter, session
 from keystoneclient.v3 import client
@@ -163,11 +165,18 @@ def regenerate_tokens(request, password):
     for region in settings.OPENSTACK_AUTH_REGIONS.keys():
         ks_admin = admin_ks_client(region=region)
         try:
-            # Ensure the user exists in Keystone first
-            sync_user(ks_admin, username=username, email=email,
-                password=password)
             sess = unscoped_user_session(region, username, password)
-            tokens[region] = sess.get_token()
+            try:
+                tokens[region] = sess.get_token()
+            except Exception as e:
+                LOG.warning((
+                    'Error retrieving OpenStack token from region {}, '
+                    'retrying after syncing Keystone user').format(region))
+                # It's possible the user does not yet exist in Keystone or
+                # has updated their password--update the user and retry.
+                sync_user(ks_admin, username=username, email=email,
+                    password=password)
+                tokens[region] = sess.get_token()
         except Exception as e:
             LOG.error((
                 'Error retrieving Openstack Token from region: {}'
@@ -341,6 +350,15 @@ def sync_user(ks_admin, username, email=None, password=None, enabled=None):
         if ks_user:
             ks_admin.users.update(user=ks_user, **kwargs)
             LOG.info('Updated user with username: {0}, email:{1}, domain_id: {2}'.format(username, email, domain_id))
+            if 'password' in kwargs:
+                # NOTE(jason): this is a total hack to get around some (likely)
+                # bad code in Keystone. There seems to be a race condition
+                # between updating a user's password and token revocation events
+                # firing. If the unscoped token is generated before the
+                # revocation events fire, then it will immediately become
+                # invalid. There is not a great way to detect when this happens,
+                # so we just have to pray that one second is enough time.
+                time.sleep(1)
         else:
             kwargs['domain'] = domain_id
             kwargs['options'] = {'lock_password':True}
