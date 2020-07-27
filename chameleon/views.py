@@ -41,6 +41,8 @@ def set_services_region(view_func):
         services_region = request.GET.get('services_region')
         if services_region:
             request.session['services_region'] = services_region
+        elif request.GET.get('host') == 'kvm.tacc.chameleoncloud.org':
+            request.session['services_region'] = 'CHI@TACC'
         return view_func(request, *args, **kwargs)
     return wrapper
 
