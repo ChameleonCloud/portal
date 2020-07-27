@@ -254,10 +254,18 @@ def sync_projects(ks_admin, ks_user, tas_user_projects):
     to_add = tas_granted - ks_granted - WHITELISTED_PROJECTS
     to_remove = ks_granted - tas_granted - WHITELISTED_PROJECTS
 
-    for charge_code in to_add:
+    # NOTE(jason): this code shouldn't be necessary to keep in the future, as
+    # there should be no projects explicitly disabled in Keystone. Rather, the
+    # allocation tied to the project will be empty, which will mean the users
+    # effectively cannot use Chameleon.
+    for charge_code in tas_granted:
         ks_p = all_ks_projects[charge_code]
         if not ks_p.enabled:
             ks_admin.projects.update(ks_p, enabled=True)
+            LOG.debug('Re-enabled project %s', ks_p.name)
+
+    for charge_code in to_add:
+        ks_p = all_ks_projects[charge_code]
         ks_admin.roles.grant(member_role.id, user=ks_user, project=ks_p)
         LOG.debug('Added %s to project %s', ks_user.name, ks_p.name)
 
