@@ -196,7 +196,7 @@ def upload_artifact(doi, user=None):
 
     # Create a first version
     item.artifact_versions.create(doi=record['doi'], created_at=now)
-    
+
     return item.pk
 
 
@@ -228,38 +228,10 @@ def index(request):
         'hub_url': JUPYTERHUB_URL,
     }
 
-    # If a 'post' request was made, there are search parameters
-    if request.method == 'POST':
-        form = LabelForm(request.POST)
+    # Display all the artifacts when rendering the index page
+    context['artifacts'] = Artifact.objects.all()
 
-        # If the form is valid, parse it
-        if form.is_valid():
-            try:
-                # Pass in form so that the template can show search parameters
-                context['form'] = form
-                # Pass in the filtered list of artifacts to display
-                context['artifacts'] = artifacts_from_form(form.cleaned_data)
-            except Exception as e:
-                LOG.exception(e)
-                # If something goes wrong, fail gracefully
-                context['search_failed'] = True
-            else:
-                # Otherwise, if the list is empty the template will
-                # indicate that there were no matching results
-                context['search_failed'] = False
-
-            # Render the index in the response
-            return HttpResponse(template.render(context, request))
-
-    # If no post request was made, there were no search parameters
-    else:
-        # Pass in an empty form to show that there are no search parameters
-        form = LabelForm()
-        context['form'] = form
-
-        # Display all the artifacts when rendering the index page
-        context['artifacts'] = Artifact.objects.all()
-        return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required
@@ -316,7 +288,7 @@ def edit_artifact(request, pk):
 
     if request.method == 'POST':
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
-        
+
         if form.is_valid():
             artifact.updated_by = request.user
             form.save()
@@ -324,10 +296,10 @@ def edit_artifact(request, pk):
             return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
     else:
         form = ArtifactForm(instance=artifact)
-    
+
     template = loader.get_template('sharing_portal/edit.html')
     context = {
-        'artifact_form': form, 
+        'artifact_form': form,
         'artifact': artifact,
         'pk': pk,
     }
@@ -416,7 +388,7 @@ def artifact(request, pk, version_idx=None):
     else:
         LOG.error('Artifact {} has no versions'.format(pk))
         version = None
-    
+
     if version_idx:
         try:
             # Version path parameters are 1-indexed
@@ -425,7 +397,7 @@ def artifact(request, pk, version_idx=None):
             error_message = 'This artifact has no version {}'.format(version_idx)
             messages.add_message(request, messages.ERROR, error_message)
             pass
-        
+
     context = {
         'artifact': artifact,
         'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
