@@ -77,21 +77,21 @@ def profile_edit(request):
     is_federated = request.session.get('is_federated', False)
     kwargs = {'is_federated':is_federated}
     if is_federated:
-        tas_user = {}
-        tas_user['firstName'] = request.user.first_name
-        tas_user['lastName'] = request.user.last_name
-        tas_user['email'] = request.user.email
+        user_info = {}
+        user_info['firstName'] = request.user.first_name
+        user_info['lastName'] = request.user.last_name
+        user_info['email'] = request.user.email
     else:
         tas = TASClient()
-        tas_user = tas.get_user(username=request.user)
+        user_info = tas.get_user(username=request.user)
     if is_federated:
         piEligibility = request.user.pi_eligibility()
     else:
-        piEligibility = tas_user['piEligibility']
+        piEligibility = user_info['piEligibility']
 
     if request.method == 'POST':
         request_pi_eligibility = request.POST.get('request_pi_eligibility')
-        form = UserProfileForm(request.POST, initial=tas_user)
+        form = UserProfileForm(request.POST, initial=user_info)
         '''
             if user is federated only check/update PI Eligibility Requests
         '''
@@ -99,7 +99,7 @@ def profile_edit(request):
             pie_request = PIEligibility()
             pie_request.requestor = request.user
             pie_request.save()
-            _create_ticket_for_pi_request(tas_user, is_federated)
+            _create_ticket_for_pi_request(user_info, is_federated)
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
         '''
@@ -109,19 +109,19 @@ def profile_edit(request):
             data = form.cleaned_data
             if request_pi_eligibility:
                     data['piEligibility'] = 'Requested'
-                    _create_ticket_for_pi_request(tas_user)
+                    _create_ticket_for_pi_request(user_info)
             else:
-                data['piEligibility'] = tas_user['piEligibility']
+                data['piEligibility'] = user_info['piEligibility']
             data['source'] = 'Chameleon'
-            tas.save_user(tas_user['id'], data)
+            tas.save_user(user_info['id'], data)
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
     else:
-        form = UserProfileForm(initial=tas_user,**kwargs)
+        form = UserProfileForm(initial=user_info,**kwargs)
 
     context = {
         'form': form,
-        'user': tas_user,
+        'user': user_info,
         'piEligibility': piEligibility,
         }
     return render(request, 'tas/profile_edit.html', context)
