@@ -1,95 +1,78 @@
 {% extends 'layout/default.html' %}
 {% load i18n cms_tags staticfiles pipeline bootstrap3 %}
+
 {% block title %}Sharing Portal | Chameleon Cloud {% endblock %}
+
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/slider.css' %}">
 {% endblock %}
+
 {% block scripts %}
 {{ block.super }}
 <script src="{% static 'sharing_portal/dropdown.js' %}"></script>
 {% endblock %}
+
 {% block content %}
-<div class="artCatalog">
+<div class="layoutGrid">
+  <div class="layoutGrid__main">
+    <input class="cardFilter" type="text" placeholder="Filter" />
 
-  <div class="artCatalog__fullContent">
-    <h2>All artifacts</h2>
-
-    <div class="add-artifact-link">
-      <a class="btn btn-success" href="{{ hub_url }}">
-        <i class="fa fa-plus-circle"></i>
-        Add your research from JupyterHub
-      </a>
-    </div>
-
-    <form action="{% url 'sharing_portal:index' %}" method="post" id="form1">
-      {% csrf_token %}
-
-      <div class="form-group">
-        <div class="input-group">
-          <input class="form-control pristine untouched valid" type="text" name="search" id="id_search" placeholder="Search by name, description or author." {% if form.search.value %}value="{{ form.search.value }}" {% endif %}>
-          <span class="input-group-btn">
-            <button type="submit" class="btn btn-primary">Search</button>
-          </span>
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" onClick='location=location'>Reset</button>
-          </span>
-        </div>
-      </div>
-
-      <div class="form-container">
-        <div class="artifactSearch__input dropdown">
-          <label for="artifactSearch__labelSelect">
-            <button type="button" onclick="dropdown()" class="dropdown-toggle btn btn-default">
-              Filter by label <span class="caret"> </span>
-            </button>
-
-            <select name="labels" id="artifactSearch__labelSelect" class="dropdown-content" multiple>
-              {% for value, text in form.fields.labels.choices %}
-              <option value="{{ value }}" {% if value in form.labels.value %}selected{% endif %}>
-                &nbsp;{{ text }}
-              </option>
-              {% endfor %}
-            </select>
-          </label>
-        </div>
-
-        <label class="artifactSearch__input switch" id="id_is_or">
-          <input type="checkbox" id="id_is_or" name="is_or" {% if form.is_or.value %}checked{% endif %} />
-          <div class="slider round">
-            <span class="on">OR</span>
-            <span class="off">AND</span>
-          </div>
-        </label>
-      </div>
-    </form>
-
-    {% if artifacts %}
-    <div class="artifactGrid">
-      {% for artifact in artifacts %}
-      <div class="artifactGridItem">
-        <a class="thumbnail" href="{% url 'sharing_portal:detail' artifact.pk %}">
-          {% if artifact.image %}
-          <img src="{{ artifact.image.url }}" class="art-icon" alt="Artifact Icon">
-          {% endif %}
-          <span class="artifactGridItem__title">{{ artifact.title }}</span>
+    {% for artifact in artifacts %}
+    <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.pk %}">
+      <div class="cardItem">
+        <h5 class="cardItem__title">{{ artifact.title }}</h5>
+        <div class="cardItem__body">
           {% if artifact.short_description %}
-          <span class="artifactGridItem__description">{{ artifact.short_description }}</span>
+          <p class="artifactGridItem__description">
+            {{ artifact.short_description }}
+          </p>
           {% endif %}
-        </a>
+        </div>
+        <div class="cardItem__footer">
+          <div class="cardItem__stats">
+            <span><i class="fa fa-repeat"></i> Downloads</span>
+            <span><i class="fa fa-files-o"></i> Versions</span>
+          </div>
+          <div class="cardItem__tags">
+            {% for label in artifact.labels.all %}
+            <span class="cardItem__tag">{{ label.label }}</span>
+            {% endfor %}
+          </div>
+        </div>
       </div>
-      {% endfor %}
+    </a>
+    {% empty %}
+    <div class="row">
+      <p>No results found.</p>
     </div>
-    {% else %}
-    <div style="margin-top: 15px;">
-      {% if search_failed %}
-      Sorry, something went wrong!
-      {% else %}
-      No results found. Please widen your search.
-      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="layoutGrid__side">
+    <div class="sidebarHeading">
+      <h1>Trovi</h1>
+      <p>
+        A collection of shared artifacts you can launch on Chameleon.
+        <a href="">Learn how to contribute on the docs.</a>
+      </p>
     </div>
-    {% endif %}
+
+    <ul class="sidebarNav">
+      <li class="sidebarNav__item active"><a href=""><i class="fa fa-globe"></i> Public</a></li>
+      <li class="sidebarNav__item"><a href=""><i class="fa fa-user"></i> My library</a></li>
+      <li class="sidebarNav__item">
+        <span class="sidebarNav__subnavHeading"><i class="fa fa-group"></i> Shared</span>
+        <ul class="sidebarNav__subnav {% if not projects %}empty{% endif %}">
+        {% for project in projects %}
+          <li class="sidebarNav__item"><a href="">{{ project.name }}</a></li>
+        {% empty %}
+          <li class="sidebarNav__item">No shared collections</li>
+        {% endfor %}
+        </ul>
+      </li>
+    </div>
   </div>
 </div>
 {% endblock %}
