@@ -34,7 +34,7 @@ def profile(request):
         if request.session.get('is_federated', False):
             context['piEligibility'] = request.user.pi_eligibility()
         else:
-            context['piEligibility'] = resp.piEligibility
+            context['piEligibility'] = resp['piEligibility']
     except:
         context['profile'] = False
 
