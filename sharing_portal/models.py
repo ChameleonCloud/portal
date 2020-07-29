@@ -5,7 +5,7 @@ try:
     from urllib.parse import urlencode
 except ImportError:
     from urllib import urlencode
-    
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -121,6 +121,7 @@ class Artifact(models.Model):
     associated_artifacts = models.ManyToManyField("Artifact",
                                                   related_name='associated',
                                                   blank=True)
+    launch_count = models.IntegerField(default=0)
 
     """ Default Methods """
     # Order by title
@@ -215,14 +216,15 @@ class Artifact(models.Model):
 class ArtifactVersion(models.Model):
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
     created_at = models.DateTimeField()
-    doi = models.CharField(max_length=50, blank=True, 
+    doi = models.CharField(max_length=50, blank=True,
                            validators=[validate_zenodo_doi])
+    launch_count = models.IntegerField(default=0)
 
     @property
     def zenodo_link(self):
         if not self.doi:
             return None
-        
+
         if ZENODO_SANDBOX:
             base_url = "https://sandbox.zenodo.org"
         else:
