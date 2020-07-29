@@ -200,24 +200,14 @@ def upload_artifact(doi, user=None):
     return item.pk
 
 
-def index(request):
-    """Load main portal page with search parameters (if relevant)
+def index(request, collection=None):
+    """Show list of artifacts in a given collection.
 
-    Parameters
-    ----------
-    request : Request
-        Get request, possibly with form data
-        If form data is present, it should come in the format:
-        {
-            'search': string,
-            'labels': list of numeric strings,
-            'is_or': boolean
-        }
-
-    Returns
-    -------
-    HTTPResponse
-        Index template, rendered with artifacts matching search specifications
+    Args:
+        request (Request): the web request.
+        collection (str): the collection to render. Can be one of "public",
+            "mine", or "project". Defaults to None, meaning all artifacts the
+            user has access to will be displayed.
     """
 
     # Use the index template
@@ -226,10 +216,8 @@ def index(request):
     # Initialize the context to return
     context = {
         'hub_url': JUPYTERHUB_URL,
+        'artifacts': Artifact.objects.all(),
     }
-
-    # Display all the artifacts when rendering the index page
-    context['artifacts'] = Artifact.objects.all()
 
     return HttpResponse(template.render(context, request))
 
