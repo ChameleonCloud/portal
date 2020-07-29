@@ -13,7 +13,7 @@
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
   <li>
-    <a href="{% url 'sharing_portal:index' %}">Artifacts</a>
+    <a href="{% url 'sharing_portal:index_all' %}">Artifacts</a>
   </li>
   <li class="active">{{ artifact.title }}</li>
 </ol>
@@ -74,7 +74,7 @@
       <i class="fa fa-refresh"></i>&nbsp;Sync versions
     </a>
     {% endif %}
-    
+
     <h4>Versions</h4>
     <ol class="artifactVersion">
     {% for i, v in all_versions %}

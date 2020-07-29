@@ -11,7 +11,9 @@ from django.db.models import Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import loader
+from django.utils.dateparse import parse_datetime
 from django.views import generic
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from .forms import ArtifactForm, LabelForm
@@ -19,6 +21,17 @@ from .models import Artifact, ArtifactVersion, Author, Label
 from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
+
+class ArtifactFilter:
+    @staticmethod
+    def MINE(request):
+        if request.user.is_authenticated():
+            return Q(created_by=request.user)
+        else:
+            return Q()
+
+    PUBLIC = Q(doi__isnull=False)
+
 
 def artifacts_from_form(data):
     """Return a filtered artifact list from search form data
@@ -200,26 +213,39 @@ def upload_artifact(doi, user=None):
     return item.pk
 
 
-def index(request, collection=None):
-    """Show list of artifacts in a given collection.
+def _render_list(request, artifacts):
+    if request.user.is_authenticated():
+        mapper = ProjectAllocationMapper(request)
+        user_projects = mapper.get_user_projects(request.user.username)
+    else:
+        user_projects = []
 
-    Args:
-        request (Request): the web request.
-        collection (str): the collection to render. Can be one of "public",
-            "mine", or "project". Defaults to None, meaning all artifacts the
-            user has access to will be displayed.
-    """
-
-    # Use the index template
     template = loader.get_template('sharing_portal/index.html')
-
-    # Initialize the context to return
     context = {
         'hub_url': JUPYTERHUB_URL,
-        'artifacts': Artifact.objects.all(),
+        'artifacts': artifacts.order_by('-created_at'),
+        'projects': user_projects,
     }
 
     return HttpResponse(template.render(context, request))
+
+
+def index_all(request, collection=None):
+    artifacts = Artifact.objects.filter(
+        ArtifactFilter.MINE(request) | ArtifactFilter.PUBLIC)
+
+    return _render_list(request, artifacts)
+
+
+@login_required
+def index_mine(request):
+    artifacts = Artifact.objects.filter(ArtifactFilter.MINE(request))
+    return _render_list(request, artifacts)
+
+
+def index_public(request):
+    artifacts = Artifact.objects.filter(ArtifactFilter.PUBLIC)
+    return _render_list(request, artifacts)
 
 
 @login_required
@@ -328,14 +354,19 @@ def sync_artifact_versions(request, pk):
 
         for version in versions:
             version_doi = version['doi']
+            version_created = parse_datetime(version['created'])
             existing = artifact.artifact_versions.filter(doi=version_doi).first()
             if existing:
-                if existing.created_at != version['created']:
+                if existing.created_at != version_created:
                     LOG.info('Updating existing version')
-                    existing.created_at = version['created']
+                    existing.created_at = version_created
                     existing.save()
             else:
-                artifact.artifact_versions.create(doi=version_doi, created_at=version['created'])
+                artifact.artifact_versions.create(doi=version_doi, created_at=version_created)
+                if artifact.updated_at < version_created:
+                    artifact.updated_at = version_created
+                    artifact.save()
+
 
     except Exception as e:
         LOG.exception(e)

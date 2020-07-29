@@ -32,8 +32,9 @@
         </div>
         <div class="cardItem__footer">
           <div class="cardItem__stats">
-            <span><i class="fa fa-repeat"></i> Downloads</span>
-            <span><i class="fa fa-files-o"></i> Versions</span>
+            <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
+            <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
+            <span>{{ artifact.updated_at }}</span>
           </div>
           <div class="cardItem__tags">
             {% for label in artifact.labels.all %}
@@ -44,7 +45,7 @@
       </div>
     </a>
     {% empty %}
-    <div class="row">
+    <div class="cardEmpty">
       <p>No results found.</p>
     </div>
     {% endfor %}
@@ -60,13 +61,14 @@
     </div>
 
     <ul class="sidebarNav">
-      <li class="sidebarNav__item active"><a href=""><i class="fa fa-globe"></i> Public</a></li>
-      <li class="sidebarNav__item"><a href=""><i class="fa fa-user"></i> My library</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_all' %}active{% endif %}"><a href="{% url 'sharing_portal:index_all' %}"><i class="fa fa-circle-o"></i> All</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_public' %}active{% endif %}"><a href="{% url 'sharing_portal:index_public' %}"><i class="fa fa-globe"></i> Public</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_mine' %}active{% endif %}"><a href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
       <li class="sidebarNav__item">
         <span class="sidebarNav__subnavHeading"><i class="fa fa-group"></i> Shared</span>
         <ul class="sidebarNav__subnav {% if not projects %}empty{% endif %}">
         {% for project in projects %}
-          <li class="sidebarNav__item"><a href="">{{ project.name }}</a></li>
+          <li class="sidebarNav__item"><a href="">{{ project.chargeCode }}</a></li>
         {% empty %}
           <li class="sidebarNav__item">No shared collections</li>
         {% endfor %}
