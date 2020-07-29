@@ -135,7 +135,7 @@ def sync(db, tas_allocs, portal_allocs):
     insert_query = '''INSERT INTO {table} ({columns})
                       VALUES ({variable})'''.format(table = PORTAL_ALLOCATION_TABLE_NAME,
                                                     columns = ','.join(sorted(columns)),
-                                                    variable = ','.join(['%s'] * len(TAS_TO_PORTAL_MAP)))
+                                                    variable = ','.join(['%s'] * len(columns)))
     cursor.executemany(insert_query, records_to_insert)
     db.commit()
     logger.info('inserted {} records to portal'.format(len(records_to_insert)))

@@ -17,7 +17,7 @@ class BalanceServiceClient:
         # authentication token; all the balance service cares about is that
         # it is valid.
         sess = admin_session(settings.OPENSTACK_TACC_REGION)
-        headers = sess.get_auth_headers()
+        headers = sess.session.get_auth_headers()
         headers['Accept'] = 'application/json'
         headers['Content-Type'] = 'application/json'
         return headers

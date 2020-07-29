@@ -16,7 +16,6 @@ from django.views.decorators.http import require_POST
 from forms import ProjectCreateForm, ProjectAddUserForm,\
     AllocationCreateForm, EditNicknameForm, AddBibtexPublicationForm
 from django.db import IntegrityError
-from tas.util import get_user_projects
 import re
 import logging
 import json
@@ -57,44 +56,15 @@ def project_member_or_admin_or_superuser(user, project, project_user):
 def user_projects(request):
     context = {}
 
+    username = request.user.username
     mapper = ProjectAllocationMapper(request)
-    user = mapper.get_user(request.user.username)
+    user = mapper.get_user(username)
 
     context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
-    context['username'] = request.user.username
-
-    projects = get_projects(request)
-
-    context['projects'] = projects
+    context['username'] = username
+    context['projects'] = mapper.get_user_projects(username, to_pytas_model=True)
 
     return render(request, 'projects/user_projects.html', context)
-
-def get_unique_projects(projects, alloc_status=[]):
-    charge_codes = []
-    unique_projects = []
-    if not projects:
-        return unique_projects
-    for p in projects:
-        if p.source == 'Chameleon':
-            if alloc_status:
-                for a in p.allocations:
-                    if a.status in alloc_status:
-                        if p.chargeCode not in charge_codes:
-                            unique_projects.append(p)
-                            charge_codes.append(p.chargeCode)
-            else:
-                if p.chargeCode not in charge_codes:
-                    unique_projects.append(p)
-                    charge_codes.append(p.chargeCode)
-    return unique_projects
-
-def get_projects(request, alloc_status=[]):
-    mapper = ProjectAllocationMapper(request)
-    projects = mapper.get_user_projects(request.user.username, to_pytas_model=True)
-    projects = get_unique_projects(projects, alloc_status)
-    projects = list(p for p in projects if p.source == 'Chameleon')
-
-    return projects
 
 @login_required
 def view_project(request, project_id):
@@ -117,7 +87,7 @@ def view_project(request, project_id):
             if form.is_valid():
                 # try to add user
                 try:
-                    pi_user = mapper.get_user(project.pi.username, to_pytas_model = True)
+                    pi_user = mapper.get_user(project.pi.username, to_pytas_model=True)
                     add_username = form.cleaned_data['username']
                     if mapper.add_user_to_project(project, add_username):
                         sync_project_memberships(request, add_username)
@@ -220,6 +190,7 @@ def sync_project_memberships(request, username):
         List[keystone.Project]: a list of Keystone projects the user is a
             member of.
     """
+    mapper = ProjectAllocationMapper(request)
     try:
         ks_admin = admin_ks_client(request=request)
         ks_user = get_user(ks_admin, username)
@@ -230,9 +201,9 @@ def sync_project_memberships(request, username):
                 .format(username)))
             return
 
-        active, _ = get_user_projects(username)
+        active_projects = mapper.get_user_projects(username, alloc_status=['Active'])
 
-        return sync_projects(ks_admin, ks_user, active)
+        return sync_projects(ks_admin, ks_user, active_projects)
     except Exception as e:
         logger.error('Could not sync project memberships for %s: %s',
             username, e)

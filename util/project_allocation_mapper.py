@@ -27,7 +27,7 @@ class ProjectAllocationMapper:
     def __init__(self, request):
         self.is_from_db = self._wants_db(request)
         self.tas = TASClient()
-        
+
     def _wants_db(self, request):
         return request.user.is_superuser
 
@@ -45,12 +45,12 @@ class ProjectAllocationMapper:
         subject = 'Decision of your allocation request for project {}'.format(charge_code)
         body = '''
                 <p>Dear {first} {last},</p>
-                <p>Your allocation request for project {project_charge_code} has been {status}, 
+                <p>Your allocation request for project {project_charge_code} has been {status},
                 due to the following reason:</p>
                 <p>{decision_summary}</p>
                 <br/>
                 <p><i>This is an automatic email, please <b>DO NOT</b> reply!
-                If you have any question or issue, please submit a ticket on our 
+                If you have any question or issue, please submit a ticket on our
                 <a href='https://{host}/user/help/' target='_blank'>help desk</a>.
                 </i></p>
                 <br/>
@@ -63,13 +63,13 @@ class ProjectAllocationMapper:
                            decision_summary = decision_summary,
                            host = host)
         send_mail(subject, strip_tags(body), settings.DEFAULT_FROM_EMAIL, [user.email], html_message=body)
-    
-    def _get_project_allocations(self, tas_project, fetch_balance = True, to_pytas_model = True):
+
+    def _get_project_allocations(self, project, fetch_balance=True):
         balance_service = BalanceServiceClient()
         reformated_allocations = []
-        for alloc in portal_alloc.objects.filter(project_id=self.get_attr(tas_project, 'id')):
+        for alloc in portal_alloc.objects.filter(project_id=project.id):
             if fetch_balance and alloc.status == 'active':
-                balance = balance_service.call(self.get_attr(tas_project, 'chargeCode'))
+                balance = balance_service.call(project.charge_code)
                 if not balance:
                     logger.warning('Couldn\'t get balance. Balance service might be down.')
                     su_used = None
@@ -78,26 +78,22 @@ class ProjectAllocationMapper:
                 if su_used is not None:
                     alloc.su_used = float(su_used)
                 else:
-                    logger.error('Can not find used balance for project {}'.format(self.get_attr(tas_project, 'chargeCode')))
-            reformated_alloc = self.portal_to_tas_alloc_obj(alloc, to_pytas_model=to_pytas_model)
-            reformated_allocations.append(reformated_alloc)
+                    logger.error('Can not find used balance for project {}'.format(project.charge_code))
+            reformated_allocations.append(self.portal_to_tas_alloc_obj(alloc))
         return reformated_allocations
-    
+
     def get_all_projects(self):
-        projects = []
+        projects = {}
         # get projects from portal db
         for proj in portal_proj.objects.all():
-            proj = self.portal_to_tas_proj_obj(proj)
-            project_allocs = self._get_project_allocations(proj, fetch_balance = False, to_pytas_model = False)
-            self.set_attr(proj, 'allocations', project_allocs)
-            projects.append(proj)
-        portal_project_charge_codes = [p['chargeCode'] for p in projects]
+            proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
+            projects[proj['chargeCode']] = proj
         # get projects from tas
-        for tas_project in self.tas.projects_for_group('Chameleon'):
-            if tas_project['chargeCode'] not in portal_project_charge_codes:
-                projects.append(tas_project)
-        return projects
-    
+        for tas_project in self._tas_all_projects():
+            if tas_project['chargeCode'] not in projects:
+                projects[tas_project['chargeCode']] = tas_project
+        return projects.values()
+
     def save_allocation(self, alloc, project_charge_code, host):
         if self.is_from_db:
             reformated_alloc = self.tas_to_portal_alloc_obj(alloc, project_charge_code)
@@ -105,7 +101,7 @@ class ProjectAllocationMapper:
             self._send_allocation_request_notification(project_charge_code, host)
         else:
             self.tas.create_allocation(alloc)
-            
+
     def save_project(self, proj, host = None):
         if self.is_from_db:
             allocations = self.get_attr(proj, 'allocations')
@@ -122,15 +118,15 @@ class ProjectAllocationMapper:
                     new_proj.charge_code = valid_charge_code
                     new_proj.save()
                     reformated_proj.charge_code = valid_charge_code
-                    
+
                     # create allocation
                     self.save_allocation(allocations[0], valid_charge_code, host)
-            
+
                     # save project in keycloak
                     keycloak_client = KeycloakClient()
                     keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
 
-            return self.portal_to_tas_proj_obj(reformated_proj)
+            return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
         else:
             if 'chargeCode' in proj:
                 tas_project = self.tas.edit_project(proj)
@@ -145,15 +141,15 @@ class ProjectAllocationMapper:
             return request.user.id
         else:
             return self.tas.get_user(username=request.user)['id']
-    
-    def get_user(self, username, to_pytas_model = False):
+
+    def get_user(self, username, to_pytas_model=False):
         user = self.portal_keycloak_user_to_tas_obj(username, to_pytas_model=to_pytas_model)
         if not user:
             user = self.tas.get_user(username=username)
             if to_pytas_model:
                 user = tas_user(initial=user)
         return user
-    
+
     @staticmethod
     def get_project_nickname(project):
         nickname = None
@@ -168,7 +164,7 @@ class ProjectAllocationMapper:
                 if project_extras:
                     nickname = project_extras[0].nickname
         return nickname
-     
+
     @staticmethod
     def update_project_nickname(project_id, project_charge_code, nickname):
         try:
@@ -180,7 +176,7 @@ class ProjectAllocationMapper:
             pextras.charge_code = project_charge_code
             pextras.nickname = nickname
             pextras.save()
-    
+
     @staticmethod
     def get_project_nickname_and_charge_code_for_publication(publication):
         nickname = None
@@ -197,41 +193,36 @@ class ProjectAllocationMapper:
             if pextras and pextras.count() > 0:
                 nickname = pextras[0].nickname
             charge_code = publication.tas_project_id
-        
+
         return nickname, charge_code
-    
-    def get_user_projects(self, username, to_pytas_model=False):
-        user_projects = []
+
+    def get_user_projects(self, username, alloc_status=[], to_pytas_model=False):
+        user_projects = {}
         # get user projects from portal
         keycloak_client = KeycloakClient()
-        for proj in keycloak_client.get_user_projects_by_username(username):
-            project = portal_proj.objects.filter(charge_code=proj)
+        for charge_code in keycloak_client.get_user_projects_by_username(username):
+            project = portal_proj.objects.filter(charge_code=charge_code)
             if len(project) > 0:
-                project = self.portal_to_tas_proj_obj(project[0], to_pytas_model=to_pytas_model)
-                project_allocs = self._get_project_allocations(project, to_pytas_model=to_pytas_model)
-                self.set_attr(project, 'allocations', project_allocs)
-                user_projects.append(project)
-        portal_project_charge_codes = [self.get_attr(p, 'chargeCode') for p in user_projects]
-        # get user projects from tas
+                project = self.portal_to_tas_proj_obj(project[0])
+                user_projects[charge_code] = project
+
+        for tas_project in self._tas_projects_for_user(username):
+            if tas_project['chargeCode'] in user_projects:
+                continue
+            if alloc_status and not any(a['status'] in alloc_status for a in tas_project['allocations']):
+                continue
+            try:
+                extras = ProjectExtras.objects.get(tas_project_id=tas_project['id'])
+                tas_project['nickname'] = extras.nickname
+            except ProjectExtras.DoesNotExist:
+                logger.warning('Couldn\'t find nickname of tas project {} in portal database'.format(tas_project['chargeCode']))
+            user_projects[tas_project['chargeCode']] = tas_project
+
         if to_pytas_model:
-            tas_user_projects = tas_proj.list(username=username)
+            return [tas_proj(initial=p) for p in user_projects.values()]
         else:
-            tas_user_projects = self.tas.projects_for_user(username=username)
-                        
-        for proj in tas_user_projects:
-            if self.get_attr(proj, 'chargeCode') not in portal_project_charge_codes:
-                try:
-                    extras = ProjectExtras.objects.get(tas_project_id=self.get_attr(proj, 'id'))
-                    try:
-                        proj.__dict__['nickname'] = extras.nickname
-                    except:
-                        proj['nickname'] = extras.nickname
-                except ProjectExtras.DoesNotExist:
-                    logger.warning('Couldn\'t find nickname of tas project {} in portal database'.format(self.get_attr(proj, 'chargeCode')))
-                user_projects.append(proj)
-            
-        return user_projects
-    
+            return user_projects.values()
+
     def get_project_members(self, tas_project):
         users = []
         # try get members from keycloak
@@ -247,15 +238,28 @@ class ProjectAllocationMapper:
             # project stored in tas
             users = tas_project.get_users()
         return users
-    
+
     def get_project(self, project_id):
+        """Get a project by its ID (not charge code).
+
+        For projects stored in Portal's database, we look up by its primary key.
+        If the project is not found, we fall back to checking TAS's database.
+
+        NOTE(jason): we can remove the TAS fallback in the future. It is only
+            in place so we can handle cases where a list of projects is fetched
+            for a user from TAS and not Portal, and deep links need to work.
+
+        Args:
+            project_id (int): the project ID.
+
+        Returns:
+            pytas.models.Project: a TAS Project representation for the project.
+        """
         try:
             # try get project from portal
             project = portal_proj.objects.get(pk=project_id)
-            project = self.portal_to_tas_proj_obj(project, to_pytas_model=True)
-            project_allocs = self._get_project_allocations(project)
-            self.set_attr(project, 'allocations', project_allocs)
-            return project
+            project = self.portal_to_tas_proj_obj(project)
+            return tas_proj(initial=project)
         except portal_proj.DoesNotExist:
             # project not in portal; get from tas
             tas_project = tas_proj(project_id)
@@ -286,24 +290,24 @@ class ProjectAllocationMapper:
         else:
             result = self.tas.allocation_approval(data['id'], data)
             logger.info('Allocation approval TAS response: data=%s', json.dumps(result))
-    
-    @staticmethod        
+
+    @staticmethod
     def is_geni_user_on_chameleon_project(username):
         on_chameleon_project = False
-        
+
         fed_proj = portal_proj.objects.filter(charge_code=settings.GENI_FEDERATION_PROJECTS['chameleon']['charge_code'])
         keycloak_client = KeycloakClient()
         for proj in keycloak_client.get_user_projects_by_username(username):
             if proj.id == fed_proj.id:
                 on_chameleon_project = True
                 break
-        
+
         if not on_chameleon_project:
             fed_proj = tas_proj(settings.GENI_FEDERATION_PROJECTS['chameleon']['id'])
             on_chameleon_project = any(u.username == username \
                                        for u in fed_proj.get_users())
         return on_chameleon_project
-     
+
     def add_user_to_project(self, tas_project, username):
         try:
             keycloak_client = KeycloakClient()
@@ -312,7 +316,7 @@ class ProjectAllocationMapper:
         except:
             logger.exception('Failed to add user {} to project {}'.format(username, self.get_attr(tas_project, 'chargeCode')))
             return False
-    
+
     def remove_user_from_project(self, tas_project, username):
         try:
             keycloak_client = KeycloakClient()
@@ -328,7 +332,7 @@ class ProjectAllocationMapper:
         for child in parent['children']:
             result = result + self._parse_field_recursive(child, level)
         return result
-    
+
     def _portal_field_hierarchy_to_tas_format(self, parent, parent_children_map):
         parent_d = {'id': parent[0], 'name': parent[1], 'children': []}
         if parent in parent_children_map:
@@ -336,7 +340,7 @@ class ProjectAllocationMapper:
                 child = self._portal_field_hierarchy_to_tas_format(child, parent_children_map)
                 parent_d['children'].append(child)
         return parent_d
-        
+
     def get_fields_choices(self):
         choices = (('', 'Choose One'),)
         fields = []
@@ -356,10 +360,10 @@ class ProjectAllocationMapper:
             field_list = field_list + self._parse_field_recursive(f)
         for item in field_list:
             choices = choices + (item,)
-        
+
         return choices
 
-    def portal_to_tas_alloc_obj(self, alloc, to_pytas_model=False):
+    def portal_to_tas_alloc_obj(self, alloc):
         reformated_alloc = {'computeUsed': alloc.su_used,
                             'computeAllocated': alloc.su_allocated,
                             'computeRequested': alloc.su_requested,
@@ -386,35 +390,35 @@ class ProjectAllocationMapper:
                             'storageAllocated': 0,
                             'storageRequested': 0,
                             }
-        if to_pytas_model:
-            reformated_alloc = tas_alloc(initial=reformated_alloc)
         return reformated_alloc
-    
-    def portal_to_tas_proj_obj(self, proj, to_pytas_model=False):
+
+    def portal_to_tas_proj_obj(self, proj, fetch_allocations=True,
+                               fetch_balance=True):
         pi_info = self.portal_keycloak_user_to_tas_obj(proj.pi.username.encode('utf-8'))
-        reformated_proj = {'description': proj.description,
-                           'piId': proj.pi_id,
-                           'title': proj.title,
-                           'nickname': proj.nickname,
-                           'chargeCode': proj.charge_code,
-                           'typeId': proj.type_id,
-                           'fieldId': proj.field_id,
-                           'type': proj.type_name(),
-                           'field': proj.field_name(),
-                           'allocations': [],
-                           'source': 'Chameleon',
-                           'pi': pi_info,
-                           'id': proj.id}
-        if to_pytas_model:
-            reformated_proj = tas_proj(initial=reformated_proj)
-        return reformated_proj
+        tas_proj = {'description': proj.description,
+                    'piId': proj.pi_id,
+                    'title': proj.title,
+                    'nickname': proj.nickname,
+                    'chargeCode': proj.charge_code,
+                    'typeId': proj.type_id,
+                    'fieldId': proj.field_id,
+                    'type': proj.type_name(),
+                    'field': proj.field_name(),
+                    'allocations': [],
+                    'source': 'Chameleon',
+                    'pi': pi_info,
+                    'id': proj.id}
+        if fetch_allocations:
+            allocations = self._get_project_allocations(proj, fetch_balance=fetch_balance)
+            tas_proj['allocations'] = allocations
+        return tas_proj
 
     def tas_to_portal_alloc_obj(self, alloc, project_charge_code):
-        reformated_alloc = {}        
+        reformated_alloc = {}
         for key, val in alloc.items():
             if key in allocation.TAS_TO_PORTAL_MAP:
                 reformated_alloc[allocation.TAS_TO_PORTAL_MAP[key]] = val
-        
+
         portal_project = portal_proj.objects.filter(charge_code=project_charge_code)
         if len(portal_project) == 0:
             logger.error('Couldn\'t find project {} in portal'.format(alloc['project']))
@@ -422,11 +426,11 @@ class ProjectAllocationMapper:
             reformated_alloc['project_id'] = portal_project[0].id
         reformated_alloc['date_requested'] = datetime.now(pytz.utc)
         reformated_alloc['status'] = 'pending'
-                
+
         reformated_alloc = portal_alloc(**reformated_alloc)
-        
+
         return reformated_alloc
-    
+
     def tas_to_portal_proj_obj(self, proj):
         reformated_proj = {}
         for key, val in proj.items():
@@ -439,17 +443,17 @@ class ProjectAllocationMapper:
             # assign temporary charge code for new project
             dt = datetime.now()
             reformated_proj['charge_code'] = TMP_PROJECT_CHARGE_CODE_PREFIX + str(time.mktime(dt.timetuple()) + dt.microsecond/1e6).replace('.', '')
-        
+
         reformated_proj = portal_proj(**reformated_proj)
-        
+
         return reformated_proj
-    
+
     def portal_keycloak_user_to_tas_obj(self, username, to_pytas_model = False, role = None):
         keycloak_client = KeycloakClient()
         keycloak_user = keycloak_client.get_keycloak_user_by_username(username)
         if not keycloak_user:
             logger.error('Couldn\'t find user {} in keycloak'.format(username))
-            return None
+            return {'username': username}
         user_model = get_user_model()
         portal_user = user_model.objects.filter(username=username)
         user_id = None
@@ -495,7 +499,7 @@ class ProjectAllocationMapper:
         if to_pytas_model:
             reformated_user = tas_user(initial=reformated_user)
         return  reformated_user
-            
+
 
     def get_attr(self, obj, key):
         '''Attempt to resolve the key either as an attribute or a dict key'''
@@ -511,3 +515,31 @@ class ProjectAllocationMapper:
         else:
             setattr(obj, key, val)
         return obj
+
+    def _normalize_tas_projects(self, tas_projects):
+        normalized = {}
+        for p in tas_projects:
+            if p['source'] != 'Chameleon':
+                # Shouldn't be possible for source to be anything other than
+                # "Chameleon", but double-check.
+                continue
+            # Similarly, ensure nested allocations are from valid resource.
+            p['allocations'] = [
+                a for a in p['allocations']
+                if a['resource'] == 'Chameleon'
+            ]
+            charge_code = p['chargeCode']
+            if charge_code in normalized:
+                # Combine allocation records
+                normalized[charge_code]['allocations'].extend(p['allocations'])
+            else:
+                normalized[charge_code] = p
+        return normalized.values()
+
+    def _tas_projects_for_user(self, username):
+        return self._normalize_tas_projects(
+            self.tas.projects_for_user(username=username))
+
+    def _tas_all_projects(self):
+        return self._normalize_tas_projects(
+            self.tas.projects_for_group('Chameleon'))
