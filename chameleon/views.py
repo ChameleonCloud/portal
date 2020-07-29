@@ -9,7 +9,6 @@ from urlparse import urlparse
 import logging
 import chameleon.os_login as login
 from tas import auth as tas_auth
-from projects.views import get_unique_projects
 from webinar_registration.models import Webinar
 from django.utils import timezone
 from datetime import datetime
@@ -59,7 +58,15 @@ def horizon_sso_login(request):
     '''
     username = request.user.username
     mapper = ProjectAllocationMapper(request)
-    active_projects, approved_projects = mapper.get_user_projects(username)
+    user_projects = mapper.get_user_projects(username)
+    active_projects = [
+        p for p in user_projects
+        if any(a['status'] == 'Active' for a in p['allocations'])
+    ]
+    approved_projects = [
+        p for p in user_projects
+        if any(a['status'] == 'Approved' for a in p['allocations'])
+    ]
     ks_admin = admin_ks_client(request=request)
     ks_user = get_user(ks_admin, username)
     if not ks_user:
@@ -199,13 +206,9 @@ def dashboard(request):
     context = {}
     # active projects...
     mapper = ProjectAllocationMapper(request)
-    projects = mapper.get_user_projects(request.user.username, to_pytas_model=True)
-    alloc_status = ['Active', 'Approved', 'Pending']
-    projects = get_unique_projects(projects, alloc_status=alloc_status)
-
-    context['active_projects'] = [p for p in projects \
-                if p.source == 'Chameleon' and \
-                any(a.status in ['Active', 'Approved', 'Pending'] for a in p.allocations)]
+    active_projects = mapper.get_user_projects(request.user.username,
+        alloc_status=['Active', 'Approved', 'Pending'], to_pytas_model=True)
+    context['active_projects'] = active_projects
 
     # open tickets...
     rt = rtUtil.DjangoRt()

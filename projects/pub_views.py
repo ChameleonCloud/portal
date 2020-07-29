@@ -4,7 +4,7 @@ from django.http import (Http404, HttpResponseForbidden, HttpResponse,
                          HttpResponseRedirect, HttpResponseNotAllowed, JsonResponse)
 from forms import AddBibtexPublicationForm
 from django.contrib import messages
-from projects.views import get_projects, project_pi_or_admin_or_superuser
+from projects.views import project_pi_or_admin_or_superuser
 from projects.models import Publication
 from util.project_allocation_mapper import ProjectAllocationMapper
 import logging

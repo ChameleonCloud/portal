@@ -43,13 +43,6 @@ def view( request ):
     try:
         mapper = ProjectAllocationMapper(request)
         resp = mapper.get_all_projects()
-        for p in resp:
-            tempAlloc = []
-            for a in p['allocations']:
-                if a['resource'] == 'Chameleon':
-                    tempAlloc.append(a)
-            p['allocations'] = tempAlloc
-
         logger.debug( 'Total projects: %s', len(resp) )
     except Exception as e:
         logger.exception('Error loading chameleon projects')
@@ -77,27 +70,10 @@ def user_projects( request, username ):
     if username:
         try:
             mapper = ProjectAllocationMapper(request)
-            userProjects = mapper.get_user_projects(username)
-            #logger.debug(userProjects)
-
-            temp = {}
-            # run through and make sure all the allocations are associated with one project
-            for p in userProjects:
-                if p['source'] == 'Chameleon':
-                    if p['chargeCode'] not in temp:
-                        logger.debug('Project ' + p['chargeCode'] + ' is not in the temp yet, adding')
-                        temp[p['chargeCode']] = p
-                    else:
-                        logger.debug('Project ' + p['chargeCode'] + ' is in temp...appending allocations')
-                        tempProj = temp[p['chargeCode']]
-                        for a in p['allocations']:
-                            if a['resource'] == 'Chameleon':
-                                tempProj['allocations'].extend(a)
-                        temp[p['chargeCode']] = tempProj
-            for code, proj in temp.items():
-                resp['status'] = 'success'
-                resp['result'].append(proj)
-            logger.info('Total chameleon projects for user %s: %s', username, len(resp))
+            user_projects = mapper.get_user_projects(username)
+            resp['status'] = 'success'
+            resp['result'] = user_projects
+            logger.info('Total chameleon projects for user %s: %s', username, len(user_projects))
         except Exception as e:
             logger.debug('Error loading projects for user: %s with error %s', username, e)
             resp['msg'] = 'Error loading projects for user: %s' %username
