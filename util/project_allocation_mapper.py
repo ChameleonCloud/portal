@@ -6,7 +6,6 @@ from allocations.models import Allocation as portal_alloc
 from allocations.allocations_api import BalanceServiceClient
 from projects.models import Project as portal_proj
 from projects.models import ProjectExtras, FieldHierarchy, Field
-from chameleon.models import UserProperties
 from datetime import datetime
 import logging
 import json
@@ -464,10 +463,9 @@ class ProjectAllocationMapper:
             portal_user = portal_user[0]
             user_id = portal_user.id
             try:
-                pi_userproperties = UserProperties.objects.get(pk=user_id)
-                pi_eligibility = pi_userproperties.pi_eligibility.capitalize()
-            except UserProperties.DoesNotExist:
-                logger.error('User properties for user_id {} doesn\'t exist'.format(user_id))
+                pi_eligibility = portal_user.pi_eligibility()
+            except:
+                pi_eligibility = 'Ineligible'
         reformated_user = {'username': keycloak_user['username'].encode('utf-8'),
                            'firstName': keycloak_user['firstName'].encode('utf-8'),
                            'lastName': keycloak_user['lastName'].encode('utf-8'),
