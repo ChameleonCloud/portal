@@ -157,83 +157,55 @@
     color: var(--grey-dark);
 }
 
-/* Legacy styles */
-
-.artCatalog {
-    position: relative;
+.artifactDetail {
+    background: #ffffff;
+    padding: 1.5rem;
+    border: 1px solid #dadada;
+    border-radius: 0.5rem;
+    padding-bottom: 2em;
+} .artifactDetail__heading {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+} .artifactTitle {
+    flex: 1;
+    margin: 0 0 0.5em;
+    border: 0;
 }
 
-.artCatalog .dropdown-multiselect > .dropdown-toggle {
-    white-space: normal;
+.artifactBody__description {
+    margin-top: 0 !important;
+    font-size: 2rem;
+    padding-bottom: 0.5em;
 }
 
-.artCatalog__title {
+.artifactBody section {
+    margin-top: 1.5em;
+}
+
+.artifactLaunchButton {
+    font-size: 2rem;
+    padding: 2rem;
     width: 100%;
-    margin-top: 0;
 }
 
-.artCatalog .dropdown-multiselect {
-    margin-top: 8px;
-    margin-bottom: 3px;
+.artifactVersions {
+    margin-top: 2em;
 }
-
-.artCatalog__content {
-    max-width: 700px;
-    margin-right: 30px;
-    padding-bottom: 2em;
-    flex: 2;
-}
-
-.artCatalog__fullContent {
-    flex: 1;
-}
-
-.artCatalog__sidebar {
-    flex: 1;
-    background-color: rgba(255,255,255,0.6);
-    border:1px solid #ddd;
-    border-radius:4px;
-    padding:20px;
-}
-
-.artCatalog section {
-    margin-top: 1.5em;
-}
-
-.artifactDescription {
-    font-size: 1.1em;
-    margin-top: 1.5em;
-    padding-bottom: 2em;
-}
-
-div.artifact-grid-padding {
-    min-height: 50px;
-}
-
-.artifactVersion {
+.artifactVersions ol {
     list-style: none;
     padding: 0;
     flex: 1;
-}
-
-.artifactVersion li {
-    padding: 5px 10px;
-}
-
-.artifactVersion li.selected {
-    background-color: #f0f0f0;
+} .artifactVersions li {
+    padding: 0.5rem 1rem;
+} .artifactVersions li.selected {
+    background-color: #ffffff;
+    border: 1px solid #dadada;
+    border-radius: 0.5rem;
 }
 
 .artifactVersion__link {
     display: flex;
-}
-
-.artifactVersion__link > span:first-child {
+} .artifactVersion__link > span:first-child {
     flex: 1;
-}
-.artifactVersion__link > span {
+} .artifactVersion__link > span {
     display: block;
 }
