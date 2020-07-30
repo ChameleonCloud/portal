@@ -198,6 +198,12 @@ class Artifact(models.Model):
         else:
             return None
 
+    @property
+    def search_terms(self):
+        terms = self.title.lower().split()
+        terms.extend([l.label.lower() for l in self.labels.all()])
+        return terms
+
 
 class ArtifactVersion(models.Model):
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
