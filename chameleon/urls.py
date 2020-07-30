@@ -46,11 +46,6 @@ urlpatterns = [
 
     url(r'^user/dashboard/', chameleon_views.dashboard, name='dashboard'),
 
-    url(r'^appliances/', include('appliance_catalog.urls', namespace='appliance_catalog')),
-
-    url(r'^share/', include('sharing_portal.urls', namespace='sharing_portal')),
-
-    url(r'^news/', include('user_news.urls', namespace='user_news')),
     url(r'^feed\.xml', RedirectView.as_view(permanent=True, url=reverse_lazy('user_news:feed'))),
     url(r'^user/outages/$', OutageListView.as_view(), name='outage_list'),
     url(r'^user/outages/rss/$', OutageFeed(), name='outage_feed'),
@@ -83,4 +78,9 @@ urlpatterns = [
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
     url(r'^', include('blog_comments.urls')),
     url(r'^', include('cms.urls')),
+
+    # /appliances is bound to appliance_catalog app via CMS integration
+    # /share is bound to sharing_portal app via CMS integration
+    # /news is bound to user_news app via CMS integration
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
