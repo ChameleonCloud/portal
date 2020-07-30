@@ -15,63 +15,49 @@ from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from sharing_portal.zenodo import ZenodoClient
 
 
-""" Validators """
 def validate_git_repo(repo):
-    """ Validator to make sure that the git repo is in the right format
+    """Validator to make sure that the GitHub repo is in the right format
 
-    Parameters
-    ----------
-    repo : string
-        Git repo to validate
+    Args:
+        repo (str): GitHub repo reference to validate.
 
-    Returns
-    -------
-    void
+    Raises:
+        ValidationError: if the Git repo reference is not of the form
+            {user|org}/{repo}
     """
-    error = "This must be in the form user_or_organization/repo_name"
-
     if not re.match(r"[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+", str(repo)):
-        raise ValidationError(error)
+        raise ValidationError("This must be in the form {user|org}/{repo}")
 
 
 def validate_zenodo_doi(doi):
-    """ Validator to make sure that the Zenodo DOI is in the right format
+    """Validator to make sure that the Zenodo DOI is in the right format
 
-    Parameters
-    ----------
-    doi : string
-        Zenodo doi to validate
+    Args:
+        doi (str): the Zenodo DOI to validate.
 
-    Returns
-    -------
-    void
+    Raises:
+        ValidationError: if the DOI is malformed
     """
-    error = "Please enter a valid Zenodo DOI"
     if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
-        raise ValidationError(error)
+        raise ValidationError("Please enter a valid Zenodo DOI")
 
 
 class Author(models.Model):
     """
     Represents authors of an artifact
     """
-    title = models.CharField(max_length=200, blank=True)
-    first_name = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=200)
-    full_name = models.CharField(max_length=600, editable=False)
+    affiliation = models.CharField(max_length=200, blank=True, null=True)
+    name = models.CharField(max_length=200)
 
     # Order by last name
     class Meta:
-        ordering = ('last_name',)
+        ordering = ('name',)
 
-    # Print the author's full name when printing
     def __str__(self):
-        return self.full_name
-
-    # Save the full name along with all the pieces for search purposes
-    def save(self, *args, **kwargs):
-        self.full_name = self.title+" "+self.first_name+" "+self.last_name
-        super(Author, self).save(*args, **kwargs)
+        display = self.name
+        if self.affiliation:
+            display += ' ({})'.format(self.affiliation)
+        return display
 
 
 class LabelField(models.CharField):
