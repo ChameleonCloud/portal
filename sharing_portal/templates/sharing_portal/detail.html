@@ -16,62 +16,64 @@
   <li class="active">{{ artifact.title }}</li>
 </ol>
 
-<div class="artCatalog">
-  <h2 class="artCatalog__title">{{ artifact.title }}</h2>
-
-  <div class="artCatalog__content">
-    <div class="artCatalog__actions">
+<div class="layoutGrid">
+  <div class="layoutGrid__main">
+    <h2 class="artifactTitle">{{ artifact.title }}</h2>
+    <div class="artifactActions">
       {% if editable %}
       <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
         <i class="fa fa-edit"></i> Edit
       </a>
       {% endif %}
-      {% if artifact.launchable %}
-      <a class="btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
-        Launch with JupyterHub
-      </a>
+    </div>
+    <div class="artifactBody">
+      <section>
+        {{ artifact.description|markdown|safe }}
+      </section>
+
+      <div class="artifactStats">
+        <div class="artifactStats__meta">
+          <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
+          <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
+          <span class="artifactStats__updated">{{ artifact.updated_at }}</span>
+        </div>
+        <div class="artifactStats__labels">
+          {% for label in artifact.labels.all %}
+          <span><a href="">{{ label.label }}</a></span>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if artifact.authors.all %}
+      <section>
+        <h4>Authors</h4>
+        <ul>
+        {% for author in artifact.authors.all %}
+          <li>{{ author }}</li>
+        {% endfor %}
+        </ul>
+      </section>
       {% endif %}
+
+      {% if version and version.zenodo_link %}
+      <section>
+        <h4>Digital Object Identifier (DOI)</h4>
+        <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
+      </section>
+      {% endif %}
+
       {% if artifact.git_repo %}
       <a class="btn" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
         <i class="fa fa-github"></i>&nbsp;GitHub: {{ artifact.git_repo }}
       </a>
       {% endif %}
     </div>
-
-    <div class="artifactDescription">
-      {{ artifact.description|markdown|safe }}
-    </div>
-
-    <section>
-      <h4>Authors</h4>
-      {% for author in artifact.authors.all %}
-      <p>{{ author }}</p>
-      {% endfor %}
-    </section>
-
-    {% if version and version.zenodo_link %}
-    <section>
-      <h4>Digital Object Identifier (DOI)</h4>
-      <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
-    </section>
-    {% endif %}
-
-    {% if artifact.labels.all %}
-    <section>
-      <h4>Labels</h4>
-      {% for label in artifact.labels.all %}
-      <span class="badge">{{ label.label }} </span>
-      {% endfor %}
-    </section>
-    {% endif %}
   </div>
 
-  <div class="artCatalog__sidebar">
-    {% if editable %}
-    <a class="btn pull-right" href="{% url 'sharing_portal:sync_versions' artifact.pk %}">
-      <i class="fa fa-refresh"></i>&nbsp;Sync versions
+  <div class="layoutGrid__side">
+    <a class="btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
+      Launch with JupyterHub
     </a>
-    {% endif %}
 
     <h4>Versions</h4>
     <ol class="artifactVersion">
@@ -109,8 +111,6 @@
       {% endfor %}
     </ul>
     {% endif %}
-
   </div>
-
 </div>
 {% endblock %}

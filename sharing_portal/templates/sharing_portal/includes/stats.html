@@ -1,0 +1,12 @@
+<div class="artifactStats">
+  <div class="artifactStats__meta">
+    <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
+    <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
+    <span class="artifactStats__updated">{{ artifact.updated_at }}</span>
+  </div>
+  <div class="artifactStats__labels">
+    {% for label in artifact.labels.all %}
+    <a href="{% url 'sharing_portal:index_all' %}?filter={{ label.label|urlencode }}">{{ label.label }}</a>
+    {% endfor %}
+  </div>
+</div>

@@ -26,7 +26,7 @@
       const matches = terms.some((term) => {
         return (term.length > 2) && el.dataset.search.includes(term);
       });
-      el.style.display = matches ? '' : 'none';
+      el.classList.toggle('hidden', terms.length > 0 && !matches);
     });
 
     if (history.replaceState) {
