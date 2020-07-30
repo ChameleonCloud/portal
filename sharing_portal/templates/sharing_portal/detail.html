@@ -37,7 +37,7 @@
         {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
 
         {% if artifact.authors.all %}
-        <section>
+        <section class="artifactBody__authors">
           <h4>Authors</h4>
           <ul>
           {% for author in artifact.authors.all %}
