@@ -6,7 +6,6 @@
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/slider.css' %}">
 {% endblock %}
 
 {% block scripts %}
@@ -20,30 +19,19 @@
     <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter"/>
 
     {% for artifact in artifacts %}
-    <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.pk %}">
-      <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
+    <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
+      <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.pk %}">
         <h5 class="cardItem__title">{{ artifact.title }}</h5>
         <div class="cardItem__body">
-          {% if artifact.short_description %}
           <p class="artifactGridItem__description">
             {{ artifact.short_description }}
           </p>
-          {% endif %}
         </div>
-        <div class="cardItem__footer">
-          <div class="cardItem__stats">
-            <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
-            <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
-            <span class="cardItem__minorStat">{{ artifact.updated_at }}</span>
-          </div>
-          <div class="cardItem__tags">
-            {% for label in artifact.labels.all %}
-            <span class="cardItem__tag">{{ label.label }}</span>
-            {% endfor %}
-          </div>
-        </div>
+      </a>
+      <div class="cardItem__footer">
+        {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
       </div>
-    </a>
+    </div>
     {% empty %}
     <div class="cardEmpty">
       <p>No results found.</p>
