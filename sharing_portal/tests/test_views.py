@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from ..models import Artifact, Author, Label
-from ..views import artifacts_from_form, make_author, upload_artifact
+from ..views import make_author, upload_artifact
 
 
 def sorted_list_ids(alist):

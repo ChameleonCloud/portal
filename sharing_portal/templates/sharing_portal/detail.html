@@ -18,99 +18,69 @@
 
 <div class="layoutGrid">
   <div class="layoutGrid__main">
-    <h2 class="artifactTitle">{{ artifact.title }}</h2>
-    <div class="artifactActions">
-      {% if editable %}
-      <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
-        <i class="fa fa-edit"></i> Edit
-      </a>
-      {% endif %}
-    </div>
-    <div class="artifactBody">
-      <section>
-        {{ artifact.description|markdown|safe }}
-      </section>
-
-      <div class="artifactStats">
-        <div class="artifactStats__meta">
-          <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
-          <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
-          <span class="artifactStats__updated">{{ artifact.updated_at }}</span>
+    <div class="artifactDetail">
+      <header class="artifactDetail__heading">
+        <h2 class="artifactTitle">{{ artifact.title }}</h2>
+        <div class="artifactActions">
+          {% if editable %}
+          <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
+            <i class="fa fa-edit"></i> Edit
+          </a>
+          {% endif %}
         </div>
-        <div class="artifactStats__labels">
-          {% for label in artifact.labels.all %}
-          <span><a href="">{{ label.label }}</a></span>
+      </header>
+      <div class="artifactBody">
+        <section class="artifactBody__description">
+          {{ artifact.description|markdown|safe }}
+        </section>
+
+        {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
+
+        {% if artifact.authors.all %}
+        <section>
+          <h4>Authors</h4>
+          <ul>
+          {% for author in artifact.authors.all %}
+            <li>{{ author }}</li>
           {% endfor %}
-        </div>
+          </ul>
+        </section>
+        {% endif %}
+
+        {% if version and version.zenodo_link %}
+        <section>
+          <h4>Digital Object Identifier (DOI)</h4>
+          <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
+        </section>
+        {% endif %}
+
+        {% if artifact.git_repo %}
+        <a class="btn" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
+          <i class="fa fa-github"></i>&nbsp;GitHub: {{ artifact.git_repo }}
+        </a>
+        {% endif %}
       </div>
-
-      {% if artifact.authors.all %}
-      <section>
-        <h4>Authors</h4>
-        <ul>
-        {% for author in artifact.authors.all %}
-          <li>{{ author }}</li>
-        {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
-
-      {% if version and version.zenodo_link %}
-      <section>
-        <h4>Digital Object Identifier (DOI)</h4>
-        <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
-      </section>
-      {% endif %}
-
-      {% if artifact.git_repo %}
-      <a class="btn" href="https://github.com/{{ artifact.git_repo }}" target="_blank">
-        <i class="fa fa-github"></i>&nbsp;GitHub: {{ artifact.git_repo }}
-      </a>
-      {% endif %}
     </div>
   </div>
 
   <div class="layoutGrid__side">
-    <a class="btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
-      Launch with JupyterHub
+    <a class="artifactLaunchButton btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
+      <i class="fa fa-external-link"></i> Launch with JupyterHub
     </a>
 
-    <h4>Versions</h4>
-    <ol class="artifactVersion">
-    {% for i, v in all_versions %}
-      <li class="{% if version == v %}selected{% endif %}">
-        <a class="artifactVersion__link" href="{% url 'sharing_portal:detail_version' artifact.pk i %}">
-          <span>Version {{ i }}</span>
-          <span>{{ v.created_at }}</span>
-        </a>
-      </li>
-    {% endfor %}
-    </ol>
-
-    {% if artifact.associated_artifacts.count > 0 %}
-    <h4>Associated Artifacts</h4>
-    <ul class="artCatalog__associated">
-      {% for related_item in artifact.associated_artifacts.all %}
-      <li>
-        <a href="{% url 'sharing_portal:detail' related_item.pk %}">{{ related_item.title }}</a>
-      </li>
+    <div class="artifactVersions">
+      <h4>Versions</h4>
+      <ol>
+      {% for i, v in all_versions %}
+        <li class="{% if version == v %}selected{% endif %}">
+          <a class="artifactVersion__link" href="{% url 'sharing_portal:detail_version' artifact.pk i %}">
+            <span>Version {{ i }}</span>
+            <span>{{ v.created_at }}</span>
+          </a>
+        </li>
       {% endfor %}
+      </ol>
     </div>
-    {% endif %}
-
-    {% if related_artifacts %}
-    <h4>Similar Artifacts</h4>
-    <ul class="artCatalog__related">
-      {% for related in related_artifacts %}
-      <li>
-        <a href="{% url 'sharing_portal:detail' related.id %}">{{ related.title }}</a>
-        {% for label in related.labels.all %}
-        <span class="badge">{{ label.label }}</span>
-        {% endfor %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
   </div>
 </div>
 {% endblock %}
