@@ -157,6 +157,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'csp.middleware.CSPMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'termsandconditions.middleware.TermsAndConditionsRedirectMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -693,3 +694,9 @@ CELERY_BEAT_SCHEDULE = {
             int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY_IN_MINUTES)))
     },
 }
+
+# Content-Security-Policy
+CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
+CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]
+CSP_FONT_SRC = ["'self'", 'https://fonts.gstatic.com/']
+CSP_STYLE_SRC = ["'self'", 'https://fonts.googleapis.com/', "'unsafe-inline'"]

@@ -3,6 +3,7 @@ django
 django-angular
 django-bootstrap3
 django-ckeditor
+django-csp
 django-impersonate
 django-markdown-deux
 django-pipeline

@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/edit/sync_versions$', views.sync_artifact_versions, name='sync_versions'),
     url(r'^edit$', views.edit_redirect, name='edit_redirect'),
     url(r'^edit/sync_versions$', views.sync_artifact_versions_redirect, name='sync_versions_redirect'),
+    url(r'^create$', views.create_artifact, name='create'),
 ]

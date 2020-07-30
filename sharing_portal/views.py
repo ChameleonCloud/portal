@@ -3,6 +3,7 @@ import logging
 import json
 from urllib.request import urlopen, Request
 
+from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -370,3 +371,9 @@ def artifact(request, pk, version_idx=None):
     }
 
     return HttpResponse(template.render(context, request))
+
+
+@login_required
+@csp_update(FRAME_ANCESTORS='jupyter.chameleoncloud.org')
+def create_artifact(request):
+    artifact_id = request.GET.get('artifact_id')
