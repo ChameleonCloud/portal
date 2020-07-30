@@ -181,6 +181,11 @@
     margin-top: 1.5em;
 }
 
+.artifactBody__authors ul {
+    list-style: none;
+    padding: 0;
+}
+
 .artifactLaunchButton {
     font-size: 2rem;
     padding: 2rem;
