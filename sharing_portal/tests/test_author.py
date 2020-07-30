@@ -6,20 +6,13 @@ from ..models import Author
 class AuthorStringTest(TestCase):
     def test_to_string(self):
         author = Author.objects.create(
-            title='Mr.',
-            first_name='Albert',
-            last_name='Einstein',
+            name='Albert Einstein',
         )
-        author.full_name = "That man"
-        self.assertEqual(str(author), "That man")
+        self.assertEqual(str(author), 'Albert Einstein')
 
-
-class AuthorFullNameTest(TestCase):
-    def test_save(self):
+    def test_with_affiliation(self):
         author = Author.objects.create(
-            title='Mr.',
-            first_name='Albert',
-            last_name='Einstein',
+            name='Albert Einstein',
+            affiliation='Physicist',
         )
-        author.save()
-        self.assertEqual(author.full_name, "Mr. Albert Einstein")
+        self.assertEqual(str(author), 'Albert Einstein (Physicist)')
