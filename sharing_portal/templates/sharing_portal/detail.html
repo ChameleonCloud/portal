@@ -70,15 +70,15 @@
 
     <div class="artifactVersions">
       <h4>Versions</h4>
-      <ol>
-      {% for i, v in all_versions %}
-        <li class="{% if version == v %}selected{% endif %}">
+      <ol class="sidebarNav">
+        {% for i, v in all_versions %}
+        <li class="sidebarNav__item {% if version == v %}active{% endif %}">
           <a class="artifactVersion__link" href="{% url 'sharing_portal:detail_version' artifact.pk i %}">
             <span>Version {{ i }}</span>
             <span>{{ v.created_at }}</span>
           </a>
         </li>
-      {% endfor %}
+        {% endfor %}
       </ol>
     </div>
   </div>
