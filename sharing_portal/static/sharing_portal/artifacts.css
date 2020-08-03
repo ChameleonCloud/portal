@@ -134,7 +134,7 @@
     padding: 0.7rem 1rem;
 } .sidebarNav__item.active {
     background: #ffffff;
-    border: 2px solid #dadada;
+    border: 1px solid #dadada;
     border-radius: .5rem;
 } .sidebarNav__item .fa {
     margin-right: 0.5rem;
