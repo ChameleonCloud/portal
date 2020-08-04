@@ -83,13 +83,12 @@ class ProjectAllocationMapper:
 
     def get_all_projects(self):
         projects = {}
-        # get projects from portal db
-        for proj in portal_proj.objects.all():
-            proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
-            projects[proj['chargeCode']] = proj
-        # get projects from tas
-        for tas_project in self._tas_all_projects():
-            if tas_project['chargeCode'] not in projects:
+        if self.is_from_db:
+            for proj in portal_proj.objects.all():
+                proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
+                projects[proj['chargeCode']] = proj
+        else:
+            for tas_project in self._tas_all_projects():
                 projects[tas_project['chargeCode']] = tas_project
         return projects.values()
 
