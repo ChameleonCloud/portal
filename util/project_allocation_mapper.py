@@ -464,7 +464,7 @@ class ProjectAllocationMapper:
                     'firstName': user.first_name.encode('utf-8'),
                     'lastName': user.last_name.encode('utf-8'),
                     'source': 'Chameleon',
-                    'email': user.last_name.encode('utf-8'),
+                    'email': user.email.encode('utf-8'),
                     'id': user.id,
                     'piEligibility': pi_eligibility,
                     'citizenship': None,
