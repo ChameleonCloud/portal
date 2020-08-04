@@ -19,7 +19,7 @@
         <th>PI</th>
         <td>
           {{ project.pi.firstName }} {{ project.pi.lastName }} <a href="mailto:{{ project.pi.email }}">&lt;{{ project.pi.email }}&gt;</a>,
-          {{ project.pi.institution}}
+          {% if project.pi.institution %}{{ project.pi.institution}}{% endif %}
         </td>
       </tr>
       <tr>
