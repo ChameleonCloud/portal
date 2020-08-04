@@ -136,18 +136,26 @@ class ProjectAllocationMapper:
             return tas_project
 
     def get_user_id(self, request):
-        if self.is_from_db:
-            return request.user.id
-        else:
-            return self.tas.get_user(username=request.user)['id']
+        user = self.get_user(request.user.username)
+        return user['id']
 
-    def get_user(self, username, to_pytas_model=False):
-        user = self.portal_keycloak_user_to_tas_obj(username, to_pytas_model=to_pytas_model)
-        if not user:
+    def get_user(self, username, to_pytas_model=False, role=None):
+        if self.is_from_db:
+            portal_user = get_user_model().objects.get(username=username)
+            if not portal_user:
+                logger.error('Could not find user %s in DB', username)
+                return None
+            user = self.portal_user_to_tas_obj(portal_user, role=role)
+        else:
             user = self.tas.get_user(username=username)
-            if to_pytas_model:
-                user = tas_user(initial=user)
-        return user
+            if not user:
+                logger.error('Could not find user %s in TAS', username)
+                return None
+
+        if to_pytas_model:
+            return tas_user(initial=user)
+        else:
+            return user
 
     @staticmethod
     def get_project_nickname(project):
@@ -228,11 +236,11 @@ class ProjectAllocationMapper:
         keycloak_client = KeycloakClient()
         pi_username = tas_project.pi.username
         for username in keycloak_client.get_project_members_by_charge_code(tas_project.chargeCode):
-            # assign role
-            role = 'Standard'
             if username == pi_username:
                 role = 'PI'
-            users.append(self.portal_keycloak_user_to_tas_obj(username, to_pytas_model=True, role=role))
+            else:
+                role = 'Standard'
+            users.append(self.get_user(username, to_pytas_model=True, role=role))
         if len(users) == 0:
             # project stored in tas
             users = tas_project.get_users()
@@ -393,7 +401,7 @@ class ProjectAllocationMapper:
 
     def portal_to_tas_proj_obj(self, proj, fetch_allocations=True,
                                fetch_balance=True):
-        pi_info = self.portal_keycloak_user_to_tas_obj(proj.pi.username.encode('utf-8'))
+        pi_info = self.portal_user_to_tas_obj(proj.pi)
         tas_proj = {'description': proj.description,
                     'piId': proj.pi_id,
                     'title': proj.title,
@@ -447,56 +455,26 @@ class ProjectAllocationMapper:
 
         return reformated_proj
 
-    def portal_keycloak_user_to_tas_obj(self, username, to_pytas_model = False, role = None):
-        keycloak_client = KeycloakClient()
-        keycloak_user = keycloak_client.get_keycloak_user_by_username(username)
-        if not keycloak_user:
-            logger.error('Couldn\'t find user {} in keycloak'.format(username))
-            return {'username': username}
-        user_model = get_user_model()
-        portal_user = user_model.objects.filter(username=username)
-        user_id = None
-        pi_eligibility = None
-        if len(portal_user) == 0:
-            logger.error('Couldn\'t find user {} in portal'.format(username))
-        else:
-            portal_user = portal_user[0]
-            user_id = portal_user.id
-            try:
-                pi_eligibility = portal_user.pi_eligibility()
-            except:
-                pi_eligibility = 'Ineligible'
-        reformated_user = {'username': keycloak_user['username'].encode('utf-8'),
-                           'firstName': keycloak_user['firstName'].encode('utf-8'),
-                           'lastName': keycloak_user['lastName'].encode('utf-8'),
-                           'source': 'Chameleon',
-                           'email': keycloak_user['email'].encode('utf-8'),
-                           'id': user_id,
-                           'piEligibility': pi_eligibility,
-                           'citizenship': None,
-                           'title': None,
-                           'phone': None,
-                           'country': None,
-                           'department': None,
-                           'institution': None,
-                           'role': role}
-        if 'attributes' in keycloak_user:
-            keycloak_user_attributes = keycloak_user['attributes']
-            if 'citizenship' in keycloak_user_attributes:
-                reformated_user['citizenship'] = keycloak_user_attributes['citizenship'][0].encode('utf-8')
-            if 'affiliationTitle' in keycloak_user_attributes:
-                reformated_user['title'] = keycloak_user_attributes['affiliationTitle'][0].encode('utf-8')
-            if 'phone' in keycloak_user_attributes:
-                reformated_user['phone'] = keycloak_user_attributes['phone'][0].encode('utf-8')
-            if 'country' in keycloak_user_attributes:
-                reformated_user['country'] = keycloak_user_attributes['country'][0].encode('utf-8')
-            if 'affiliationDepartment' in keycloak_user_attributes:
-                reformated_user['department'] = keycloak_user_attributes['affiliationDepartment'][0].encode('utf-8')
-            if 'affiliationInstitution' in keycloak_user_attributes:
-                reformated_user['institution'] = keycloak_user_attributes['affiliationInstitution'][0].encode('utf-8')
-        if to_pytas_model:
-            reformated_user = tas_user(initial=reformated_user)
-        return  reformated_user
+    def portal_user_to_tas_obj(self, user, role='Standard'):
+        try:
+            pi_eligibility = user.pi_eligibility()
+        except:
+            pi_eligibility = 'Ineligible'
+        tas_user = {'username': user.username.encode('utf-8'),
+                    'firstName': user.first_name.encode('utf-8'),
+                    'lastName': user.last_name.encode('utf-8'),
+                    'source': 'Chameleon',
+                    'email': user.last_name.encode('utf-8'),
+                    'id': user.id,
+                    'piEligibility': pi_eligibility,
+                    'citizenship': None,
+                    'title': None,
+                    'phone': None,
+                    'country': None,
+                    'department': None,
+                    'institution': None,
+                    'role': role}
+        return tas_user
 
 
     def get_attr(self, obj, key):

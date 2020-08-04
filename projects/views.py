@@ -87,7 +87,6 @@ def view_project(request, project_id):
             if form.is_valid():
                 # try to add user
                 try:
-                    pi_user = mapper.get_user(project.pi.username, to_pytas_model=True)
                     add_username = form.cleaned_data['username']
                     if mapper.add_user_to_project(project, add_username):
                         sync_project_memberships(request, add_username)
@@ -354,13 +353,13 @@ def create_project(request):
             project.pop('accept_project_terms', None)
 
             # pi
-            pi_user = mapper.get_user(request.user.username)
-            project['piId'] = pi_user['id']
+            pi_user_id = mapper.get_user_id(request)
+            project['piId'] = pi_user_id
 
             # allocations
             allocation = {
                 'resourceId': 39,
-                'requestorId': pi_user['id'],
+                'requestorId': pi_user_id,
                 'computeRequested': 20000,
             }
 
