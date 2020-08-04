@@ -196,6 +196,23 @@ def get_token(request, region=None):
     return request.session.get('os_token', {}).get(region)
 
 
+def has_valid_token(request, region=None):
+    token = get_token(request, region=region)
+    if not token:
+        LOG.info('Could not find token for user %s', request.user)
+        return False
+
+    ks_admin = admin_ks_client(region=region, request=request)
+
+    try:
+        ks_admin.tokens.validate(token, include_catalog=False)
+    except:
+        LOG.info('Token for user %s has likely expired', request.user)
+        return False
+    else:
+        return True
+
+
 def sync_projects(ks_admin, ks_user, tas_user_projects):
     """Sync a user's Keystone projects against their TAS active projects.
 

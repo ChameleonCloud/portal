@@ -24,7 +24,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from allocations.allocation_mapper import ProjectAllocationMapper
-from chameleon.keystone_auth import admin_ks_client, sync_projects, sync_user, get_user, regenerate_tokens, get_token
+from chameleon.keystone_auth import admin_ks_client, sync_projects, sync_user, get_user, regenerate_tokens, get_token, has_valid_token
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ def horizon_sso_login(request):
 
     ks_projects = sync_projects(ks_admin, ks_user, active_projects)
 
-    if not get_token(request):
+    if not has_valid_token(request):
         if len([k for k in ks_projects if k.enabled]) > 0:
             '''
             If we're here the user has an active project in TAS but is either
@@ -156,7 +156,7 @@ def manual_ks_login(request):
             regenerate_tokens(request, password)
             # Check if we were able to generate a token for the region the
             # user is trying to log in to
-            if get_token(request):
+            if has_valid_token(request):
                 logger.info((
                     'User {} retrieved unscoped token successfully via manual '
                     'form.'.format(username)))
