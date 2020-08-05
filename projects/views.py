@@ -200,7 +200,8 @@ def sync_project_memberships(request, username):
                 .format(username)))
             return
 
-        active_projects = mapper.get_user_projects(username, alloc_status=['Active'])
+        active_projects = mapper.get_user_projects(username,
+            alloc_status=['Active'], to_pytas_model=True)
 
         return sync_projects(ks_admin, ks_user, active_projects)
     except Exception as e:
