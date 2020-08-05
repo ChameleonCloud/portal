@@ -58,14 +58,14 @@ def horizon_sso_login(request):
     '''
     username = request.user.username
     mapper = ProjectAllocationMapper(request)
-    user_projects = mapper.get_user_projects(username)
+    user_projects = mapper.get_user_projects(username, to_pytas_model=True)
     active_projects = [
         p for p in user_projects
-        if any(a['status'] == 'Active' for a in p['allocations'])
+        if any(a.status == 'Active' for a in p.allocations)
     ]
     approved_projects = [
         p for p in user_projects
-        if any(a['status'] == 'Approved' for a in p['allocations'])
+        if any(a.status == 'Approved' for a in p.allocations)
     ]
     ks_admin = admin_ks_client(request=request)
     ks_user = get_user(ks_admin, username)
