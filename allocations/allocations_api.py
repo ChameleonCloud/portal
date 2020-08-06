@@ -27,9 +27,9 @@ class BalanceServiceClient:
         data = None
         try:
             resp = requests.get(url, headers=self._make_headers())
+            data = resp.json()
             logger.info(
                 'Successfully retrieved balance for project %s', project_code)
-            data = resp.json()
             logger.debug('Response from %s: %s', url, data)
         except Exception:
             logger.exception(
