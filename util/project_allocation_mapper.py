@@ -150,6 +150,7 @@ class ProjectAllocationMapper:
             if not user:
                 logger.error('Could not find user %s in TAS', username)
                 return None
+            user['role'] = role
 
         if to_pytas_model:
             return tas_user(initial=user)
