@@ -242,7 +242,9 @@ class ProjectAllocationMapper:
                 role = 'PI'
             else:
                 role = 'Standard'
-            users.append(self.get_user(username, to_pytas_model=True, role=role))
+            user = self.get_user(username, to_pytas_model=True, role=role)
+            if user:
+                users.append(user)
         if len(users) == 0:
             # project stored in tas
             users = tas_project.get_users()
