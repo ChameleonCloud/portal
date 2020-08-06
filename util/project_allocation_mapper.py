@@ -39,8 +39,8 @@ class ProjectAllocationMapper:
         send_mail(subject, strip_tags(body), settings.DEFAULT_FROM_EMAIL, [settings.PENDING_ALLOCATION_NOTIFICATION_EMAIL], html_message=body)
 
     def _send_allocation_decision_notification(self, charge_code, requestor_id, status, decision_summary, host):
-        user_model = get_user_model()
-        user = user_model.objects.get(pk=requestor_id)
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=requestor_id)
         subject = 'Decision of your allocation request for project {}'.format(charge_code)
         body = '''
                 <p>Dear {first} {last},</p>
@@ -140,8 +140,10 @@ class ProjectAllocationMapper:
 
     def get_user(self, username, to_pytas_model=False, role=None):
         if self.is_from_db:
-            portal_user = get_user_model().objects.get(username=username)
-            if not portal_user:
+            UserModel = get_user_model()
+            try:
+                portal_user = UserModel.objects.get(username=username)
+            except UserModel.DoesNotExist:
                 logger.error('Could not find user %s in DB', username)
                 return None
             user = self.portal_user_to_tas_obj(portal_user, role=role)
@@ -166,7 +168,7 @@ class ProjectAllocationMapper:
             try:
                 project = portal_proj.objects.get(pk=project.id)
                 nickname = project.nickname
-            except ProjectExtras.DoesNotExist:
+            except portal_proj.DoesNotExist:
                 project_extras = ProjectExtras.objects.filter(tas_project_id=project.id)
                 if project_extras:
                     nickname = project_extras[0].nickname
@@ -193,7 +195,7 @@ class ProjectAllocationMapper:
                 project = portal_proj.objects.get(pk=publication.project_id)
                 nickname = project.nickname
                 charge_code = project.charge_code
-            except ProjectExtras.DoesNotExist:
+            except portal_proj.DoesNotExist:
                 logger.warning('Couldn\'t find project with id {} in portal'.format(publication.project_id))
         elif publication.tas_project_id:
             pextras = ProjectExtras.objects.filter(tas_project_id=publication.tas_project_id)
