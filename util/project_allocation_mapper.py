@@ -26,6 +26,7 @@ class ProjectAllocationMapper:
     def __init__(self, request):
         self.is_from_db = self._wants_db(request)
         self.tas = TASClient()
+        self.current_user = request.user.username
 
     def _wants_db(self, request):
         return request.user.is_superuser
@@ -127,7 +128,10 @@ class ProjectAllocationMapper:
             return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
         else:
             if 'chargeCode' in proj:
-                tas_project = self.tas.edit_project(proj)
+                tas_project = self._tas_lookup_project(proj['chargeCode'])
+                if not tas_project:
+                    raise ValueError('Could not find TAS project %s', proj['chargeCode'])
+                tas_project = self.tas.edit_project(tas_project)
             else:
                 tas_project = self.tas.create_project(proj)
                 pextras = ProjectExtras.objects.create(tas_project_id=tas_project['id'], nickname=proj['nickname'],charge_code=proj['charge_Code'])
@@ -523,3 +527,10 @@ class ProjectAllocationMapper:
     def _tas_all_projects(self):
         return self._normalize_tas_projects(
             self.tas.projects_for_group('Chameleon'))
+
+    def _tas_lookup_project(self, charge_code):
+        tas_user_projects = self._tas_projects_for_user(self.current_user)
+        return next(iter([
+            p for p in tas_user_projects
+            if p['chargeCode'] == charge_code
+        ]), None)
