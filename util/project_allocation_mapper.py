@@ -99,6 +99,10 @@ class ProjectAllocationMapper:
             reformated_alloc.save()
             self._send_allocation_request_notification(project_charge_code, host)
         else:
+            tas_project = self._tas_lookup_project(project_charge_code)
+            if not tas_project:
+                raise ValueError('Could not find TAS project %s', project_charge_code)
+            alloc['projectId'] = tas_project['id']
             self.tas.create_allocation(alloc)
 
     def save_project(self, proj, host = None):
