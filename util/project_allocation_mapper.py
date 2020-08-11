@@ -29,7 +29,7 @@ class ProjectAllocationMapper:
         self.current_user = request.user.username
 
     def _wants_db(self, request):
-        return request.user.is_superuser
+        return request.session.get('is_federated', False)
 
     def _send_allocation_request_notification(self, charge_code, host):
         subject = 'Pending allocation request for project {}'.format(charge_code)
