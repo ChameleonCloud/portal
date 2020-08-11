@@ -476,6 +476,12 @@ PIPELINE = {
             ),
             'output_filename': 'styles/main.css',
         },
+        'embed': {
+            'source_filenames': (
+                'styles/embed.scss',
+            ),
+            'output_filename': 'styles/embed.css',
+        },
     },
     'JAVASCRIPT': {
         'all': {
