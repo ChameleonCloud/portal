@@ -128,10 +128,7 @@ def sync(db, tas_projects, portal_projects):
             portal_proj_id = portal_projects[proj_charge_code]['id']
             del portal_projects[proj_charge_code]['id']
             if tas_projects[proj_charge_code] != portal_projects[proj_charge_code]:
-                proj_values = []
-                for key in tas_projects[proj_charge_code].keys():
-                    proj_values.append(key)
-                    proj_values.append(tas_projects[proj_charge_code][key])
+                proj_values = [tas_projects[proj_charge_code][key] for key in sorted(tas_projects[proj_charge_code].keys())]
                 proj_values.append(portal_proj_id)
                 records_to_update.append(tuple(proj_values))
         else:
@@ -150,8 +147,11 @@ def sync(db, tas_projects, portal_projects):
     logger.info('inserted {} records to portal'.format(len(records_to_insert)))
     
     if columns:
+        values = []
+        for c in sorted(columns):
+            values.append('{}=%s'.format(c))
         update_query = '''UPDATE {table} SET {variables} WHERE id = %s'''.format(table = PORTAL_PROJECT_TABLE_NAME,
-                                                                                 variables = ','.join(['%s = %s'] * len(columns)))
+                                                                                 variables = ','.join(values))
         cursor.executemany(update_query, records_to_update)
         db.commit()    
     logger.info('updated {} records in portal'.format(len(records_to_update)))
