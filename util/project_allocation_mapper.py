@@ -329,8 +329,12 @@ class ProjectAllocationMapper:
 
     def add_user_to_project(self, tas_project, username):
         try:
+            project_charge_code = self.get_attr(tas_project, 'chargeCode')
             keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(self.get_attr(tas_project, 'chargeCode'), username, 'add')
+            keycloak_client.update_membership(project_charge_code, username, 'add')
+            tas_project = self._tas_lookup_project(project_charge_code)
+            if not tas_project:
+                raise ValueError('Could not find TAS project %s', project_charge_code)
             return tas_project.add_user(username)
         except:
             logger.exception('Failed to add user {} to project {}'.format(username, self.get_attr(tas_project, 'chargeCode')))
@@ -338,8 +342,12 @@ class ProjectAllocationMapper:
 
     def remove_user_from_project(self, tas_project, username):
         try:
+            project_charge_code = self.get_attr(tas_project, 'chargeCode')
             keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(self.get_attr(tas_project, 'chargeCode'), username, 'delete')
+            keycloak_client.update_membership(project_charge_code, username, 'delete')
+            tas_project = self._tas_lookup_project(project_charge_code)
+            if not tas_project:
+                raise ValueError('Could not find TAS project %s', project_charge_code)
             return tas_project.remove_user(username)
         except:
             logger.exception('Failed to remove user {} from project {}'.format(username, self.get_attr(tas_project, 'chargeCode')))
