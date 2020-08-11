@@ -327,31 +327,44 @@ class ProjectAllocationMapper:
                                        for u in fed_proj.get_users())
         return on_chameleon_project
 
-    def add_user_to_project(self, tas_project, username):
+    def _update_user_membership(self, tas_project, username, action=None):
+        if action not in ['add', 'delete']:
+            raise ValueError('Invalid membership action {}'.format(action))
+
+        charge_code = self.get_attr(tas_project, 'chargeCode')
+
         try:
-            project_charge_code = self.get_attr(tas_project, 'chargeCode')
             keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(project_charge_code, username, 'add')
-            tas_project = self._tas_lookup_project(project_charge_code)
-            if not tas_project:
-                raise ValueError('Could not find TAS project %s', project_charge_code)
-            return tas_project.add_user(username)
+            keycloak_client.update_membership(charge_code, username, action)
         except:
-            logger.exception('Failed to add user {} to project {}'.format(username, self.get_attr(tas_project, 'chargeCode')))
+            # TODO(jason): this should return an error in the future, for now
+            # we just log the exception b/c TAS is still the main storer of
+            # user state.
+            logger.exception((
+                'Keycloak: failed to {} user {} on project {}'
+                .format(action, username, charge_code)))
+
+        # TODO(jason): the TAS branch will no longer be necessary when
+        # we have all users on Keycloak and logins being sent through there.
+        try:
+            tas_project = self._tas_lookup_project(charge_code)
+            if not tas_project:
+                raise ValueError('Could not find TAS project %s', charge_code)
+            if action == 'add':
+                return tas_project.add_user(username)
+            elif action == 'delete':
+                return tas_project.remove_user(username)
+        except:
+            logger.exception((
+                'TAS: failed to {} user {} on project {}'
+                .format(action, username, charge_code)))
             return False
 
+    def add_user_to_project(self, tas_project, username):
+        return self._update_user_membership(tas_project, username, action='add')
+
     def remove_user_from_project(self, tas_project, username):
-        try:
-            project_charge_code = self.get_attr(tas_project, 'chargeCode')
-            keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(project_charge_code, username, 'delete')
-            tas_project = self._tas_lookup_project(project_charge_code)
-            if not tas_project:
-                raise ValueError('Could not find TAS project %s', project_charge_code)
-            return tas_project.remove_user(username)
-        except:
-            logger.exception('Failed to remove user {} from project {}'.format(username, self.get_attr(tas_project, 'chargeCode')))
-            return False
+        return self._update_user_membership(tas_project, username, action='delete')
 
     def _parse_field_recursive(self, parent, level = 0):
         result = [(parent['id'], '--- ' * level + parent['name'])]
