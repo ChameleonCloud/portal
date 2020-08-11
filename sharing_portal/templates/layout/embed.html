@@ -5,11 +5,17 @@
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <title>{% block title %}{% endblock %}</title>
-      <meta name="viewport" content="width=device-width">
+      <meta name="viewport" co ntent="width=device-width">
+      {% addtoblock "css" %}
+      <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600" rel="stylesheet" type="text/css">
+      {% stylesheet "embed" %}
+      {% endaddtoblock %}
       {% render_block "css" %}
   </head>
   <body>
-    {% block content %}{% endblock %}
+    <div class="embed-wrap">
+      {% block content %}{% endblock %}
+    </div>
     {% render_block "js" %}
   </body>
 </html>
