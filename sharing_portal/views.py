@@ -247,7 +247,7 @@ def edit_artifact(request, pk):
 
     if not (request.user.is_staff or artifact.created_by == request.user):
         messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
-        return HttpResponseRedirect(reverse('sharing_portal:detail'), args=[pk])
+        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
     if request.method == 'POST':
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
@@ -373,7 +373,39 @@ def artifact(request, pk, version_idx=None):
     return HttpResponse(template.render(context, request))
 
 
-@login_required
-@csp_update(FRAME_ANCESTORS='jupyter.chameleoncloud.org')
-def create_artifact(request):
+@csp_update(FRAME_ANCESTORS='localhost:8888')
+def create_artifact_embed(request):
     artifact_id = request.GET.get('artifact_id')
+
+
+@csp_update(FRAME_ANCESTORS='localhost:8888')
+def edit_artifact_embed(request, pk):
+    artifact = get_object_or_404(Artifact, pk=pk)
+
+    if 'new_version' in request.GET:
+        object_id = request.GET.get('artifact_id')
+
+    if not (request.user.is_staff or artifact.created_by == request.user):
+        # Return error page
+        messages.add_message(request, messages.ERROR,
+            'You do not have permission to edit this artifact.')
+        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+
+    if request.method == 'POST':
+        form = ArtifactForm(request.POST, request.FILES, instance=artifact)
+
+        if form.is_valid():
+            artifact.updated_by = request.user
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Success')
+    else:
+        form = ArtifactForm(instance=artifact)
+
+    template = loader.get_template('sharing_portal/edit_embed.html')
+    context = {
+        'artifact_form': form,
+        'artifact': artifact,
+        'pk': pk,
+    }
+
+    return HttpResponse(template.render(context, request))
