@@ -1,0 +1,15 @@
+{% load staticfiles sekizai_tags pipeline %}
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <title>{% block title %}{% endblock %}</title>
+      <meta name="viewport" content="width=device-width">
+      {% render_block "css" %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+    {% render_block "js" %}
+  </body>
+</html>
