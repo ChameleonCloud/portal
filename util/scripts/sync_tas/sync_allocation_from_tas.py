@@ -19,6 +19,7 @@ PORTAL_AUTH_USER_TABLE_NAME = 'auth_user'
 PORTAL_PROJECT_TABLE_NAME = 'projects_project'
 
 REQUIRED_FIELDS = ['project_id', 'status', 'date_requested', 'su_requested']
+ALLOCATION_ID_KEYS = ['project_id', 'requestor_id', 'justification', 'date_requested']
 
 def init_reformated_alloc():
     alloc = {'project_id': None}
@@ -39,6 +40,18 @@ def get_tas_user(tas, id):
     if id not in tas_users:
         tas_users[id] = tas.get_user(id=id)
     return tas_users[id]
+
+def alloc_equals(portal_alloc, tas_alloc):
+    return all(tas_alloc.get(key) == portal_alloc.get(key) for key in ALLOCATION_ID_KEYS)
+
+def alloc_delta(portal_alloc, tas_alloc):
+    """Compute the difference between a Portal and a TAS allocation.
+    """
+    ignored_keys = ALLOCATION_ID_KEYS + ['id']
+    return {
+        key: tas_alloc.get(key) for key in tas_alloc.keys()
+        if key not in ignored_keys and portal_alloc.get(key) != tas_alloc.get(key)
+    }
 
 def get_allocations_from_tas(tas, db):
     result = []
@@ -113,18 +126,18 @@ def sync(db, tas_allocs, portal_allocs):
     for tas_alloc in tas_allocs:
         if not columns:
             columns = tas_alloc.keys()
-        # tas projects_for_group gives inconsistent computeUsed
-        compare_tas_alloc = tas_alloc.copy()
-        del compare_tas_alloc['su_used']
+        compare_tas_alloc = {}
+        for key in tas_alloc.keys():
+            if key in ALLOCATION_ID_KEYS:
+                compare_tas_alloc[key] = tas_alloc[key]
         exist = False
         for portal_alloc in portal_allocs:
-            compare_portal_alloc = portal_alloc.copy()
-            del compare_portal_alloc['id']
-            del compare_portal_alloc['su_used']
-            if compare_tas_alloc == compare_portal_alloc:
+            if alloc_equals(portal_alloc, tas_alloc):
                 exist = True
-                if tas_alloc['su_used'] != portal_alloc['su_used'] and tas_alloc['su_used'] > 0.0:
-                    records_to_update.append((tas_alloc['su_used'], portal_alloc['id']))
+                delta = alloc_delta(portal_alloc, tas_alloc)
+                if delta:
+                    alloc_values = [tas_alloc[key] for key in sorted(tas_alloc.keys())] + [portal_alloc['id']]
+                    records_to_update.append(alloc_values)
                 break
         if not exist:
             alloc_values = [tas_alloc[key] for key in sorted(tas_alloc.keys())]
@@ -140,7 +153,11 @@ def sync(db, tas_allocs, portal_allocs):
     db.commit()
     logger.info('inserted {} records to portal'.format(len(records_to_insert)))
 
-    update_query = '''UPDATE {table} SET su_used = %s WHERE id = %s'''.format(table = PORTAL_ALLOCATION_TABLE_NAME)
+    values = []
+    for c in sorted(columns):
+        values.append('{}=%s'.format(c))
+    update_query = '''UPDATE {table} SET {variables} WHERE id = %s'''.format(table = PORTAL_ALLOCATION_TABLE_NAME,
+                                                                             variables = ','.join(values))
     cursor.executemany(update_query, records_to_update)
     db.commit()
     logger.info('updated {} records in portal'.format(len(records_to_update)))
