@@ -119,41 +119,6 @@ class Artifact(models.Model):
         return self.title
 
     @property
-    def jupyterhub_link(self):
-        """ Method to build a link to open the artifact files on JupyterHub
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-        string
-            Zenodo URL
-
-        Notes
-        -----
-        - Uses self.git_repo or self.doi
-        """
-        base_url = JUPYTERHUB_URL + '/hub/import'
-
-        if self.git_repo:
-            query = dict(
-                source='github',
-                src_path=self.git_repo,
-            )
-        elif self.doi:
-            query = dict(
-                source=('zenodo_sandbox' if ZENODO_SANDBOX else 'zenodo'),
-                src_path=self.doi,
-            )
-        else:
-            raise Exception("Non-launchable artifact has no JupyterHub link")
-
-        # Add query parameters before returning
-        return base_url + '?' + urlencode(query)
-
-    @property
     def versions(self):
         return self.artifact_versions.order_by('created_at')
 
@@ -206,20 +171,50 @@ class Artifact(models.Model):
 
 
 class ArtifactVersion(models.Model):
+    ZENODO = 'zenodo'
+    CHAMELEON = 'chameleon'
+    GIT = 'git'
+    DEPOSITION_REPO_CHOICES = (
+        (ZENODO, 'Zenodo'),
+        (CHAMELEON, 'Chameleon'),
+        (GIT, 'Git'),
+    )
+
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
-    created_at = models.DateTimeField()
-    doi = models.CharField(max_length=50, blank=True,
-                           validators=[validate_zenodo_doi])
+    created_at = models.DateTimeField(auto_now_add=True)
+    deposition_id = models.CharField(max_length=50)
+    deposition_repo = models.CharField(max_length=24, choices=DEPOSITION_REPO_CHOICES, default=CHAMELEON)
     launch_count = models.IntegerField(default=0)
 
+    def clean(self):
+        if self.deposition_repo == ZENODO:
+            validate_zenodo_doi(self.deposition_id)
+        elif self.deposition_repo == GIT:
+            validate_git_repo(self.deposition_id)
+
     @property
-    def zenodo_link(self):
-        if not self.doi:
+    def doi(self):
+        if self.deposition_repo == ZENODO:
+            return self.deposition_id
+        else:
             return None
 
-        if ZENODO_SANDBOX:
-            base_url = "https://sandbox.zenodo.org"
+    @property
+    def deposition_url(self):
+        if self.deposition_repo == ZENODO:
+            if ZENODO_SANDBOX:
+                base_url = 'https://sandbox.zenodo.org'
+            else:
+                base_url = 'https://zenodo.org'
+            return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
         else:
-            base_url = "https://zenodo.org"
+            return None
 
-        return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
+    @property
+    def launch_url(self):
+        base_url = JUPYTERHUB_URL + '/hub/import'
+        query = dict(
+            source=self.deposition_repo,
+            id=self.deposition_id,
+        )
+        return base_url + '?' + urlencode(query)
