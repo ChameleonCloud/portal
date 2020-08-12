@@ -47,10 +47,10 @@
         </section>
         {% endif %}
 
-        {% if version and version.zenodo_link %}
+        {% if version.doi %}
         <section>
           <h4>Digital Object Identifier (DOI)</h4>
-          <a href="{{ version.zenodo_link }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
+          <a href="{{ version.deposition_url }}" target="_blank">{{ version.doi }}</a> ({{ version.created_at }})
         </section>
         {% endif %}
 
@@ -64,7 +64,7 @@
   </div>
 
   <div class="layoutGrid__side">
-    <a class="artifactLaunchButton btn btn-primary" href="{{ artifact.jupyterhub_link }}" target="_blank">
+    <a class="artifactLaunchButton btn btn-primary" href="{{ version.launch_url }}" target="_blank">
       <i class="fa fa-external-link"></i> Launch with JupyterHub
     </a>
 
