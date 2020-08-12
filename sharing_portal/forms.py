@@ -16,24 +16,14 @@ class LabelForm(forms.Form):
         def label_from_instance(self, obj):
             return str(obj.id)
 
-    
-    # Text input search
     search = forms.CharField(required=False)
-
-    # Labels to allow user to choose from
     labels = LabelChoiceField(label='Labels', required=False,
                               queryset=Label.objects.all())
-
-    # Boolean and vs or search style
     is_or = forms.BooleanField(required=False)
 
 
 class ArtifactForm(forms.ModelForm):
     class Meta:
         model = Artifact
-        fields = ['title', 'short_description', 'description', 
-                  'image', 'labels', 'authors', 'doi']
-        widgets = {
-            'doi': forms.TextInput(attrs={'readonly': True}),
-        }
-        
+        fields = ['title', 'short_description', 'description',
+                  'labels', 'authors']

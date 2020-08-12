@@ -19,27 +19,6 @@ class ArtifactStringTest(TestCase):
         self.assertEqual(str(self.a), self.a.title)
 
 
-class ArtifactImageFilenameTest(TestCase):
-    def setUp(self):
-        now = datetime.now()
-        self.a = Artifact.objects.create(
-                    title='Test Case Artifact a',
-                    created_at=now,
-                    updated_at=now,
-        )
-
-    def test_normal_name(self):
-        self.a.image = 'directory/name.png'
-        self.assertEqual(self.a.image_filename, 'name.png')
-
-    def test_no_dir(self):
-        self.a.image = 'name.png'
-        self.assertEqual(self.a.image_filename, 'name.png')
-
-    def test_no_image(self):
-        self.assertEqual(self.a.image_filename, None)
-
-
 class ArtifactRelatedPapersTest(TestCase):
     def setUp(self):
         now = datetime.now()
@@ -160,13 +139,13 @@ class ArtifactZenodoLinkTest(TestCase):
     @mock.patch('sharing_portal.models.dev', True)
     def test_dev(self):
         self.assertEqual(
-            "https://sandbox.zenodo.org/record/22222", 
+            "https://sandbox.zenodo.org/record/22222",
             self.a.zenodo_link)
 
     @mock.patch('sharing_portal.models.dev', False)
     def test_non_dev(self):
         self.assertEqual(
-            "https://zenodo.org/record/22222", 
+            "https://zenodo.org/record/22222",
             self.a.zenodo_link)
 
 
