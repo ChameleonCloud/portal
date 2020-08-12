@@ -351,9 +351,9 @@ class ProjectAllocationMapper:
             if not tas_project:
                 raise ValueError('Could not find TAS project %s', charge_code)
             if action == 'add':
-                return tas_project.add_user(username)
+                return self.tas.add_project_user(tas_project['id'], username)
             elif action == 'delete':
-                return tas_project.remove_user(username)
+                return self.tas.del_project_user(tas_project['id'], username)
         except:
             logger.exception((
                 'TAS: failed to {} user {} on project {}'
