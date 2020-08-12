@@ -88,15 +88,12 @@ class Artifact(models.Model):
     authors = models.ManyToManyField(Author, related_name='artifacts')
     short_description = models.CharField(max_length=70, blank=True, null=True)
     description = models.TextField(max_length=5000)
-    image = models.ImageField(upload_to='sharing_portal/images/',
-                              blank=True, null=True)
     doi = models.CharField(max_length=50, blank=True, null=True,
                            validators=[validate_zenodo_doi])
     git_repo = models.CharField(max_length=200, blank=True,
                                 null=True, validators=[validate_git_repo])
-    launchable = models.BooleanField(default=False)
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='artifacts',
@@ -104,17 +101,14 @@ class Artifact(models.Model):
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
     labels = models.ManyToManyField(Label, related_name='artifacts',
                                     blank=True)
-    associated_artifacts = models.ManyToManyField("Artifact",
+    associated_artifacts = models.ManyToManyField('Artifact',
                                                   related_name='associated',
                                                   blank=True)
     launch_count = models.IntegerField(default=0)
 
-    """ Default Methods """
-    # Order by title
     class Meta:
         ordering = ('title', )
 
-    # Printing a record = printing its title
     def __str__(self):
         return self.title
 
@@ -124,8 +118,7 @@ class Artifact(models.Model):
 
     @property
     def related_items(self):
-        """
-        Find related artifacts based on labels
+        """Find related artifacts based on labels.
 
         FIXME: this method looks to use an expensive query to get all the related
         items from the database. It could likely be simplified into a more efficient
@@ -140,28 +133,6 @@ class Artifact(models.Model):
         ]
         related_list = list(set(related_list))
         return related_list[:6]
-
-    @property
-    def image_filename(self):
-        """ Method to extract the filename from an image path
-
-        Parameters
-        ----------
-        none
-
-        Returns
-        -------
-        string or None
-            image file name if it exists
-
-        Notes
-        -----
-        - Uses self.image
-        """
-        if self.image:
-            return self.image.url.split('/')[-1]
-        else:
-            return None
 
     @property
     def search_terms(self):
