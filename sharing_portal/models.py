@@ -104,7 +104,6 @@ class Artifact(models.Model):
     associated_artifacts = models.ManyToManyField('Artifact',
                                                   related_name='associated',
                                                   blank=True)
-    launch_count = models.IntegerField(default=0)
 
     class Meta:
         ordering = ('title', )
@@ -139,6 +138,10 @@ class Artifact(models.Model):
         terms = self.title.lower().split()
         terms.extend([l.label.lower() for l in self.labels.all()])
         return terms
+
+    @property
+    def launch_count(self):
+        return sum([v.launch_count for v in self.versions.all()])
 
 
 class ArtifactVersion(models.Model):
@@ -177,7 +180,7 @@ class ArtifactVersion(models.Model):
                 base_url = 'https://sandbox.zenodo.org'
             else:
                 base_url = 'https://zenodo.org'
-            return '{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi))
+            return str('{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi)))
         else:
             return None
 
@@ -188,4 +191,4 @@ class ArtifactVersion(models.Model):
             source=self.deposition_repo,
             id=self.deposition_id,
         )
-        return base_url + '?' + urlencode(query)
+        return str(base_url + '?' + urlencode(query))

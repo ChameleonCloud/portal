@@ -8,7 +8,8 @@ urlpatterns = [
     # url(r'^project/(?P<project_id>\d+)', views.index_project, name='index_project'),
 
     url(r'^(?P<pk>\d+)$', views.artifact, name='detail'),
-    url(r'^(?P<pk>\d+)/version/(?P<version_idx>\d+)', views.artifact, name='detail_version'),
+    url(r'^(?P<pk>\d+)/version/(?P<version_idx>\d+)$', views.artifact, name='detail_version'),
+    url(r'^(?P<pk>\d+)/version/(?P<version_idx>\d+)/launch$', views.launch, name='launch_version'),
     url(r'^(?P<pk>\d+)/edit$', views.edit_artifact, name='edit'),
     url(r'^edit$', views.edit_redirect, name='edit_redirect'),
 

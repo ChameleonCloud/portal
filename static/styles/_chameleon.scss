@@ -323,6 +323,11 @@ article {
   }
 }
 
+.required label:after, label.required:after {
+	content: '*';
+	color: red;
+}
+
 @media screen and (min-width:768px) and (max-width:991px) {
   .navbar-chameleon {
     .navbar-brand {
@@ -337,7 +342,7 @@ article {
     padding-bottom: 24px;
     padding-left: 7px;
     padding-right: 7px;
-}  
+}
 }
 
 @media screen and (min-width:992px) {

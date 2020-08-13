@@ -1,10 +1,12 @@
 {% extends "layout/embed.html" %}
+{% block content %}
 <script nonce="{{ request.csp_nonce }}">
 const targetWindow = window.parent;
 
 if (targetWindow) {
   targetWindow.postMessage(
-    {{ result_payload | tojson }},
+    {{ payload_json | safe }},
     "{{ jupyterhub_origin }}");
 }
 </script>
+{% endblock %}

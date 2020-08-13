@@ -34,7 +34,7 @@
           {{ artifact.description|markdown|safe }}
         </section>
 
-        {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
+        {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=version %}
 
         {% if artifact.authors.all %}
         <section class="artifactBody__authors">
@@ -64,7 +64,7 @@
   </div>
 
   <div class="layoutGrid__side">
-    <a class="artifactLaunchButton btn btn-primary" href="{{ version.launch_url }}" target="_blank">
+    <a class="artifactLaunchButton btn btn-primary" href="{% url 'sharing_portal:launch_version' artifact.pk version_idx %}" target="_blank">
       <i class="fa fa-external-link"></i> Launch with JupyterHub
     </a>
 

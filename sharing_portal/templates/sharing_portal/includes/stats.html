@@ -1,6 +1,8 @@
 <div class="artifactStats">
   <div class="artifactStats__meta">
-    {% if artifact.launch_count %}
+    {% if version and version.launch_count %}
+    <span><i class="fa fa-repeat"></i> {{ version.launch_count }}</span>
+    {% elif not version and artifact.launch_count %}
     <span><i class="fa fa-repeat"></i> {{ artifact.launch_count }}</span>
     {% endif %}
     <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
