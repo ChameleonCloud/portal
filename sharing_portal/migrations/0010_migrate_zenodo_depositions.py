@@ -11,7 +11,7 @@ def migrate_to_deposition_fields(apps, schema_editor):
     # Existing versions were all stored on Zenodo, so we just migrate
     # them all under the same repo. The ID of a Zenodo deposition is its DOI.
     for version in ArtifactVersion.objects.all():
-        version.deposition_repo = ArtifactVersion.ZENODO
+        version.deposition_repo = 'zenodo'
         version.deposition_id = version.doi
         version.save()
 

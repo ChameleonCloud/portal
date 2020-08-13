@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.forms import modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import loader
@@ -17,7 +18,7 @@ from django.views import generic
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
-from .forms import ArtifactForm, LabelForm
+from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, LabelForm
 from .models import Artifact, ArtifactVersion, Author, Label
 from .zenodo import ZenodoClient
 
@@ -382,28 +383,76 @@ def create_artifact_embed(request):
 def edit_artifact_embed(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
 
-    if 'new_version' in request.GET:
-        object_id = request.GET.get('artifact_id')
-
     if not (request.user.is_staff or artifact.created_by == request.user):
         # Return error page
         messages.add_message(request, messages.ERROR,
             'You do not have permission to edit this artifact.')
         return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
+    new_version = 'new_version' in request.GET
+
     if request.method == 'POST':
-        form = ArtifactForm(request.POST, request.FILES, instance=artifact)
+        form = ArtifactForm(request.POST, instance=artifact)
+        authors_formset = AuthorFormset(request.POST)
+        if new_version:
+            version_form = ArtifactVersionForm(request.POST)
+        else:
+            version_form = None
 
         if form.is_valid():
+            artifact = form.save(commit=False)
+            authors = None
+            version = None
+
+            if authors_formset.is_valid():
+                # Save the list of authors. First we save the new authors items
+                # (users may have added new authors). Then we get the list of
+                # all author models in the formset and replace the 'authors'
+                # m2m list of the artifact. There are probably less ugly ways
+                # of doing this, but this is a weird form.
+                authors_formset.save()
+                authors = [
+                    f.instance for f in authors_formset.forms
+                    if f.instance.pk is not None and
+                    (f.instance not in authors_formset.deleted_objects)
+                ]
+            else:
+                messages.add_message(request, messages.ERROR, authors_formset.errors)
+
+            if version_form:
+                if version_form.is_valid():
+                    version = version_form.save(commit=False)
+                    # Remove the version form to prevent re-submit
+                    version_form = None
+                else:
+                    messages.add_message(request, messages.ERROR, version_form.errors)
+
             artifact.updated_by = request.user
-            form.save()
-            messages.add_message(request, messages.SUCCESS, 'Success')
+            if authors:
+                artifact.authors.set(authors)
+            if version:
+                artifact.versions.add(version)
+            artifact.save()
+        else:
+            messages.add_message(request, messages.ERROR, form.errors)
     else:
         form = ArtifactForm(instance=artifact)
+        authors_formset = AuthorFormset(queryset=artifact.authors.all())
+        if new_version:
+            version_form = ArtifactVersionForm(
+                initial={
+                    'deposition_id': request.GET.get('artifact_id'),
+                    'deposition_repo': request.GET.get('artifact_repo')
+                })
+        else:
+            version_form = None
 
     template = loader.get_template('sharing_portal/edit_embed.html')
+
     context = {
         'artifact_form': form,
+        'authors_formset': authors_formset,
+        'version_form': version_form,
         'artifact': artifact,
         'pk': pk,
     }
