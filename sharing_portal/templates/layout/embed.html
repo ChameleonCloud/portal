@@ -8,14 +8,18 @@
       <meta name="viewport" co ntent="width=device-width">
       {% addtoblock "css" %}
       <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600" rel="stylesheet" type="text/css">
-      {% stylesheet "embed" %}
+        {% stylesheet "embed" %}
       {% endaddtoblock %}
       {% render_block "css" %}
   </head>
   <body>
     <div class="embed-wrap">
+      {% include "includes/messages.html" %}
       {% block content %}{% endblock %}
     </div>
+    {% addtoblock "js" %}
+      {% javascript "embed" %}
+    {% endaddtoblock %}
     {% render_block "js" %}
   </body>
 </html>

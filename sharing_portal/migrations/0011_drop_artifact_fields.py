@@ -35,4 +35,8 @@ class Migration(migrations.Migration):
             name='name',
             field=models.CharField(max_length=200),
         ),
+        migrations.RemoveField(
+            model_name='artifactversion',
+            name='doi',
+        ),
     ]

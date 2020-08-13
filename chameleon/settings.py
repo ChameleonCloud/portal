@@ -494,6 +494,13 @@ PIPELINE = {
             ),
             'output_filename': 'scripts/all.js',
         },
+        'embed': {
+            'source_filenames': (
+                'bower_components/jquery/dist/jquery.js',
+                'bower_components/bootstrap-sass-official/assets/javascripts/bootstrap.js',
+            ),
+            'output_filename': 'scripts/embed.js',
+        }
     },
 }
 

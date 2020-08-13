@@ -158,21 +158,21 @@ class ArtifactVersion(models.Model):
     launch_count = models.IntegerField(default=0)
 
     def clean(self):
-        if self.deposition_repo == ZENODO:
+        if self.deposition_repo == self.ZENODO:
             validate_zenodo_doi(self.deposition_id)
-        elif self.deposition_repo == GIT:
+        elif self.deposition_repo == self.GIT:
             validate_git_repo(self.deposition_id)
 
     @property
     def doi(self):
-        if self.deposition_repo == ZENODO:
+        if self.deposition_repo == self.ZENODO:
             return self.deposition_id
         else:
             return None
 
     @property
     def deposition_url(self):
-        if self.deposition_repo == ZENODO:
+        if self.deposition_repo == self.ZENODO:
             if ZENODO_SANDBOX:
                 base_url = 'https://sandbox.zenodo.org'
             else:

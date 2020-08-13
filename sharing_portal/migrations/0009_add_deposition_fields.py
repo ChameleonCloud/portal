@@ -12,10 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='artifactversion',
-            name='doi',
-        ),
         migrations.AddField(
             model_name='artifactversion',
             name='deposition_id',
