@@ -6,3 +6,8 @@
 .embed-wrap {
   margin: 3rem 5rem;
 }
+
+.required label:after, label.required:after {
+	content: '*';
+	color: red;
+}

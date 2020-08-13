@@ -8,10 +8,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import F, Q
 from django.forms import modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
 from django.utils.dateparse import parse_datetime
 from django.views import generic
@@ -342,29 +342,19 @@ def sync_artifact_versions_redirect(request):
 
 def artifact(request, pk, version_idx=None):
     artifact = get_object_or_404(Artifact, pk=pk)
+    version = _artifact_version(artifact, version_idx)
+    artifact_versions = list(artifact.versions)
+
+    if not version:
+        error_message = 'This artifact has no version {}'.format(version_idx)
+        messages.add_message(request, messages.ERROR, error_message)
 
     template = loader.get_template('sharing_portal/detail.html')
-
-    artifact_versions = list(artifact.versions)
-    if artifact_versions:
-        version = artifact_versions[-1]
-    else:
-        LOG.error('Artifact {} has no versions'.format(pk))
-        version = None
-
-    if version_idx:
-        try:
-            # Version path parameters are 1-indexed
-            version = artifact_versions[int(version_idx) - 1]
-        except IndexError, ValueError:
-            error_message = 'This artifact has no version {}'.format(version_idx)
-            messages.add_message(request, messages.ERROR, error_message)
-            pass
-
     context = {
         'artifact': artifact,
         'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
         'version': version,
+        'version_idx': version_idx,
         'related_artifacts': artifact.related_items,
         'editable': (
             request.user.is_staff or (
@@ -374,12 +364,35 @@ def artifact(request, pk, version_idx=None):
     return HttpResponse(template.render(context, request))
 
 
-@csp_update(FRAME_ANCESTORS='localhost:8888')
+def launch(request, pk, version_idx=None):
+    artifact = get_object_or_404(Artifact, pk=pk)
+    version = _artifact_version(artifact, version_idx)
+
+    if version:
+        version.launch_count = F('launch_count') + 1
+        version.save(update_fields=['launch_count'])
+        return redirect(version.launch_url)
+    else:
+        return Http404()
+
+
+def _artifact_version(artifact, version_idx=None):
+    artifact_versions = list(artifact.versions)
+    # A default of 0 means get the most recent artifact version.
+    # Version indices are 1-indexed.
+    version_idx = version_idx or 0
+    try:
+        return artifact_versions[int(version_idx) - 1]
+    except IndexError, ValueError:
+        return None
+
+
+@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
 def embed_create(request):
     return _embed_form(request, form_title='Create artifact')
 
 
-@csp_update(FRAME_ANCESTORS='localhost:8888')
+@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
 def embed_edit(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
 
@@ -392,7 +405,7 @@ def embed_edit(request, pk):
     return _embed_form(request, form_title='Edit artifact', artifact=artifact)
 
 
-@csp_update(FRAME_ANCESTORS='localhost:8888')
+@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
 def embed_cancel(request):
     return _embed_callback(request, dict(status='cancel'))
 
@@ -421,9 +434,12 @@ def _embed_form(request, form_title=None, artifact=None):
         form = ArtifactForm(instance=artifact)
         if artifact:
             queryset = artifact.authors.all()
+            initial = None
         else:
-            queryset = None
-        authors_formset = AuthorFormset(queryset=queryset)
+            queryset = Author.objects.none()
+            # Default to logged-in user
+            initial = [{'name': request.user.get_full_name()}]
+        authors_formset = AuthorFormset(queryset=queryset, initial=initial)
         if new_version:
             version_form = ArtifactVersionForm(
                 initial={
@@ -446,8 +462,8 @@ def _embed_form(request, form_title=None, artifact=None):
 def _embed_callback(request, payload):
     template = loader.get_template('sharing_portal/embed_callback.html')
     context = {
-        'result_payload': payload,
-        'jupyterhub_origin': '',
+        'payload_json': json.dumps(payload),
+        'jupyterhub_origin': JUPYTERHUB_URL,
     }
 
     return HttpResponse(template.render(context, request))

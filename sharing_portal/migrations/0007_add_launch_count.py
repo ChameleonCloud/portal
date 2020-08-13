@@ -13,11 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='artifact',
-            name='launch_count',
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
             model_name='artifactversion',
             name='launch_count',
             field=models.IntegerField(default=0),
