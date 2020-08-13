@@ -375,12 +375,12 @@ def artifact(request, pk, version_idx=None):
 
 
 @csp_update(FRAME_ANCESTORS='localhost:8888')
-def create_artifact_embed(request):
-    artifact_id = request.GET.get('artifact_id')
+def embed_create(request):
+    return _embed_form(request, form_title='Create artifact')
 
 
 @csp_update(FRAME_ANCESTORS='localhost:8888')
-def edit_artifact_embed(request, pk):
+def embed_edit(request, pk):
     artifact = get_object_or_404(Artifact, pk=pk)
 
     if not (request.user.is_staff or artifact.created_by == request.user):
@@ -389,21 +389,81 @@ def edit_artifact_embed(request, pk):
             'You do not have permission to edit this artifact.')
         return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
 
-    new_version = 'new_version' in request.GET
+    return _embed_form(request, form_title='Edit artifact', artifact=artifact)
+
+
+@csp_update(FRAME_ANCESTORS='localhost:8888')
+def embed_cancel(request):
+    return _embed_callback(request, dict(status='cancel'))
+
+
+def _embed_form(request, form_title=None, artifact=None):
+    new_version = (not artifact) or ('new_version' in request.GET)
 
     if request.method == 'POST':
         form = ArtifactForm(request.POST, instance=artifact)
         authors_formset = AuthorFormset(request.POST)
-        if new_version:
+        if (not artifact) or add_version:
             version_form = ArtifactVersionForm(request.POST)
         else:
             version_form = None
 
-        if form.is_valid():
-            artifact = form.save(commit=False)
-            authors = None
-            version = None
+        artifact, errors = _handle_artifact_forms(request, form,
+            authors_formset=authors_formset, version_form=version_form)
 
+        if not errors:
+            return _embed_callback(dict(status='success', id=artifact.pk))
+        else:
+            # Fail through and return to form with errors displayed
+            for err in errors:
+                messages.add_message(request, messages.ERROR, err)
+    else:
+        form = ArtifactForm(instance=artifact)
+        if artifact:
+            queryset = artifact.authors.all()
+        else:
+            queryset = None
+        authors_formset = AuthorFormset(queryset=queryset)
+        if new_version:
+            version_form = ArtifactVersionForm(
+                initial={
+                    'deposition_id': request.GET.get('artifact_id'),
+                    'deposition_repo': request.GET.get('artifact_repo')
+                })
+        else:
+            version_form = None
+
+    template = loader.get_template('sharing_portal/embed.html')
+    context = {
+        'form_title': form_title,
+        'artifact_form': form,
+        'authors_formset': authors_formset,
+        'version_form': version_form,
+    }
+
+    return HttpResponse(template.render(context, request))
+
+def _embed_callback(request, payload):
+    template = loader.get_template('sharing_portal/embed_callback.html')
+    context = {
+        'result_payload': payload,
+        'jupyterhub_origin': '',
+    }
+
+    return HttpResponse(template.render(context, request))
+
+
+def _handle_artifact_forms(request, artifact_form, authors_formset=None,
+                           version_form=None):
+    artifact = None
+    errors = []
+
+    if artifact_form.is_valid():
+        artifact = artifact_form.save(commit=False)
+        authors = None
+        version = None
+
+        if authors_formset:
             if authors_formset.is_valid():
                 # Save the list of authors. First we save the new authors items
                 # (users may have added new authors). Then we get the list of
@@ -417,44 +477,24 @@ def edit_artifact_embed(request, pk):
                     (f.instance not in authors_formset.deleted_objects)
                 ]
             else:
-                messages.add_message(request, messages.ERROR, authors_formset.errors)
+                errors.extend(authors_formset.errors)
 
-            if version_form:
-                if version_form.is_valid():
-                    version = version_form.save(commit=False)
-                    # Remove the version form to prevent re-submit
-                    version_form = None
-                else:
-                    messages.add_message(request, messages.ERROR, version_form.errors)
+        if version_form:
+            if version_form.is_valid():
+                version = version_form.save(commit=False)
+                # Remove the version form to prevent re-submit
+                version_form = None
+            else:
+                errors.extend(version_form.errors)
 
+        if not errors:
             artifact.updated_by = request.user
             if authors:
                 artifact.authors.set(authors)
             if version:
                 artifact.versions.add(version)
             artifact.save()
-        else:
-            messages.add_message(request, messages.ERROR, form.errors)
     else:
-        form = ArtifactForm(instance=artifact)
-        authors_formset = AuthorFormset(queryset=artifact.authors.all())
-        if new_version:
-            version_form = ArtifactVersionForm(
-                initial={
-                    'deposition_id': request.GET.get('artifact_id'),
-                    'deposition_repo': request.GET.get('artifact_repo')
-                })
-        else:
-            version_form = None
+        errors.extend(artifact_form.errors)
 
-    template = loader.get_template('sharing_portal/edit_embed.html')
-
-    context = {
-        'artifact_form': form,
-        'authors_formset': authors_formset,
-        'version_form': version_form,
-        'artifact': artifact,
-        'pk': pk,
-    }
-
-    return HttpResponse(template.render(context, request))
+    return artifact, errors

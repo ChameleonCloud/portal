@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/edit/sync_versions$', views.sync_artifact_versions, name='sync_versions'),
     url(r'^edit/sync_versions$', views.sync_artifact_versions_redirect, name='sync_versions_redirect'),
 
-    url(r'^create/embed$', views.create_artifact_embed, name='create_embed'),
-    url(r'^(?P<pk>\d+)/edit/embed$', views.edit_artifact_embed, name='edit_embed'),
+    url(r'^create/embed$', views.embed_create, name='embed_create'),
+    url(r'^(?P<pk>\d+)/edit/embed$', views.embed_edit, name='embed_edit'),
+    url(r'^edit/cancel/embed$', views.embed_cancel, name='embed_cancel'),
 ]

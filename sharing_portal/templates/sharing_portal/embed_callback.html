@@ -1,0 +1,10 @@
+{% extends "layout/embed.html" %}
+<script nonce="{{ request.csp_nonce }}">
+const targetWindow = window.parent;
+
+if (targetWindow) {
+  targetWindow.postMessage(
+    {{ result_payload | tojson }},
+    "{{ jupyterhub_origin }}");
+}
+</script>
