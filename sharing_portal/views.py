@@ -349,12 +349,18 @@ def artifact(request, pk, version_idx=None):
         error_message = 'This artifact has no version {}'.format(version_idx)
         messages.add_message(request, messages.ERROR, error_message)
 
+    if version_idx:
+        launch_url = reverse('sharing_portal:launch_version',
+            args=[artifact.pk, version_idx])
+    else:
+        launch_url = reverse('sharing_portal:launch', args=[artifact.pk])
+
     template = loader.get_template('sharing_portal/detail.html')
     context = {
         'artifact': artifact,
         'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
         'version': version,
-        'version_idx': version_idx,
+        'launch_url': launch_url,
         'related_artifacts': artifact.related_items,
         'editable': (
             request.user.is_staff or (

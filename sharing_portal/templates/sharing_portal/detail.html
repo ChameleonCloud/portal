@@ -64,7 +64,7 @@
   </div>
 
   <div class="layoutGrid__side">
-    <a class="artifactLaunchButton btn btn-primary" href="{% url 'sharing_portal:launch_version' artifact.pk version_idx %}" target="_blank">
+    <a class="artifactLaunchButton btn btn-primary" href="{{ launch_url }}" target="_blank">
       <i class="fa fa-external-link"></i> Launch with JupyterHub
     </a>
 
