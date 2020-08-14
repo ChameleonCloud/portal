@@ -253,6 +253,7 @@ def edit_artifact(request, pk):
     if request.method == 'POST':
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
 
+        artifact, errors = _handle_artifact_forms(request, form)
         if form.is_valid():
             artifact.updated_by = request.user
             form.save()
