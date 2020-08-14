@@ -7,7 +7,7 @@ import django
 sys.path.append('/project') 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chameleon.settings")
 django.setup()
-logger = logging.getLogger('util.scripts.sync_pi_status')
+logger = logging.getLogger('util.scripts.sync_tas.sync_pi_status')
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -27,6 +27,8 @@ def main(argv=None):
         'Simulate import, no changes applied', default=False)
     parser.add_argument('--users', type=str, help=\
         'Synchronize a specific user or set of users using a csv list of usernames', default=None)
+    parser.add_argument('--seteligible', type=bool, help=\
+        'Used with --users flag to set all provided users as PI Eligible', default=False)
     args = parser.parse_args(argv[1:])
 
     started = datetime.now()
@@ -37,8 +39,13 @@ def main(argv=None):
         users = usermodel.objects.filter(username__in=usernames)
     else:
         users = usermodel.objects.all()
-    tas = TASClient()
-    updated = import_pi_status(args.dryrun, users, tas)
+
+    if args.users and args.seteligible:
+        updated = set_all_pi_status(args.dryrun, users, "Eligible")
+    else:
+        updated = import_pi_status(args.dryrun, users, TASClient())
+
+    
     finished = datetime.now()
     if(args.dryrun):
         logger.info('Dry run, no updates made')
@@ -54,24 +61,43 @@ def main(argv=None):
     delta = finished - started
     logger.info('elapsed seconds = {0}'.format(delta.total_seconds()))
 
-def import_pi_status(dryrun=False, users=[], tas=None):
+def import_pi_status(dryrun=False, users=[], tas=None, set_eligible=False):
+    updated = []
+    if set_eligible:
+        for user in users:
+            save_pi_status(user, "Eligible", dryrun)
+            updated.append((user.username, ["Eligible"]))
+    else:
+        for index, user in enumerate(users):
+            percent_complete = int(index/float(users.count()) * 100)
+            logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
+                index, users.count(), percent_complete, user.username))
+            if user.pi_eligibility().lower() == 'ineligible': 
+                ''' user is ineligible in portal, let's see if TAS says different '''
+                tas_pi_status = get_tas_pi_status(tas, user.username)
+                if tas_pi_status.lower() != user.pi_eligibility().lower():
+                    ''' TAS PI Status doesn't match portal, let's update '''
+                    save_pi_status(user, tas_pi_status, dryrun)
+                    updated.append((user.username, tas_pi_status))
+                else:
+                    logger.debug('{0} already synced: {1}'.format(user.username, tas_pi_status))
+            else:
+                logger.debug('Skipping {0} portal pi eligibility is: {1}'.format(\
+                    user.username, user.pi_eligibility()))
+    return updated
+
+def set_all_pi_status(dryrun=False, users=[], status=None):
     updated = []
     for index, user in enumerate(users):
-        percent_complete = int(index/float(users.count()) * 100)
-        logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
-            index, users.count(), percent_complete, user.username))
-        if user.pi_eligibility().lower() == 'ineligible': 
-            ''' user is ineligible in portal, let's see if TAS says different '''
-            tas_pi_status = get_tas_pi_status(tas, user.username)
-            if tas_pi_status.lower() != user.pi_eligibility().lower():
-                ''' TAS PI Status doesn't match portal, let's update '''
-                save_pi_status(user, tas_pi_status, dryrun)
-                updated.append((user.username, tas_pi_status))
-            else:
-                logger.debug('{0} already synced: {1}'.format(user.username, tas_pi_status))
-        else:
-            logger.debug('Skipping {0} portal pi eligibility is: {1}'.format(\
-                user.username, user.pi_eligibility()))
+        if user.pi_eligibility().lower() == status.lower():
+            percent_complete = int(index/float(users.count()) * 100)
+            logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
+                index, users.count(), percent_complete, user.username))
+            logger.info('pi_eligibility {0} already set for user {1}'.format(\
+                status, user.username))
+            continue
+        save_pi_status(user, "Eligible", dryrun)
+        updated.append((user.username, "Eligible"))
     return updated
 
 def get_tas_pi_status(tas, username):
