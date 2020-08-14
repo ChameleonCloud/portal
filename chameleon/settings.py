@@ -378,13 +378,9 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'util.project_allocation_mapper': {
+        'util': {
             'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'util.keycloak_client': {
-            'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
     },
 }
