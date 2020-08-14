@@ -45,7 +45,6 @@ def main(argv=None):
     else:
         updated = import_pi_status(args.dryrun, users, TASClient())
 
-    
     finished = datetime.now()
     if(args.dryrun):
         logger.info('Dry run, no updates made')
@@ -89,10 +88,10 @@ def import_pi_status(dryrun=False, users=[], tas=None, set_eligible=False):
 def set_all_pi_status(dryrun=False, users=[], status=None):
     updated = []
     for index, user in enumerate(users):
+        percent_complete = int(index/float(users.count()) * 100)
+        logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
+            index, users.count(), percent_complete, user.username))
         if user.pi_eligibility().lower() == status.lower():
-            percent_complete = int(index/float(users.count()) * 100)
-            logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
-                index, users.count(), percent_complete, user.username))
             logger.info('pi_eligibility {0} already set for user {1}'.format(\
                 status, user.username))
             continue
