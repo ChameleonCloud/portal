@@ -60,29 +60,25 @@ def main(argv=None):
     delta = finished - started
     logger.info('elapsed seconds = {0}'.format(delta.total_seconds()))
 
-def import_pi_status(dryrun=False, users=[], tas=None, set_eligible=False):
+def import_pi_status(dryrun=False, users=[], tas=None):
     updated = []
-    if set_eligible:
-        for user in users:
-            save_pi_status(user, "Eligible", dryrun)
-            updated.append((user.username, ["Eligible"]))
-    else:
-        for index, user in enumerate(users):
-            percent_complete = int(index/float(users.count()) * 100)
-            logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
-                index, users.count(), percent_complete, user.username))
-            if user.pi_eligibility().lower() == 'ineligible': 
-                ''' user is ineligible in portal, let's see if TAS says different '''
-                tas_pi_status = get_tas_pi_status(tas, user.username)
-                if tas_pi_status.lower() != user.pi_eligibility().lower():
-                    ''' TAS PI Status doesn't match portal, let's update '''
-                    save_pi_status(user, tas_pi_status, dryrun)
-                    updated.append((user.username, tas_pi_status))
-                else:
-                    logger.debug('{0} already synced: {1}'.format(user.username, tas_pi_status))
+
+    for index, user in enumerate(users):
+        percent_complete = int(index/float(users.count()) * 100)
+        logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
+            index, users.count(), percent_complete, user.username))
+        if user.pi_eligibility().lower() == 'ineligible': 
+            ''' user is ineligible in portal, let's see if TAS says different '''
+            tas_pi_status = get_tas_pi_status(tas, user.username)
+            if tas_pi_status.lower() != user.pi_eligibility().lower():
+                ''' TAS PI Status doesn't match portal, let's update '''
+                save_pi_status(user, tas_pi_status, dryrun)
+                updated.append((user.username, tas_pi_status))
             else:
-                logger.debug('Skipping {0} portal pi eligibility is: {1}'.format(\
-                    user.username, user.pi_eligibility()))
+                logger.debug('{0} already synced: {1}'.format(user.username, tas_pi_status))
+        else:
+            logger.debug('Skipping {0} portal pi eligibility is: {1}'.format(\
+                user.username, user.pi_eligibility()))
     return updated
 
 def set_all_pi_status(dryrun=False, users=[], status=None):
