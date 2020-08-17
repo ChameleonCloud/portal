@@ -23,8 +23,10 @@ def pi_eligibility(self):
 class PIEligibilityAdmin(admin.ModelAdmin):
     readonly_fields = ['requestor','request_date','reviewer','review_date']
     fields = ('requestor','request_date','status','review_date','reviewer','review_summary')
-    ordering = ['-request_date','-review_date']
+    ordering = ['-status','-request_date','-review_date']
 
     list_display = ('requestor','status','request_date')
+    list_filter = ('status',)
+    search_fields = ['requestor__username']
 
 admin.site.register(PIEligibility, PIEligibilityAdmin)

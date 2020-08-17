@@ -2,6 +2,10 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+import logging
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 class PIEligibility(models.Model):
     STATUS = [
@@ -28,6 +32,7 @@ class PIEligibility(models.Model):
     def save(self, *args, **kwargs):
         try:
             # Go ahead and save if we're just updating an existing PIE request
+            self.review_date = timezone.now() # set the review date since we're updating an existing request
             pie_request = PIEligibility.objects.get(id=self.id)
             return super(PIEligibility, self).save(*args, **kwargs)
         except ObjectDoesNotExist:
@@ -36,7 +41,9 @@ class PIEligibility(models.Model):
             # Don't save PIE Request if one exists with status requested or eligible
             pie_requests = PIEligibility.objects.filter(Q(requestor=self.requestor),Q(status='REQUESTED') | Q(status='ELIGIBLE'))
             if pie_requests:
+                logger.info('PI Eligibility request for user {0}, exists, not creating a new one.'.format(self.requestor.username))
                 return None
         except:
             pass
+        #if we're here, this is a new request and no open requests exist, go ahead and create one
         return super(PIEligibility, self).save(*args, **kwargs)
