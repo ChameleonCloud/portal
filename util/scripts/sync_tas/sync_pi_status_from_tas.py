@@ -95,7 +95,7 @@ def set_all_pi_status(dryrun=False, users=[], status=None):
             logger.info('pi_eligibility {0} already set for user {1}'.format(\
                 status, user.username))
             continue
-        save_pi_status(user, "Eligible", dryrun)
+        save_pi_status(user, status, dryrun)
         updated.append((user.username, "Eligible"))
     return updated
 
@@ -122,5 +122,4 @@ def save_pi_status(user, status, dryrun=False):
 
 if __name__=="__main__":
     main()
-
 
