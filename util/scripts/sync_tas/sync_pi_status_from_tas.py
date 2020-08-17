@@ -96,7 +96,7 @@ def set_all_pi_status(dryrun=False, users=[], status=None):
                 status, user.username))
             continue
         save_pi_status(user, status, dryrun)
-        updated.append((user.username, "Eligible"))
+        updated.append((user.username, status))
     return updated
 
 def get_tas_pi_status(tas, username):
@@ -122,4 +122,3 @@ def save_pi_status(user, status, dryrun=False):
 
 if __name__=="__main__":
     main()
-
