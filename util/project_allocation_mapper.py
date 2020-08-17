@@ -527,7 +527,7 @@ class ProjectAllocationMapper:
 
     def _normalize_tas_projects(self, tas_projects):
         normalized = {}
-        for p in tas_projects:
+        for p in tas_projects or []:
             if p['source'] != 'Chameleon':
                 # Shouldn't be possible for source to be anything other than
                 # "Chameleon", but double-check.
