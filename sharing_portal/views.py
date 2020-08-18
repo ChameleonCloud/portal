@@ -432,7 +432,7 @@ def _embed_form(request, form_title=None, artifact=None):
             authors_formset=authors_formset, version_form=version_form)
 
         if not errors:
-            return _embed_callback(dict(status='success', id=artifact.pk))
+            return _embed_callback(request, dict(status='success', id=artifact.pk))
         else:
             # Fail through and return to form with errors displayed
             for err in errors:
@@ -511,12 +511,15 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None,
                 errors.extend(version_form.errors)
 
         if not errors:
+            if not artifact.pk:
+                artifact.created_by = request.user
             artifact.updated_by = request.user
+            artifact.save()
             if authors:
                 artifact.authors.set(authors)
             if version:
-                artifact.versions.add(version)
-            artifact.save()
+                version.artifact = artifact
+                version.save()
     else:
         errors.extend(artifact_form.errors)
 
