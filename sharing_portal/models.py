@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from projects.models import Project
 from sharing_portal.utils import get_zenodo_file_link
 from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from sharing_portal.zenodo import ZenodoClient
@@ -110,6 +111,7 @@ class Artifact(models.Model):
     associated_artifacts = models.ManyToManyField('Artifact',
                                                   related_name='associated',
                                                   blank=True)
+    shared_to_projects = models.ManyToManyField(Project, through='ShareTarget')
 
     class Meta:
         ordering = ('title', )
@@ -198,3 +200,8 @@ class ArtifactVersion(models.Model):
             id=self.deposition_id,
         )
         return str(base_url + '?' + urlencode(query))
+
+
+class ShareTarget(models.Model):
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)

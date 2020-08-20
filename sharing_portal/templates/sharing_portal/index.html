@@ -56,7 +56,7 @@
         <span class="sidebarNav__subnavHeading"><i class="fa fa-group"></i> Shared</span>
         <ul class="sidebarNav__subnav {% if not projects %}empty{% endif %}">
         {% for project in projects %}
-          <li class="sidebarNav__item"><a href="">{{ project.chargeCode }}</a></li>
+          <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_project' and request.resolver_match.kwargs.charge_code == project.chargeCode %}active{% endif %}"><a href="{% url 'sharing_portal:index_project' project.chargeCode %}">{{ project.chargeCode }}</a></li>
         {% empty %}
           <li class="sidebarNav__item">No shared collections</li>
         {% endfor %}

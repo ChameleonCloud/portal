@@ -9,11 +9,12 @@ from django.db.models import F, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
+from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .conf import JUPYTERHUB_URL
-from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset
-from .models import Artifact, ArtifactVersion, Author
+from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm
+from .models import Artifact, ArtifactVersion, Author, ShareTarget
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -52,8 +53,15 @@ def check_view_permission(func):
             return True
         if request.user.is_staff:
             return True
-        # TODO: check if artifact part of project collection for project
-        # that user is a member of.
+
+        project_shares = ShareTarget.objects.filter(artifact=artifact, project_isnull=False)
+        # Avoid the membership lookup if there are no sharing rules in place
+        if project_shares:
+            mapper = ProjectAllocationMapper(request)
+            user_projects = [p['chargeCode'] for p in mapper.get_user_projects(request.user.username)]
+            if any(p.charge_code in user_projects for p in project_shares):
+                return True
+
         return False
 
     def wrapper(request, *args, **kwargs):
@@ -67,7 +75,6 @@ def check_view_permission(func):
     return wrapper
 
 
-
 class ArtifactFilter:
     @staticmethod
     def MINE(request):
@@ -78,13 +85,18 @@ class ArtifactFilter:
 
     PUBLIC = Q(doi__isnull=False)
 
+    @staticmethod
+    def PROJECT(projects):
+        return Q(shared_to_projects__in=projects)
 
-def _render_list(request, artifacts):
-    if request.user.is_authenticated():
-        mapper = ProjectAllocationMapper(request)
-        user_projects = mapper.get_user_projects(request.user.username)
-    else:
-        user_projects = []
+
+def _render_list(request, artifacts, user_projects=None):
+    if not user_projects:
+        if request.user.is_authenticated():
+            mapper = ProjectAllocationMapper(request)
+            user_projects = mapper.get_user_projects(request.user.username)
+        else:
+            user_projects = []
 
     template = loader.get_template('sharing_portal/index.html')
     context = {
@@ -97,10 +109,19 @@ def _render_list(request, artifacts):
 
 
 def index_all(request, collection=None):
-    artifacts = Artifact.objects.filter(
-        ArtifactFilter.MINE(request) | ArtifactFilter.PUBLIC)
+    user_projects = None
+    if request.user.is_authenticated():
+        mapper = ProjectAllocationMapper(request)
+        user_projects = mapper.get_user_projects(request.user.username)
+        charge_codes = [p['chargeCode'] for p in user_projects]
+        projects = Project.objects.filter(charge_code__in=charge_codes)
+        f = (ArtifactFilter.MINE(request) | ArtifactFilter.PROJECT(projects) | ArtifactFilter.PUBLIC)
+    else:
+        f = ArtifactFilter.PUBLIC
 
-    return _render_list(request, artifacts)
+    artifacts = Artifact.objects.filter(f)
+    # Pass user_projects to list to avoid a second fetch of this data
+    return _render_list(request, artifacts, user_projects=user_projects)
 
 
 @login_required
@@ -111,6 +132,12 @@ def index_mine(request):
 
 def index_public(request):
     artifacts = Artifact.objects.filter(ArtifactFilter.PUBLIC)
+    return _render_list(request, artifacts)
+
+
+def index_project(request, charge_code):
+    projects = Project.objects.filter(charge_code=charge_code)
+    artifacts = Artifact.objects.filter(ArtifactFilter.PROJECT(projects))
     return _render_list(request, artifacts)
 
 
@@ -132,6 +159,50 @@ def edit_artifact(request, artifact):
     template = loader.get_template('sharing_portal/edit.html')
     context = {
         'artifact_form': form,
+        'artifact': artifact,
+    }
+
+    return HttpResponse(template.render(context, request))
+
+
+@check_edit_permission
+@login_required
+def share_artifact(request, artifact):
+    if request.method == 'POST':
+        form = ShareArtifactForm(request.POST)
+
+        if form.is_valid():
+            existing_targets = ShareTarget.objects.filter(artifact=artifact)
+            existing_project_shares = [st.project for st in existing_targets if st.project]
+            incoming_project_shares = form.cleaned_data['projects']
+            for p in existing_project_shares:
+                if p not in incoming_project_shares:
+                    (ShareTarget.objects.filter(artifact=artifact, project=p)
+                        .delete())
+                    LOG.info('Un-shared artifact %s to project %s', artifact.pk, p.pk)
+            for p in incoming_project_shares:
+                if p not in existing_project_shares:
+                    ShareTarget.objects.create(artifact=artifact, project=p)
+                    LOG.info('Shared artifact %s to project %s', artifact.pk, p.pk)
+            messages.add_message(request, messages.SUCCESS,
+                'Successfully updated sharing settings')
+            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
+    else:
+        form = ShareArtifactForm(initial={
+            'projects': artifact.shared_to_projects.all(),
+        })
+
+    share_url = request.build_absolute_uri(
+        reverse('sharing_portal:detail', kwargs={'pk': artifact.pk}))
+    if artifact.sharing_key:
+        share_url += '?{key_name}={key_value}'.format(
+            key_name=SHARING_KEY_PARAM,
+            key_value=artifact.sharing_key)
+
+    template = loader.get_template('sharing_portal/share.html')
+    context = {
+        'share_form': form,
+        'share_url': share_url,
         'artifact': artifact,
     }
 
@@ -184,7 +255,6 @@ def launch(request, artifact, version_idx=None):
     version.launch_count = F('launch_count') + 1
     version.save(update_fields=['launch_count'])
     return redirect(version.launch_url)
-
 
 
 def _artifact_version(artifact, version_idx=None):
