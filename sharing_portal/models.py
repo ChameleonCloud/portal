@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 
 try:
     from urllib.parse import urlencode
@@ -40,6 +41,10 @@ def validate_zenodo_doi(doi):
     """
     if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
         raise ValidationError("Please enter a valid Zenodo DOI")
+
+
+def gen_sharing_key():
+    return uuid.uuid4().hex
 
 
 class Author(models.Model):
@@ -99,6 +104,7 @@ class Artifact(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='artifacts',
                                    null=True)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+    sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
     labels = models.ManyToManyField(Label, related_name='artifacts',
                                     blank=True)
     associated_artifacts = models.ManyToManyField('Artifact',
