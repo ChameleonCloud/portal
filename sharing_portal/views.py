@@ -1,7 +1,4 @@
-from datetime import datetime
-import logging
 import json
-from urllib.request import urlopen, Request
 
 from csp.decorators import csp_update
 from django.conf import settings
@@ -9,20 +6,67 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.db.models import F, Q
-from django.forms import modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
-from django.utils.dateparse import parse_datetime
-from django.views import generic
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .conf import JUPYTERHUB_URL, ZENODO_SANDBOX
-from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, LabelForm
-from .models import Artifact, ArtifactVersion, Author, Label
-from .zenodo import ZenodoClient
+from .conf import JUPYTERHUB_URL
+from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset
+from .models import Artifact, ArtifactVersion, Author
 
+import logging
 LOG = logging.getLogger(__name__)
+
+SHARING_KEY_PARAM = 's'
+
+
+def check_edit_permission(func):
+    def can_edit(request, artifact):
+        if artifact.created_by == request.user:
+            return True
+        if request.user.is_staff:
+            return True
+        return False
+
+    def wrapper(request, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        artifact = get_object_or_404(Artifact, pk=pk)
+        if not can_edit(request, artifact):
+            messages.add_message(request, messages.ERROR,
+                'You do not have permission to edit this artifact.')
+            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+        # Replace pk with Artifact instance to avoid another lookup
+        kwargs.setdefault('artifact', artifact)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+
+def check_view_permission(func):
+    def can_view(request, artifact):
+        if artifact.doi:
+            return True
+        if artifact.created_by == request.user:
+            return True
+        if artifact.sharing_key and request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key:
+            return True
+        if request.user.is_staff:
+            return True
+        # TODO: check if artifact part of project collection for project
+        # that user is a member of.
+        return False
+
+    def wrapper(request, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        artifact = get_object_or_404(Artifact, pk=pk)
+        if not can_view(request, artifact):
+            raise Http404('The requested artifact does not exist, or you do not have permission to view.')
+        # Replace pk with Artifact instance to avoid another lookup
+        kwargs.setdefault('artifact', artifact)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+
 
 class ArtifactFilter:
     @staticmethod
@@ -70,14 +114,9 @@ def index_public(request):
     return _render_list(request, artifacts)
 
 
+@check_edit_permission
 @login_required
-def edit_artifact(request, pk):
-    artifact = get_object_or_404(Artifact, pk=pk)
-
-    if not (request.user.is_staff or artifact.created_by == request.user):
-        messages.add_message(request, messages.ERROR, 'You do not have permission to edit this artifact.')
-        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
-
+def edit_artifact(request, artifact):
     if request.method == 'POST':
         form = ArtifactForm(request.POST, request.FILES, instance=artifact)
 
@@ -86,7 +125,7 @@ def edit_artifact(request, pk):
             artifact.updated_by = request.user
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Success')
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
     else:
         form = ArtifactForm(instance=artifact)
 
@@ -94,14 +133,13 @@ def edit_artifact(request, pk):
     context = {
         'artifact_form': form,
         'artifact': artifact,
-        'pk': pk,
     }
 
     return HttpResponse(template.render(context, request))
 
 
-def artifact(request, pk, version_idx=None):
-    artifact = get_object_or_404(Artifact, pk=pk)
+@check_view_permission
+def artifact(request, artifact, version_idx=None):
     version = _artifact_version(artifact, version_idx)
     artifact_versions = list(artifact.versions)
 
@@ -114,6 +152,10 @@ def artifact(request, pk, version_idx=None):
             args=[artifact.pk, version_idx])
     else:
         launch_url = reverse('sharing_portal:launch', args=[artifact.pk])
+
+    # Ensure launch URLs are authenticated if a private link is being used.
+    if SHARING_KEY_PARAM in request.GET:
+        launch_url += '?{}={}'.format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
 
     template = loader.get_template('sharing_portal/detail.html')
     context = {
@@ -130,16 +172,19 @@ def artifact(request, pk, version_idx=None):
     return HttpResponse(template.render(context, request))
 
 
-def launch(request, pk, version_idx=None):
-    artifact = get_object_or_404(Artifact, pk=pk)
+@check_view_permission
+def launch(request, artifact, version_idx=None):
     version = _artifact_version(artifact, version_idx)
 
-    if version:
-        version.launch_count = F('launch_count') + 1
-        version.save(update_fields=['launch_count'])
-        return redirect(version.launch_url)
-    else:
-        return Http404()
+    if not version:
+        raise Http404((
+            'There is no version {} for this artifact.'
+            .format(version_idx or '')))
+
+    version.launch_count = F('launch_count') + 1
+    version.save(update_fields=['launch_count'])
+    return redirect(version.launch_url)
+
 
 
 def _artifact_version(artifact, version_idx=None):
@@ -158,16 +203,9 @@ def embed_create(request):
     return _embed_form(request, form_title='Create artifact')
 
 
+@check_edit_permission
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
-def embed_edit(request, pk):
-    artifact = get_object_or_404(Artifact, pk=pk)
-
-    if not (request.user.is_staff or artifact.created_by == request.user):
-        # Return error page
-        messages.add_message(request, messages.ERROR,
-            'You do not have permission to edit this artifact.')
-        return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
-
+def embed_edit(request, artifact):
     return _embed_form(request, form_title='Edit artifact', artifact=artifact)
 
 
