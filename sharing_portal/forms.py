@@ -1,5 +1,7 @@
 from django import forms
 
+from projects.models import Project
+
 from .models import Artifact, ArtifactVersion, Author, Label
 
 
@@ -64,3 +66,12 @@ class AuthorForm(forms.ModelForm):
 AuthorFormset = forms.modelformset_factory(
     AuthorForm.Meta.model, form=AuthorForm, can_delete=True,
     extra=2, min_num=1, max_num=3)
+
+
+class ShareArtifactForm(forms.Form):
+    class ProjectChoiceField(forms.ModelMultipleChoiceField):
+        def label_from_instance(self, project):
+            return project.nickname or project.charge_code
+
+    projects = ProjectChoiceField(label='Shared with projects', required=False,
+        queryset=Project.objects.all())
