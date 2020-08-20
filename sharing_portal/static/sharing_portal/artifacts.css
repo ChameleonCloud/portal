@@ -191,6 +191,11 @@
     padding: 2rem;
     width: 100%;
 }
+.artifactLaunchButton_details {
+    margin-top: 1rem;
+    font-size: 12px;
+    opacity: 0.7;
+}
 
 .artifactVersions {
     margin-top: 2em;
