@@ -23,6 +23,9 @@
         <h2 class="artifactTitle">{{ artifact.title }}</h2>
         <div class="artifactActions">
           {% if editable %}
+          <a class="btn btn-default" href="{% url 'sharing_portal:share' artifact.pk %}">
+            <i class="fa fa-share"></i> Share
+          </a>
           <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
             <i class="fa fa-edit"></i> Edit
           </a>
