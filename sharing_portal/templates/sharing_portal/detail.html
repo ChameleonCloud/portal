@@ -64,12 +64,15 @@
   </div>
 
   <div class="layoutGrid__side">
-    <a class="artifactLaunchButton btn btn-primary" href="{{ launch_url }}" target="_blank">
-      <i class="fa fa-external-link"></i> Launch with JupyterHub
-    </a>
+    <a class="artifactLaunchButton btn btn-primary" href="{{ launch_url }}" target="_blank">Launch on Chameleon</a>
+    <p class="artifactLaunchButton_details">
+      Launching an artifact will open it within Chameleon&rsquo;s shared Jupyter
+      experiment environment, which is accessible to all Chameleon users with
+      an active allocation.
+    </p>
 
     <div class="artifactVersions">
-      <h4>Versions</h4>
+      <h4><i class="fa fa-files-o"></i> Versions</h4>
       <ol class="sidebarNav">
         {% for i, v in all_versions %}
         <li class="sidebarNav__item {% if version == v %}active{% endif %}">
