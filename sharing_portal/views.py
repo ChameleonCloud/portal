@@ -47,20 +47,26 @@ def check_view_permission(func):
     def can_view(request, artifact):
         if artifact.doi:
             return True
-        if artifact.created_by == request.user:
-            return True
-        if artifact.sharing_key and request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key:
-            return True
-        if request.user.is_staff:
+        if artifact.sharing_key and (
+            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key):
             return True
 
-        project_shares = ShareTarget.objects.filter(artifact=artifact, project__isnull=False)
-        # Avoid the membership lookup if there are no sharing rules in place
-        if project_shares:
-            mapper = ProjectAllocationMapper(request)
-            user_projects = [p['chargeCode'] for p in mapper.get_user_projects(request.user.username)]
-            if any(p.charge_code in user_projects for p in project_shares):
+        if request.user.is_authenticated():
+            if request.user.is_staff:
                 return True
+            if artifact.created_by == request.user:
+                return True
+            project_shares = ShareTarget.objects.filter(
+                artifact=artifact, project__isnull=False)
+            # Avoid the membership lookup if there are no sharing rules in place
+            if project_shares:
+                mapper = ProjectAllocationMapper(request)
+                user_projects = [
+                    p['chargeCode']
+                    for p in mapper.get_user_projects(request.user.username)
+                ]
+                if any(p.charge_code in user_projects for p in project_shares):
+                    return True
 
         return False
 
