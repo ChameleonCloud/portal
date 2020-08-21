@@ -213,14 +213,14 @@ class ProjectAllocationMapper:
 
         return nickname, charge_code
 
-    def get_user_projects(self, username, alloc_status=[], to_pytas_model=False):
+    def get_user_projects(self, username, alloc_status=[], fetch_balance=True, to_pytas_model=False):
         user_projects = {}
         # get user projects from portal
         keycloak_client = KeycloakClient()
         for charge_code in keycloak_client.get_user_projects_by_username(username):
             project = portal_proj.objects.filter(charge_code=charge_code)
             if len(project) > 0:
-                project = self.portal_to_tas_proj_obj(project[0])
+                project = self.portal_to_tas_proj_obj(project[0], fetch_balance=fetch_balance)
                 user_projects[charge_code] = project
 
         for tas_project in self._tas_projects_for_user(username):

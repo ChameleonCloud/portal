@@ -63,7 +63,8 @@ def check_view_permission(func):
                 mapper = ProjectAllocationMapper(request)
                 user_projects = [
                     p['chargeCode']
-                    for p in mapper.get_user_projects(request.user.username)
+                    for p in mapper.get_user_projects(
+                        request.user.username, fetch_balance=False)
                 ]
                 if any(p.charge_code in user_projects for p in project_shares):
                     return True
@@ -100,7 +101,8 @@ def _render_list(request, artifacts, user_projects=None):
     if not user_projects:
         if request.user.is_authenticated():
             mapper = ProjectAllocationMapper(request)
-            user_projects = mapper.get_user_projects(request.user.username)
+            user_projects = mapper.get_user_projects(
+                request.user.username, fetch_balance=False)
         else:
             user_projects = []
 
@@ -118,7 +120,8 @@ def index_all(request, collection=None):
     user_projects = None
     if request.user.is_authenticated():
         mapper = ProjectAllocationMapper(request)
-        user_projects = mapper.get_user_projects(request.user.username)
+        user_projects = mapper.get_user_projects(
+            request.user.username, fetch_balance=False)
         charge_codes = [p['chargeCode'] for p in user_projects]
         projects = Project.objects.filter(charge_code__in=charge_codes)
         f = (ArtifactFilter.MINE(request) | ArtifactFilter.PROJECT(projects) | ArtifactFilter.PUBLIC)
