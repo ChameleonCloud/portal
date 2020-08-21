@@ -269,12 +269,14 @@ def _artifact_version(artifact, version_idx=None):
 
 
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@login_required
 def embed_create(request):
     return _embed_form(request, form_title='Create artifact')
 
 
 @check_edit_permission
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@login_required
 def embed_edit(request, artifact):
     return _embed_form(request, form_title='Edit artifact', artifact=artifact)
 

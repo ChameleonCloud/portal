@@ -1,3 +1,4 @@
+from csp.decorators import csp_update
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
