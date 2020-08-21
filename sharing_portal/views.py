@@ -54,7 +54,7 @@ def check_view_permission(func):
         if request.user.is_staff:
             return True
 
-        project_shares = ShareTarget.objects.filter(artifact=artifact, project_isnull=False)
+        project_shares = ShareTarget.objects.filter(artifact=artifact, project__isnull=False)
         # Avoid the membership lookup if there are no sharing rules in place
         if project_shares:
             mapper = ProjectAllocationMapper(request)
