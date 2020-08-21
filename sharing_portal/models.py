@@ -12,7 +12,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from projects.models import Project
-from sharing_portal.utils import get_zenodo_file_link
 from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from sharing_portal.zenodo import ZenodoClient
 
