@@ -486,6 +486,14 @@ PIPELINE = {
             ),
             'output_filename': 'styles/embed.css',
         },
+        'appliance_catalog': {
+            'source_filenames': (
+                'appliance_catalog/css/appliance_catalog.css',
+                'appliance_catalog/vendor/angular/angular-csp.css',
+                'appliance_catalog/vendor/angular-bootstrap-toggle-switch/style/bootstrap3/angular-toggle-switch-bootstrap-3.css',
+            ),
+            'output_filename': 'styles/appliance_catalog.css',
+        }
     },
     'JAVASCRIPT': {
         'all': {

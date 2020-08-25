@@ -5,8 +5,7 @@
 {% block styles %}
     {{ block.super }}
     <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
-    <!-- <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/main.css' %}">-->
-    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/css/appliance_catalog.css' %}">
+    {% stylesheet "appliance_catalog" %}
 {% endblock %}
 
 {% block content %}
