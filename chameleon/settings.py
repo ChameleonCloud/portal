@@ -718,7 +718,7 @@ CELERY_BEAT_SCHEDULE = {
 
 # Content-Security-Policy
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
-CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]
+CSP_SCRIPT_SRC = ["'self'", 'https://www.google-analytics.com/', "'unsafe-inline'"]
 CSP_FONT_SRC = ["'self'", 'https://fonts.gstatic.com/']
 CSP_STYLE_SRC = ["'self'", 'https://fonts.googleapis.com/', "'unsafe-inline'"]
 CSP_INCLUDE_NONCE_IN=['script-src']
