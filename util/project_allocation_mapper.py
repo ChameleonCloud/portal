@@ -138,7 +138,9 @@ class ProjectAllocationMapper:
                 tas_project = self.tas.edit_project(tas_project)
             else:
                 tas_project = self.tas.create_project(proj)
-                pextras = ProjectExtras.objects.create(tas_project_id=tas_project['id'], nickname=proj['nickname'],charge_code=proj['charge_Code'])
+                pextras = ProjectExtras.objects.create(
+                    tas_project_id=tas_project['id'], nickname=proj['nickname'],
+                    charge_code=proj['chargeCode'])
                 pextras.save()
             return tas_project
 
