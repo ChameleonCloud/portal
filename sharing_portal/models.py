@@ -195,8 +195,9 @@ class ArtifactVersion(models.Model):
     def launch_url(self):
         base_url = JUPYTERHUB_URL + '/hub/import'
         query = dict(
-            repo=self.deposition_repo,
-            id=self.deposition_id,
+            deposition_repo=self.deposition_repo,
+            deposition_id=self.deposition_id,
+            id=self.id,
         )
         return str(base_url + '?' + urlencode(query))
 
