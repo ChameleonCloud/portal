@@ -287,7 +287,11 @@ def embed_create(request):
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
 @login_required
 def embed_edit(request, artifact):
-    return _embed_form(request, form_title='Edit artifact', artifact=artifact)
+    if 'new_version' in request.GET:
+        form_title = 'Create new version of artifact'
+    else:
+        form_title = 'Edit artifact'
+    return _embed_form(request, form_title=form_title, artifact=artifact)
 
 
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
@@ -301,7 +305,7 @@ def _embed_form(request, form_title=None, artifact=None):
     if request.method == 'POST':
         form = ArtifactForm(request.POST, instance=artifact)
         authors_formset = AuthorFormset(request.POST)
-        if (not artifact) or add_version:
+        if (not artifact) or new_version:
             version_form = ArtifactVersionForm(request.POST)
         else:
             version_form = None
@@ -328,8 +332,8 @@ def _embed_form(request, form_title=None, artifact=None):
         if new_version:
             version_form = ArtifactVersionForm(
                 initial={
-                    'deposition_id': request.GET.get('artifact_id'),
-                    'deposition_repo': request.GET.get('artifact_repo')
+                    'deposition_id': request.GET.get('deposition_id'),
+                    'deposition_repo': request.GET.get('deposition_repo')
                 })
         else:
             version_form = None
@@ -346,8 +350,12 @@ def _embed_form(request, form_title=None, artifact=None):
 
 def _embed_callback(request, payload):
     template = loader.get_template('sharing_portal/embed_callback.html')
+    payload_wrapper = dict(
+        message='save_result',
+        body=payload,
+    )
     context = {
-        'payload_json': json.dumps(payload),
+        'payload_json': json.dumps(payload_wrapper),
         'jupyterhub_origin': JUPYTERHUB_URL,
     }
 
