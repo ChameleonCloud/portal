@@ -191,13 +191,13 @@ class ArtifactVersion(models.Model):
         else:
             return None
 
-    @property
-    def launch_url(self):
+    def launch_url(self, can_edit=False):
         base_url = JUPYTERHUB_URL + '/hub/import'
         query = dict(
             deposition_repo=self.deposition_repo,
             deposition_id=self.deposition_id,
             id=self.id,
+            ownership=('own' if can_edit else 'fork')
         )
         return str(base_url + '?' + urlencode(query))
 
