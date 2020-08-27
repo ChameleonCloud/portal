@@ -22,14 +22,15 @@ LOG = logging.getLogger(__name__)
 SHARING_KEY_PARAM = 's'
 
 
-def check_edit_permission(func):
-    def can_edit(request, artifact):
-        if artifact.created_by == request.user:
-            return True
-        if request.user.is_staff:
-            return True
-        return False
+def can_edit(request, artifact):
+    if artifact.created_by == request.user:
+        return True
+    if request.user.is_staff:
+        return True
+    return False
 
+
+def check_edit_permission(func):
     def wrapper(request, *args, **kwargs):
         pk = kwargs.pop('pk')
         artifact = get_object_or_404(Artifact, pk=pk)
@@ -263,7 +264,7 @@ def launch(request, artifact, version_idx=None):
 
     version.launch_count = F('launch_count') + 1
     version.save(update_fields=['launch_count'])
-    return redirect(version.launch_url)
+    return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
 
 
 def _artifact_version(artifact, version_idx=None):
