@@ -91,7 +91,23 @@ class ProjectAllocationMapper:
         else:
             for tas_project in self._tas_all_projects():
                 projects[tas_project['chargeCode']] = tas_project
-        return projects.values()
+        return sorted(projects.values(), reverse=True, key=self.sort_by_allocation_request_date)
+
+    '''
+    Sort by most recent allocation request
+    '''
+    def sort_by_allocation_request_date(self, proj):
+        def request_date(alloc):
+            try:
+                return datetime.strptime(alloc['dateRequested'], '%Y-%m-%dT%H:%M:%SZ')
+            except:
+                # if we don't have allocations or allocation requests, go to the bottom of the list
+                return datetime.min
+
+        latest_req_date = max([ request_date(a)
+            for a in (proj.get('allocations') if proj.get('allocations') else [{"dateRequested":""}])
+        ])
+        return latest_req_date
 
     def save_allocation(self, alloc, project_charge_code, host):
         if self.is_from_db:
