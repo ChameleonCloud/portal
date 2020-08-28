@@ -240,24 +240,26 @@ def new_login_experience(request):
     cookie_name = settings.NEW_LOGIN_EXPERIENCE_COOKIE
     is_opted_in = request.COOKIES.get(cookie_name) == '1'
     response = HttpResponseRedirect('/')
+
+    hostname = request.get_host().split(':')[0]
+    # Grab root level domain (TLD + zone)
+    root_domain = '.{}'.format('.'.join(hostname.split('.')[-2:]))
+
     if (not is_opted_in) and opt_in:
         if request.user.is_authenticated():
             # Also log out the user
             response = HttpResponseRedirect(reverse('logout'))
         one_year_s = 60 * 60 * 24 * 365
-        hostname = request.get_host().split(':')[0]
-        # Grab root level domain (TLD + zone)
-        root_domain = '.{}'.format('.'.join(hostname.split('.')[-2:]))
         # Set cookie on all subdomains off of the root. This allows
         # any application deployed on the root domain to read this value.
-        response.set_cookie(cookie_name, '1', max_age=one_year_s,
-            domain=root_domain, httponly=True)
+        response.set_cookie(cookie_name, '1', domain=root_domain,
+            max_age=one_year_s, httponly=True)
         messages.info(request, 'You have been opted in to the new login experience.')
     elif is_opted_in and (not opt_in):
         if request.user.is_authenticated():
             # Also log out the user
             response = HttpResponseRedirect(reverse('logout'))
-        response.delete_cookie(cookie_name)
+        response.delete_cookie(cookie_name, domain=root_domain)
         messages.info(request, 'You have been opted out of the new login experience.')
     else:
         messages.info(request, 'Your opt-in status has not changed.')
