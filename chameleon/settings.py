@@ -722,3 +722,7 @@ CSP_SCRIPT_SRC = ["'self'", 'https://www.google-analytics.com/', "'unsafe-inline
 CSP_FONT_SRC = ["'self'", 'https://fonts.gstatic.com/']
 CSP_STYLE_SRC = ["'self'", 'https://fonts.googleapis.com/', "'unsafe-inline'"]
 CSP_INCLUDE_NONCE_IN=['script-src']
+
+
+# Federation new login experience
+NEW_LOGIN_EXPERIENCE_COOKIE = 'new_login_experience'

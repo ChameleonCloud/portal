@@ -2,6 +2,7 @@ from functools import wraps
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from user_news.models import Outage
 from djangoRT import rtUtil
@@ -232,6 +233,36 @@ def dashboard(request):
         }
 
     return render(request, 'dashboard.html', context)
+
+
+def new_login_experience(request):
+    opt_in = 'opt-out' not in request.GET
+    cookie_name = settings.NEW_LOGIN_EXPERIENCE_COOKIE
+    is_opted_in = request.COOKIES.get(cookie_name) == '1'
+    response = HttpResponseRedirect('/')
+    if (not is_opted_in) and opt_in:
+        if request.user.is_authenticated():
+            # Also log out the user
+            response = HttpResponseRedirect(reverse('logout'))
+        one_year_s = 60 * 60 * 24 * 365
+        hostname = request.get_host().split(':')[0]
+        # Grab root level domain (TLD + zone)
+        root_domain = '.{}'.format('.'.join(hostname.split('.')[-2:]))
+        # Set cookie on all subdomains off of the root. This allows
+        # any application deployed on the root domain to read this value.
+        response.set_cookie(cookie_name, '1', max_age=one_year_s,
+            domain=root_domain, httponly=True)
+        messages.info(request, 'You have been opted in to the new login experience.')
+    elif is_opted_in and (not opt_in):
+        if request.user.is_authenticated():
+            # Also log out the user
+            response = HttpResponseRedirect(reverse('logout'))
+        response.delete_cookie(cookie_name)
+        messages.info(request, 'You have been opted out of the new login experience.')
+    else:
+        messages.info(request, 'Your opt-in status has not changed.')
+    return response
+
 
 def _check_geni_federation_status(request):
     """

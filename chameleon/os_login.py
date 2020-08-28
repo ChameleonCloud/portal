@@ -1,9 +1,12 @@
 from csp.decorators import csp_update
+from django.conf import settings
+from django.contrib.auth.views import login
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from django.conf import settings
-from django.contrib.auth.views import login
+
 from chameleon.keystone_auth import regenerate_tokens
 from sharing_portal.conf import JUPYTERHUB_URL
 
@@ -15,6 +18,9 @@ LOG = logging.getLogger(__name__)
 @csrf_protect
 @never_cache
 def custom_login(request, current_app=None, extra_context=None):
+    if request.COOKIES.get(settings.NEW_LOGIN_EXPERIENCE_COOKIE) == '1':
+        return HttpResponseRedirect(reverse('oidc_authentication_init'))
+
     login_return = login(request, current_app=None, extra_context=None)
     password = request.POST.get('password', False)
     if request.user.is_authenticated() and password:

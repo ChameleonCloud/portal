@@ -38,6 +38,8 @@ urlpatterns = [
     url(r'^sso/horizon/unavailable', chameleon_views.horizon_sso_unavailable, name='horizon_sso_unavailable'),
     url(r'^logout/', logout, {'next_page': '/'}, name='logout'),
 
+    url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
+
     url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
     url(r'^user/', include('tas.urls', namespace='tas')),
     url(r'^email-confirmation/', tas_views.email_confirmation),
