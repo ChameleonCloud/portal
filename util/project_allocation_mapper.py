@@ -70,15 +70,19 @@ class ProjectAllocationMapper:
         for alloc in portal_alloc.objects.filter(project_id=project.id):
             if fetch_balance and alloc.status == 'active':
                 balance = balance_service.call(project.charge_code)
-                if not balance:
+                if balance:
+                    su_used = 0.0
+                    # Total used = used in the past + "pending" (encumbered)
+                    # for leases that have not yet terminated but are accruing
+                    # charges.
+                    for key in ['used', 'encumbered']:
+                        if key not in balance:
+                            logger.error('Can not find {} balance for project {}'.format(key, project.charge_code))
+                            continue
+                        su_used += float(balance.get(key))
+                    alloc.su_used = su_used
+                else:
                     logger.warning('Couldn\'t get balance. Balance service might be down.')
-                    su_used = None
-                else:
-                    su_used = balance.get('used')
-                if su_used is not None:
-                    alloc.su_used = float(su_used)
-                else:
-                    logger.error('Can not find used balance for project {}'.format(project.charge_code))
             reformated_allocations.append(self.portal_to_tas_alloc_obj(alloc))
         return reformated_allocations
 
