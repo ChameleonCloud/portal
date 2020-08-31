@@ -29,11 +29,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'NOT_A_SECRET')
 DEBUG = os.environ.get('DJANGO_ENV', 'DEBUG') == 'DEBUG'
 
 ## OpenStack Properties
-OPENSTACK_KEYSTONE_URL = os.environ.get('OPENSTACK_KEYSTONE_URL', 'https://chi.tacc.chameleoncloud.org:5000/v3')
-OPENSTACK_ALT_KEYSTONE_URL = os.environ.get('OPENSTACK_ALT_KEYSTONE_URL', 'https://chi.uc.chameleoncloud.org:5000/v3')
-OS_PROJECT_DOMAIN_NAME = os.environ.get('OS_PROJECT_DOMAIN_NAME', 'Default')
 OPENSTACK_UC_REGION = os.environ.get('OPENSTACK_UC_REGION', 'CHI@UC')
 OPENSTACK_TACC_REGION = os.environ.get('OPENSTACK_TACC_REGION', 'CHI@TACC')
+OPENSTACK_KVM_REGION = os.environ.get('OPENSTACK_KVM_REGION', 'KVM@TACC')
 OPENSTACK_SERVICE_USERNAME = os.environ.get('OPENSTACK_SERVICE_USERNAME', '')
 OPENSTACK_SERVICE_PASSWORD = os.environ.get('OPENSTACK_SERVICE_PASSWORD', '')
 OPENSTACK_SERVICE_PROJECT_ID = os.environ.get('OPENSTACK_SERVICE_PROJECT_ID', '')
@@ -41,6 +39,7 @@ OPENSTACK_SERVICE_PROJECT_NAME = os.environ.get('OPENSTACK_SERVICE_PROJECT_NAME'
 OPENSTACK_AUTH_REGIONS = {
     OPENSTACK_UC_REGION:   os.environ.get('OPENSTACK_UC_AUTH_URL', 'https://chi.uc.chameleoncloud.org:5000/v3'),
     OPENSTACK_TACC_REGION: os.environ.get('OPENSTACK_TACC_AUTH_URL', 'https://chi.tacc.chameleoncloud.org:5000/v3'),
+    OPENSTACK_KVM_REGION: os.environ.get('OPENSTACK_KVM_AUTH_URL', 'https://kvm.tacc.chameleoncloud.org:5000/v3'),
 }
 ## Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get('SSO_CALLBACK_PROTOCOL', 'https')
