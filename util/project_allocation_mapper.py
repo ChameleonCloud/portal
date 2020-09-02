@@ -76,10 +76,12 @@ class ProjectAllocationMapper:
                     # for leases that have not yet terminated but are accruing
                     # charges.
                     for key in ['used', 'encumbered']:
-                        if key not in balance:
-                            logger.error('Can not find {} balance for project {}'.format(key, project.charge_code))
-                            continue
-                        su_used += float(balance.get(key))
+                        try:
+                            su_used += float(balance.get(key))
+                        except (TypeError, ValueError):
+                            logger.error((
+                                'Can not find {} balance for project {}'
+                                .format(key, project.charge_code)))
                     alloc.su_used = su_used
                 else:
                     logger.warning('Couldn\'t get balance. Balance service might be down.')
