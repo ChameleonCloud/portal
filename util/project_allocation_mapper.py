@@ -277,9 +277,14 @@ class ProjectAllocationMapper:
             user = self.get_user(username, to_pytas_model=True, role=role)
             if user:
                 users.append(user)
-        if len(users) == 0:
-            # project stored in tas
-            users = tas_project.get_users()
+        # Combine with result from TAS.
+        # NOTE(jason): this will not be necessary and should be removed when
+        # we have stopped writing any data to TAS for projects/allocations/
+        # memberships.
+        usernames = [u.username for u in users]
+        for tas_user in tas_project.get_users():
+            if tas_user.username not in usernames:
+                users.append(tas_user)
         return users
 
     def get_project(self, project_id):
