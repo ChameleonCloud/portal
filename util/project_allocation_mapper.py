@@ -282,6 +282,10 @@ class ProjectAllocationMapper:
         # we have stopped writing any data to TAS for projects/allocations/
         # memberships.
         usernames = [u.username for u in users]
+        # The project id might be portal id.
+        # To avoid getting random users, get actual tas project using charge code.
+        tas_proj_id = self.get_attr(self._tas_lookup_project(tas_project.chargeCode), 'id')
+        tas_project = self.set_attr(tas_project, 'id', tas_proj_id)
         for tas_user in tas_project.get_users():
             if tas_user.username not in usernames:
                 users.append(tas_user)
