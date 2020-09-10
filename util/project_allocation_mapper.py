@@ -282,13 +282,30 @@ class ProjectAllocationMapper:
         # we have stopped writing any data to TAS for projects/allocations/
         # memberships.
         usernames = [u.username for u in users]
-        # The project id might be portal id.
-        # To avoid getting random users, get actual tas project using charge code.
-        tas_proj_id = self.get_attr(self._tas_lookup_project(tas_project.chargeCode), 'id')
-        tas_project = self.set_attr(tas_project, 'id', tas_proj_id)
-        for tas_user in tas_project.get_users():
-            if tas_user.username not in usernames:
-                users.append(tas_user)
+        # Though it's "tas_project", it's actually a pytas model that _could_
+        # have been hydrated with an entry from the Portal DB. Therefore its
+        # ID might be a Portal DB ID and not a TAS ID. To ensure we don't pull
+        # users from the wrong project, get actual TAS entry via charge code.
+        _tas_project = self._tas_lookup_project(tas_project.chargeCode)
+        if _tas_project:
+            for tas_user in tas_proj(initial=_tas_project).get_users():
+                if tas_user.username not in usernames:
+                    users.append(tas_user)
+        else:
+            # Since the lookup is against the user's list of active projects,
+            # we will not find new projects that have not yet been approved.
+            logger.warning((
+                'Could not retrieve users for project %s from TAS. The project '
+                'may not be active yet. Falling back to PI user, if found.'),
+                tas_project.chargeCode)
+            pi_user = getattr(tas_project, 'pi', None)
+            if pi_user:
+                # The project PI user relation doesn't have a role... shim it.
+                pi_user.role = 'PI'
+                users.append(pi_user)
+            else:
+                logger.error('Missing PI for project %s',
+                    tas_project.chargeCode)
         return users
 
     def get_project(self, project_id):
