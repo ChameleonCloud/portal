@@ -161,9 +161,13 @@ def edit_artifact(request, artifact):
             version_id = request.POST.get('delete_version')
             try:
                 version = artifact.versions.get(pk=version_id)
-                version.delete()
-                messages.add_message(request, messages.SUCCESS,
-                    'Successfully deleted artifact version.')
+                if not version.doi:
+                    version.delete()
+                    messages.add_message(request, messages.SUCCESS,
+                        'Successfully deleted artifact version.')
+                else:
+                    messages.add_message(request, messages.ERROR,
+                        'Cannot delete versions already assigned a DOI.')
             except ArtifactVersion.DoesNotExist:
                 messages.add_message(request, messages.ERROR,
                     'Artifact version {} does not exist'.format(version_id))
