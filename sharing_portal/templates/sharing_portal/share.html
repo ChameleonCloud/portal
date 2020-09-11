@@ -8,40 +8,61 @@
 {% block content %}
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
-    <li>
-        <a href="{% url 'sharing_portal:index_all' %}">All</a>
-    </li>
-    <li>
-        <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
-    </li>
-    <li class="active">Share</li>
+  <li>
+    <a href="{% url 'sharing_portal:index_all' %}">All</a>
+  </li>
+  <li>
+    <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
+  </li>
+  <li class="active">Share</li>
 </ol>
 
 <div class="layoutGrid">
-    <div class="layoutGrid__main">
-      <div class="artifactDetail">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+  <div class="layoutGrid__main">
+    <div class="artifactDetail">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-            <header class="artifactDetail__heading">
-                <h2 class="artifactTitle">Edit sharing settings</h2>
-                <div class="artifactActions">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
-                </div>
-            </header>
+        <header class="artifactDetail__heading">
+          <h2 class="artifactTitle">Edit sharing settings</h2>
+          <div class="artifactActions">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
+          </div>
+        </header>
 
-            <p>
-              You can always share the artifact via this link:
-              <a href="{{ share_url }}">{{ share_url }}</a>
-            </p>
+        <p>
+          You can always share the artifact via this link:
+          <a href="{{ share_url }}">{{ share_url }}</a>
+        </p>
 
-            {% bootstrap_form share_form %}
-        </form>
-      </div>
+        {% bootstrap_form share_form %}
+      </form>
     </div>
+  </div>
 
-    <div class="layoutGrid__side"></div>
+  <div class="layoutGrid__side">
+    <div class="artifactVersions">
+      <h4><i class="fa fa-files-o"></i> Versions</h4>
+      <form method="post">
+        {% csrf_token %}
+        <ol>
+          {% for i, v in all_versions %}
+          <li class="artifactVersionDelete">
+            <span class="artifactVersionDelete__title">
+              Version {{ i }} ({{ v.created_at }})
+            </span>
+            {% if all_versions|length > 1 and (not v.doi) %}
+            <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
+              value="{{ v.pk }}">
+              <i class="fa fa-trash-o"></i>
+            </button>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}
