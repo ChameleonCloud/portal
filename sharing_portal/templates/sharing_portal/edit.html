@@ -46,7 +46,7 @@
                         <span class="artifactVersionDelete__title">
                             Version {{ i }} ({{ v.created_at }})
                         </span>
-                        {% if all_versions|length > 1 %}
+                        {% if all_versions|length > 1 and (not v.doi) %}
                         <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version" value="{{ v.pk }}">
                             <i class="fa fa-trash-o"></i>
                         </button>
