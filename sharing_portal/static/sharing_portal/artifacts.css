@@ -219,3 +219,11 @@
 } .artifactVersion__link > span {
     display: block;
 }
+
+.artifactVersionDelete {
+    display: flex;
+    align-items: center;
+}
+.artifactVersionDelete__title {
+    flex: 1;
+}

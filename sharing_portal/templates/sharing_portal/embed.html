@@ -35,6 +35,26 @@
               {% bootstrap_form form show_label=False layout='inline' %}
             </fieldset>
             {% endfor %}
+
+            {% if show_delete %}
+            <fieldset class="form-group">
+              <button id="artifactDelete" type="submit" name="delete" class="btn">
+                <i class="fa fa-trash"></i> Delete
+              </button>
+            </fieldset>
+            <script nonce="{{ request.csp_nonce }}">
+              (function() {
+                document.addEventListener('DOMContentLoaded', () => {
+                  const deleteButton = document.getElementById('artifactDelete');
+                  if (deleteButton) {
+                    deleteButton.addEventListener('click', () => {
+                      return confirm('Are you sure you want to delete this artifact?');
+                    });
+                  }
+                });
+              })();
+            </script>
+            {% endif %}
         </form>
       </div>
     </div>

@@ -155,21 +155,36 @@ def index_project(request, charge_code):
 @login_required
 def edit_artifact(request, artifact):
     if request.method == 'POST':
-        form = ArtifactForm(request.POST, request.FILES, instance=artifact)
+        form = ArtifactForm(request.POST, instance=artifact)
+
+        if 'delete_version' in request.POST:
+            version_id = request.POST.get('delete_version')
+            try:
+                version = artifact.versions.get(pk=version_id)
+                version.delete()
+                messages.add_message(request, messages.SUCCESS,
+                    'Successfully deleted artifact version.')
+            except ArtifactVersion.DoesNotExist:
+                messages.add_message(request, messages.ERROR,
+                    'Artifact version {} does not exist'.format(version_id))
+            # Return to edit form
+            return HttpResponseRedirect(
+                reverse('sharing_portal:edit', args=[artifact.pk]))
 
         artifact, errors = _handle_artifact_forms(request, form)
-        if form.is_valid():
-            artifact.updated_by = request.user
-            form.save()
-            messages.add_message(request, messages.SUCCESS, 'Success')
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
-    else:
-        form = ArtifactForm(instance=artifact)
+        if errors:
+            (messages.add_message(request, messages.ERROR, e) for e in errors)
+        else:
+            messages.add_message(request, messages.SUCCESS, 'Successfully saved artifact.')
+        return HttpResponseRedirect(
+            reverse('sharing_portal:detail', args=[artifact.pk]))
 
+    form = ArtifactForm(instance=artifact)
     template = loader.get_template('sharing_portal/edit.html')
     context = {
         'artifact_form': form,
         'artifact': artifact,
+        'all_versions': _artifact_display_versions(artifact),
     }
 
     return HttpResponse(template.render(context, request))
@@ -222,7 +237,6 @@ def share_artifact(request, artifact):
 @check_view_permission
 def artifact(request, artifact, version_idx=None):
     version = _artifact_version(artifact, version_idx)
-    artifact_versions = list(artifact.versions)
 
     if not version:
         error_message = 'This artifact has no version {}'.format(version_idx)
@@ -241,7 +255,7 @@ def artifact(request, artifact, version_idx=None):
     template = loader.get_template('sharing_portal/detail.html')
     context = {
         'artifact': artifact,
-        'all_versions': [(len(artifact_versions) - i, v) for (i, v) in enumerate(reversed(artifact_versions))],
+        'all_versions': _artifact_display_versions(artifact),
         'version': version,
         'launch_url': launch_url,
         'related_artifacts': artifact.related_items,
@@ -288,11 +302,13 @@ def embed_create(request):
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
 @login_required
 def embed_edit(request, artifact):
+    context = {}
     if 'new_version' in request.GET:
-        form_title = 'Create new version of artifact'
+        context['form_title'] = 'Create new version of artifact'
     else:
-        form_title = 'Edit artifact'
-    return _embed_form(request, form_title=form_title, artifact=artifact)
+        context['form_title'] = 'Edit artifact'
+
+    return _embed_form(request, artifact=artifact, context=context)
 
 
 @csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
@@ -300,7 +316,7 @@ def embed_cancel(request):
     return _embed_callback(request, dict(status='cancel'))
 
 
-def _embed_form(request, form_title=None, artifact=None):
+def _embed_form(request, artifact=None, context={}):
     new_version = (not artifact) or ('new_version' in request.GET)
 
     if request.method == 'POST':
@@ -340,12 +356,11 @@ def _embed_form(request, form_title=None, artifact=None):
             version_form = None
 
     template = loader.get_template('sharing_portal/embed.html')
-    context = {
-        'form_title': form_title,
+    context.update({
         'artifact_form': form,
         'authors_formset': authors_formset,
         'version_form': version_form,
-    }
+    })
 
     return HttpResponse(template.render(context, request))
 
@@ -411,3 +426,14 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None,
         errors.extend(artifact_form.errors)
 
     return artifact, errors
+
+
+def _artifact_display_versions(artifact):
+    """Return a list of artifact versions for display purposes.
+
+    This is slightly different than the 'versions' property of the artifact, as
+    it is reverse-sorted (newest at the top) and also enumerated so that while
+    it's reversed, the numbers still indicate chronological order.
+    """
+    versions = list(artifact.versions)
+    return [(len(versions) - i, v) for (i, v) in enumerate(reversed(versions))]
