@@ -43,15 +43,18 @@
         <ol>
           {% for i, v in all_versions %}
           <li class="artifactVersionDelete">
-            <span class="artifactVersionDelete__title">
-              Version {{ i }} ({{ v.created_at }})
+            <span class="artifactVersion__title">
+              <span>Version {{ i }}</span>
+              <span>{{ v.created_at }}</span>
             </span>
-            {% if all_versions|length > 1 and (not v.doi) %}
             <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
-              value="{{ v.pk }}">
+              value="{{ v.pk }}" {% if all_versions|length == 1 or v.doi %}disabled{% endif %}
+              {% if v.doi %}title="This version is published with a DOI and cannot be deleted"
+              {% elif all_versions|length == 1 %}title="Cannot delete only version"
+              {% else %}title="Delete this version"
+              {% endif %}>
               <i class="fa fa-trash-o"></i>
             </button>
-            {% endif %}
           </li>
           {% endfor %}
         </ol>

@@ -46,5 +46,5 @@ OUTAGE_NOTIFICATION_EMAIL=
 DEFAULT_FROM_EMAIL=no-reply@chameleoncloud.org
 
 # Sharing portal
-SHARING_PORTAL_ZENODO_SANDBOX=True
-SHARING_PORTAL_JUPYTERHUB_URL=https://jupyter.chameleoncloud.org
+ZENODO_URL=https://sandbox.zenodo.org
+ARTIFACT_SHARING_JUPYTERHUB_URL=https://jupyter.chameleoncloud.org

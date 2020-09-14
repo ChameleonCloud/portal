@@ -18,7 +18,7 @@ publish-latest:
 
 .PHONY: start
 start:
-	docker-compose -f docker-compose.dev.yml up
+	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) docker-compose -f docker-compose.dev.yml up
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@

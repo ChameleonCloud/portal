@@ -12,7 +12,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from projects.models import Project
-from sharing_portal.conf import JUPYTERHUB_URL, ZENODO_SANDBOX
 from sharing_portal.zenodo import ZenodoClient
 
 
@@ -150,6 +149,10 @@ class Artifact(models.Model):
     def launch_count(self):
         return sum([v.launch_count for v in self.versions.all()])
 
+    @property
+    def deposition_url(self):
+        return ZenodoClient.to_record_url(self.doi) if self.doi else None
+
 
 class ArtifactVersion(models.Model):
     ZENODO = 'zenodo'
@@ -183,16 +186,13 @@ class ArtifactVersion(models.Model):
     @property
     def deposition_url(self):
         if self.deposition_repo == self.ZENODO:
-            if ZENODO_SANDBOX:
-                base_url = 'https://sandbox.zenodo.org'
-            else:
-                base_url = 'https://zenodo.org'
-            return str('{}/record/{}'.format(base_url, ZenodoClient.to_record(self.doi)))
+            return ZenodoClient.to_record_url(self.doi)
         else:
             return None
 
     def launch_url(self, can_edit=False):
-        base_url = JUPYTERHUB_URL + '/hub/import'
+        base_url = '{}/hub/import'.format(
+            settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
         query = dict(
             deposition_repo=self.deposition_repo,
             deposition_id=self.deposition_id,
