@@ -12,9 +12,9 @@ from django.template import loader
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .conf import JUPYTERHUB_URL
-from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm
+from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm, ZenodoPublishFormset
 from .models import Artifact, ArtifactVersion, Author, ShareTarget
+from .tasks import publish_to_zenodo
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ def _render_list(request, artifacts, user_projects=None):
 
     template = loader.get_template('sharing_portal/index.html')
     context = {
-        'hub_url': JUPYTERHUB_URL,
+        'hub_url': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
         'artifacts': artifacts.order_by('-created_at'),
         'projects': user_projects,
     }
@@ -188,7 +188,7 @@ def edit_artifact(request, artifact):
     context = {
         'artifact_form': form,
         'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact),
+        'all_versions': _artifact_display_versions(artifact.versions),
     }
 
     return HttpResponse(template.render(context, request))
@@ -199,27 +199,23 @@ def edit_artifact(request, artifact):
 def share_artifact(request, artifact):
     if request.method == 'POST':
         form = ShareArtifactForm(request.POST)
+        z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
 
         if form.is_valid():
-            existing_targets = ShareTarget.objects.filter(artifact=artifact)
-            existing_project_shares = [st.project for st in existing_targets if st.project]
-            incoming_project_shares = form.cleaned_data['projects']
-            for p in existing_project_shares:
-                if p not in incoming_project_shares:
-                    (ShareTarget.objects.filter(artifact=artifact, project=p)
-                        .delete())
-                    LOG.info('Un-shared artifact %s to project %s', artifact.pk, p.pk)
-            for p in incoming_project_shares:
-                if p not in existing_project_shares:
-                    ShareTarget.objects.create(artifact=artifact, project=p)
-                    LOG.info('Shared artifact %s to project %s', artifact.pk, p.pk)
-            messages.add_message(request, messages.SUCCESS,
-                'Successfully updated sharing settings')
+            if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
+                messages.add_message(request, messages.SUCCESS,
+                    'Successfully updated sharing settings')
+            if (z_form.is_valid() and _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
+                messages.add_message(request, messages.SUCCESS,
+                    ('Requested DOI(s) for artifact versions. The process '
+                     'of issuing DOIs may take a few minutes. We will send '
+                     'an email notification when this is complete.'))
             return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
     else:
         form = ShareArtifactForm(initial={
             'projects': artifact.shared_to_projects.all(),
         })
+        z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
 
     share_url = request.build_absolute_uri(
         reverse('sharing_portal:detail', kwargs={'pk': artifact.pk}))
@@ -231,6 +227,8 @@ def share_artifact(request, artifact):
     template = loader.get_template('sharing_portal/share.html')
     context = {
         'share_form': form,
+        'z_management_form': z_form.management_form,
+        'z_forms': _artifact_display_versions(z_form.forms),
         'share_url': share_url,
         'artifact': artifact,
     }
@@ -249,17 +247,29 @@ def artifact(request, artifact, version_idx=None):
     if version_idx:
         launch_url = reverse('sharing_portal:launch_version',
             args=[artifact.pk, version_idx])
+        doi_info = {
+            'doi': version.doi,
+            'url': version.deposition_url,
+            'created_at': version.created_at,
+        }
     else:
         launch_url = reverse('sharing_portal:launch', args=[artifact.pk])
+        doi_info = {
+            'doi': artifact.doi,
+            'url': artifact.deposition_url,
+            'created_at': None,
+        }
 
     # Ensure launch URLs are authenticated if a private link is being used.
     if SHARING_KEY_PARAM in request.GET:
         launch_url += '?{}={}'.format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
 
     template = loader.get_template('sharing_portal/detail.html')
+
     context = {
         'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact),
+        'all_versions': _artifact_display_versions(artifact.versions),
+        'doi_info': doi_info,
         'version': version,
         'launch_url': launch_url,
         'related_artifacts': artifact.related_items,
@@ -296,14 +306,14 @@ def _artifact_version(artifact, version_idx=None):
         return None
 
 
-@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 @login_required
 def embed_create(request):
-    return _embed_form(request, form_title='Create artifact')
+    return _embed_form(request, context={'form_title': 'Create artifact'})
 
 
 @check_edit_permission
-@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 @login_required
 def embed_edit(request, artifact):
     context = {}
@@ -315,7 +325,7 @@ def embed_edit(request, artifact):
     return _embed_form(request, artifact=artifact, context=context)
 
 
-@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 def embed_cancel(request):
     return _embed_callback(request, dict(status='cancel'))
 
@@ -376,7 +386,7 @@ def _embed_callback(request, payload):
     )
     context = {
         'payload_json': json.dumps(payload_wrapper),
-        'jupyterhub_origin': JUPYTERHUB_URL,
+        'jupyterhub_origin': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
     }
 
     return HttpResponse(template.render(context, request))
@@ -432,12 +442,54 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None,
     return artifact, errors
 
 
-def _artifact_display_versions(artifact):
+def _artifact_display_versions(versions):
     """Return a list of artifact versions for display purposes.
 
     This is slightly different than the 'versions' property of the artifact, as
     it is reverse-sorted (newest at the top) and also enumerated so that while
     it's reversed, the numbers still indicate chronological order.
     """
-    versions = list(artifact.versions)
-    return [(len(versions) - i, v) for (i, v) in enumerate(reversed(versions))]
+    versions_list = list(versions)
+    return [
+        (len(versions) - i, v)
+        for (i, v) in enumerate(reversed(versions_list))
+    ]
+
+
+def _sync_share_targets(artifact, project_shares=[]):
+    existing_targets = ShareTarget.objects.filter(artifact=artifact)
+    existing_project_shares = [st.project for st in existing_targets if st.project]
+    incoming_project_shares = project_shares
+    changed = False
+    for p in existing_project_shares:
+        if p not in incoming_project_shares:
+            (ShareTarget.objects.filter(artifact=artifact, project=p)
+                .delete())
+            LOG.info('Un-shared artifact %s to project %s', artifact.pk, p.pk)
+            changed = True
+    for p in incoming_project_shares:
+        if p not in existing_project_shares:
+            ShareTarget.objects.create(artifact=artifact, project=p)
+            LOG.info('Shared artifact %s to project %s', artifact.pk, p.pk)
+            changed = True
+    return changed
+
+
+def _request_artifact_dois(artifact, request_forms=[]):
+    """Process Zenodo artifact DOI request forms.
+
+    Returns:
+        bool: if any DOIs were requested.
+    """
+    try:
+        to_request = [
+            f['artifact_version_id']
+            for f in request_forms if f['request_doi']
+        ]
+        if to_request:
+            for artifact_version_id in to_request:
+                publish_to_zenodo.apply_async(args=[artifact_version_id])
+            return True
+        return False
+    except Exception:
+        LOG.exception('Failed to request DOI for artifact {}'.format(artifact.pk))

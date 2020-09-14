@@ -8,12 +8,11 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
 from chameleon.keystone_auth import regenerate_tokens
-from sharing_portal.conf import JUPYTERHUB_URL
 
 import logging
 LOG = logging.getLogger(__name__)
 
-@csp_update(FRAME_ANCESTORS=JUPYTERHUB_URL)
+@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 @sensitive_post_parameters()
 @csrf_protect
 @never_cache

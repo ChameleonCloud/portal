@@ -17,12 +17,12 @@
   <li class="active">Share</li>
 </ol>
 
-<div class="layoutGrid">
-  <div class="layoutGrid__main">
-    <div class="artifactDetail">
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+<form method="post">
+  {% csrf_token %}
 
+  <div class="layoutGrid">
+    <div class="layoutGrid__main">
+      <div class="artifactDetail">
         <header class="artifactDetail__heading">
           <h2 class="artifactTitle">Edit sharing settings</h2>
           <div class="artifactActions">
@@ -31,38 +31,48 @@
           </div>
         </header>
 
+        <label class="control-label">Share via private link</label>
         <p>
-          You can always share the artifact via this link:
           <a href="{{ share_url }}">{{ share_url }}</a>
         </p>
 
-        {% bootstrap_form share_form %}
-      </form>
-    </div>
-  </div>
+        <label class="control-label">Share with projects</label>
+        <p>
+          You can share this artifact with other Chameleon projects. Any
+          member of those projects will then be able to view the artifact.
+        </p>
+        {% bootstrap_form share_form show_label=False %}
 
-  <div class="layoutGrid__side">
-    <div class="artifactVersions">
-      <h4><i class="fa fa-files-o"></i> Versions</h4>
-      <form method="post">
-        {% csrf_token %}
-        <ol>
-          {% for i, v in all_versions %}
-          <li class="artifactVersionDelete">
-            <span class="artifactVersionDelete__title">
-              Version {{ i }} ({{ v.created_at }})
-            </span>
-            {% if all_versions|length > 1 and (not v.doi) %}
-            <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
-              value="{{ v.pk }}">
-              <i class="fa fa-trash-o"></i>
-            </button>
-            {% endif %}
-          </li>
-          {% endfor %}
-        </ol>
-      </form>
+        <label class="control-label">Publish with DOI</label>
+        <p>
+          You can publish any version of this artifact to
+          <a href="https://zenodo.org" rel="noopener noreferrer" target="_blank">Zenodo</a>,
+          which will assign a DOI (Digital Object Identifier), suitable for use
+          in academic citation. Use the "Request DOI" options for any versions
+          you wish to publish publicly in this way.
+        </p>
+      </div>
+    </div>
+
+    <div class="layoutGrid__side">
+      <div class="artifactVersions">
+        <h4><i class="fa fa-files-o"></i> Versions</h4>
+        {{ z_management_form }}
+        {% for i, form in z_forms %}
+        <fieldset>
+          <span class="artifactVersion__title">
+            <span>Version {{ i }}</span>
+            <span>{{ form.model.created_at }}</span>
+          </span>
+          {% bootstrap_form form form_group_class='form-group artifactVersion__doi' error_css_class='foobar' show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
+        <script nonce="{{ request.csp_nonce }}">
+          (function () {
+          })();
+        </script>
+      </div>
     </div>
   </div>
-</div>
+</form>
 {% endblock %}
