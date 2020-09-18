@@ -726,3 +726,10 @@ CSP_INCLUDE_NONCE_IN=['script-src']
 
 # Federation new login experience
 NEW_LOGIN_EXPERIENCE_COOKIE = 'new_login_experience'
+
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'LOC_MEM_CACHE'),
+    }
+}

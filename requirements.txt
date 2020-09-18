@@ -46,7 +46,7 @@ sqlparse
 pytas
 bibtexparser
 mozilla-django-oidc
-
+python-memcached
 python-glanceclient
 python-keystoneclient
 python-novaclient
