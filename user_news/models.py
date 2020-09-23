@@ -118,7 +118,7 @@ class Notification(models.Model):
             return self.message
 
     def display(self):
-        return re.sub(r'\s+', ' ', u'<h4>{0}</h4>{1}'.format(self.title, self.message))
+        return re.sub(r'\s+', ' ', '<h4>{0}</h4>{1}'.format(self.title, self.message))
 
 """
 User News CMS Plugin Model

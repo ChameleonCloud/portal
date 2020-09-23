@@ -6,7 +6,7 @@ class Keyword(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         return self.name
@@ -45,7 +45,7 @@ class Appliance(models.Model):
     needs_review = models.BooleanField(default=True, blank=True)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     def __unicode__(self):
         return self.name

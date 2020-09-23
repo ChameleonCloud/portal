@@ -5,7 +5,7 @@ import uuid
 try:
     from urllib.parse import urlencode
 except ImportError:
-    from urllib import urlencode
+    from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.exceptions import ValidationError

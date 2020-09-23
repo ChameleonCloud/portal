@@ -246,7 +246,7 @@ def get_downtimes_json( request):
                         temp[key] = {}
                         temp[key]['nodes_down'] = nodes_down
                         temp[key]['date'] = date_string
-        resp['result'] = temp.values()
+        resp['result'] = list(temp.values())
         resp['status'] = 'success'
         resp['message'] = ''
     except Exception as e:
@@ -304,7 +304,7 @@ def get_daily_usage_json( request):
                 if job_end_date_str in temp:
                     temp[job_end_date_str]['nodes_used'] += math.ceil(sus)
 
-        resp['result'] = temp.values()
+        resp['result'] = list(temp.values())
         resp['status'] = 'success'
         resp['message'] = ''
     except Exception as e:
@@ -347,7 +347,7 @@ def get_daily_usage_user_breakdown_json( request):
                     temp[username]['nodes_used'] = math.ceil(sus)
                     temp[username]['queue'] = job.get('queueName').lower()
 
-        resp['result'] = temp.values()
+        resp['result'] = list(temp.values())
         resp['status'] = 'success'
         resp['message'] = ''
     except Exception as e:

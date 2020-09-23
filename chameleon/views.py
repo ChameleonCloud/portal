@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from user_news.models import Outage
 from djangoRT import rtUtil
-from urlparse import urlparse
+from urllib.parse import urlparse
 import logging
 import chameleon.os_login as login
 from tas import auth as tas_auth

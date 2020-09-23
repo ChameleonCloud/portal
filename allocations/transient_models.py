@@ -1,7 +1,7 @@
 from django.db import models
 
 class Allocation(models.Model):
-	project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project)
     computeAllocated = models.IntegerField(default=-1)
     computeRequested = models.IntegerField(default=-1)
     dateRequested = models.DateField()
@@ -24,7 +24,7 @@ class Allocation(models.Model):
     storageRequested = models.DecimalField(default=-1.00, decimal_places=2)
 
 class Project(models.Model):
-	pi = models.ForeignKey(Pi)
+    pi = models.ForeignKey(Pi)
     chargeCode = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
     field = models.CharField(max_length=200)
@@ -37,18 +37,18 @@ class Project(models.Model):
     typeId = models.IntegerField(default=-1)
 
 class Pi(models.Model):
-	citizenship = models.CharField(max_length=200)
-	citizenshipId = models.CharField(max_length=200)
-	country = models.CharField(max_length=200)
-	countryId = models.IntegerField(default=0)
-	department = models.CharField(max_length=200)
-	departmentId = models.IntegerField(default=0)
-	email = models.EmailField()
-	firstName = models.CharField(max_length=200)
-	id = models.IntegerField(default=-1)
-	institution = models.CharField(max_length=200)
-	institutionId = models.IntegerField(default=0)
-	lastName = models.CharField(max_length=200)
-	piEligibility = models.CharField(max_length=200)
-	source = models.CharField(max_length=200)
-	username = models.CharField(max_length=200)
+    citizenship = models.CharField(max_length=200)
+    citizenshipId = models.CharField(max_length=200)
+    country = models.CharField(max_length=200)
+    countryId = models.IntegerField(default=0)
+    department = models.CharField(max_length=200)
+    departmentId = models.IntegerField(default=0)
+    email = models.EmailField()
+    firstName = models.CharField(max_length=200)
+    id = models.IntegerField(default=-1)
+    institution = models.CharField(max_length=200)
+    institutionId = models.IntegerField(default=0)
+    lastName = models.CharField(max_length=200)
+    piEligibility = models.CharField(max_length=200)
+    source = models.CharField(max_length=200)
+    username = models.CharField(max_length=200)

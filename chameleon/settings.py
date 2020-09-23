@@ -7,7 +7,7 @@ https://docs.djangoproject.com/en/1.7/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
-from __future__ import absolute_import
+
 
 import os
 import django
@@ -649,17 +649,17 @@ GENI_FEDERATION_PROJECTS = {
 ###
 # Opbeat Integration
 #
-if os.environ.get('OPBEAT_ORGANIZATION_ID'):
-    INSTALLED_APPS += ('opbeat.contrib.django',)
-    OPBEAT = {
-        'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGANIZATION_ID', ''),
-        'APP_ID': os.environ.get('OPBEAT_APP_ID', ''),
-        'SECRET_TOKEN': os.environ.get('OPBEAT_SECRET_TOKEN', ''),
-    }
-    # Opbeat middleware needs to be first
-    MIDDLEWARE_CLASSES = (
-        'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
-        ) + MIDDLEWARE_CLASSES
+# if os.environ.get('OPBEAT_ORGANIZATION_ID'):
+#     INSTALLED_APPS += ('opbeat.contrib.django',)
+#     OPBEAT = {
+#         'ORGANIZATION_ID': os.environ.get('OPBEAT_ORGANIZATION_ID', ''),
+#         'APP_ID': os.environ.get('OPBEAT_APP_ID', ''),
+#         'SECRET_TOKEN': os.environ.get('OPBEAT_SECRET_TOKEN', ''),
+#     }
+#     # Opbeat middleware needs to be first
+#     MIDDLEWARE_CLASSES = (
+#         'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+#         ) + MIDDLEWARE_CLASSES
 
 THUMBNAIL_PROCESSORS = (
     'easy_thumbnails.processors.colorspace',

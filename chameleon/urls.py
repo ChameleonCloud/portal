@@ -13,7 +13,7 @@ from django.views.generic import RedirectView
 from django.views.static import serve
 from tas import views as tas_views
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
-import views
+from . import views
 
 urlpatterns = [
     # admin urls

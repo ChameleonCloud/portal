@@ -274,7 +274,7 @@ def _artifact_version(artifact, version_idx=None):
     version_idx = version_idx or 0
     try:
         return artifact_versions[int(version_idx) - 1]
-    except IndexError, ValueError:
+    except IndexError as ValueError:
         return None
 
 

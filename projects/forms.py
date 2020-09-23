@@ -1,7 +1,7 @@
 from django import forms
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
-from models import Project, ProjectExtras
+from .models import Project, ProjectExtras
 import bibtexparser
 import logging
 from util.project_allocation_mapper import ProjectAllocationMapper

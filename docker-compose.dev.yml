@@ -9,13 +9,13 @@ services:
       - .:/project
     ports:
       - 127.0.0.1:8890:8888
-    command: python manage.py runserver 0.0.0.0:8888
+    command: python3 manage.py runserver 0.0.0.0:8888
     depends_on:
       - mysql
-      - redis
+      # - redis
       - mail
   referenceapi:
-    image: referenceapi:latest
+    image: docker.chameleoncloud.org/referenceapi:latest
     ports:
       - 127.0.0.1:8891:8000
   mysql:
@@ -38,18 +38,18 @@ services:
       - PMA_PORT=3306
     depends_on:
       - mysql
-  redis:
-    image: redis:alpine
-  celery:
-    build: .
-    command: celery -A chameleon worker -l info --concurrency=1 -B
-    env_file:
-      - .chameleon_env
-    volumes:
-      - .:/project
-    depends_on:
-      - mysql
-      - redis
+  # redis:
+  #   image: redis:alpine
+  # celery:
+  #   build: .
+  #   command: celery -A chameleon worker -l info --concurrency=1 -B
+  #   env_file:
+  #     - .chameleon_env
+  #   volumes:
+  #     - .:/project
+  #   depends_on:
+  #     - mysql
+  #     - redis
   mail:
     image: bytemark/smtp
     restart: always

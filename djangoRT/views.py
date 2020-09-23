@@ -41,7 +41,7 @@ def ticketdetail(request, ticketId):
 
     # remove bogus "untitled" attachments
     for history in ticket_history:
-        history['Attachments'] = filter(lambda a: not a[1].startswith('untitled ('), history['Attachments'])
+        history['Attachments'] = [a for a in history['Attachments'] if not a[1].startswith('untitled (')]
 
     return render(request, 'djangoRT/ticketDetail.html',\
         { 'ticket' : ticket, 'ticket_history' : ticket_history, 'ticket_id' : ticketId, 'hasAccess' : rt.hasAccess(ticketId, request.user.email) })
@@ -73,7 +73,7 @@ def ticketcreate(request):
             ticket_body = '%s\n\n%s\n\n---\n%s' % ( header, form.cleaned_data['problem_description'], requestor_meta )
 
             region_list = []
-            for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+            for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
                 try:
                     token = get_token(request, region=region)
                     region_list.append(get_openstack_data(request.user.username, token, region))

@@ -12,7 +12,7 @@ def sorted_list_ids(alist):
     """
     Helper function to turn a list of items into a sorted list of ids
     """
-    new_list = list(map(lambda x: x.id, list(alist)))
+    new_list = list([x.id for x in list(alist)])
     new_list.sort()
     return new_list
 
