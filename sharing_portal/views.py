@@ -208,8 +208,7 @@ def share_artifact(request, artifact):
             if (z_form.is_valid() and _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
                 messages.add_message(request, messages.SUCCESS,
                     ('Requested DOI(s) for artifact versions. The process '
-                     'of issuing DOIs may take a few minutes. We will send '
-                     'an email notification when this is complete.'))
+                     'of issuing DOIs may take a few minutes.'))
             return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
     else:
         form = ShareArtifactForm(initial={
