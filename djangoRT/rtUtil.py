@@ -16,7 +16,7 @@ class DjangoRt:
         self.rtPw = settings.DJANGO_RT['RT_PW']
         self.rtQueue = settings.DJANGO_RT['RT_QUEUE']
 
-        self.tracker = rt.Rt(self.rtHost, self.rtUn, self.rtPw, basic_auth=(self.rtUn, self.rtPw))
+        self.tracker = rt.Rt(self.rtHost, self.rtUn, self.rtPw)
         self.tracker.login()
 
     def getUserTickets(self, userEmail, show_resolved=False):
