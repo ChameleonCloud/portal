@@ -46,17 +46,17 @@ def check_edit_permission(func):
 
 def check_view_permission(func):
     def can_view(request, artifact):
-        if artifact.doi:
-            return True
+        all_versions = list(artifact.versions)
+
         if artifact.sharing_key and (
             request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key):
-            return True
+            return all_versions
 
         if request.user.is_authenticated():
             if request.user.is_staff:
-                return True
+                return all_versions
             if artifact.created_by == request.user:
-                return True
+                return all_versions
             project_shares = ShareTarget.objects.filter(
                 artifact=artifact, project__isnull=False)
             # Avoid the membership lookup if there are no sharing rules in place
@@ -68,17 +68,27 @@ def check_view_permission(func):
                         request.user.username, fetch_balance=False)
                 ]
                 if any(p.charge_code in user_projects for p in project_shares):
-                    return True
+                    return all_versions
 
-        return False
+        # NOTE(jason): It is important that this check go last. Visibility b/c
+        # the artifact has a DOI is the weakest form of visibility; not all
+        # versions are necessarily visible in this case. We return a list of
+        # the versions that are allowed. We check for stronger visibilty rules
+        # first, as they should ensure all versions are seen.
+        if artifact.doi:
+            return [v for v in all_versions if v.doi]
+
+        return []
 
     def wrapper(request, *args, **kwargs):
         pk = kwargs.pop('pk')
         artifact = get_object_or_404(Artifact, pk=pk)
-        if not can_view(request, artifact):
+        artifact_versions = can_view(request, artifact)
+        if not artifact_versions:
             raise Http404('The requested artifact does not exist, or you do not have permission to view.')
         # Replace pk with Artifact instance to avoid another lookup
         kwargs.setdefault('artifact', artifact)
+        kwargs.setdefault('artifact_versions', artifact_versions)
         return func(request, *args, **kwargs)
     return wrapper
 
@@ -236,8 +246,8 @@ def share_artifact(request, artifact):
 
 
 @check_view_permission
-def artifact(request, artifact, version_idx=None):
-    version = _artifact_version(artifact, version_idx)
+def artifact(request, artifact, artifact_versions, version_idx=None):
+    version = _artifact_version(artifact_versions, version_idx)
 
     if not version:
         error_message = 'This artifact has no version {}'.format(version_idx)
@@ -281,8 +291,8 @@ def artifact(request, artifact, version_idx=None):
 
 
 @check_view_permission
-def launch(request, artifact, version_idx=None):
-    version = _artifact_version(artifact, version_idx)
+def launch(request, artifact, artifact_versions, version_idx=None):
+    version = _artifact_version(artifact_versions, version_idx)
 
     if not version:
         raise Http404((
@@ -294,8 +304,7 @@ def launch(request, artifact, version_idx=None):
     return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
 
 
-def _artifact_version(artifact, version_idx=None):
-    artifact_versions = list(artifact.versions)
+def _artifact_version(artifact_versions, version_idx=None):
     # A default of 0 means get the most recent artifact version.
     # Version indices are 1-indexed.
     version_idx = version_idx or 0
