@@ -208,7 +208,7 @@ def get_openstack_data(username, unscoped_token, region):
     ks_user = get_user(ks_admin, username)
     projects = []
     if ks_user:
-        projects = ks_admin.projects.list(user=ks_user[0])
+        projects = ks_admin.projects.list(user=ks_user)
     for project in projects:
         try:
             current_project = {}
