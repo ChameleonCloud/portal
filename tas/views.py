@@ -11,6 +11,7 @@ from django.forms.utils import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
 from django.contrib.auth.models import User
+from django.utils.html import strip_tags
 from pytas.http import TASClient
 from tas.forms import EmailConfirmationForm, PasswordResetRequestForm, \
                       PasswordResetConfirmForm, UserProfileForm, UserRegistrationForm, RecoverUsernameForm
@@ -252,12 +253,17 @@ def email_confirmation(request):
 def send_opt_in_email(fname, email):
     try:
         template = 'tas/email_subscription_opt_in.html'
-        email_message = render_to_string(template, {'fname': fname})
-        logger.info(email_message)
-        send_mail(subject='Welcome to Chameleon',message=None,from_email='no-reply@chameleoncloud.org',recipient_list=[email],fail_silently=False,html_message=email_message)
+        body = render_to_string(template, {'fname': fname})
+        send_mail(
+            subject='Welcome to Chameleon',
+            message=strip_tags(body),
+            from_email='no-reply@chameleoncloud.org',
+            recipient_list=[email],
+            fail_silently=False,
+            html_message=body,
+        )
     except Exception as e:
         logger.error(e)
-        return
 
 
 def register(request):
