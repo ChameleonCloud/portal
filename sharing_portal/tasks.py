@@ -31,7 +31,7 @@ def publish_to_zenodo(artifact_version_id, zenodo_access_token=None):
         return
 
     artifact = artifact_version.artifact
-    metadata = DepositionMetadata.from_artifact(artifact)
+    metadata = DepositionMetadata.from_version(artifact_version)
     zenodo = ZenodoClient(access_token=zenodo_access_token)
 
     # Stream artifact file to Zenodo deposition

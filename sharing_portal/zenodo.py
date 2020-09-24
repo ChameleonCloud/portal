@@ -200,7 +200,8 @@ class DepositionMetadata:
         }
 
     @classmethod
-    def from_artifact(cls, artifact):
+    def from_version(cls, artifact_version):
+        artifact = artifact_version.artifact
         keywords = ['chameleon'].extend([
             str(label) for label in artifact.labels.all()
         ])
@@ -213,7 +214,7 @@ class DepositionMetadata:
             ],
             upload_type='publication',
             publication_type='workingpaper',
-            publication_date=artifact.created_at,
+            publication_date=artifact_version.created_at,
             communities=[{'identifier': 'chameleon'}],
             keywords=keywords,
         )
