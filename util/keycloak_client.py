@@ -29,12 +29,12 @@ class KeycloakClient:
         admin_client = realm.admin
         admin_client.set_token(token.get('access_token'))
         return admin_client
-    
+
     def _get_group_id_by_name(self, name):
         keycloak_group_id = None
         keycloakproject = Groups(realm_name=self.realm_name,
                                  client=self._get_admin_client())
-        
+
         matching = keycloakproject._client.get(
             url=keycloakproject._client.get_full_url(
                 keycloakproject.get_path('collection', realm=self.realm_name)
@@ -44,13 +44,13 @@ class KeycloakClient:
         matching = [u for u in matching if u['name'] == name]
         if matching and len(matching) == 1:
             keycloak_group_id = matching[0]['id']
-        
+
         return keycloak_group_id
 
     def get_keycloak_user_by_username(self, username):
         keycloakusers = Users(realm_name=self.realm_name,
                               client=self._get_admin_client())
-        
+
         matching = keycloakusers._client.get(
             url=keycloakusers._client.get_full_url(
                 keycloakusers.get_path('collection', realm=self.realm_name)
@@ -62,24 +62,24 @@ class KeycloakClient:
             return matching[0]
         else:
             return None
-    
+
     def get_user_projects_by_username(self, username):
         user = self.get_keycloak_user_by_username(username)
         if not user:
             return []
-        keycloakuser = User(realm_name=self.realm_name, 
+        keycloakuser = User(realm_name=self.realm_name,
                             user_id=user['id'],
                             client=self._get_admin_client())
-        
+
         project_charge_codes = [project['name'] for project in keycloakuser.groups.all()]
         return project_charge_codes
-    
+
     def get_project_members_by_charge_code(self, charge_code):
         project_id = self._get_group_id_by_name(charge_code)
         if not project_id:
             logger.warning('Couldn\'t find project {} in keycloak'.format(charge_code))
             return []
-        
+
         keycloakproject = Groups(realm_name=self.realm_name,
                                  client=self._get_admin_client())
         members = keycloakproject._client.get(
@@ -88,9 +88,11 @@ class KeycloakClient:
             ) + '/{id}/members'.format(id=project_id),
         )
         return [m['username'] for m in members]
-    
+
     def update_membership(self, charge_code, username, action):
         user = self.get_keycloak_user_by_username(username)
+        if not user:
+            raise ValueError('User {} does not exist'.format(username))
         project_id = self._get_group_id_by_name(charge_code)
         keycloakusergroups = UserGroups(realm_name=self.realm_name,
                                         user_id=user['id'],
@@ -101,11 +103,10 @@ class KeycloakClient:
             keycloakusergroups.delete(project_id)
         else:
             raise ValueError('Unrecognized keycloak membership action')
-    
+
     def create_project(self, charge_code, pi_username):
         keycloakproject = Groups(realm_name=self.realm_name,
                                  client=self._get_admin_client())
         keycloakproject.create(charge_code)
-        
-        self.update_membership(charge_code, pi_username, 'add')
 
+        self.update_membership(charge_code, pi_username, 'add')
