@@ -17,7 +17,7 @@
   <li class="active">Share</li>
 </ol>
 
-<form method="post">
+<form id="artifactShareForm" method="post">
   {% csrf_token %}
 
   <div class="layoutGrid">
@@ -69,6 +69,25 @@
         {% endfor %}
         <script nonce="{{ request.csp_nonce }}">
           (function () {
+            document.addEventListener('DOMContentLoaded', () => {
+              const form = document.getElementById('artifactShareForm');
+              if (form) {
+                form.addEventListener('submit', (event) => {
+                  const formData = new FormData(event.target)
+                  for (var pair of formData.entries()) {
+                    if (pair[0].indexOf('request_doi') && pair[1] == 'on') {
+                      if (! confirm(['Are you sure you want to request a DOI? ',
+                                     'This will make this version of your ',
+                                     'artifact publicly available on ',
+                                     'Zenodo: https://zenodo.org.'].join(''))) {
+                        event.preventDefault();
+                      }
+                      return;
+                    }
+                  }
+                });
+              }
+            });
           })();
         </script>
       </div>
