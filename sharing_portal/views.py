@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.db.models import F, Q
+from django.db.models import F, Q, IntegerField, Count
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
@@ -101,7 +101,7 @@ class ArtifactFilter:
         else:
             return Q()
 
-    PUBLIC = Q(doi__isnull=False)
+    PUBLIC = (Q(doi__isnull=False) & Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO))
 
     @staticmethod
     def PROJECT(projects):
@@ -139,26 +139,40 @@ def index_all(request, collection=None):
     else:
         f = ArtifactFilter.PUBLIC
 
-    artifacts = Artifact.objects.filter(f)
+    artifacts = _fetch_artifacts(f)
     # Pass user_projects to list to avoid a second fetch of this data
     return _render_list(request, artifacts, user_projects=user_projects)
 
 
 @login_required
 def index_mine(request):
-    artifacts = Artifact.objects.filter(ArtifactFilter.MINE(request))
+    artifacts = _fetch_artifacts(ArtifactFilter.MINE(request))
     return _render_list(request, artifacts)
 
 
 def index_public(request):
-    artifacts = Artifact.objects.filter(ArtifactFilter.PUBLIC)
+    artifacts = _fetch_artifacts(ArtifactFilter.PUBLIC)
     return _render_list(request, artifacts)
 
 
 def index_project(request, charge_code):
     projects = Project.objects.filter(charge_code=charge_code)
-    artifacts = Artifact.objects.filter(ArtifactFilter.PROJECT(projects))
+    artifacts = _fetch_artifacts(ArtifactFilter.PROJECT(projects))
     return _render_list(request, artifacts)
+
+
+def _fetch_artifacts(filters):
+    """Fetch all artifacts matching a given set of filters.
+
+    This uses a few advanced Django ORM mechanisms. We use `prefetch_related`
+    to allow us to perform filtering at the artifact version level. We do this
+    so we can hide non-public versions of public artifacts, when viewed w/o
+    any special access permissions. The query also includes a count aggregator
+    to act over the artifact versions collection; this is used to render stats
+    in some places.
+    """
+    return (Artifact.objects.prefetch_related('artifact_versions').filter(filters)
+        .annotate(num_versions=Count('artifact_versions')))
 
 
 @check_edit_permission
@@ -277,7 +291,7 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
 
     context = {
         'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact.versions),
+        'all_versions': _artifact_display_versions(artifact_versions),
         'doi_info': doi_info,
         'version': version,
         'launch_url': launch_url,
@@ -296,7 +310,7 @@ def launch(request, artifact, artifact_versions, version_idx=None):
 
     if not version:
         raise Http404((
-            'There is no version {} for this artifact.'
+            'There is no version {} for this artifact, or you do not have access.'
             .format(version_idx or '')))
 
     version.launch_count = F('launch_count') + 1
