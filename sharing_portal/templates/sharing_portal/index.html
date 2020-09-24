@@ -63,7 +63,7 @@
           {% for project in projects %}
           <li
             class="sidebarNav__item {% if request.resolver_match.url_name == 'index_project' and request.resolver_match.kwargs.charge_code == project.chargeCode %}active{% endif %}">
-            <a href="{% url 'sharing_portal:index_project' project.chargeCode %}">{{ project.chargeCode }}</a></li>
+            <a href="{% url 'sharing_portal:index_project' project.chargeCode %}">{% if project.nickname %}{{ project.nickname }}{% else %}{{ project.chargeCode }}{% endif %}</a></li>
           {% empty %}
           <li class="sidebarNav__item">No shared collections</li>
           {% endfor %}
