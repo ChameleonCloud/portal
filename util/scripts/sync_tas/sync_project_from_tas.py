@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 def init_reformated_project():
     ignored_tas_keys = ['field', 'type'] # portal project requires ids instead of names
     proj = {}
-    for tas_key, portal_key in TAS_TO_PORTAL_MAP.items():
+    for tas_key, portal_key in list(TAS_TO_PORTAL_MAP.items()):
         if tas_key in ignored_tas_keys:
             continue
         proj[portal_key] = None
@@ -49,7 +49,7 @@ def get_projects_from_tas(tas, db):
         reformated_proj = init_reformated_project()
         tas_proj_id = None
         tas_proj_nickname = None
-        for key, val in proj.items():
+        for key, val in list(proj.items()):
             if key == 'id':
                 tas_proj_id = val
             if key == 'nickname':
@@ -122,8 +122,8 @@ def sync(db, tas_projects, portal_projects):
     records_to_update = []
     columns = None
     
-    for proj_charge_code in tas_projects.keys():
-        if not columns: columns = tas_projects[proj_charge_code].keys()
+    for proj_charge_code in list(tas_projects.keys()):
+        if not columns: columns = list(tas_projects[proj_charge_code].keys())
         if proj_charge_code in portal_projects:
             portal_proj_id = portal_projects[proj_charge_code]['id']
             del portal_projects[proj_charge_code]['id']

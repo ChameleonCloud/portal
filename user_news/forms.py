@@ -2,10 +2,9 @@ from django.forms import ModelForm, Select, BooleanField
 from user_news.models import News, Event, Outage, OutageUpdate
 
 class EventForm(ModelForm):
-
     class Meta:
         model = Event
-	fields = '__all__'
+        fields = '__all__'
         widgets = {
             'event_type': Select
         }
@@ -16,7 +15,6 @@ class OutageForm(ModelForm):
     class Meta:
         model = Outage
         exclude = ['reminder_sent']
-	fields = '__all__'
 
     def clean_send_email_notification(self):
         send = self.cleaned_data.get('send_email_notification')

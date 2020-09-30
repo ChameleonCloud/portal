@@ -97,7 +97,7 @@ class ProjectAllocationMapper:
         else:
             for tas_project in self._tas_all_projects():
                 projects[tas_project['chargeCode']] = tas_project
-        return sorted(projects.values(), reverse=True, key=self.sort_by_allocation_request_date)
+        return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
 
     '''
     Sort by most recent allocation request
@@ -260,9 +260,9 @@ class ProjectAllocationMapper:
             user_projects[tas_project['chargeCode']] = tas_project
 
         if to_pytas_model:
-            return [tas_proj(initial=p) for p in user_projects.values()]
+            return [tas_proj(initial=p) for p in list(user_projects.values())]
         else:
-            return user_projects.values()
+            return list(user_projects.values())
 
     def get_project_members(self, tas_project):
         users = []
@@ -441,7 +441,7 @@ class ProjectAllocationMapper:
                 if key not in field_hierarchy:
                     field_hierarchy[key] = []
                 field_hierarchy[key].append((item.child.id, item.child.name))
-            for f in set(field_hierarchy.keys()) - set([item for sublist in field_hierarchy.values() for item in sublist]):
+            for f in set(field_hierarchy.keys()) - set([item for sublist in list(field_hierarchy.values()) for item in sublist]):
                 fields.append(self._portal_field_hierarchy_to_tas_format(f, field_hierarchy))
         else:
             fields = self.tas.fields()
@@ -505,7 +505,7 @@ class ProjectAllocationMapper:
 
     def tas_to_portal_alloc_obj(self, alloc, project_charge_code):
         reformated_alloc = {}
-        for key, val in alloc.items():
+        for key, val in list(alloc.items()):
             if key in allocation.TAS_TO_PORTAL_MAP:
                 reformated_alloc[allocation.TAS_TO_PORTAL_MAP[key]] = val
 
@@ -523,7 +523,7 @@ class ProjectAllocationMapper:
 
     def tas_to_portal_proj_obj(self, proj):
         reformated_proj = {}
-        for key, val in proj.items():
+        for key, val in list(proj.items()):
             if key in project.TAS_TO_PORTAL_MAP:
                 reformated_proj[project.TAS_TO_PORTAL_MAP[key]] = val
         if 'id' in proj:
@@ -593,7 +593,7 @@ class ProjectAllocationMapper:
                 normalized[charge_code]['allocations'].extend(p['allocations'])
             else:
                 normalized[charge_code] = p
-        return normalized.values()
+        return list(normalized.values())
 
     def _tas_projects_for_user(self, username):
         return self._normalize_tas_projects(

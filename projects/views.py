@@ -9,11 +9,11 @@ from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime
 from django.conf import settings
-from models import Project, ProjectExtras
+from .models import Project, ProjectExtras
 from projects.serializer import ProjectExtrasJSONSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
-from forms import ProjectCreateForm, ProjectAddUserForm,\
+from .forms import ProjectCreateForm, ProjectAddUserForm,\
     AllocationCreateForm, EditNicknameForm, AddBibtexPublicationForm
 from django.db import IntegrityError
 import re
@@ -125,16 +125,16 @@ def view_project(request, project_id):
         raise PermissionDenied
 
     for a in project.allocations:
-        if a.start and isinstance(a.start, basestring):
+        if a.start and isinstance(a.start, str):
             a.start = datetime.strptime(a.start, '%Y-%m-%dT%H:%M:%SZ')
         if a.dateRequested:
-            if isinstance(a.dateRequested, basestring):
+            if isinstance(a.dateRequested, str):
                 a.dateRequested = datetime.strptime(a.dateRequested, '%Y-%m-%dT%H:%M:%SZ')
         if a.dateReviewed:
-            if isinstance(a.dateReviewed, basestring):
+            if isinstance(a.dateReviewed, str):
                 a.dateReviewed = datetime.strptime(a.dateReviewed, '%Y-%m-%dT%H:%M:%SZ')
         if a.end:
-            if isinstance(a.end, basestring):
+            if isinstance(a.end, str):
                 a.end = datetime.strptime(a.end, '%Y-%m-%dT%H:%M:%SZ')
 
     user_mashup = []
@@ -164,10 +164,10 @@ def view_project(request, project_id):
     })
 
 def set_ks_project_nickname(chargeCode, nickname):
-    for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         ks_admin = admin_ks_client(region=region)
         project_list = ks_admin.projects.list(domain=ks_admin.user_domain_id)
-        project = filter(lambda this: getattr(this, 'charge_code', None) == chargeCode, project_list)
+        project = [this for this in project_list if getattr(this, 'charge_code', None) == chargeCode]
         logger.info('Assigning nickname {0} to project with charge code {1} at {2}'.format(nickname, chargeCode, region))
         if project and project[0]:
             project = project[0]

@@ -329,4 +329,4 @@ def register(request):
 
 def _clean_registration_data(registration_data):
     hide_keys = ['password', 'confirm_password', 'confirmPassword']
-    return dict((k, v) for k, v in registration_data.iteritems() if k not in hide_keys)
+    return dict((k, v) for k, v in registration_data.items() if k not in hide_keys)

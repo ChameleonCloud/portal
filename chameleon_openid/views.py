@@ -60,7 +60,7 @@ def openid_login(request):
             url = auth_request.redirectURL(trust_root, return_to)
             return HttpResponseRedirect(url)
 
-        except DiscoveryFailure, e:
+        except DiscoveryFailure as e:
             logger.error("OpenID discovery error: %s" % (str(e),))
 
     return render(request, 'chameleon_openid/login.html')
@@ -70,9 +70,9 @@ def openid_login(request):
 @csrf_exempt
 def openid_callback(request):
 
-    request_args = dict(request.GET.items())
+    request_args = dict(list(request.GET.items()))
     if request.method == 'POST':
-        request_args = dict(request.POST.items())
+        request_args = dict(list(request.POST.items()))
 
     if request_args:
         c = _get_consumer(request)
@@ -94,7 +94,7 @@ def openid_callback(request):
             result = {
                 'status': response.status,
                 'url': response.getDisplayIdentifier(),
-                'sreg': sreg_response and dict(sreg_response.items()),
+                'sreg': sreg_response and dict(list(sreg_response.items())),
                 'ax': ax_items
             }
             request.session['openid'] = result

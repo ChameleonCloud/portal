@@ -162,7 +162,7 @@ def regenerate_tokens(request, password):
     email = request.user.email
     tokens = {}
 
-    for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         ks_admin = admin_ks_client(region=region)
         try:
             sess = unscoped_user_session(region, username, password)
@@ -292,7 +292,7 @@ def sync_projects(ks_admin, ks_user, tas_user_projects):
         LOG.debug('Removed %s from project %s', ks_user.name, ks_p.name)
 
     return [
-        ks_p for ks_p in all_ks_projects.values()
+        ks_p for ks_p in list(all_ks_projects.values())
         if ks_p.charge_code in tas_granted
     ]
 
@@ -407,6 +407,6 @@ def disable_user(username):
         username (str): the username to look up. The user is always looked up
             in the 'default' domain.
     """
-    for region in settings.OPENSTACK_AUTH_REGIONS.keys():
+    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         ks_admin = admin_ks_client(region=region)
         sync_user(ks_admin, username, enabled=False)

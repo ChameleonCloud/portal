@@ -270,7 +270,7 @@ def app_create_image(request):
             return HttpResponseRedirect(reverse('appliance_catalog:app_list'))
     else:
         logger.info('Appliance create page requested.')
-        params = request.GET.items()
+        params = list(request.GET.items())
         params.append(('author_name', request.user.first_name + ' ' + request.user.last_name))
         params.append(('support_contact_name', request.user.first_name + ' ' + request.user.last_name))
         params.append(('author_url', request.user.email))

@@ -1,5 +1,5 @@
-FROM python:2.7.14-stretch
-MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
+FROM python:3.7.9-stretch
+# MAINTAINER Alejandro Rocha <rochaa@tacc.utexas.edu>
 
 RUN apt-get update \
   && curl -sL https://deb.nodesource.com/setup_6.x | bash \

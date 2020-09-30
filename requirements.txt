@@ -29,12 +29,12 @@ celery
 httpretty
 kombu
 mock
-MySQL-python
-opbeat
+mysqlclient
+# opbeat
 Pillow
 ply
 python-keycloak-client
-python-openid
+python3-openid
 pytz
 PyYAML
 redis

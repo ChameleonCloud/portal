@@ -23,7 +23,7 @@ ALLOCATION_ID_KEYS = ['project_id', 'requestor_id', 'justification', 'date_reque
 
 def init_reformated_alloc():
     alloc = {'project_id': None}
-    for key in TAS_TO_PORTAL_MAP.values():
+    for key in list(TAS_TO_PORTAL_MAP.values()):
         alloc[key] = None
 
     return alloc
@@ -49,7 +49,7 @@ def alloc_delta(portal_alloc, tas_alloc):
     """
     ignored_keys = ALLOCATION_ID_KEYS + ['id']
     return {
-        key: tas_alloc.get(key) for key in tas_alloc.keys()
+        key: tas_alloc.get(key) for key in list(tas_alloc.keys())
         if key not in ignored_keys and portal_alloc.get(key) != tas_alloc.get(key)
     }
 
@@ -62,7 +62,7 @@ def get_allocations_from_tas(tas, db):
         for a in p['allocations']:
             if a['resource'] == 'Chameleon':
                 reformated_a = init_reformated_alloc()
-                for key, val in a.items():
+                for key, val in list(a.items()):
                     if key == 'project':
                         cursor.execute("SELECT id FROM {table} WHERE charge_code = '{charge_code}'".format(table = PORTAL_PROJECT_TABLE_NAME,
                                                                                                            charge_code = a[key]))
@@ -109,7 +109,7 @@ def get_allocations_from_portal(db):
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT * FROM {}".format(PORTAL_ALLOCATION_TABLE_NAME))
     for alloc in cursor.fetchall():
-        for key, val in alloc.items():
+        for key, val in list(alloc.items()):
             if isinstance(val, datetime):
                 alloc[key] = val.replace(tzinfo=pytz.UTC)
         result.append(alloc)
@@ -125,9 +125,9 @@ def sync(db, tas_allocs, portal_allocs):
 
     for tas_alloc in tas_allocs:
         if not columns:
-            columns = tas_alloc.keys()
+            columns = list(tas_alloc.keys())
         compare_tas_alloc = {}
-        for key in tas_alloc.keys():
+        for key in list(tas_alloc.keys()):
             if key in ALLOCATION_ID_KEYS:
                 compare_tas_alloc[key] = tas_alloc[key]
         exist = False

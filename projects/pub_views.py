@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import (Http404, HttpResponseForbidden, HttpResponse,
                          HttpResponseRedirect, HttpResponseNotAllowed, JsonResponse)
-from forms import AddBibtexPublicationForm
+from .forms import AddBibtexPublicationForm
 from django.contrib import messages
 from projects.views import project_pi_or_admin_or_superuser
 from projects.models import Publication
