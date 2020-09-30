@@ -1,7 +1,8 @@
-from menus.base import NavigationNode, Modifier
 from cms.menu_bases import CMSAttachMenu
-from menus.menu_pool import menu_pool
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from menus.base import NavigationNode, Modifier
+from menus.menu_pool import menu_pool
 
 class UserMenu(CMSAttachMenu):
 
@@ -78,6 +79,11 @@ class UserMenu(CMSAttachMenu):
         menu_id += 1
         n = NavigationNode(_('Publications'), "/user/projects/publications/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
+
+        if request.session.get('has_legacy_account', False):
+            menu_id += 1
+            n = NavigationNode(_('Migrate account'), reverse('federation_migrate_account'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+            nodes.append(n)
 
         return nodes
 

@@ -88,8 +88,8 @@ def project_scoped_session(project_id=None, unscoped_token=None, region=None):
     return sess
 
 
-def unscoped_user_session(region, username, password,
-                          user_domain_id='default'):
+def unscoped_user_session(region, username=None, password=None,
+                          access_token=None, user_domain_id='default'):
     """Create a Keystone authentication session with no scope.
 
     Such unscoped sessions are useful mostly for storing an unscoped token that
@@ -97,21 +97,34 @@ def unscoped_user_session(region, username, password,
 
     Args:
         region (str): the name of the region.
-        username (str): the user's username.
-        password (str): the user's password.
+        username (str): the user's username, if using password authentication.
+        password (str): the user's password, if using password authentication.
+        access_token (str): the user's OpenID Connect access token, if using
+            oidc access token authentication.
         user_domain_id (:obj:str, optional): the Keystone domain ID for the
-            user. Defaults to the default domain of ``default``.
+            user. Defaults to the default domain of ``default``. Only applies
+            when using password authentication; domain is implied when using
+            OpenID Connect authentication.
 
     Returns:
         session.Session: a session object explicitly unscoped for the user.
     """
-    auth = v3.Password(
-        auth_url=auth_url_for_region(region),
-        username=username,
-        password=password,
-        user_domain_id=user_domain_id,
-        unscoped=True,
-    )
+    auth_url = auth_url_for_region(region)
+    if access_token:
+        auth = v3.oidc.OidcAccessToken(
+            auth_url=auth_url,
+            identity_provider='chameleon',
+            protocol='openid',
+            access_token=access_token,
+        )
+    else:
+        auth = v3.Password(
+            auth_url=auth_url_for_region(region),
+            username=username,
+            password=password,
+            user_domain_id=user_domain_id,
+            unscoped=True,
+        )
     sess = session.Session(auth=auth, **SESSION_DEFAULT_KWARGS)
     return sess
 
@@ -165,7 +178,8 @@ def regenerate_tokens(request, password):
     for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         ks_admin = admin_ks_client(region=region)
         try:
-            sess = unscoped_user_session(region, username, password)
+            sess = unscoped_user_session(
+                region, username=username, password=password)
             try:
                 tokens[region] = sess.get_token()
             except Exception as e:

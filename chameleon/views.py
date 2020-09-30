@@ -1,29 +1,36 @@
 from datetime import datetime
 from functools import wraps
+import json
 import logging
 from urllib.parse import urlencode
 import sys
+from uuid import uuid4
 
+from celery.result import AsyncResult
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
 from tas import auth as tas_auth
 
-from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user, regenerate_tokens, get_token, has_valid_token
+from chameleon.celery import app as celery_app
+from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user, regenerate_tokens, get_token, has_valid_token, WHITELISTED_PROJECTS
 from user_news.models import Outage
 from webinar_registration.models import Webinar
 from util.project_allocation_mapper import ProjectAllocationMapper
+from webinar_registration.models import Webinar
+from .tasks import MigrationError, migrate_project, migrate_user
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 def set_services_region(view_func):
@@ -71,7 +78,7 @@ def horizon_sso_login(request):
     ks_admin = admin_ks_client(request=request)
     ks_user = get_user(ks_admin, username)
     if not ks_user:
-        logger.info((
+        LOG.info((
             'User {} attempting SSO but does not exist in Keystone, forcing '
             'manual login'.format(username)))
         return manual_ks_login(request)
@@ -88,7 +95,7 @@ def horizon_sso_login(request):
             account is in a transient state so we give the user a chance to
             retrieve a token.
             '''
-            logger.info((
+            LOG.info((
                 'User {} attempting SSO, active keystone projects found, but '
                 'no auth token in session, trying manual ks login.'
                 .format(username)))
@@ -102,7 +109,7 @@ def horizon_sso_login(request):
                         if earliest_start_date is None or curr_alloc_date < earliest_start_date:
                             earliest_start_date = curr_alloc_date
                 # send users to a page that lets them know when their approved project begins
-                logger.debug('User: {} is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page'.format(username))
+                LOG.debug('User: {} is attempting to log in to Horizon, approved project found in TAS but is not yet active, sending to informational page'.format(username))
                 return render(request, 'sso/chameleon_project_approved.html', {
                     'active_date': datetime.strftime(earliest_start_date,'%B %d, %Y at %I:%M %p')
                 })
@@ -116,7 +123,7 @@ def horizon_sso_login(request):
     try:
         return redirect_to_horizon(request)
     except Exception as e:
-        logger.error(e)
+        LOG.error(e)
         return HttpResponseRedirect('/')
 
 def redirect_to_horizon(request):
@@ -127,7 +134,7 @@ def redirect_to_horizon(request):
     ## now we verify the host is valid, if not valid, log the error, send to home page...
     valid_callback_hosts = getattr(settings, 'SSO_CALLBACK_VALID_HOSTS', [])
     if not host or not host in valid_callback_hosts:
-        logger.error('Invalid or missing host in callback by user ' \
+        LOG.error('Invalid or missing host in callback by user ' \
             + request.user.username + ', callback host was: ' + host)
         return HttpResponseRedirect('/')
 
@@ -153,9 +160,9 @@ def manual_ks_login(request):
                 tas_user = tbe.authenticate(username=username, password=password)
             except Exception as e:
                 form.add_error('password', 'Invalid password')
-                logger.error('Invalid password when attempting to retrieve token : {}'.format(username + ', ' + e.message) + str(sys.exc_info()[0]))
+                LOG.error('Invalid password when attempting to retrieve token : {}'.format(username + ', ' + e.message) + str(sys.exc_info()[0]))
         else:
-            logger.error('An error occurred on form validation for user ' + request.user.username)
+            LOG.error('An error occurred on form validation for user ' + request.user.username)
 
         # if tas auth returned a user, the credentials were valid
         if tas_user:
@@ -163,12 +170,12 @@ def manual_ks_login(request):
             # Check if we were able to generate a token for the region the
             # user is trying to log in to
             if has_valid_token(request):
-                logger.info((
+                LOG.info((
                     'User {} retrieved unscoped token successfully via manual '
                     'form.'.format(username)))
                 return horizon_sso_login(request)
             else:
-                logger.info((
+                LOG.info((
                     'User {} could not retrieve unscoped token via manual '
                     'form.'.format(username)))
                 return HttpResponseRedirect('/sso/horizon/unavailable')
@@ -210,6 +217,8 @@ def dashboard(request):
     active_projects = mapper.get_user_projects(request.user.username,
         alloc_status=['Active', 'Approved', 'Pending'], to_pytas_model=True)
     context['active_projects'] = active_projects
+
+    context['show_migration_info'] = request.session.get('has_legacy_account', False)
 
     # open tickets...
     rt = rtUtil.DjangoRt()
@@ -276,6 +285,85 @@ def force_password_login(request):
     return redirect(reverse('login') + f'?{urlencode(params)}')
 
 
+@login_required
+def migrate(request):
+    return render(request, 'registration/migrate.html')
+
+
+@require_http_methods(['GET', 'POST'])
+def api_migration_job(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            migration_type = body.get('migration_type')
+            charge_code = body.get('charge_code')
+        except:
+            return JsonResponse({'error': 'malformed request'}, status=400)
+        if migration_type not in ['user', 'project']:
+            return JsonResponse({'error': 'invalid migration type'}, status=400)
+
+        task_id = str(uuid4())
+
+        if migration_type == 'project':
+            if not charge_code:
+                return JsonResponse({'error': 'missing charge_code'}, status=400)
+            migrate_project.apply_async(kwargs={
+                'username': request.user.username,
+                'access_token': request.session.get('oidc_access_token'),
+                'charge_code': charge_code,
+            }, task_id=task_id)
+        elif migration_type == 'user':
+            migrate_user.apply_async(kwargs={
+                'username': request.user.username,
+                'access_token': request.session.get('oidc_access_token'),
+            }, task_id=task_id)
+
+        return JsonResponse({'task_id': task_id})
+    else:
+        task_id = request.GET.get('task_id')
+        if not task_id:
+            return JsonResponse({'error': 'missing task_id'}, status=400)
+        task_result = AsyncResult(task_id, app=celery_app)
+        LOG.info(f'Task in state: {task_result.state}')
+        if isinstance(task_result.info, MigrationError):
+            details = {
+                'messages': task_result.info.messages + ['Failed to finish migration'],
+            }
+        else:
+            details = task_result.info
+        return JsonResponse({'state': task_result.state, **details})
+
+
+@require_http_methods(['GET'])
+def api_migration_state(request):
+    # The user may have different projects across different sites, if they only
+    # used a project on a particular site, but not others.
+    all_legacy_projects = {}
+    legacy_user = None
+    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
+        keystone = admin_ks_client(region=region)
+        ks_legacy_user = get_user(keystone, request.user.username)
+        legacy_user = {
+            'name': ks_legacy_user.name,
+            'migrated_at': getattr(ks_legacy_user, 'migrated_at', None)
+        }
+        all_legacy_projects.update({
+            ks_p.charge_code: {
+                'name': ks_p.name,
+                'charge_code': ks_p.charge_code,
+                'migrated_at': getattr(ks_p, 'migrated_at', None),
+                'migrated_by': getattr(ks_p, 'migrated_by', None),
+            }
+            for ks_p in keystone.projects.list(user=ks_legacy_user, domain='default')
+            if ks_p.charge_code not in all_legacy_projects
+            and ks_p.name not in WHITELISTED_PROJECTS
+        })
+    return JsonResponse({
+        'user': legacy_user,
+        'projects': list(all_legacy_projects.values())
+    })
+
+
 def _check_geni_federation_status(request):
     """
     Checks if a user who authenticated view GENI/OpenID is on the Chameleon Federation
@@ -294,7 +382,7 @@ def _check_geni_federation_status(request):
         try:
             on_chameleon_project = ProjectAllocationMapper.is_geni_user_on_chameleon_project(request.user.username)
         except:
-            logger.warn('Could not locate Chameleon federation project: %s' % \
+            LOG.warn('Could not locate Chameleon federation project: %s' % \
                 settings.GENI_FEDERATION_PROJECTS['chameleon'])
             on_chameleon_project = False
     else:

@@ -41,6 +41,9 @@ urlpatterns = [
     # Rollout endpoints for new login
     url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
     url(r'^auth/force-password-login/$', chameleon_views.force_password_login, name='force_password_login'),
+    url(r'^user/migrate/$', chameleon_views.migrate, name='federation_migrate_account'),
+    url(r'^api/user/migrate/status/$', chameleon_views.api_migration_state),
+    url(r'^api/user/migrate/job/$', chameleon_views.api_migration_job),
 
     # Legacy account endpoints
     url(r'^sso/horizon/$', chameleon_views.horizon_sso_login, name='horizon_sso_login'),

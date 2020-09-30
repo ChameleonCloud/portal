@@ -1,0 +1,12 @@
+{% extends 'layout/user.html' %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Migrate legacy account{% endblock %}
+
+{% block content %}
+<h3>Migrate account</h3>
+<div id="app"></div>
+{% csrf_token %}
+{% render_bundle 'vendor' %}
+{% render_bundle 'migrate_account' %}
+{% endblock %}
