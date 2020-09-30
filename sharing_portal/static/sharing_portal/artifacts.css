@@ -197,7 +197,7 @@
     opacity: 0.7;
 }
 
-.artifactVersions {
+.artifactVersions:not(:first-child) {
     margin-top: 2em;
 }
 .artifactVersions ol {
@@ -212,10 +212,23 @@
     border-radius: 0.5rem;
 }
 
-.artifactVersion__link {
+.artifactVersion__title {
     display: flex;
-} .artifactVersion__link > span:first-child {
     flex: 1;
-} .artifactVersion__link > span {
+} .artifactVersion__title > span:first-child {
+    flex: 1;
+} .artifactVersion__title > span {
     display: block;
+}
+
+.artifactVersionDelete {
+    display: flex;
+    align-items: center;
+}
+.artifactVersionDelete__title {
+    flex: 1;
+}
+
+.artifactVersion__doi {
+    font-size: 12px;
 }

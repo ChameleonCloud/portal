@@ -16,16 +16,18 @@
 {% block content %}
 <div class="layoutGrid">
   <div class="layoutGrid__main">
-    <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter"/>
+    <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter" />
 
     {% for artifact in artifacts %}
     <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
       <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.pk %}">
         <h5 class="cardItem__title">{{ artifact.title }}</h5>
         <div class="cardItem__body">
+          {% if artifact.short_description %}
           <p class="artifactGridItem__description">
             {{ artifact.short_description }}
           </p>
+          {% endif %}
         </div>
       </a>
       <div class="cardItem__footer">
@@ -49,17 +51,22 @@
     </div>
 
     <ul class="sidebarNav">
-      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_all' %}active{% endif %}"><a href="{% url 'sharing_portal:index_all' %}"><i class="fa fa-circle-o"></i> All</a></li>
-      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_public' %}active{% endif %}"><a href="{% url 'sharing_portal:index_public' %}"><i class="fa fa-globe"></i> Public</a></li>
-      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_mine' %}active{% endif %}"><a href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_all' %}active{% endif %}"><a
+          href="{% url 'sharing_portal:index_all' %}"><i class="fa fa-circle-o"></i> All</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_public' %}active{% endif %}"><a
+          href="{% url 'sharing_portal:index_public' %}"><i class="fa fa-globe"></i> Public</a></li>
+      <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_mine' %}active{% endif %}"><a
+          href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
       <li class="sidebarNav__item">
         <span class="sidebarNav__subnavHeading"><i class="fa fa-group"></i> Shared</span>
         <ul class="sidebarNav__subnav {% if not projects %}empty{% endif %}">
-        {% for project in projects %}
-          <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_project' and request.resolver_match.kwargs.charge_code == project.chargeCode %}active{% endif %}"><a href="{% url 'sharing_portal:index_project' project.chargeCode %}">{{ project.chargeCode }}</a></li>
-        {% empty %}
+          {% for project in projects %}
+          <li
+            class="sidebarNav__item {% if request.resolver_match.url_name == 'index_project' and request.resolver_match.kwargs.charge_code == project.chargeCode %}active{% endif %}">
+            <a href="{% url 'sharing_portal:index_project' project.chargeCode %}">{% if project.nickname %}{{ project.nickname }}{% else %}{{ project.chargeCode }}{% endif %}</a></li>
+          {% empty %}
           <li class="sidebarNav__item">No shared collections</li>
-        {% endfor %}
+          {% endfor %}
         </ul>
       </li>
     </ul>

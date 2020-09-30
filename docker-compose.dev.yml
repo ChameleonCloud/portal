@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   portal:
-    build: .
+    image: ${DOCKER_IMAGE_LATEST}
     env_file:
       - .chameleon_env
     volumes:
@@ -38,18 +38,18 @@ services:
       - PMA_PORT=3306
     depends_on:
       - mysql
-  # redis:
-  #   image: redis:alpine
-  # celery:
-  #   build: .
-  #   command: celery -A chameleon worker -l info --concurrency=1 -B
-  #   env_file:
-  #     - .chameleon_env
-  #   volumes:
-  #     - .:/project
-  #   depends_on:
-  #     - mysql
-  #     - redis
+  redis:
+    image: redis:alpine
+  celery:
+    image: ${DOCKER_IMAGE_LATEST}
+    command: celery -A chameleon worker -l info --concurrency=1 -B
+    env_file:
+      - .chameleon_env
+    volumes:
+      - .:/project
+    depends_on:
+      - mysql
+      - redis
   mail:
     image: bytemark/smtp
     restart: always

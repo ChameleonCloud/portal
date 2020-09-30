@@ -9,35 +9,35 @@
 
 {% block content %}
 <div class="layoutGrid">
-    <div class="layoutGrid__main">
-      <div class="artifactDetail">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+  <div class="layoutGrid__main">
+    <div class="artifactDetail">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-            <header class="artifactDetail__heading">
-                <h2 class="artifactTitle">{{ form_title }}</h2>
-                <div class="artifactActions">
-                    <button type="submit" class="btn btn-success">Save</button>
-                    <a href="{% url 'sharing_portal:embed_cancel' %}" class="btn btn-default">Cancel</a>
-                </div>
-            </header>
+        <header class="artifactDetail__heading">
+          <h2 class="artifactTitle">{{ form_title }}</h2>
+          <div class="artifactActions">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'sharing_portal:embed_cancel' %}" class="btn btn-default">Cancel</a>
+          </div>
+        </header>
 
-            {% if version_form %}
-              {% bootstrap_form version_form %}
-            {% endif %}
+        {% if version_form %}
+        {% bootstrap_form version_form %}
+        {% endif %}
 
-            {% bootstrap_form artifact_form %}
+        {% bootstrap_form artifact_form %}
 
-            <h4>Authors</h4>
-            {{ authors_formset.management_form }}
-            {% for form in authors_formset.forms %}
-            <fieldset class="form-group form-inline">
-              {% bootstrap_form form show_label=False layout='inline' %}
-            </fieldset>
-            {% endfor %}
-        </form>
-      </div>
+        <h4>Authors</h4>
+        {{ authors_formset.management_form }}
+        {% for form in authors_formset.forms %}
+        <fieldset class="form-group form-inline">
+          {% bootstrap_form form show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
+      </form>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}

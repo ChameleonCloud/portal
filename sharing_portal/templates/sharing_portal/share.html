@@ -8,40 +8,90 @@
 {% block content %}
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
-    <li>
-        <a href="{% url 'sharing_portal:index_all' %}">All</a>
-    </li>
-    <li>
-        <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
-    </li>
-    <li class="active">Share</li>
+  <li>
+    <a href="{% url 'sharing_portal:index_all' %}">All</a>
+  </li>
+  <li>
+    <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
+  </li>
+  <li class="active">Share</li>
 </ol>
 
-<div class="layoutGrid">
+<form id="artifactShareForm" method="post">
+  {% csrf_token %}
+
+  <div class="layoutGrid">
     <div class="layoutGrid__main">
       <div class="artifactDetail">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+        <header class="artifactDetail__heading">
+          <h2 class="artifactTitle">Edit sharing settings</h2>
+          <div class="artifactActions">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
+          </div>
+        </header>
 
-            <header class="artifactDetail__heading">
-                <h2 class="artifactTitle">Edit sharing settings</h2>
-                <div class="artifactActions">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
-                </div>
-            </header>
+        <label class="control-label">Share via private link</label>
+        <p>
+          <a href="{{ share_url }}">{{ share_url }}</a>
+        </p>
 
-            <p>
-              You can always share the artifact via this link:
-              <a href="{{ share_url }}">{{ share_url }}</a>
-            </p>
+        <label class="control-label">Share with projects</label>
+        <p>
+          You can share this artifact with other Chameleon projects. Any
+          member of those projects will then be able to view the artifact.
+        </p>
+        {% bootstrap_form share_form show_label=False %}
 
-            {% bootstrap_form share_form %}
-        </form>
+        <label class="control-label">Publish with DOI</label>
+        <p>
+          You can publish any version of this artifact to
+          <a href="https://zenodo.org" rel="noopener noreferrer" target="_blank">Zenodo</a>,
+          which will assign a DOI (Digital Object Identifier), suitable for use
+          in academic citation. Use the "Request DOI" options for any versions
+          you wish to publish publicly in this way.
+        </p>
       </div>
     </div>
 
-    <div class="layoutGrid__side"></div>
+    <div class="layoutGrid__side">
+      <div class="artifactVersions">
+        <h4><i class="fa fa-files-o"></i> Versions</h4>
+        {{ z_management_form }}
+        {% for i, form in z_forms %}
+        <fieldset>
+          <span class="artifactVersion__title">
+            <span>Version {{ i }}</span>
+            <span>{{ form.model.created_at }}</span>
+          </span>
+          {% bootstrap_form form form_group_class='form-group artifactVersion__doi' error_css_class='foobar' show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
+        <script nonce="{{ request.csp_nonce }}">
+          (function () {
+            document.addEventListener('DOMContentLoaded', () => {
+              const form = document.getElementById('artifactShareForm');
+              if (form) {
+                form.addEventListener('submit', (event) => {
+                  const formData = new FormData(event.target)
+                  for (var pair of formData.entries()) {
+                    if (pair[0].indexOf('request_doi') && pair[1] == 'on') {
+                      if (! confirm(['Are you sure you want to request a DOI? ',
+                                     'This will make this version of your ',
+                                     'artifact publicly available on ',
+                                     'Zenodo: https://zenodo.org.'].join(''))) {
+                        event.preventDefault();
+                      }
+                      return;
+                    }
+                  }
+                });
+              }
+            });
+          })();
+        </script>
+      </div>
+    </div>
   </div>
-</div>
+</form>
 {% endblock %}

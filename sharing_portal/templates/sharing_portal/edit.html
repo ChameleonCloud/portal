@@ -8,34 +8,72 @@
 {% block content %}
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
-    <li>
-        <a href="{% url 'sharing_portal:index_all' %}">All</a>
-    </li>
-    <li class="active">
-        {{ artifact.title }}
-    </li>
+  <li>
+    <a href="{% url 'sharing_portal:index_all' %}">All</a>
+  </li>
+  <li class="active">
+    {{ artifact.title }}
+  </li>
 </ol>
 
 <div class="layoutGrid">
-    <div class="layoutGrid__main">
-      <div class="artifactDetail">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+  <div class="layoutGrid__main">
+    <div class="artifactDetail">
+      <form method="post">
+        {% csrf_token %}
 
-            <header class="artifactDetail__heading">
-                <h2 class="artifactTitle">Edit artifact</h2>
-                <div class="artifactActions">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                    <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
-                </div>
-            </header>
+        <header class="artifactDetail__heading">
+          <h2 class="artifactTitle">Edit artifact</h2>
+          <div class="artifactActions">
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
+          </div>
+        </header>
 
-            {% bootstrap_form artifact_form %}
-        </form>
-      </div>
+        {% bootstrap_form artifact_form %}
+      </form>
     </div>
+  </div>
 
-    <div class="layoutGrid__side"></div>
+  <div class="layoutGrid__side">
+    <div class="artifactVersions">
+      <h4><i class="fa fa-files-o"></i> Versions</h4>
+      <form method="post">
+        {% csrf_token %}
+        <ol>
+          {% for i, v in all_versions %}
+          <li class="artifactVersionDelete">
+            <span class="artifactVersion__title">
+              <span>Version {{ i }}</span>
+              <span>{{ v.created_at }}</span>
+            </span>
+            <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
+              value="{{ v.pk }}" {% if all_versions|length == 1 or v.doi %}disabled{% endif %}
+              {% if v.doi %}title="This version is published with a DOI and cannot be deleted"
+              {% elif all_versions|length == 1 %}title="Cannot delete only version"
+              {% else %}title="Delete this version"
+              {% endif %}>
+              <i class="fa fa-trash-o"></i>
+            </button>
+          </li>
+          {% endfor %}
+        </ol>
+      </form>
+    </div>
+    <script nonce="{{ request.csp_nonce }}">
+      (function () {
+        document.addEventListener('DOMContentLoaded', () => {
+          const deleteButtons = document.querySelectorAll('[name=delete_version]');
+          deleteButtons.forEach((el) => {
+            el.addEventListener('click', (event) => {
+              if (!confirm('Are you sure you want to delete this version?')) {
+                event.preventDefault();
+              }
+            });
+          });
+        });
+      })();
+    </script>
   </div>
 </div>
 {% endblock %}

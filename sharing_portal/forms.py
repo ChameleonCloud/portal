@@ -73,5 +73,77 @@ class ShareArtifactForm(forms.Form):
         def label_from_instance(self, project):
             return project.nickname or project.charge_code
 
-    projects = ProjectChoiceField(label='Shared with projects', required=False,
+    projects = ProjectChoiceField(label='Share with projects', required=False,
         queryset=Project.objects.all())
+
+
+class ZenodoPublishForm(forms.Form):
+    artifact_version_id = forms.CharField(widget=forms.HiddenInput())
+    request_doi = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.model = kwargs.pop('model')
+        label = kwargs.pop('label', 'Request DOI')
+        force_disable = kwargs.pop('force_disable', False)
+        super(ZenodoPublishForm, self).__init__(*args, **kwargs)
+        doi_field = self.fields['request_doi']
+        doi_field.disabled = self._has_doi() or force_disable
+        if self._has_doi():
+            doi_field.label = 'Published as {}'.format(self.model.doi)
+        else:
+            doi_field.label = label
+
+    def get_initial_for_field(self, field, field_name):
+        if field_name == 'artifact_version_id':
+            return self.model.pk
+        elif field_name == 'request_doi':
+            return self._has_doi()
+        return None
+
+    def clean(self):
+        """Override clean to avoid setting form data when a DOI is assigned.
+
+        This prevents duplicate requests to try to request a DOI for an
+        artifact version.
+        """
+        if self._has_doi():
+            self.cleaned_data = {}
+        return super(ZenodoPublishForm, self).clean()
+
+    def _has_doi(self):
+        return self.model.doi is not None
+
+
+class BaseZenodoPublishFormset(forms.BaseFormSet):
+    def __init__(self, *args, **kwargs):
+        artifact_versions = kwargs.pop('artifact_versions')
+        if not artifact_versions:
+            raise ValueError('artifact_versions must provided')
+        self.artifact_versions = artifact_versions
+        self.latest_published_version = max([
+            i for i, v in enumerate(artifact_versions) if v.doi
+        ] or [-1])
+        kwargs['initial'] = [{} for _ in artifact_versions]
+        super(BaseZenodoPublishFormset, self).__init__(*args, **kwargs)
+
+    def get_form_kwargs(self, index):
+        """Pass the linked artifact version model through to the nested form.
+        """
+        future_version_published = index < self.latest_published_version
+        return {
+            'model': self.artifact_versions[index],
+            # Prevent publishing versions behind the latest published version
+            'force_disable': future_version_published,
+            'label': ('(cannot request DOI for past versions)'
+                if future_version_published else None)
+        }
+
+    @property
+    def cleaned_data(self):
+        """Override cleaned_data to ignore forms with empty data.
+        """
+        return [x for x in super(BaseZenodoPublishFormset, self).cleaned_data if x]
+
+
+ZenodoPublishFormset = forms.formset_factory(ZenodoPublishForm,
+    formset=BaseZenodoPublishFormset, extra=0)
