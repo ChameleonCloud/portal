@@ -10,6 +10,7 @@ django-pipeline
 django-reversion
 django-simple-captcha
 django-termsandconditions
+django-webpack-loader
 
 # django-cms
 django-cms

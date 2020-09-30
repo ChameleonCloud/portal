@@ -50,6 +50,14 @@ services:
     depends_on:
       - mysql
       - redis
+  vue:
+    image: node:lts
+    command: sh -c 'yarn && yarn serve'
+    working_dir: /project
+    volumes:
+      - .:/project
+    ports:
+      - 127.0.0.1:9000:9000
   mail:
     image: bytemark/smtp
     restart: always

@@ -77,8 +77,7 @@ target/
 #node dependencies
 */node_modules
 node_modules
-
-package-lock.json
+webpack-stats.json
 
 #tmp folder
 */.tmp

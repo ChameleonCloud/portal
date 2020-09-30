@@ -33,6 +33,9 @@ def custom_login(request, current_app=None, extra_context=None):
 @csrf_protect
 @never_cache
 def custom_logout(request):
+    # TODO(jason): once we drop support for password login, we can delete this
+    # custom logout function in favor of using the OIDC_OP_LOGOUT_URL_METHOD
+    # setting in the oidc module.
     logout_redirect_url = settings.LOGOUT_REDIRECT_URL
     if (request.user.is_authenticated() and
         request.session.get('is_federated') and logout_redirect_url):

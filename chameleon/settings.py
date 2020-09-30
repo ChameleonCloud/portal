@@ -119,6 +119,7 @@ INSTALLED_APPS = (
     'termsandconditions',
     'impersonate',
     'markdown_deux',
+    'webpack_loader',
 
     ##
     # custom
@@ -174,6 +175,7 @@ MIDDLEWARE_CLASSES = (
     'cms.middleware.toolbar.ToolbarMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
+    'mozilla_django_oidc.middleware.RefreshOIDCAccessToken',
 )
 
 ROOT_URLCONF = 'chameleon.urls'
@@ -273,7 +275,9 @@ OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get('OIDC_OP_AUTHORIZATION_ENDPOINT'
 OIDC_OP_TOKEN_ENDPOINT = os.environ.get('OIDC_OP_TOKEN_ENDPOINT')
 OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
 OIDC_STORE_ACCESS_TOKEN = True
-OIDC_STORE_ID_TOKEN = True
+OIDC_STORE_REFRESH_TOKEN = True
+OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60
+OIDC_EXEMPT_URLS = ['logout']
 LOGOUT_REDIRECT_URL = os.environ.get('LOGOUT_REDIRECT_URL')
 
 ## Keycloak Client
@@ -550,7 +554,16 @@ TEMPLATES = [
 },
 ]
 
-
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'vue/',  # must end with slash
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
+    }
+}
 
 #####
 #
@@ -729,6 +742,16 @@ CSP_FONT_SRC = ["'self'", 'https://fonts.gstatic.com/']
 CSP_IMG_SRC = ["'self'", '*.googleusercontent.com']
 CSP_STYLE_SRC = ["'self'", 'https://fonts.googleapis.com/', "'unsafe-inline'"]
 CSP_INCLUDE_NONCE_IN=['script-src']
+# Add rules for the Vue JS dev server
+if DEBUG:
+    vue_dev_server = 'http://localhost:9000/'
+    CSP_SCRIPT_SRC.append(vue_dev_server)
+    CSP_IMG_SRC.append(vue_dev_server)
+    CSP_STYLE_SRC.append(vue_dev_server)
+    CSP_CONNECT_SRC = ["'self'", vue_dev_server]
+    # Webpack uses eval to provide its Hot Module Replacement capability
+    CSP_SCRIPT_SRC.append("'unsafe-eval'")
+
 
 # Federation new login experience
 NEW_LOGIN_EXPERIENCE_COOKIE = 'new_login_experience'

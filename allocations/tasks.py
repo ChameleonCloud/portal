@@ -13,7 +13,7 @@ from allocations.allocations_api import BalanceServiceClient
 logger = logging.getLogger(__name__)
 
 def _deactivate_allocation(balance_service, alloc):
-    balance = balance_service.call(alloc.project.charge_code)
+    balance = balance_service.call(alloc.project.charge_code) or {}
     if 'used' in balance and balance['used']:
         alloc.su_used = float(balance['used'])
     else:

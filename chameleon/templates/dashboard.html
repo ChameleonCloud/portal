@@ -36,6 +36,15 @@
   {% endif %}
 {% endif %}
 
+{% if show_migration_info %}
+<div class="alert alert-info">
+  <p>
+    You have logged in via a federated identity. But you have an old account.
+    <a href="{% url 'federation_migrate_account' %}">Migrate your account.</a>
+  </p>
+</div>
+{% endif %}
+
 <div class="row">
   <div class="col-sm-6">
     <div class="panel panel-default">
