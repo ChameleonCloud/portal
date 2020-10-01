@@ -8,7 +8,6 @@ from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.contrib.auth.views import logout
 from django.views.generic import RedirectView
 from django.views.static import serve
 from tas import views as tas_views
@@ -34,14 +33,17 @@ urlpatterns = [
 
     # custom urls
     url(r'^login/', chameleon_os_login.custom_login, name='login'),
-    url(r'^sso/horizon/$', chameleon_views.horizon_sso_login, name='horizon_sso_login'),
-    url(r'^sso/horizon/unavailable', chameleon_views.horizon_sso_unavailable, name='horizon_sso_unavailable'),
-    url(r'^logout/', logout, {'next_page': '/'}, name='logout'),
-
+    url(r'^logout/', chameleon_os_login.custom_logout, name='logout'),
+    # Both login and registration are handled in the IdP (Keycloak)
+    url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('login'))),
+    url(r'^user/register/', RedirectView.as_view(permanent=True, url=reverse_lazy('login'))),
+    # Rollout endpoints for new login
     url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
     url(r'^auth/force-password-login/$', chameleon_views.force_password_login, name='force_password_login'),
 
-    url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
+    # Legacy account endpoints
+    url(r'^sso/horizon/$', chameleon_views.horizon_sso_login, name='horizon_sso_login'),
+    url(r'^sso/horizon/unavailable', chameleon_views.horizon_sso_unavailable, name='horizon_sso_unavailable'),
     url(r'^user/', include('tas.urls', namespace='tas')),
     url(r'^email-confirmation/', tas_views.email_confirmation),
     url(r'^password-reset/', tas_views.password_reset),

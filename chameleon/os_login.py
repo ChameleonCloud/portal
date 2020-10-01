@@ -1,6 +1,7 @@
 from csp.decorators import csp_update
 from django.conf import settings
-from django.contrib.auth.views import login
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.views import login, logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
@@ -27,3 +28,15 @@ def custom_login(request, current_app=None, extra_context=None):
         request.session['is_federated'] = False
         regenerate_tokens(request, password)
     return login_return
+
+
+@csrf_protect
+@never_cache
+def custom_logout(request):
+    logout_redirect_url = settings.LOGOUT_REDIRECT_URL
+    if (request.user.is_authenticated() and
+        request.session.get('is_federated') and logout_redirect_url):
+        auth_logout(request)
+        return HttpResponseRedirect(logout_redirect_url)
+
+    return logout(request, next_page='/')
