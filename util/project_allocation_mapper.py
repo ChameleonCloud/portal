@@ -543,11 +543,11 @@ class ProjectAllocationMapper:
             pi_eligibility = user.pi_eligibility()
         except:
             pi_eligibility = 'Ineligible'
-        tas_user = {'username': user.username.encode('utf-8'),
-                    'firstName': user.first_name.encode('utf-8'),
-                    'lastName': user.last_name.encode('utf-8'),
+        tas_user = {'username': user.username,
+                    'firstName': user.first_name,
+                    'lastName': user.last_name,
                     'source': 'Chameleon',
-                    'email': user.email.encode('utf-8'),
+                    'email': user.email,
                     'id': user.id,
                     'piEligibility': pi_eligibility,
                     'citizenship': None,

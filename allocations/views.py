@@ -39,7 +39,6 @@ def denied( request ):
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
 def view( request ):
-    #resp = ''
     try:
         mapper = ProjectAllocationMapper(request)
         resp = mapper.get_all_projects()
