@@ -731,6 +731,7 @@ CSP_INCLUDE_NONCE_IN=['script-src']
 
 # Federation new login experience
 NEW_LOGIN_EXPERIENCE_COOKIE = 'new_login_experience'
+FORCE_OLD_LOGIN_EXPERIENCE_PARAM = 'old_login_experience'
 
 CACHES = {
     'default': {

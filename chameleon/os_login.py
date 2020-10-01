@@ -17,7 +17,8 @@ LOG = logging.getLogger(__name__)
 @csrf_protect
 @never_cache
 def custom_login(request, current_app=None, extra_context=None):
-    if request.COOKIES.get(settings.NEW_LOGIN_EXPERIENCE_COOKIE) == '1':
+    if (request.COOKIES.get(settings.NEW_LOGIN_EXPERIENCE_COOKIE) == '1' and
+        request.GET.get(settings.FORCE_OLD_LOGIN_EXPERIENCE_PARAM) != '1'):
         return HttpResponseRedirect(reverse('oidc_authentication_init'))
 
     login_return = login(request, current_app=None, extra_context=None)

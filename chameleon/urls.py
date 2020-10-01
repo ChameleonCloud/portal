@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^logout/', logout, {'next_page': '/'}, name='logout'),
 
     url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
+    url(r'^auth/force-password-login/$', chameleon_views.force_password_login, name='force_password_login'),
 
     url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
     url(r'^user/', include('tas.urls', namespace='tas')),

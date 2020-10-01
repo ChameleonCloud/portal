@@ -1,26 +1,26 @@
+from datetime import datetime
 from functools import wraps
+import logging
+from urllib.parse import urlencode
+import sys
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from user_news.models import Outage
-from djangoRT import rtUtil
-from urllib.parse import urlparse
-import logging
-import chameleon.os_login as login
-from tas import auth as tas_auth
-from webinar_registration.models import Webinar
-from django.utils import timezone
-from datetime import datetime
-import sys
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
-from keystoneclient.v3 import client as ks_client
+from django.shortcuts import render, redirect
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from chameleon.keystone_auth import admin_ks_client, sync_projects, sync_user, get_user, regenerate_tokens, get_token, has_valid_token
+from djangoRT import rtUtil
+from tas import auth as tas_auth
+
+from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user, regenerate_tokens, get_token, has_valid_token
+from user_news.models import Outage
+from webinar_registration.models import Webinar
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger(__name__)
@@ -264,6 +264,16 @@ def new_login_experience(request):
     else:
         messages.info(request, 'Your opt-in status has not changed.')
     return response
+
+
+def force_password_login(request):
+    """Redirect user to login with a parameter that forces a password login.
+
+    This is a way to do a one-off opt-out of federated login.
+    """
+    params = request.GET.copy()
+    params[settings.FORCE_OLD_LOGIN_EXPERIENCE_PARAM] = '1'
+    return redirect(reverse('login') + f'?{urlencode(params)}')
 
 
 def _check_geni_federation_status(request):
