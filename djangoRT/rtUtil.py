@@ -55,16 +55,16 @@ class DjangoRt:
     # Returns the ticket id of the created ticket
     def createTicket(self, ticket):
         return self.tracker.create_ticket(Queue=self.rtQueue,
-                                          Subject=ticket.subject.encode('utf-8'),
-                                          Text=ticket.problem_description.replace('\n', '\n ').encode('utf-8'),
+                                          Subject=ticket.subject,
+                                          Text=ticket.problem_description.replace('\n', '\n '),
                                           Requestors=ticket.requestor,
                                           Cc=",".join(ticket.cc))
 
     def replyToTicket(self, ticket_id, text='', files=[]):
-        return self.tracker.reply(ticket_id, text=text.encode('utf-8'), files=files)
+        return self.tracker.reply(ticket_id, text=text, files=files)
 
     def commentOnTicket(self, ticket_id, text=''):
-        return self.tracker.comment(ticket_id, text=text.encode('utf-8'))
+        return self.tracker.comment(ticket_id, text=text)
 
     def getAttachment(self, ticketId, attachmentId):
         attachment_name = self.tracker.get_attachment(ticketId, attachmentId).get("Filename")
