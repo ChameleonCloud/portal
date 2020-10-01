@@ -1,7 +1,7 @@
 # # Django 1.11-compatible versions
 
 django~=1.11.0
-django-angular~=2.2
+django-angular<2.3
 django-bootstrap3<14.0
 django-classy-tags<2.0.0
 django-sekizai<2.0.0
