@@ -14,7 +14,7 @@ pipeline {
       stage('publish') {
         steps {
           sh 'docker login --username=$DOCKER_REGISTRY_CREDS_USR --password=$DOCKER_REGISTRY_CREDS_PSW $DOCKER_REGISTRY'
-          sh 'make publish'
+          sh 'make publish publish-latest'
         }
       }
     }
