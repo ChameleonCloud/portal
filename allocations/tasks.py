@@ -5,7 +5,7 @@ import logging
 import pytz
 from operator import attrgetter
 
-from celery import task
+from celery.decorators import task
 from django.db import transaction
 from allocations.models import Allocation
 from allocations.allocations_api import BalanceServiceClient
@@ -45,7 +45,7 @@ def deactivate_multiple_active_allocations_of_projects():
         project_active_allocations = list(Allocation.objects.filter(status='active', project_id=proj_id))
         if len(project_active_allocations) > 1:
             logger.warning('project {} has more than one active allocations'.format(proj_id))
-            by_expiration = sorted(project_active_allocations, 
+            by_expiration = sorted(project_active_allocations,
                                    key=attrgetter('expiration_date'), reverse=True)
             # Deactivate any allocations with earlier expiration dates
             for alloc in by_expiration[1:]:
@@ -85,4 +85,4 @@ def activate_expire_allocations():
     # check projects with multiple active allocations
     deactivate_multiple_active_allocations_of_projects()
     # activate allocations
-    active_approved_allocations(balance_service)    
+    active_approved_allocations(balance_service)

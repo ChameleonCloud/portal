@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import logging
 import pytz
 
-from celery import task
+from celery.decorators import task
 
 from django.conf import settings
 from django.core.mail import send_mail

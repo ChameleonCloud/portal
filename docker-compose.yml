@@ -25,7 +25,7 @@ services:
 
   celery:
     build: .
-    command: celery -A chameleon worker -l info --concurrency=1 -B
+    command: celery -A chameleon worker -l INFO --concurrency=1 -B
     env_file:
       - .chameleon_env
     volumes:
