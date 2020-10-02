@@ -226,9 +226,10 @@ def create_allocation(request, project_id, allocation_id=-1):
     project = mapper.get_project(project_id)
 
     allocation = None
-    if int(allocation_id) > 0:
+    allocation_id = int(allocation_id)
+    if allocation_id > 0:
         for a in project.allocations:
-            if a.id == int(allocation_id):
+            if a.id == allocation_id:
                 allocation = a
 
     # goofiness that we should clean up later; requires data cleansing
