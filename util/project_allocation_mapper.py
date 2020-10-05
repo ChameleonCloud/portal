@@ -116,55 +116,34 @@ class ProjectAllocationMapper:
         return latest_req_date
 
     def save_allocation(self, alloc, project_charge_code, host):
-        if self.is_from_db:
-            reformated_alloc = self.tas_to_portal_alloc_obj(alloc, project_charge_code)
-            reformated_alloc.save()
-            self._send_allocation_request_notification(project_charge_code, host)
-        else:
-            tas_project = self._tas_lookup_project(project_charge_code)
-            if not tas_project:
-                raise ValueError('Could not find TAS project %s', project_charge_code)
-            alloc['projectId'] = tas_project['id']
-            self.tas.create_allocation(alloc)
+        reformated_alloc = self.tas_to_portal_alloc_obj(alloc, project_charge_code)
+        reformated_alloc.save()
+        self._send_allocation_request_notification(project_charge_code, host)
 
     def save_project(self, proj, host = None):
-        if self.is_from_db:
-            allocations = self.get_attr(proj, 'allocations')
-            reformated_proj = self.tas_to_portal_proj_obj(proj)
-            reformated_proj.save()
-            if reformated_proj.charge_code.startswith(TMP_PROJECT_CHARGE_CODE_PREFIX):
-                # save project in portal
-                new_proj = portal_proj.objects.filter(charge_code=reformated_proj.charge_code)
-                if len(new_proj) == 0:
-                    logger.error('Couldn\'t find project {} in portal'.format(reformated_proj.charge_code))
-                else:
-                    new_proj = new_proj[0]
-                    valid_charge_code = 'CHI-' + str(datetime.today().year)[2:] + str(new_proj.id).zfill(4)
-                    new_proj.charge_code = valid_charge_code
-                    new_proj.save()
-                    reformated_proj.charge_code = valid_charge_code
-
-                    # create allocation
-                    self.save_allocation(allocations[0], valid_charge_code, host)
-
-                    # save project in keycloak
-                    keycloak_client = KeycloakClient()
-                    keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
-
-            return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
-        else:
-            if 'chargeCode' in proj:
-                tas_project = self._tas_lookup_project(proj['chargeCode'])
-                if not tas_project:
-                    raise ValueError('Could not find TAS project %s', proj['chargeCode'])
-                tas_project = self.tas.edit_project(tas_project)
+        allocations = self.get_attr(proj, 'allocations')
+        reformated_proj = self.tas_to_portal_proj_obj(proj)
+        reformated_proj.save()
+        if reformated_proj.charge_code.startswith(TMP_PROJECT_CHARGE_CODE_PREFIX):
+            # save project in portal
+            new_proj = portal_proj.objects.filter(charge_code=reformated_proj.charge_code)
+            if len(new_proj) == 0:
+                logger.error('Couldn\'t find project {} in portal'.format(reformated_proj.charge_code))
             else:
-                tas_project = self.tas.create_project(proj)
-                pextras = ProjectExtras.objects.create(
-                    tas_project_id=tas_project['id'], nickname=proj['nickname'],
-                    charge_code=tas_project['chargeCode'])
-                pextras.save()
-            return tas_project
+                new_proj = new_proj[0]
+                valid_charge_code = 'CHI-' + str(datetime.today().year)[2:] + str(new_proj.id).zfill(4)
+                new_proj.charge_code = valid_charge_code
+                new_proj.save()
+                reformated_proj.charge_code = valid_charge_code
+
+                # create allocation
+                self.save_allocation(allocations[0], valid_charge_code, host)
+
+                # save project in keycloak
+                keycloak_client = KeycloakClient()
+                keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
+
+        return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
 
     def get_user_id(self, request):
         user = self.get_user(request.user.username)
