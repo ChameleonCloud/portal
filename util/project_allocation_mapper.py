@@ -90,13 +90,9 @@ class ProjectAllocationMapper:
 
     def get_all_projects(self):
         projects = {}
-        if self.is_from_db:
-            for proj in portal_proj.objects.all():
-                proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
-                projects[proj['chargeCode']] = proj
-        else:
-            for tas_project in self._tas_all_projects():
-                projects[tas_project['chargeCode']] = tas_project
+        for proj in portal_proj.objects.all():
+            proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
+            projects[proj['chargeCode']] = proj
         return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
 
     '''
@@ -319,25 +315,21 @@ class ProjectAllocationMapper:
             return tas_project
 
     def allocation_approval(self, data, host):
-        if self.is_from_db:
-            # update allocation model
-            alloc = portal_alloc.objects.get(pk=data['id'])
-            data['status'] = data['status'].lower()
-            data['dateReviewed'] = datetime.now(pytz.utc)
-            for item in ['reviewerId', 'dateReviewed', 'start', 'end', 'status', 'decisionSummary', 'computeAllocated']:
-                setattr(alloc, allocation.TAS_TO_PORTAL_MAP[item], data[item])
-            alloc.save()
-            logger.info('Allocation model updated: data=%s', alloc.__dict__)
-            # send email to PI
-            email_args = {'charge_code': data['project'],
-                          'requestor_id': data['requestorId'],
-                          'status': data['status'],
-                          'decision_summary': data['decisionSummary'],
-                          'host': host}
-            self._send_allocation_decision_notification(**email_args)
-        else:
-            result = self.tas.allocation_approval(data['id'], data)
-            logger.info('Allocation approval TAS response: data=%s', json.dumps(result))
+        # update allocation model
+        alloc = portal_alloc.objects.get(pk=data['id'])
+        data['status'] = data['status'].lower()
+        data['dateReviewed'] = datetime.now(pytz.utc)
+        for item in ['reviewerId', 'dateReviewed', 'start', 'end', 'status', 'decisionSummary', 'computeAllocated']:
+            setattr(alloc, allocation.TAS_TO_PORTAL_MAP[item], data[item])
+        alloc.save()
+        logger.info('Allocation model updated: data=%s', alloc.__dict__)
+        # send email to PI
+        email_args = {'charge_code': data['project'],
+                      'requestor_id': data['requestorId'],
+                      'status': data['status'],
+                      'decision_summary': data['decisionSummary'],
+                      'host': host}
+        self._send_allocation_decision_notification(**email_args)
 
     @staticmethod
     def is_geni_user_on_chameleon_project(username):
