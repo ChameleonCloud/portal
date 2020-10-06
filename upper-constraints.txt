@@ -7,7 +7,7 @@ django-classy-tags<2.0.0
 django-sekizai<2.0.0
 django-cms~=3.6.0
 djangocms-attributes-field<2.0.0
-git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/1.0.x#egg=djangocms_blog
+git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/1.0.x#egg=djangocms_blog&_=1
 djangocms-file<3.0.0
 djangocms-link<3.0.0
 djangocms-picture<3.0.0
