@@ -23,13 +23,12 @@ def main(argv=None):
 
     parser = argparse.ArgumentParser(\
         description='Import PI eligibility status from TAS')
-    parser.add_argument('--dryrun', type=bool, help=\
-        'Simulate import, no changes applied', action='store_true', default=False)
+    parser.add_argument('--dryrun', action='store_true', default=False, help=\
+        'Simulate import, no changes applied')
     parser.add_argument('--users', type=str, help=\
         'Synchronize a specific user or set of users using a csv list of usernames', default=None)
-    parser.add_argument('--seteligible', type=bool, help=\
-        'Used with --users flag to set all provided users as PI Eligible',
-        action='store_true', default=False)
+    parser.add_argument('--seteligible', action='store_true', default=False, help=\
+        'Used with --users flag to set all provided users as PI Eligible')
     args = parser.parse_args(argv[1:])
 
     started = datetime.now()
