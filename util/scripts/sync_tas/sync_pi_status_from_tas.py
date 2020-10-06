@@ -4,7 +4,7 @@ import logging
 import django
 
 # loading up django so we can use models for queries/updates
-sys.path.append('/project') 
+sys.path.append('/project')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chameleon.settings")
 django.setup()
 logger = logging.getLogger('util.scripts.sync_tas.sync_pi_status')
@@ -24,11 +24,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(\
         description='Import PI eligibility status from TAS')
     parser.add_argument('--dryrun', type=bool, help=\
-        'Simulate import, no changes applied', default=False)
+        'Simulate import, no changes applied', action='store_true', default=False)
     parser.add_argument('--users', type=str, help=\
         'Synchronize a specific user or set of users using a csv list of usernames', default=None)
     parser.add_argument('--seteligible', type=bool, help=\
-        'Used with --users flag to set all provided users as PI Eligible', default=False)
+        'Used with --users flag to set all provided users as PI Eligible',
+        action='store_true', default=False)
     args = parser.parse_args(argv[1:])
 
     started = datetime.now()
@@ -49,7 +50,6 @@ def main(argv=None):
     if(args.dryrun):
         logger.info('Dry run, no updates made')
 
-    ## print summary
     logger.info('############ Finished ############')
     for i in updated:
         logger.info(i)
@@ -67,7 +67,7 @@ def import_pi_status(dryrun=False, users=[], tas=None):
         percent_complete = int(index/float(users.count()) * 100)
         logger.info('{0} of {1}, {2}% complete, next: {3}'.format(\
             index, users.count(), percent_complete, user.username))
-        if user.pi_eligibility().lower() == 'ineligible': 
+        if user.pi_eligibility().lower() == 'ineligible':
             ''' user is ineligible in portal, let's see if TAS says different '''
             tas_pi_status = get_tas_pi_status(tas, user.username)
             if tas_pi_status.lower() != user.pi_eligibility().lower():
