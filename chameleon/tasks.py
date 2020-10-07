@@ -23,39 +23,44 @@ def run_migrate_task(bound_task, task_fn, **kwargs):
         raise MigrationError()
 
     messages = []
+    total_steps = 0
+    step_idx = 0
+
+    def write_message(message):
+        LOG.info(message)
+        messages.append(message)
+        bound_task.update_state(state='PROGRESS', meta={
+            'messages': messages, 'current': step_idx, 'total': total_steps,
+        })
+
     try:
         for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
             job = task_fn(region, **kwargs)
+            write_message(f'Processing region "{region}"')
+
             items_to_process, message = next(job)
             # Add one step for the beginning (also solves divide by 0)
-            total_steps = items_to_process + 1
-            step_idx = 1
+            total_steps += items_to_process + 1
+            step_idx += 1
+            write_message(message)
 
-            LOG.info(message)
-            messages.append(message)
-            bound_task.update_state(state='PROGRESS', meta={
-                'messages': messages,
-                'current': step_idx, 'total': total_steps,
-            })
             for new_step, message in job:
                 if new_step:
                     step_idx += 1
-                LOG.info(message)
-                messages.append(message)
-                bound_task.update_state(state='PROGRESS', meta={
-                    'messages': messages, 'current': step_idx, 'total': total_steps,
-                })
-            return {
-                'messages': messages,
-                'current': step_idx,
-                'total': total_steps,
-            }
+                write_message(message)
     except Exception as exc:
         LOG.exception('Failed to complete migration')
         exc_message = getattr(exc, 'message', None)
         if exc_message:
             messages.append(exc_message)
         raise MigrationError(messages=messages) from exc
+    # Return current state as last action
+    return {
+        'messages': messages,
+        'current': step_idx,
+        'total': total_steps,
+    }
+
 
 @task(bind=True)
 def migrate_project(self, **kwargs):
@@ -85,11 +90,16 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
     keystone = admin_ks_client(region=region)
 
     ks_legacy_user = get_user(keystone, username)
-
+    if not ks_legacy_user:
+        yield 0, f'User "{username}" not found in region "{region}", skipping'
+        return
     ks_legacy_project = next(iter([
         ks_p for ks_p in keystone.projects.list(user=ks_legacy_user, domain='default')
         if getattr(ks_p, 'charge_code', ks_p.name) == charge_code
     ]), None)
+    if not ks_legacy_project:
+        yield 0, f'Project {charge_code} not found in region "{region}", skipping'
+        return
 
     # Perform login, which populates projects based on current memberships
     _do_federated_login(region, access_token)
