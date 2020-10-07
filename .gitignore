@@ -78,6 +78,7 @@ target/
 */node_modules
 node_modules
 webpack-stats.json
+yarn-error.log
 
 #tmp folder
 */.tmp

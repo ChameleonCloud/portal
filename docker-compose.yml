@@ -2,37 +2,60 @@ version: '3.5'
 
 services:
   portal:
-    build: .
+    image: ${DOCKER_IMAGE_LATEST}
     env_file:
       - .chameleon_env
     volumes:
-      - ../media:/project/media
-      - ../static:/var/www/chameleoncloud.org/static
       - .:/project
     ports:
-      - 8888:8888
-    command: python manage.py runserver 0.0.0.0:8888
-
+      - 127.0.0.1:8890:8888
+    command: python3 manage.py runserver 0.0.0.0:8888
+    depends_on:
+      - mysql
   referenceapi:
-    image: referenceapi:latest
+    image: docker.chameleoncloud.org/referenceapi:latest
     ports:
-      - 8000:8000
-
+      - 127.0.0.1:8891:8000
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ccpass
+      MYSQL_DATABASE: chameleon_dev
+      MYSQL_USER: ccuser
+      MYSQL_PASSWORD: ccpass
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 127.0.0.1:8889:80
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+    depends_on:
+      - mysql
   redis:
     image: redis:alpine
-    ports:
-      - '6379:6379'
-
   celery:
-    build: .
+    image: ${DOCKER_IMAGE_LATEST}
     command: celery -A chameleon worker -l INFO --concurrency=1 -B
     env_file:
       - .chameleon_env
     volumes:
       - .:/project
     depends_on:
+      - mysql
       - redis
-
-networks:
-  default:
-    name: portal
+  vue:
+    image: node:lts
+    command: sh -c 'yarn && yarn serve'
+    working_dir: /project
+    volumes:
+      - .:/project
+    ports:
+      - 127.0.0.1:9000:9000
+  mail:
+    image: bytemark/smtp
+    restart: always
