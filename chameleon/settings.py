@@ -1,16 +1,11 @@
 """
-Django settings for chameleon project.
-
 For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
+https://docs.djangoproject.com/en/1.11/ref/settings/
 """
-
-
 import os
-import django
 from celery.schedules import crontab
 from django.utils.translation import ugettext_lazy as _
 
@@ -18,9 +13,6 @@ gettext = lambda s: s
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'NOT_A_SECRET')
@@ -61,10 +53,7 @@ ALLOWED_HOSTS = [
     'chameleon.local',
     'chameleoncloud.org',
     'www.chameleoncloud.org',
-    'www.tacc.chameleoncloud.org',
-    'www.chameleon.tacc.utexas.edu',
     'dev.chameleon.tacc.utexas.edu',
-    'local.chameleoncloud.org',
 ]
 
 # Application definition
@@ -238,17 +227,14 @@ USE_TZ = True
 SITE_ID = 1
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
-
-STATIC_ROOT = '/var/www/chameleoncloud.org/static/'
+STATIC_ROOT = '/static'
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-MEDIA_URL = "/media/"
+MEDIA_ROOT = '/media'
+MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
-    '/var/www/static/',
 )
 
 STATICFILES_FINDERS = (
@@ -257,11 +243,6 @@ STATICFILES_FINDERS = (
     'pipeline.finders.PipelineFinder',
 )
 
-'''
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR,'chameleon','templates'),
-)
-'''
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
@@ -276,7 +257,7 @@ OIDC_OP_TOKEN_ENDPOINT = os.environ.get('OIDC_OP_TOKEN_ENDPOINT')
 OIDC_OP_USER_ENDPOINT = os.environ.get('OIDC_OP_USER_ENDPOINT')
 OIDC_STORE_ACCESS_TOKEN = True
 OIDC_STORE_REFRESH_TOKEN = True
-OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60
+OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60 * 5
 OIDC_EXEMPT_URLS = ['logout']
 LOGOUT_REDIRECT_URL = os.environ.get('LOGOUT_REDIRECT_URL')
 

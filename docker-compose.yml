@@ -7,6 +7,8 @@ services:
       - .chameleon_env
     volumes:
       - .:/project
+      - ./media:/media
+      - static:/static
     ports:
       - 127.0.0.1:8890:8888
     command: python3 manage.py runserver 0.0.0.0:8888
@@ -59,3 +61,6 @@ services:
   mail:
     image: bytemark/smtp
     restart: always
+
+volumes:
+  static:

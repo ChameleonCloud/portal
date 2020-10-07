@@ -5,6 +5,7 @@ DOCKER_IMAGE_LATEST := $(DOCKER_REGISTRY)/portal:latest
 
 .PHONY: build
 build:
+	./docker/client/build.sh
 	docker build -t $(DOCKER_IMAGE) .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE_LATEST)
 
