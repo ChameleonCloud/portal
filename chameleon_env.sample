@@ -37,6 +37,15 @@ DB_PASSWORD=ccpass
 # USE A NEW VALUE IN PRODUCTION
 DJANGO_SECRET_KEY=notreallyasecret
 
+# OpenStack auth
+OPENSTACK_UC_REGION=CHI_UC_DEV
+OPENSTACK_UC_AUTH_URL=https://dev.uc.chameleoncloud.org:5000/v3
+OPENSTACK_TACC_REGION=CHI_DEV
+OPENSTACK_TACC_AUTH_URL=https://dev.tacc.chameleoncloud.org:5000/v3
+OPENSTACK_SERVICE_USERNAME=portal
+OPENSTACK_SERVICE_PASSWORD=
+OPENSTACK_SERVICE_PROJECT_ID=4e9f3b6fbaf245e780b25fae2c166d4e
+
 # Email
 SMTP_HOST=relay.tacc.utexas.edu
 SMTP_PORT=25
@@ -45,6 +54,27 @@ SMTP_PASSWORD=
 OUTAGE_NOTIFICATION_EMAIL=
 DEFAULT_FROM_EMAIL=no-reply@chameleoncloud.org
 
-# Sharing portal
+# Trovi
 ZENODO_URL=https://sandbox.zenodo.org
-ARTIFACT_SHARING_JUPYTERHUB_URL=https://jupyter.chameleoncloud.org
+ARTIFACT_SHARING_JUPYTERHUB_URL=http://localhost:8001
+
+# Allocations
+ALLOCATIONS_BALANCE_SERVICE_ROOT_URL=http://allocations_api:8080
+
+# Keycloak realm management
+KEYCLOAK_SERVER_URL=https://auth.dev.chameleoncloud.org
+KEYCLOAK_REALM_NAME=chameleon
+KEYCLOAK_PORTAL_ADMIN_CLIENT_ID=portal-local-dev-admin
+KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET=
+
+# Legacy SSO
+SSO_CALLBACK_VALID_HOSTS=['dev.tacc.chameleoncloud.org','dev.uc.chameleoncloud.org']
+# Federated SSO
+OIDC_RP_CLIENT_ID=portal-local-dev-admin
+OIDC_RP_CLIENT_SECRET=
+OIDC_RP_SIGN_ALGO=RS256
+OIDC_OP_JWKS_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/certs
+OIDC_OP_AUTHORIZATION_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/auth
+OIDC_OP_TOKEN_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/token
+OIDC_OP_USER_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/userinfo
+LOGOUT_REDIRECT_URL=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/post-logout

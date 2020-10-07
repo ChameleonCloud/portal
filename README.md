@@ -35,7 +35,7 @@ Use [Docker Compose](https://docs.docker.com/compose/)! The portal now uses the 
 
 #### Development
 
-The `docker-compose.dev.yml` included in this repo is setup for running the composition locally. However, a few additional dependencies need to be in place first.
+The `docker-compose.yml` included in this repo is setup for running the composition locally. However, a few additional dependencies need to be in place first.
 
 1. First, clone the reference-api repository and build that image:
 
