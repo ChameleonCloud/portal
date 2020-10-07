@@ -245,10 +245,7 @@ export default {
         .get(`/api/user/migrate/job/?task_id=${migration.taskId}`)
         .then(response => {
           this.migrationStatus = migration.lastStatus = response.data
-
-          const { current, total } = this.migrationStatus
-          if (current === total) {
-            // Migration has completed.
+          if (this.migrationSucceeded || this.migrationFailed) {
             this.onMigrationFinished()
           }
         })
