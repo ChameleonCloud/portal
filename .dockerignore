@@ -1,5 +1,16 @@
+# Source control
 **/.git
+# Caches
 **/.sass-cache
+**/__pycache__
+*.pyc
+# JS dependencies
+**/node_modules
+# External assets
 db/
 media/
+# Development environment
 .chameleon_env
+# Development build artifacts
+webpack-stats.json
+yarn-error.log
