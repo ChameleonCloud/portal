@@ -27,7 +27,7 @@ pipeline {
       success {
         slackSend(
           channel: "#notifications",
-          message: "*Build* of *Chameleon Portal* (${env.GIT_COMMIT.substring(0, 8)}) completed successfuly. <${env.RUN_DISPLAY_URL}|View build log>",
+          message: "*Build* of *Chameleon Portal* (${env.GIT_COMMIT.substring(0, 7)}) completed successfuly. <${env.RUN_DISPLAY_URL}|View build log>",
           color: "good"
         )
       }
