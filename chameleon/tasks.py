@@ -164,11 +164,15 @@ def _migrate_user(region, username=None, access_token=None):
 
     for keypair in keypairs_to_migrate:
         yield progress, f'Migrating keypair "{keypair.name}"...'
-        nova.keypairs.create(
-            name=keypair.name,
-            public_key=keypair.public_key,
-            user_id=ks_federated_user_id
-        )
+        try:
+            nova.keypairs.create(
+                name=keypair.name,
+                public_key=keypair.public_key,
+                user_id=ks_federated_user_id
+            )
+        except novaclient.exceptions.Conflict:
+            yield progress, 'Keypair with that name already exists, skipping.'
+
         progress += ((1.0 - init_progress) / num_keypairs)
 
     keystone.users.update(ks_legacy_user,
