@@ -158,11 +158,10 @@ export default {
       return this.migrationStatus && this.migrationStatus.state === 'FAILURE'
     },
     migrationPercentage() {
-      if (this.migrationStatus && this.migrationStatus.total > 0) {
-        return (this.migrationStatus.current / this.migrationStatus.total) * 100
-      } else {
-        return 10
-      }
+      // Default to 1% if we haven't fetched the job info yet to at least
+      // move the meter a bit.
+      const { progress_pct = 1 } = this.migrationStatus || {}
+      return progress_pct
     }
   },
   methods: {
@@ -189,9 +188,8 @@ export default {
       this.clearPollers()
       if (! this.activeMigrations.has(jobId)) {
         this.migrationStatus = {
-          current: 0,
-          total: 0,
-          messages: [`Starting ${migrationType} migration...`]
+          messages: [`Starting ${migrationType} migration...`],
+          progress_pct: 0
         }
         axios
           .post('/api/user/migrate/job/', {

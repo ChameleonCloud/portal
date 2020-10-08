@@ -23,31 +23,24 @@ def run_migrate_task(bound_task, task_fn, **kwargs):
         raise MigrationError()
 
     messages = []
-    total_steps = 0
-    step_idx = 0
 
-    def write_message(message):
+    def write_message(progress_pct, message):
         LOG.info(message)
         messages.append(message)
         bound_task.update_state(state='PROGRESS', meta={
-            'messages': messages, 'current': step_idx, 'total': total_steps,
+            'messages': messages, 'progress_pct': progress_pct,
         })
 
     try:
-        for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
+        regions = list(settings.OPENSTACK_AUTH_REGIONS.keys())
+        for i, region in enumerate(regions):
             job = task_fn(region, **kwargs)
-            write_message(f'Processing region "{region}"')
-
-            items_to_process, message = next(job)
-            # Add one step for the beginning (also solves divide by 0)
-            total_steps += items_to_process + 1
-            step_idx += 1
-            write_message(message)
-
-            for new_step, message in job:
-                if new_step:
-                    step_idx += 1
-                write_message(message)
+            # Interpolate the total progress as a function of the total number
+            # of regions; at the end, we should be at 100%.
+            factor = (1.0 / len(regions)) * 100
+            write_message(factor * i, f'Processing region "{region}"')
+            for progress, message in job:
+                write_message(factor * (i + progress), message)
     except Exception as exc:
         LOG.exception('Failed to complete migration')
         exc_message = getattr(exc, 'message', None)
@@ -57,8 +50,7 @@ def run_migrate_task(bound_task, task_fn, **kwargs):
     # Return current state as last action
     return {
         'messages': messages,
-        'current': step_idx,
-        'total': total_steps,
+        'progress_pct': 100.0,
     }
 
 
@@ -88,17 +80,18 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
     sess = admin_session(region)
     glance = glanceclient.Client('2', session=sess)
     keystone = admin_ks_client(region=region)
+    init_progress = 0.1
 
     ks_legacy_user = get_user(keystone, username)
     if not ks_legacy_user:
-        yield 0, f'User "{username}" not found in region "{region}", skipping'
+        yield 1.0, f'User "{username}" not found in region "{region}", skipping'
         return
     ks_legacy_project = next(iter([
         ks_p for ks_p in keystone.projects.list(user=ks_legacy_user, domain='default')
         if getattr(ks_p, 'charge_code', ks_p.name) == charge_code
     ]), None)
     if not ks_legacy_project:
-        yield 0, f'Project {charge_code} not found in region "{region}", skipping'
+        yield 1.0, f'Project {charge_code} not found in region "{region}", skipping'
         return
 
     # Perform login, which populates projects based on current memberships
@@ -119,22 +112,27 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
     ]
     num_images = len(images_to_migrate)
     if num_images:
-        yield num_images, f'Will migrate {num_images} disk images for project "{charge_code}"'
+        # Increment the bar slightly to show there is work being done
+        progress = init_progress
+        yield progress, f'Will migrate {num_images} disk images for project "{charge_code}"'
     else:
-        yield num_images, f'No images left to migrate for project "{charge_code}"'
+        progress = 0.9
+        yield progress, f'No images left to migrate for project "{charge_code}"'
 
     for image in images_to_migrate:
-        yield True, f'Migrating disk image "{image.name}"...'
+        yield progress, f'Migrating disk image "{image.name}"...'
         # Preserve already-public images
         visibility = 'public' if image.visibility == 'public' else 'shared'
         glance.images.update(image.id, owner=ks_federated_project.id, visibility=visibility)
         glance.image_members.create(image.id, ks_legacy_project.id)
-        glance.image_members.update(image.id, ks_legacy_project.id, status='accepted')
+        glance.image_members.update(image.id, ks_legacy_project.id, 'accepted')
+        progress += ((1.0 - init_progress) / num_images)
 
     keystone.projects.update(ks_legacy_project,
         migrated_at=datetime.now(tz=timezone.utc),
         migrated_by=username)
-    yield False, f'Successfully finished migration'
+    progress = 1.0
+    yield progress, f'Finished migration of region "{region}"'
 
 
 @task(bind=True)
@@ -146,30 +144,37 @@ def _migrate_user(region, username=None, access_token=None):
     sess = admin_session(region)
     nova = novaclient.client.Client('2.72', session=sess)
     keystone = admin_ks_client(region=region)
+    init_progress = 0.1
 
     ks_legacy_user = get_user(keystone, username)
     keypairs_to_migrate = nova.keypairs.list(user_id=ks_legacy_user.id)
 
     num_keypairs = len(keypairs_to_migrate)
+
     if num_keypairs:
-        yield num_keypairs, f'Will migrate {num_keypairs} keypairs'
+        # Increment the bar slightly to show there is work being done
+        progress = init_progress
+        yield progress, f'Will migrate {num_keypairs} keypairs'
     else:
-        yield num_keypairs, f'No keypairs left to migrate'
+        progress = 0.9
+        yield progress, f'No keypairs left to migrate'
 
     # Perform login, which populates projects based on current memberships
     ks_federated_user_id = _do_federated_login(region, access_token)
 
     for keypair in keypairs_to_migrate:
-        yield True, f'Migrating keypair "{keypair.name}"...'
+        yield progress, f'Migrating keypair "{keypair.name}"...'
         nova.keypairs.create(
             name=keypair.name,
             public_key=keypair.public_key,
             user_id=ks_federated_user_id
         )
+        progress += ((1.0 - init_progress) / num_keypairs)
 
     keystone.users.update(ks_legacy_user,
         migrated_at=datetime.now(tz=timezone.utc))
-    yield False, f'Successfully finished migration'
+    progress = 1.0
+    yield progress, f'Successfully finished migration'
 
 
 def _do_federated_login(region, access_token):
