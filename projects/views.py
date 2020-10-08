@@ -287,7 +287,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 allocation['justification'] = supplemental_details
 
             allocation['projectId'] = project_id
-            allocation['requestorId'] = mapper.get_user_id(request)
+            allocation['requestorId'] = mapper.get_portal_user_id(request.user.username)
             allocation['resourceId'] = '39'
 
             if allocation_id > 0:
@@ -355,7 +355,7 @@ def create_project(request):
             project.pop('accept_project_terms', None)
 
             # pi
-            pi_user_id = mapper.get_user_id(request)
+            pi_user_id = mapper.get_portal_user_id(request.user.username)
             project['piId'] = pi_user_id
 
             # allocations

@@ -88,6 +88,15 @@ class ProjectAllocationMapper:
             reformated_allocations.append(self.portal_to_tas_alloc_obj(alloc))
         return reformated_allocations
 
+    def _get_user_from_portal_db(self, username):
+        UserModel = get_user_model()
+        try:
+            portal_user = UserModel.objects.get(username=username)
+            return portal_user
+        except UserModel.DoesNotExist:
+            logger.error('Could not find user %s in DB', username)
+            return None
+
     def get_all_projects(self):
         projects = {}
         for proj in portal_proj.objects.all():
@@ -141,19 +150,19 @@ class ProjectAllocationMapper:
 
         return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
 
-    def get_user_id(self, request):
-        user = self.get_user(request.user.username)
-        return user['id']
+    def get_portal_user_id(self, username):
+        portal_user = self._get_user_from_portal_db(username)
+        if portal_user:
+            return portal_user.id
+        return None
 
     def get_user(self, username, to_pytas_model=False, role=None):
         if self.is_from_db:
-            UserModel = get_user_model()
-            try:
-                portal_user = UserModel.objects.get(username=username)
-            except UserModel.DoesNotExist:
-                logger.error('Could not find user %s in DB', username)
+            portal_user = self._get_user_from_portal_db(username)
+            if portal_user:
+                user = self.portal_user_to_tas_obj(portal_user, role=role)
+            else:
                 return None
-            user = self.portal_user_to_tas_obj(portal_user, role=role)
         else:
             user = self.tas.get_user(username=username)
             if not user:
@@ -165,6 +174,30 @@ class ProjectAllocationMapper:
             return tas_user(initial=user)
         else:
             return user
+
+    def lazy_add_user_to_keycloak(self):
+        keycloak_client = KeycloakClient()
+        # check if user exist in keycloak
+        keycloak_user = keycloak_client.get_keycloak_user_by_username(self.current_user)
+        if keycloak_user:
+            return
+        user = self.get_user(self.current_user)
+        portal_user = self._get_user_from_portal_db(self.current_user)
+        join_date = None
+        if portal_user:
+            join_date=datetime.timestamp(portal_user.date_joined)
+
+        kwargs = {'first_name': user['firstName'],
+                  'last_name': user['lastName'],
+                  'email': user['email'],
+                  'affiliation_title': user['title'],
+                  'affiliation_department': user['department'],
+                  'affiliation_institution':user['institution'],
+                  'country': user['country'],
+                  'citizenship': user['citizenship'],
+                  'join_date': join_date
+                  }
+        keycloak_client.create_user(self.current_user, **kwargs)
 
     @staticmethod
     def get_project_nickname(project):

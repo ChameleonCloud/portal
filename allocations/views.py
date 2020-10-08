@@ -88,7 +88,7 @@ def approval( request ):
         mapper = ProjectAllocationMapper(request)
         data = json.loads(request.body)
         data['reviewer'] = request.user.username
-        data['reviewerId'] = mapper.get_user_id(request)
+        data['reviewerId'] = mapper.get_portal_user_id(request.user.username)
         logger.info( 'Allocation approval requested by admin: %s', request.user )
         logger.info( 'Allocation approval request data: %s', json.dumps( data ) )
         validate_datestring = validators.RegexValidator( '^\d{4}-\d{2}-\d{2}$' )
