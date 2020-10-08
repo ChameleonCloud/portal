@@ -28,6 +28,6 @@ python-keystoneclient===3.21.0
 python-novaclient===15.1.1
 python-blazarclient===2.2.1
 
-git+https://github.com/chameleoncloud/mozilla-django-oidc#egg=mozilla_django_oidc
+git+https://github.com/chameleoncloud/mozilla-django-oidc#egg=mozilla_django_oidc&2020-10-08
 git+https://github.com/ChameleonCloud/pytas#egg=pytas
 git+https://github.com/ChameleonCloud/python-keycloak-client#egg=python-keycloak-client

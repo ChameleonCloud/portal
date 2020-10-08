@@ -77,4 +77,4 @@ OIDC_OP_JWKS_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/
 OIDC_OP_AUTHORIZATION_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/auth
 OIDC_OP_TOKEN_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/token
 OIDC_OP_USER_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/userinfo
-LOGOUT_REDIRECT_URL=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/post-logout
+LOGOUT_REDIRECT_URL=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/logout?client_id=portal-local-dev-admin&redirect_uri=https%3A%2F%2Fauth.dev.chameleoncloud.org%2Fauth%2Frealms%2Fchameleon%2Fpost-logout%3Fclient_id%3Dportal-local-dev-admin
