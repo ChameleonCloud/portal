@@ -160,8 +160,8 @@ export default {
     migrationPercentage() {
       // Default to 1% if we haven't fetched the job info yet to at least
       // move the meter a bit.
-      const { progress_pct = 1 } = this.migrationStatus || {}
-      return progress_pct
+      const { progressPct = 1 } = this.migrationStatus || {}
+      return progressPct
     }
   },
   methods: {
@@ -189,7 +189,7 @@ export default {
       if (! this.activeMigrations.has(jobId)) {
         this.migrationStatus = {
           messages: [`Starting ${migrationType} migration...`],
-          progress_pct: 0
+          progressPct: 0
         }
         axios
           .post('/api/user/migrate/job/', {
