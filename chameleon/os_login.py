@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 
 from chameleon.keystone_auth import regenerate_tokens
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -27,6 +28,8 @@ def custom_login(request, current_app=None, extra_context=None):
     if request.user.is_authenticated() and password:
         request.session['is_federated'] = False
         regenerate_tokens(request, password)
+        mapper = ProjectAllocationMapper(request)
+        mapper.lazy_add_user_to_keycloak()
     return login_return
 
 
