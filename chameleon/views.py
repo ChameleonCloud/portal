@@ -324,7 +324,6 @@ def api_migration_job(request):
         if not task_id:
             return JsonResponse({'error': 'missing task_id'}, status=400)
         task_result = AsyncResult(task_id, app=celery_app)
-        LOG.info(f'Task in state: {task_result.state}')
         if isinstance(task_result.info, MigrationError):
             details = {
                 'messages': task_result.info.messages + ['Failed to finish migration'],
