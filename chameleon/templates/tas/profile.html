@@ -22,6 +22,8 @@
       {{ profile.email }}
     </div>
   </div>
+  {# Begin optional fields; federated users in particular will not have much. #}
+  {% if profile.phone %}
   <div class="row">
     <div class="col-sm-3 col-xs-5">
       <b>Phone</b>
@@ -30,6 +32,8 @@
       {{ profile.phone }}
     </div>
   </div>
+  {% endif %}
+  {% if profile.institution %}
   <div class="row">
     <div class="col-sm-3 col-xs-5">
       <b>Institution</b>
@@ -38,6 +42,7 @@
       {{ profile.institution }}{% if profile.department %}, {{ profile.department }}{% endif %}
     </div>
   </div>
+  {% endif %}
   {% if profile.title %}
   <div class="row">
     <div class="col-sm-3 col-xs-5">
@@ -48,15 +53,20 @@
     </div>
   </div>
   {% endif %}
+  {% if profile.country %}
   <div class="row">
     <div class="col-sm-3 col-xs-5">
       <b>Country</b>
     </div>
     <div class="col-sm-9 col-xs-7">
-      {{ profile.country }}<br>
+      {{ profile.country }}
+      {% if profile.citizenship %}
+      <br>
       (citizenship: {{ profile.citizenship }})
+      {% endif %}
     </div>
   </div>
+  {% endif %}
 
   <div class="row">
     <div class="col-sm-3 col-xs-5">
@@ -69,7 +79,6 @@
   </div>
 
   <hr>
-
 
   <h4>Actions</h4>
     <a href="{% url 'tas:profile_edit' %}" class="btn btn-default">
