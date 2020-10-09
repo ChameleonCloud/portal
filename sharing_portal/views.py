@@ -305,6 +305,7 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
 
 
 @check_view_permission
+@login_required
 def launch(request, artifact, artifact_versions, version_idx=None):
     version = _artifact_version(artifact_versions, version_idx)
 
