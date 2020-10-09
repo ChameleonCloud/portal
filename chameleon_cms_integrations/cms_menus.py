@@ -103,7 +103,7 @@ class NewContentModifier(Modifier):
     def mark_new(self, node):
         reverse_id = node.attr.get('reverse_id')
 
-        if reverse_id and reverse_id in ['jupyter', 'kvm', 'share']:
+        if reverse_id and reverse_id in ['share']:
             node.attr['class'] = 'new'
 
         if node.children:
