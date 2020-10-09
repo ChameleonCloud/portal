@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /admin/
+# Trovi launch page
+Disallow: /*/launch/

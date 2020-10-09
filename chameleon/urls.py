@@ -8,11 +8,9 @@ from django.conf.urls.static import static
 from django.core.urlresolvers import reverse_lazy
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.views.generic import RedirectView
-from django.views.static import serve
+from django.views.generic import RedirectView, TemplateView
 from tas import views as tas_views
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
-from . import views
 
 urlpatterns = [
     # admin urls
@@ -82,6 +80,9 @@ urlpatterns = [
     # ensure default djangocms_blog namespace is registered at /blog
     # (the auto-setup hook doesn't work well if the page is moved in the hierarchy)
     url(r'^blog/', include('djangocms_blog.urls', namespace='Blog')),
+
+    # robots.txt
+    url(r'^robots.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
 
     # cms urls
     url(r'^taggit_autosuggest/', include('taggit_autosuggest.urls')),
