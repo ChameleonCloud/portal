@@ -39,8 +39,11 @@
 {% if show_migration_info %}
 <div class="alert alert-info">
   <p>
-    You have logged in via a federated identity. But you have an old account.
-    <a href="{% url 'federation_migrate_account' %}">Migrate your account.</a>
+    You have logged in via a federated identity, but you seem to have a legacy
+    account in the system.
+    <a href="{% url 'federation_migrate_account' %}">
+      Want to migrate your old account?
+    </a>
   </p>
 </div>
 {% endif %}
