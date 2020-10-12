@@ -139,9 +139,14 @@ def redirect_to_horizon(request):
         return HttpResponseRedirect('/')
 
     protocol = getattr(settings, 'SSO_CALLBACK_PROTOCOL', 'https')
-    context = {}
-    context['sso_token'] = get_token(request)
-    context['host'] = protocol + '://' + host + horizon_webroot + '/auth/websso/' + '?next=' + next
+    params = {
+        'next': next,
+        'old_login_experience': 1,
+    }
+    context = {
+        'sso_token': get_token(request),
+        'sso_url': f'{protocol}://{host}{horizon_webroot}/auth/websso/?{urlencode(params)}',
+    }
     return render(request, 'sso/sso_callback_template.html', context)
 
 @login_required
