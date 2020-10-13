@@ -60,7 +60,7 @@ def user_projects(request):
     mapper = ProjectAllocationMapper(request)
     user = mapper.get_user(username)
 
-    context['is_pi_eligible'] = user['piEligibility'] == 'Eligible'
+    context['is_pi_eligible'] = user['piEligibility'].lower() == 'eligible'
     context['username'] = username
     context['projects'] = mapper.get_user_projects(username, to_pytas_model=True)
 
@@ -215,7 +215,7 @@ def create_allocation(request, project_id, allocation_id=-1):
     mapper = ProjectAllocationMapper(request)
 
     user = mapper.get_user(request.user.username)
-    if user['piEligibility'] != 'Eligible':
+    if user['piEligibility'].lower() != 'eligible':
         messages.error(request,
                        'Only PI Eligible users can request allocations. If you would '
                        'like to request PI Eligibility, please '
@@ -329,7 +329,7 @@ def create_project(request):
     form_args = {'request': request}
 
     user = mapper.get_user(request.user.username)
-    if user['piEligibility'] != 'Eligible':
+    if user['piEligibility'].lower() != 'eligible':
         messages.error(request,
                        'Only PI Eligible users can create new projects. '
                        'If you would like to request PI Eligibility, please '

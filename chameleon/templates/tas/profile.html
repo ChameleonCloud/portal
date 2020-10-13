@@ -105,7 +105,7 @@
       </a>
     </li>
 
-    {% if profile.piEligibility == 'Eligible' %}
+    {% if (profile.piEligibility|lower) == 'eligible' %}
     <li>
       <a href="{% url 'tc_view_specific_version_page' 'project-terms' '1.00' %}">
         <small>Chameleon Project Lead Terms of Use</small>

@@ -103,7 +103,7 @@ class TasUserAdmin(UserAdmin):
             for user in selected_users:
                 try:
                     tas_user = tas.get_user(username=user.username)
-                    if tas_user['piEligibility'] == 'Eligible':
+                    if tas_user['piEligibility'].lower() == 'eligible':
                         self.message_user(request, _('User %s already PI Eligible') % user.username, level=messages.WARNING)
                     else:
                         tas_user['piEligibility'] = 'Eligible'
