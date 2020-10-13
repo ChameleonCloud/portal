@@ -20,7 +20,10 @@ class MigrationError(Exception):
 def run_migrate_task(bound_task, task_fn, **kwargs):
     if not kwargs.get('access_token'):
         LOG.error('Missing access token!')
-        raise MigrationError()
+        raise MigrationError(messages=[
+            ('Session appears to have timed out in the background. '
+             'Try logging out and logging in again to complete migration.')
+        ])
 
     messages = []
 
