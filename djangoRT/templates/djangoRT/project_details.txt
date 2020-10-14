@@ -4,7 +4,7 @@ ________________________________ Project Support Details _______________________
 
 {% for region in regions %}
 Region: {{region.name}}
-    {%- for project in region.projects %}
+    {% for project in region.projects %}
     Project: {{project.name}} ID: {{project.id}}
         {% if project.leases %}
         Leases:{% for lease in project.leases %}
@@ -19,5 +19,5 @@ Region: {{region.name}}
                 Image: {{server.image_name}}   -  {{server.image_id}}
                 ID: {{server.id}}{% endfor %}
         {% endif %}
-    {%- endfor %}
+    {% endfor %}
 {% endfor %}
