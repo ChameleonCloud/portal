@@ -201,6 +201,9 @@ class ArtifactVersion(models.Model):
         )
         return str(base_url + '?' + urlencode(query))
 
+    def __str__(self):
+        return f'{self.artifact.title} ({self.created_at})'
+
 
 class ShareTarget(models.Model):
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
