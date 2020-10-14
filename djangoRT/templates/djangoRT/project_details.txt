@@ -3,7 +3,8 @@
 ________________________________ Project Support Details ________________________________
 
 {% for region in regions %}
-Region: {{region.name}}{% for project in region.projects %}
+Region: {{region.name}}
+    {%- for project in region.projects %}
     Project: {{project.name}} ID: {{project.id}}
         {% if project.leases %}
         Leases:{% for lease in project.leases %}
@@ -16,6 +17,7 @@ Region: {{region.name}}{% for project in region.projects %}
             {{server.name}} - {{server.status}}
                 Created Date: {{server.created_date}}
                 Image: {{server.image_name}}   -  {{server.image_id}}
-                ID: {{server.id}}{% endfor %}{% endfor %}
+                ID: {{server.id}}{% endfor %}
         {% endif %}
+    {%- endfor %}
 {% endfor %}
