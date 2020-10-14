@@ -5,13 +5,17 @@ ________________________________ Project Support Details _______________________
 {% for region in regions %}
 Region: {{region.name}}{% for project in region.projects %}
     Project: {{project.name}} ID: {{project.id}}
+        {% if project.leases %}
         Leases:{% for lease in project.leases %}
             {{lease.name}} - {{lease.status}}
                 Date Range: {{lease.start_date}} - {{lease.end_date}}
                 ID: {{lease.id}}{% endfor %}
+        {% endif %}
+        {% if project.servers %}
         Instances:{% for server in project.servers %}
             {{server.name}} - {{server.status}}
                 Created Date: {{server.created_date}}
                 Image: {{server.image_name}}   -  {{server.image_id}}
-                ID: {{server.id}}{% endfor %}{% endfor %}    
+                ID: {{server.id}}{% endfor %}{% endfor %}
+        {% endif %}
 {% endfor %}

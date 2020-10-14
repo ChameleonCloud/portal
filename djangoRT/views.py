@@ -78,7 +78,7 @@ def ticketcreate(request):
                     token = get_token(request, region=region)
                     region_list.append(get_openstack_data(request.user.username, token, region))
                 except Exception as err:
-                    logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
+                    logger.error(f'Failed to get OpenStack data for region {region}: {err}')
 
             user_details = render_to_string('djangoRT/project_details.txt', {'regions': region_list})
             ticket_body = ticket_body + user_details
@@ -210,19 +210,28 @@ def get_openstack_data(username, unscoped_token, region):
     if ks_user:
         projects = ks_admin.projects.list(user=ks_user)
     for project in projects:
+        current_project = {}
+        current_project['name'] = project.name
+        current_project['id'] = project.id
+        current_region['projects'].append(current_project)
         try:
-            current_project = {}
-            current_project['name'] = project.name
-            current_project['id'] = project.id
-            current_region['projects'].append(current_project)
             psess = project_scoped_session(
                 unscoped_token=unscoped_token,
                 project_id=project.id,
                 region=region)
+        except Exception:
+            logger.error(
+                (f'Failed to authenticate to {region} as user {username}, '
+                 'skipping data collection'))
+            continue
+        try:
             current_project['leases'] = get_lease_info(psess)
+        except Exception as err:
+            logger.error(f'Failed to get leases in {region} for {project.name}: {err}')
+        try:
             current_project['servers'] = get_server_info(psess)
         except Exception as err:
-            logger.error('error: {}'.format(err.message) + str(sys.exc_info()[0]))
+            logger.error(f'Failed to get active servers in {region} for {project.name}: {err}')
     return current_region
 
 def get_lease_info(psess):
