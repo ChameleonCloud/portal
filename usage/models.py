@@ -13,5 +13,5 @@ class Downtime(models.Model):
     created_by = models.CharField(max_length=50, editable=False)
     modified_by = models.CharField(max_length=50, editable=False)
 
-    def __unicode__(self):
-        return "{0} {1} nodes".format(self.queue, str(self.nodes_down))  
+    def __str__(self):
+        return "{0} {1} nodes".format(self.queue, str(self.nodes_down))

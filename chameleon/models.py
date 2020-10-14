@@ -23,7 +23,7 @@ class PIEligibility(models.Model):
     class Meta:
         verbose_name = ("PI Eligibility Request")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.requestor.username
 
     '''

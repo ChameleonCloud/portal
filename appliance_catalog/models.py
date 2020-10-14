@@ -8,9 +8,6 @@ class Keyword(models.Model):
     def __str__(self):
         return self.name
 
-    def __unicode__(self):
-        return self.name
-
 
 class Appliance(models.Model):
     name = models.CharField(max_length=100)
@@ -45,9 +42,6 @@ class Appliance(models.Model):
     needs_review = models.BooleanField(default=True, blank=True)
 
     def __str__(self):
-        return self.name
-
-    def __unicode__(self):
         return self.name
 
 

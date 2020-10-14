@@ -38,7 +38,7 @@ class EarlyUserProgram(models.Model):
     def is_closed(self):
         return self.state == PROGRAM_STATE__CLOSED
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -87,7 +87,7 @@ class EarlyUserParticipant(models.Model):
     def is_denied(self):
         return self.participant_status == PARTICIPANT_STATUS__DENIED
 
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
     class Meta:

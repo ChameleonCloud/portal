@@ -16,5 +16,5 @@ class Token(models.Model):
     def generate_token(self):
         return binascii.hexlify(os.urandom(20)).decode()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.token

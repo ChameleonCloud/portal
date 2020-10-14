@@ -9,7 +9,7 @@ import re
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.tag
 
     class Meta:
@@ -29,7 +29,7 @@ class News(models.Model):
     body = RichTextField()
     tags = models.ManyToManyField(NewsTag, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     class Meta:
@@ -111,7 +111,7 @@ class Notification(models.Model):
     schedule_off = models.DateTimeField('scheduled display end', blank=True)
     limit_pages = models.TextField('Limit display only to these page paths (one per line)', blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.title:
             return self.title
         else:

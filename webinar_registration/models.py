@@ -22,7 +22,7 @@ class Webinar(models.Model):
     def is_registration_future(self):
         return self.registration_open > timezone.now()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def is_registered(self, is_registered):
@@ -40,7 +40,7 @@ class WebinarRegistrant(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.user.username
 
     class Meta:
