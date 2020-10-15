@@ -109,7 +109,7 @@ class ProjectAllocationMapper:
                                                pi_info=project_pi_info[alloc.project.charge_code])
             if proj['chargeCode'] not in projects:
                 projects[proj['chargeCode']] = proj
-                projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
+            projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
         return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
 
     '''
