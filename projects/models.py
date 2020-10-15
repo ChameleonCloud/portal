@@ -25,25 +25,6 @@ class Project(models.Model):
     nickname = models.CharField(max_length=255,blank=False,unique=True)
     field = models.ForeignKey(Field,related_name='project_field',null=True)
     charge_code = models.CharField(max_length=50,blank=False)
-    
-    def type_id(self):
-        return self.type.id
-    
-    def type_name(self):
-        return self.type.name
-    
-    def field_id(self):
-        if self.field:
-            return self.field.id
-        return None
-    
-    def field_name(self):
-        if self.field:
-            return self.field.name
-        return None
-    
-    def pi_id(self):
-        return self.pi.id
 
 class ProjectExtras(models.Model):
     tas_project_id = models.IntegerField(primary_key=True)

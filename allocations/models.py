@@ -28,27 +28,3 @@ class Allocation(models.Model):
     start_date = models.DateTimeField(null=True)
     su_allocated = models.FloatField(null=True)
     su_used = models.FloatField(null=True)
-    
-    def requestor_username(self):
-        if self.requestor:
-            return self.requestor.username
-        else:
-            return None
-
-    def requestor_id(self):
-        if self.requestor:
-            return self.requestor.id
-        else:
-            return None
-    
-    def reviewer_username(self):
-        if self.reviewer:
-            return self.reviewer.username
-        else:
-            return None
-    
-    def reviewer_id(self):
-        if self.reviewer:
-            return self.reviewer.id
-        else:
-            return None
