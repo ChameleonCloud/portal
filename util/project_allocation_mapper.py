@@ -67,7 +67,7 @@ class ProjectAllocationMapper:
     def _get_project_allocations(self, project, fetch_balance=True):
         balance_service = BalanceServiceClient()
         reformated_allocations = []
-        for alloc in portal_alloc.objects.filter(project_id=project.id):
+        for alloc in project.allocations.select_related('project', 'requestor', 'reviewer').all():
             if fetch_balance and alloc.status == 'active':
                 balance = balance_service.call(project.charge_code)
                 if balance:
@@ -99,9 +99,17 @@ class ProjectAllocationMapper:
 
     def get_all_projects(self):
         projects = {}
-        for proj in portal_proj.objects.all():
-            proj = self.portal_to_tas_proj_obj(proj, fetch_balance=False)
-            projects[proj['chargeCode']] = proj
+        project_pi_info = {}
+        for proj in portal_proj.objects.select_related('pi').all():
+            project_pi_info[proj.charge_code] = self.portal_user_to_tas_obj(proj.pi)
+        for alloc in portal_alloc.objects.select_related('project', 'project__pi', 'project__type', 'project__field', 'requestor', 'reviewer').all():
+            proj = self.portal_to_tas_proj_obj(alloc.project,
+                                               fetch_allocations=False,
+                                               fetch_balance=False,
+                                               pi_info=project_pi_info[alloc.project.charge_code])
+            if proj['chargeCode'] not in projects:
+                projects[proj['chargeCode']] = proj
+                projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
         return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
 
     '''
@@ -472,11 +480,11 @@ class ProjectAllocationMapper:
                             'memoryRequested': 0,
                             'project': alloc.project.charge_code,
                             'projectId': -1,
-                            'requestor': alloc.requestor_username(),
+                            'requestor': alloc.requestor.username if alloc.requestor else None,
                             'requestorId': alloc.requestor_id,
                             'resource': 'Chameleon',
                             'resourceId': 0,
-                            'reviewer': alloc.reviewer_username(),
+                            'reviewer': alloc.reviewer.username if alloc.reviewer else None,
                             'reviewerId':alloc.reviewer_id,
                             'start': alloc.start_date.strftime(allocation.TAS_DATE_FORMAT) if alloc.start_date else None,
                             'status': alloc.status.capitalize(),
@@ -487,8 +495,9 @@ class ProjectAllocationMapper:
         return reformated_alloc
 
     def portal_to_tas_proj_obj(self, proj, fetch_allocations=True,
-                               fetch_balance=True):
-        pi_info = self.portal_user_to_tas_obj(proj.pi)
+                               fetch_balance=True, pi_info=None):
+        if not pi_info:
+            pi_info = self.portal_user_to_tas_obj(proj.pi)
         tas_proj = {'description': proj.description,
                     'piId': proj.pi_id,
                     'title': proj.title,
@@ -496,8 +505,8 @@ class ProjectAllocationMapper:
                     'chargeCode': proj.charge_code,
                     'typeId': proj.type_id,
                     'fieldId': proj.field_id,
-                    'type': proj.type_name(),
-                    'field': proj.field_name(),
+                    'type': proj.type.name if proj.type else None,
+                    'field': proj.field.name if proj.field else None,
                     'allocations': [],
                     'source': 'Chameleon',
                     'pi': pi_info,
