@@ -32,10 +32,7 @@ urlpatterns = [
     # custom urls
     url(r'^login/', chameleon_os_login.custom_login, name='login'),
     url(r'^logout/', chameleon_os_login.custom_logout, name='logout'),
-    # Both login and registration are handled in the IdP (Keycloak)
-    # url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('login'))),
-    url(r'^register/', RedirectView.as_view(permanent=True, url=reverse_lazy('tas:register'))),
-    # url(r'^user/register/', RedirectView.as_view(permanent=True, url=reverse_lazy('login'))),
+    url(r'^register/', chameleon_views.OIDCRegisterView.as_view(), name='register'),
     # Rollout endpoints for new login
     url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
     url(r'^auth/force-password-login/$', chameleon_views.force_password_login, name='force_password_login'),
