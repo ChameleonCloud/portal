@@ -9,18 +9,21 @@ from celery.decorators import task
 from django.db import transaction
 from allocations.models import Allocation
 from allocations.allocations_api import BalanceServiceClient
+from util.keycloak_client import KeycloakClient
 
 logger = logging.getLogger(__name__)
 
 def _deactivate_allocation(balance_service, alloc):
-    balance = balance_service.call(alloc.project.charge_code) or {}
+    charge_code = alloc.project.charge_code
+    balance = balance_service.call(charge_code) or {}
     if 'used' in balance and balance['used']:
         alloc.su_used = float(balance['used'])
     else:
         alloc.su_used = None
-        logger.error('Couldn\'t find used balance for project {}'.format(alloc.project.charge_code))
+        logger.error(f'Couldn\'t find used balance for project {charge_code}')
     alloc.status = 'inactive'
     alloc.save()
+    KeycloakClient().update_project(charge_code, has_active_allocation='false')
 
 def expire_allocations(balance_service):
     now = datetime.now(pytz.utc)
@@ -28,15 +31,16 @@ def expire_allocations(balance_service):
     expired_allocations = Allocation.objects.filter(status='active', expiration_date__lte=now)
     expired_alloc_count = 0
     for alloc in expired_allocations:
+        charge_code = alloc.project.charge_code
         try:
             with transaction.atomic():
                 # set status to inactive and set the final su_used in portal db
                 _deactivate_allocation(balance_service, alloc)
                 # reset balance service
-                balance_service.reset(alloc.project.charge_code)
+                balance_service.reset(charge_code)
                 expired_alloc_count = expired_alloc_count + 1
         except Exception:
-            logger.exception('Error expiring project {}'.format(alloc.project.charge_code))
+            logger.exception(f'Error expiring project {charge_code}')
 
     logger.debug('need to expire {} allocations, and {} were actually expired'.format(len(expired_allocations), expired_alloc_count))
 
@@ -44,7 +48,7 @@ def deactivate_multiple_active_allocations_of_projects():
     for proj_id in Allocation.objects.order_by().values_list('project_id', flat=True).distinct():
         project_active_allocations = list(Allocation.objects.filter(status='active', project_id=proj_id))
         if len(project_active_allocations) > 1:
-            logger.warning('project {} has more than one active allocations'.format(proj_id))
+            logger.warning(f'project {proj_id} has more than one active allocations')
             by_expiration = sorted(project_active_allocations,
                                    key=attrgetter('expiration_date'), reverse=True)
             # Deactivate any allocations with earlier expiration dates
@@ -58,6 +62,7 @@ def active_approved_allocations(balance_service):
     approved_allocations = Allocation.objects.filter(status='approved', start_date__lte=now)
     activated_alloc_count = 0
     for alloc in approved_allocations:
+        charge_code = alloc.project.charge_code
         # deactivate active allocation for the project and set status to active
         project_active_allocations = Allocation.objects.filter(status='active', project_id=alloc.project.id)
         prev_alloc = None
@@ -69,11 +74,12 @@ def active_approved_allocations(balance_service):
                     _deactivate_allocation(balance_service, prev_alloc)
                 alloc.status = 'active'
                 alloc.save()
+                KeycloakClient().update_project(charge_code, has_active_allocation='true')
                 # recharge balance service
-                balance_service.recharge(alloc.project.charge_code, alloc.su_allocated)
+                balance_service.recharge(charge_code, alloc.su_allocated)
                 activated_alloc_count = activated_alloc_count + 1
         except Exception:
-            logger.exception('Error activating project {}'.format(alloc.project.charge_code))
+            logger.exception(f'Error activating project {charge_code}')
 
     logger.debug('need to activated {} allocations, and {} were actually activated'.format(len(approved_allocations), activated_alloc_count))
 
