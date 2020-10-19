@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
+from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 from tas import auth as tas_auth
 
 from chameleon.celery import app as celery_app
@@ -279,6 +280,20 @@ def new_login_experience(request):
     else:
         messages.info(request, 'Your opt-in status has not changed.')
     return response
+
+
+class OIDCRegisterView(OIDCAuthenticationRequestView):
+    """Create a registration view that derives from the default login view.
+
+    The only difference is the auth endpoint is slightly different; Keycloak
+    exposes a /registrations path instead of /auth, which brings users to a
+    register flow instead of a login flow. We currently use this to customize
+    what authentication methods the user sees in login vs. register, to hide
+    the legacy login in the registration flow.
+    """
+    def __init__(self, *args, **kwargs):
+        super(OIDCAuthenticationRequestView).__init__(*args, **kwargs)
+        self.OIDC_OP_AUTH_ENDPOINT = self.get_settings('OIDC_OP_REGISTRATION_ENDPOINT')
 
 
 def force_password_login(request):
