@@ -52,21 +52,19 @@ class KeycloakClient:
                           user_id=user_id,
                           client=self._get_admin_client())
 
-    def _get_group_id_by_name(self, name):
-        keycloak_group_id = None
+    def _lookup_group(self, name):
         keycloakproject = self._project_admin()
 
-        matching = keycloakproject._client.get(
-            url=keycloakproject._client.get_full_url(
-                keycloakproject.get_path('collection', realm=self.realm_name)
-            ),
-            name=name,
-        )
-        matching = [u for u in matching if u['name'] == name]
-        if matching and len(matching) == 1:
-            keycloak_group_id = matching[0]['id']
-
-        return keycloak_group_id
+        matching = [
+            u for u in keycloakproject._client.get(
+                url=keycloakproject._client.get_full_url(
+                    keycloakproject.get_path('collection', realm=self.realm_name)
+                ),
+                name=name,
+            )
+            if u['name'] == name
+        ]
+        return next(iter(matching), None)
 
     def _add_identity(self, user_id, **kwargs):
         keycloakuser = self._user_admin(user_id)
@@ -102,29 +100,32 @@ class KeycloakClient:
         return project_charge_codes
 
     def get_project_members_by_charge_code(self, charge_code):
-        project_id = self._get_group_id_by_name(charge_code)
-        if not project_id:
-            logger.warning('Couldn\'t find project {} in keycloak'.format(charge_code))
+        group = self._lookup_group(charge_code)
+        if not group:
+            logger.warning('Couldn\'t find group {} in keycloak'.format(charge_code))
             return []
 
         keycloakproject = self._project_admin()
         members = keycloakproject._client.get(
             url=keycloakproject._client.get_full_url(
                 keycloakproject.get_path('collection', realm=self.realm_name)
-            ) + '/{id}/members'.format(id=project_id),
+            ) + '/{id}/members'.format(id=group['id']),
         )
         return [m['username'] for m in members]
 
     def update_membership(self, charge_code, username, action):
         user = self.get_keycloak_user_by_username(username)
         if not user:
-            raise ValueError('User {} does not exist'.format(username))
-        project_id = self._get_group_id_by_name(charge_code)
+            raise ValueError(f'User {username} does not exist')
+        group = self._lookup_group(charge_code)
+        if not group:
+            raise ValueError(f'Group {charge_code} does not exist')
+        group_id = group['id']
         keycloakusergroups = self._user_projects_admin(user['id'])
         if action == 'add':
-            keycloakusergroups.add(project_id)
+            keycloakusergroups.add(group_id)
         elif action == 'delete':
-            keycloakusergroups.delete(project_id)
+            keycloakusergroups.delete(group_id)
         else:
             raise ValueError('Unrecognized keycloak membership action')
 
@@ -134,6 +135,22 @@ class KeycloakClient:
         keycloakproject.create(charge_code)
 
         self.update_membership(charge_code, pi_username, 'add')
+
+    def update_project(self, charge_code, **group_attributes):
+        group = self._lookup_group(charge_code)
+        if not group:
+            raise ValueError(f'Group {charge_code} does not exist')
+        # Avoid nulling out existing values (PATCH not supported)
+        for k, v in group.get('attributes', {}).items():
+            group_attributes.setdefault(k, v)
+        keycloakproject = Groups(realm_name=self.realm_name,
+                                 client=self._get_admin_client())
+        keycloakproject._client.put(
+            url=keycloakproject._client.get_full_url(
+                keycloakproject.get_path('collection', realm=self.realm_name)
+            ) + '/{id}'.format(id=group['id']),
+            data=json.dumps({'attributes': group_attributes}, sort_keys=True)
+        )
 
     def create_user(self, username, first_name=None, last_name=None, email=None,
                     affiliation_title=None, affiliation_department=None,
