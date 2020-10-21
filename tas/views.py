@@ -21,30 +21,16 @@ from djangoRT import rtUtil, rtModels
 import re
 import logging
 import json
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger(__name__)
 
 @login_required
 def profile(request):
     context = {}
-    if request.session.get('is_federated', False):
-            context['piEligibility'] = request.user.pi_eligibility()
-            profile = {}
-            profile['firstName'] = request.user.first_name
-            profile['lastName'] = request.user.last_name
-            profile['email'] = request.user.email
-            context['profile'] = profile
-            return render(request, 'tas/profile.html', context)
-    try:
-        tas = TASClient()
-        resp = tas.get_user(username=request.user)
-        context['profile'] = resp
-        if request.session.get('is_federated', False):
-            context['piEligibility'] = request.user.pi_eligibility()
-        else:
-            context['piEligibility'] = resp['piEligibility']
-    except:
-        context['profile'] = False
+    mapper = ProjectAllocationMapper(request)
+    context['profile'] = mapper.get_user(request.user)
+    context['piEligibility'] = context['profile']['piEligibility']
 
     return render(request, 'tas/profile.html', context)
 

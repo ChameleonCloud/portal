@@ -556,6 +556,7 @@ class ProjectAllocationMapper:
             pi_eligibility = user.pi_eligibility()
         except:
             pi_eligibility = 'Ineligible'
+
         tas_user = {'username': user.username,
                     'firstName': user.first_name,
                     'lastName': user.last_name,
@@ -570,8 +571,21 @@ class ProjectAllocationMapper:
                     'department': None,
                     'institution': None,
                     'role': role}
-        return tas_user
 
+        keycloak_client = KeycloakClient()
+        keycloak_user = keycloak_client.get_keycloak_user_by_username(user.username)
+
+        if keycloak_user:
+            attrs = keycloak_user['attributes']
+            tas_user.update({
+                'institution': attrs.get('affiliationInstitution', None),
+                'department': attrs.get('affiliationDepartment', None),
+                'title': attrs.get('affiliationTitle', None),
+                'country': attrs.get('country', None),
+                'phone': attrs.get('phone', None),
+                'citizenship': attrs.get('citizenship', None)})
+
+        return tas_user
 
     def get_attr(self, obj, key):
         '''Attempt to resolve the key either as an attribute or a dict key'''
