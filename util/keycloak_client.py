@@ -86,7 +86,12 @@ class KeycloakClient:
         )
         matching = [u for u in matching if u['username'] == username]
         if matching and len(matching) == 1:
-            return matching[0]
+            user = matching[0]
+            # normalize attributes
+            for key, val in user['attributes'].items():
+                if type(val) is list and len(val) == 1:
+                    user['attributes'][key] = val[0]
+            return user
         else:
             return None
 
