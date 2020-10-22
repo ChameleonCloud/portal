@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+import cinderclient
 import glanceclient
 import novaclient
 
@@ -82,6 +83,7 @@ def migrate_project(self, **kwargs):
 def _migrate_project(region, username=None, charge_code=None, access_token=None):
     sess = admin_session(region)
     glance = glanceclient.Client('2', session=sess)
+    cinder = cinderclient.Client('3', session=sess)
     keystone = admin_ks_client(region=region)
     init_progress = 0.1
 
@@ -130,6 +132,13 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
         glance.image_members.create(image.id, ks_legacy_project.id)
         glance.image_members.update(image.id, ks_legacy_project.id, 'accepted')
         progress += ((1.0 - init_progress) / num_images)
+
+    if sess.get_endpoint(service_type='volumev3'):
+        volumes_to_migrate = [v for v in cinder.volumes.list(search_opts={
+            'project_id': ks_legacy_project.id
+        })]
+        num_volumes = len(volumes_to_migrate)
+
 
     keystone.projects.update(ks_legacy_project,
         migrated_at=datetime.now(tz=timezone.utc),
