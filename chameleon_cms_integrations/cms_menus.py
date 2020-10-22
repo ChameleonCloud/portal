@@ -13,7 +13,7 @@ class UserMenu(CMSAttachMenu):
 
         menu_id = 1
 
-        n = NavigationNode('Log in', "/login/", menu_id, attr={'visible_for_authenticated':False, 'class':'navbar-btn-alt'})
+        n = NavigationNode('Log in', reverse('login'), menu_id, attr={'visible_for_authenticated':False, 'class':'navbar-btn-alt'})
         nodes.append(n)
 
         # root node
@@ -24,60 +24,56 @@ class UserMenu(CMSAttachMenu):
         n = NavigationNode(title.format(greeting), "/user/", menu_id)
         nodes.append(n)
 
-        # drop down
+        # Unauthenticated menu
         menu_id += 1
-        n = NavigationNode(_('Register'), "/user/register/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('Register'), reverse('register'), menu_id, root_id, attr={'visible_for_authenticated':False})
         nodes.append(n)
 
+        menu_id += 1
+        n = NavigationNode(_('Help Desk'), reverse('djangoRT:ticketcreateguest'), menu_id, root_id, attr={'visible_for_authenticated':False})
+        nodes.append(n)
+
+        # Authenticated menu
         menu_id += 1
         dashboard_id = menu_id
-        n = NavigationNode(_('Dashboard'), "/user/dashboard/", menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), "/user/help/ticket/new/guest/", menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), "/user/help/", menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Log out'), reverse('logout'), menu_id, root_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
-
-        menu_id += 1
-        n = NavigationNode(_('Log out'), "/logout/", menu_id, root_id, attr={'visible_for_anonymous':False})
-        nodes.append(n)
-
 
         # user section dashboard sub-menu
         menu_id += 1
-        n = NavigationNode(_('Dashboard'), "/user/dashboard/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Projects'), "/user/projects/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
-        nodes.append(n)
-
-        # menu_id += 1
-        # n = NavigationNode(_('FutureGrid@Chameleon'), "/user/projects/futuregrid/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
-        # nodes.append(n)
-
-        menu_id += 1
-        n = NavigationNode(_('Outages'), "/user/outages/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Projects'), reverse('projects:user_projects'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), "/user/help/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Outages'), reverse('outage_list'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Profile'), "/user/profile/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Webinars'), "/user/webinar/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Profile'), reverse('tas:profile'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Publications'), "/user/projects/publications/", menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Webinars'), reverse('webinar_registration:index'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        nodes.append(n)
+
+        menu_id += 1
+        n = NavigationNode(_('Publications'), reverse('projects:publications'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
         nodes.append(n)
 
         if request.session.get('has_legacy_account', False):
