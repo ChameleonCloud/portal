@@ -178,6 +178,9 @@ class ProjectAllocationMapper:
                 return None
             user['role'] = role
 
+        # update user metadata from keycloak
+        user = self.update_user_metadata_from_keycloak(user)
+
         if to_pytas_model:
             return tas_user(initial=user)
         else:
@@ -572,20 +575,22 @@ class ProjectAllocationMapper:
                     'institution': None,
                     'role': role}
 
+        return tas_user
+
+    def update_user_metadata_from_keycloak(self, tas_formatted_user):
         keycloak_client = KeycloakClient()
-        keycloak_user = keycloak_client.get_keycloak_user_by_username(user.username)
+        keycloak_user = keycloak_client.get_keycloak_user_by_username(tas_formatted_user['username'])
 
         if keycloak_user:
             attrs = keycloak_user['attributes']
-            tas_user.update({
+            tas_formatted_user.update({
                 'institution': attrs.get('affiliationInstitution', None),
                 'department': attrs.get('affiliationDepartment', None),
                 'title': attrs.get('affiliationTitle', None),
                 'country': attrs.get('country', None),
                 'phone': attrs.get('phone', None),
                 'citizenship': attrs.get('citizenship', None)})
-
-        return tas_user
+        return tas_formatted_user
 
     def get_attr(self, obj, key):
         '''Attempt to resolve the key either as an attribute or a dict key'''
