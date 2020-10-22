@@ -292,7 +292,7 @@ class OIDCRegisterView(OIDCAuthenticationRequestView):
     the legacy login in the registration flow.
     """
     def __init__(self, *args, **kwargs):
-        super(OIDCAuthenticationRequestView).__init__(*args, **kwargs)
+        super(OIDCRegisterView, self).__init__(*args, **kwargs)
         self.OIDC_OP_AUTH_ENDPOINT = self.get_settings('OIDC_OP_REGISTRATION_ENDPOINT')
 
 
