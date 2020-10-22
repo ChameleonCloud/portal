@@ -48,17 +48,14 @@
     <h1 style="border:0;margin-top:0;font-size:48px">You don't have any projects!</h1>
 
     {% if is_pi_eligible %}
-    <hr>
-    <h4>Create a New Project</h4>
+    <h4>Create your first project</h4>
     <p>
-      <span class="label label-default">New!</span> PI eligible users can now create new Chameleon projects!
-    </p>
-    <p>
-      <a href="{% url 'projects:create_project' %}" class="btn btn-primary">
+      <a href="{% url 'projects:create_project' %}" class="btn btn-info">
         <i class="fa fa-plus-circle"></i>
-        Create a New Project
+        Create a Project
       </a>
     </p>
+    <hr>
     {% endif %}
 
     <h4>Get added to a project</h4>
