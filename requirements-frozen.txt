@@ -13,7 +13,7 @@ cmsplugin-filer==1.1.3
 configparser==3.8.1
 contextlib2==0.5.5
 cookies==2.2.1
-cryptography==2.7
+cryptography==3.2
 debtcollector==1.22.0
 Django==1.11.24
 django-angular==2.2.1
