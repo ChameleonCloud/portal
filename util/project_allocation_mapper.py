@@ -6,6 +6,7 @@ from allocations.models import Allocation as portal_alloc
 from allocations.allocations_api import BalanceServiceClient
 from projects.models import Project as portal_proj
 from projects.models import ProjectExtras, FieldHierarchy, Field
+from chameleon.models import PIEligibility
 from datetime import datetime
 import logging
 import json
@@ -15,6 +16,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
 from django.contrib.auth import get_user_model
+from djangoRT import rtUtil, rtModels
 from util.consts import allocation, project
 from util.keycloak_client import KeycloakClient
 
@@ -96,6 +98,22 @@ class ProjectAllocationMapper:
         except UserModel.DoesNotExist:
             logger.error('Could not find user %s in DB', username)
             return None
+
+    def _create_ticket_for_pi_request(self, user):
+        """
+        This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
+        """
+        rt = rtUtil.DjangoRt()
+        subject = "Chameleon PI Eligibility Request: %s" % user['username']
+        if self.is_from_db:
+            problem_description = "This PI Eligibility request can be reviewed at " +\
+                "https://wwww.chameleoncloud.org/admin/chameleon/pieligibility/"
+        else:
+            problem_description = ""
+        ticket = rtModels.Ticket(subject = subject,
+                                 problem_description = problem_description,
+                                 requestor = "us@tacc.utexas.edu")
+        rt.createTicket(ticket)
 
     def get_all_projects(self):
         projects = {}
@@ -236,6 +254,26 @@ class ProjectAllocationMapper:
             pextras.charge_code = project_charge_code
             pextras.nickname = nickname
             pextras.save()
+
+    def update_user_profile(self, user, new_profile, is_request_pi_eligibililty):
+        new_profile['piEligibility'] = user['piEligibility']
+        if is_request_pi_eligibililty:
+            if self.is_from_db:
+                pie_request = PIEligibility()
+                pie_request.requestor_id = user['id']
+                pie_request.save()
+            else:
+                self.tas.save_user(user['id'], {'piEligibility': 'Requested'})
+            self._create_ticket_for_pi_request(user)
+
+        keycloak_client = KeycloakClient()
+        keycloak_client.update_user(user['username'],
+                                    affiliation_title=new_profile.get('title'),
+                                    affiliation_department=new_profile.get('department'),
+                                    affiliation_institution=new_profile.get('institution'),
+                                    country=new_profile.get('country'),
+                                    citizenship=new_profile.get('citizenship'),
+                                    phone=new_profile.get('phone'))
 
     @staticmethod
     def get_project_nickname_and_charge_code_for_publication(publication):

@@ -1,4 +1,5 @@
 from keycloak.realm import KeycloakRealm
+from keycloak.admin import KeycloakAdminBase
 from keycloak.admin.users import User, Users
 from keycloak.admin.groups import Groups
 from keycloak.admin.user.usergroup import UserGroups
@@ -186,4 +187,39 @@ class KeycloakClient:
             else:
                 msg = err
             logger.error(f'Failed to create Keycloak user "{username}". Manual '
+                         f'cleanup may be required: {msg}')
+
+    def update_user(self, username, affiliation_title=None,
+                    affiliation_department=None, affiliation_institution=None,
+                    country=None, citizenship=None, phone=None):
+        try:
+            user = self.get_keycloak_user_by_username(username)
+            if not user:
+                logger.error(f'Couldn\'t find user {username} in keycloak')
+                return
+            keycloakuser = self._user_admin(user['id'])
+
+            update_attrs = keycloakuser.user.get('attributes', {}).copy()
+            if affiliation_title is not None:
+                update_attrs['affiliationTitle'] = affiliation_title
+            if affiliation_department is not None:
+                update_attrs['affiliationDepartment'] = affiliation_department
+            if affiliation_institution is not None:
+                update_attrs['affiliationInstitution'] = affiliation_institution
+            if country is not None:
+                update_attrs['country'] = country
+            if citizenship is not None:
+                update_attrs['citizenship'] = citizenship
+            if phone is not None:
+                update_attrs['phone'] = phone
+
+            update_kwargs = {'attributes': update_attrs}
+            keycloakuser.update(**update_kwargs)
+
+        except KeycloakClientError as err:
+            if err.__cause__:
+                msg = err.__cause__.response
+            else:
+                msg = err
+            logger.error(f'Failed to update Keycloak user "{username}". Manual '
                          f'cleanup may be required: {msg}')

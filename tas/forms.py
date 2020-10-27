@@ -36,23 +36,32 @@ USER_PROFILE_TITLES = (
     ('University Research Staff', 'University Research Staff (excluding postdoctorates)'),
 )
 
-
 def get_institution_choices():
     tas = TASClient()
     institutions_list = tas.institutions()
-    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in institutions_list)
+    return (('', 'Choose one'),) + tuple((c['name'], c['name']) for c in institutions_list)
 
 
-def get_department_choices(institutionId):
+def get_department_choices(institution):
     tas = TASClient()
-    departments_list = tas.get_departments(institutionId)
-    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in departments_list)
-
+    institutions_list = tas.institutions()
+    institution_id = None
+    for inst in institutions_list:
+        if inst['name'] == institution:
+            institution_id = inst['id']
+            break
+    if institution_id:
+        departments_list = tas.get_departments(institution_id)
+        if len(departments_list) == 0:
+            return None
+        return (('', 'Choose one'),) + tuple((c['name'], c['name']) for c in departments_list)
+    else:
+        return None
 
 def get_country_choices():
     tas = TASClient()
     countries_list = tas.countries()
-    return (('', 'Choose one'),) + tuple((c['id'], c['name']) for c in countries_list)
+    return (('', 'Choose one'),) + tuple((c['name'], c['name']) for c in countries_list)
 
 
 class EmailConfirmationForm(forms.Form):
@@ -151,26 +160,36 @@ class UserProfileForm(forms.Form):
     lastName = forms.CharField(label='Last name')
     email = forms.EmailField()
     phone = forms.CharField()
-    institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
-    departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
+    institution = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
+    department = forms.ChoiceField(label='Department', choices=(), required=False)
     title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
-    countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
-    citizenshipId = forms.CharField(label='Country of citizenship', widget=forms.HiddenInput(), error_messages={'invalid': 'Please select your Country of citizenship'})
+    country = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
+    citizenship = forms.CharField(label='Country of citizenship', widget=forms.HiddenInput(), error_messages={'invalid': 'Please select your Country of citizenship'})
+    
+    disabled_fields = ['firstName', 'lastName', 'email']
+    # tas returns empty department list for some institutions
+    fields_not_required_for_pi = ['department']
 
     def __init__(self, *args, **kwargs):
-        is_federated = kwargs.pop('is_federated', False)
+        is_pi_eligible = kwargs.pop('is_pi_eligible', False)
         super(UserProfileForm, self).__init__(*args, **kwargs)
-        self.fields['institutionId'].choices = get_institution_choices()
+        self.fields['institution'].choices = get_institution_choices()
         data = self.data or self.initial
-        if (data is not None and 'institutionId' in data and data['institutionId']):
-            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
-        if is_federated:
+        if (data is not None and 'institution' in data and data['institution']):
+            department_choices = get_department_choices(data['institution'])
+            if department_choices:
+                self.fields['department'].choices = department_choices
+        for field in self.fields:
+            if field in self.disabled_fields:
+                self.fields[field].widget.attrs['readonly'] = True
+            self.fields[field].required = False
+        self.fields['country'].choices = get_country_choices()
+        self.fields['citizenship'].widget.attrs['readonly'] = True
+        
+        if is_pi_eligible:
             for field in self.fields:
-                self.fields[field].widget.attrs['disabled'] = True
-                self.fields[field].required = False
-        self.fields['countryId'].choices = get_country_choices()
-        self.fields['citizenshipId'].widget.attrs['readonly'] = True
-
+                if field not in self.disabled_fields and field not in self.fields_not_required_for_pi:
+                    self.fields[field].required = True
 
 class TasUserProfileAdminForm(forms.Form):
     """
@@ -202,15 +221,15 @@ class UserRegistrationForm(forms.Form):
     lastName = forms.CharField(label='Last name')
     email = forms.EmailField()
     phone = forms.CharField()
-    institutionId = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
-    departmentId = forms.ChoiceField(label='Department', choices=(), required=False)
-    institution = forms.CharField(label='Institution name',
-                                      help_text='If your institution is not listed, please provide the name of the institution as it should be shown here.',
-                                      required=False,
-                                      )
+    institution = forms.ChoiceField(label='Institution', choices=(), error_messages={'invalid': 'Please select your affiliated institution'})
+    department = forms.ChoiceField(label='Department', choices=(), required=False)
+    institution_other = forms.CharField(label='Institution name',
+                                        help_text='If your institution is not listed, please provide the name of the institution as it should be shown here.',
+                                        required=False,
+                                        )
     title = forms.ChoiceField(label='Position/Title', choices=USER_PROFILE_TITLES)
-    countryId = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
-    citizenshipId = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
+    country = forms.ChoiceField(label='Country of residence', choices=(), error_messages={'invalid': 'Please select your Country of residence'})
+    citizenship = forms.ChoiceField(label='Country of citizenship', choices=(), error_messages={'invalid': 'Please select your Country of citizenship'})
 
     username = forms.RegexField(label='Username',
                                help_text='Usernames must be 3-8 characters in length, start with a letter, and can contain only lowercase letters, numbers, or underscore.',
@@ -220,15 +239,15 @@ class UserRegistrationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(UserRegistrationForm, self).__init__(*args, **kwargs)
-        self.fields['institutionId'].choices = get_institution_choices()
-        self.fields['institutionId'].choices += (('-1', 'My Institution is not listed'),)
+        self.fields['institution'].choices = get_institution_choices()
+        self.fields['institution'].choices += (('', 'My Institution is not listed'),)
 
         data = self.data or self.initial
-        if (data is not None and 'institutionId' in data and data['institutionId']):
-            self.fields['departmentId'].choices = get_department_choices(data['institutionId'])
+        if (data is not None and 'institution' in data and data['institution']):
+            self.fields['department'].choices = get_department_choices(data['institution'])
 
-        self.fields['countryId'].choices = get_country_choices()
-        self.fields['citizenshipId'].choices = get_country_choices()
+        self.fields['country'].choices = get_country_choices()
+        self.fields['citizenship'].choices = get_country_choices()
 
     def clean(self):
         username = self.cleaned_data.get('username')
