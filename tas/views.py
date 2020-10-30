@@ -58,6 +58,7 @@ def profile_edit(request):
             messages.success(request, 'Your profile has been updated!')
             return HttpResponseRedirect(reverse('tas:profile'))
     else:
+        kwargs = {'is_pi_eligible': False}
         if user_info['piEligibility'].upper() == 'ELIGIBLE':
             kwargs = {'is_pi_eligible': True}
         form = UserProfileForm(initial=user_info, **kwargs)
