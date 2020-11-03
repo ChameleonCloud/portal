@@ -690,7 +690,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 # ALLOCATIONS
 ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get('ALLOCATIONS_BALANCE_SERVICE_ROOT_URL', '')
 PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get('PENDING_ALLOCATION_NOTIFICATION_EMAIL', '')
-ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY_IN_MINUTES = 30
+ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY = (60 * 5)
 
 ########
 # Tasks
@@ -709,13 +709,13 @@ CELERY_BEAT_SCHEDULE = {
     'send-outage-reminders': {
         'task': 'chameleon_mailman.tasks.send_outage_reminders',
         'schedule': crontab(minute="*/{}".format(
-            int(OUTAGE_REMINDER_FREQUENCY / 60))),
+            int(OUTAGE_REMINDER_FREQUENCY // 60))),
         'args': (OUTAGE_REMINDER_FREQUENCY, OUTAGE_EMAIL_REMINDER_TIMEDELTA)
     },
     'activate-expire-allocations': {
         'task': 'allocations.tasks.activate_expire_allocations',
         'schedule': crontab(minute="*/{}".format(
-            int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY_IN_MINUTES)))
+            int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY // 60)))
     },
 }
 
