@@ -146,6 +146,11 @@ class KeycloakClient:
         group = self._lookup_group(charge_code)
         if not group:
             raise ValueError(f'Group {charge_code} does not exist')
+        # Ensure all attributes are wrapped in lists
+        group_attributes = {
+            k: (v if isinstance(v, list) else [v])
+            for k, v in group_attributes.items()
+        }
         # Avoid nulling out existing values (PATCH not supported)
         for k, v in group.get('attributes', {}).items():
             group_attributes.setdefault(k, v)
