@@ -183,26 +183,14 @@ class ProjectAllocationMapper:
         return None
 
     def get_user(self, username, to_pytas_model=False, role=None):
-        if self.is_from_db:
-            portal_user = self._get_user_from_portal_db(username)
-            if portal_user:
-                user = self.portal_user_to_tas_obj(portal_user, role=role)
-            else:
-                return None
-        else:
-            user = self.tas.get_user(username=username)
-            if not user:
-                logger.error('Could not find user %s in TAS', username)
-                return None
-            user['role'] = role
+        portal_user = self._get_user_from_portal_db(username)
+        if not portal_user:
+            return None
 
+        user = self.portal_user_to_tas_obj(portal_user, role=role)
         # update user metadata from keycloak
         user = self.update_user_metadata_from_keycloak(user)
-
-        if to_pytas_model:
-            return tas_user(initial=user)
-        else:
-            return user
+        return tas_user(initial=user) if to_pytas_model else user
 
     def lazy_add_user_to_keycloak(self):
         keycloak_client = KeycloakClient()
@@ -256,14 +244,10 @@ class ProjectAllocationMapper:
             pextras.save()
 
     def update_user_profile(self, user, new_profile, is_request_pi_eligibililty):
-        new_profile['piEligibility'] = user['piEligibility']
         if is_request_pi_eligibililty:
-            if self.is_from_db:
-                pie_request = PIEligibility()
-                pie_request.requestor_id = user['id']
-                pie_request.save()
-            else:
-                self.tas.save_user(user['id'], {'piEligibility': 'Requested'})
+            pie_request = PIEligibility()
+            pie_request.requestor_id = user['id']
+            pie_request.save()
             self._create_ticket_for_pi_request(user)
 
         keycloak_client = KeycloakClient()
