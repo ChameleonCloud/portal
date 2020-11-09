@@ -36,8 +36,8 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
             sender = settings.DEFAULT_FROM_EMAIL
             recipients = settings.OUTAGE_NOTIFICATION_EMAIL.split(',')
 
-            mail_sent = send_mail(
-                subject, strip_tags(body), sender, recipients)
+            mail_sent = send_mail(subject, strip_tags(body), sender,
+                                  recipients, html_message=body)
 
             if mail_sent:
                 outage.reminder_sent = now
