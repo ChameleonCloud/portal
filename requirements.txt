@@ -48,7 +48,8 @@ pytas
 bibtexparser
 mozilla-django-oidc
 python-memcached
+python-blazarclient
+python-cinderclient
 python-glanceclient
 python-keystoneclient
 python-novaclient
-python-blazarclient

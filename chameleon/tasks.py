@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from cinderclient.v3 import client as cinder_client
 import glanceclient
 import novaclient
 
-from .keystone_auth import admin_session, admin_ks_client, get_user, unscoped_user_session
+from .keystone_auth import admin_session, admin_ks_client, get_user, unscoped_user_session, project_scoped_session
 
 LOG = get_task_logger(__name__)
 
@@ -14,7 +15,7 @@ LOG = get_task_logger(__name__)
 class MigrationError(Exception):
     def __init__(self, messages=[]):
         self.messages = messages
-        super(Exception, self).__init__(messages)
+        super(MigrationError, self).__init__(messages)
 
 
 def run_migrate_task(bound_task, task_fn, **kwargs):
@@ -89,10 +90,12 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
     if not ks_legacy_user:
         yield 1.0, f'User "{username}" not found in region "{region}", skipping'
         return
+
     ks_legacy_project = next(iter([
         ks_p for ks_p in keystone.projects.list(user=ks_legacy_user, domain='default')
         if getattr(ks_p, 'charge_code', ks_p.name) == charge_code
     ]), None)
+
     if not ks_legacy_project:
         yield 1.0, f'Project {charge_code} not found in region "{region}", skipping'
         return
@@ -113,14 +116,42 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
         img for img in glance.images.list(owner=ks_legacy_project)
         if img.owner == ks_legacy_project.id
     ]
+    volumes_to_migrate = []
+
+    if region == 'KVM@TACC':
+        unscoped_session = unscoped_user_session(
+            region, access_token=access_token)
+        scoped_user_session = project_scoped_session(
+            project_id=ks_federated_project.id,
+            unscoped_token=unscoped_session.get_token(),
+            region=region)
+
+        admin_cinder = cinder_client.Client(session=sess)
+        user_cinder = cinder_client.Client(session=scoped_user_session)
+
+        volumes_to_migrate = [v for v in admin_cinder.volumes.list(
+            search_opts={
+                'all_tenants': 1,
+                'project_id': ks_legacy_project.id
+            }
+        )]
+
     num_images = len(images_to_migrate)
-    if num_images:
+    num_volumes = num_volumes = len(volumes_to_migrate) 
+    migrations_count = num_images + num_volumes
+
+    if migrations_count:
         # Increment the bar slightly to show there is work being done
         progress = init_progress
-        yield progress, f'Will migrate {num_images} disk images for project "{charge_code}"'
+
+        yield progress, (
+            f'Will migrate {num_images} disk images and {num_volumes} volumes '
+            f'for project "{charge_code}"')
     else:
         progress = 0.9
-        yield progress, f'No images left to migrate for project "{charge_code}"'
+        yield progress, (
+            f'No images or volumes left to migrate for project '
+            f'"{charge_code}"')
 
     for image in images_to_migrate:
         yield progress, f'Migrating disk image "{image.name}"...'
@@ -129,7 +160,21 @@ def _migrate_project(region, username=None, charge_code=None, access_token=None)
         glance.images.update(image.id, owner=ks_federated_project.id, visibility=visibility)
         glance.image_members.create(image.id, ks_legacy_project.id)
         glance.image_members.update(image.id, ks_legacy_project.id, 'accepted')
-        progress += ((1.0 - init_progress) / num_images)
+        progress += ((1.0 - init_progress) / migrations_count)
+
+    for volume in volumes_to_migrate:
+        yield progress, f'Migrating volumes "{volume.name}"...'
+        if volume.status == 'available':
+            transfer = admin_cinder.transfers.create(volume.id)
+            user_cinder.transfers.accept(transfer.id, transfer.auth_key)
+        else:
+            yield progress, (
+                f'Volume {volume.name} is not available to transfer. '
+                f'Please detach volume from any instances and re-run '
+                f'migration.'
+            )
+
+        progress += ((1.0 - init_progress) / migrations_count)
 
     keystone.projects.update(ks_legacy_project,
         migrated_at=datetime.now(tz=timezone.utc),
