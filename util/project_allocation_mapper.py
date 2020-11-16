@@ -107,7 +107,7 @@ class ProjectAllocationMapper:
         subject = "Chameleon PI Eligibility Request: %s" % user['username']
         if self.is_from_db:
             problem_description = "This PI Eligibility request can be reviewed at " +\
-                "https://wwww.chameleoncloud.org/admin/chameleon/pieligibility/"
+                "https://www.chameleoncloud.org/admin/chameleon/pieligibility/"
         else:
             problem_description = ""
         ticket = rtModels.Ticket(subject = subject,
