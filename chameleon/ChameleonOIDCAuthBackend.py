@@ -1,11 +1,12 @@
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
-import logging
 
-logger = logging.getLogger('auth')
+import logging
+LOG = logging.getLogger('auth')
+
 
 class ChameleonOIDCAB(OIDCAuthenticationBackend):
     def authenticate(self, request, **kwargs):
-        login = super(ChameleonOIDCAB, self).authenticate(request, **kwargs)
+        login = super().authenticate(request, **kwargs)
         if login:
             try:
                 access_token = request.session.get('oidc_access_token')
@@ -21,26 +22,43 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
                 if 'tacc' in linked_identities:
                     request.session['has_legacy_account'] = True
             except:
-                logger.exception((
+                LOG.exception((
                     'Failed to fetch federated identities for '
                     f'{request.user.username}'))
             request.session['is_federated'] = True
         return login
 
+    def filter_users_by_claims(self, claims):
+        """Override to search for users by username and not email."""
+        username = claims.get('preferred_username')
+        if username:
+            return self.UserModel.objects.filter(username__iexact=username)
+
+        return self.UserModel.objects.none()
+
+    def get_username(self, claims):
+        """Override default behavior to use preferred_username as username."""
+        return claims.get('preferred_username')
+
     def create_user(self, claims):
-        logger.debug('Creating user from keycloak with claims: {0}'.format(claims))
-        email = claims.get('email')
-        username = claims.get('preferred_username', '')
-        user = self.UserModel.objects.create_user(username, email)
+        """Override to set first and last name."""
+        LOG.debug('Creating user from keycloak with claims: {0}'.format(claims))
+
+        user = super().create_user(claims)
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
         user.save()
+
         return user
 
     def update_user(self, user, claims):
-        logger.debug('Updating user from keycloak with claims: {0}'.format(claims))
-        user.username = claims.get('preferred_username', '')
+        """Override to update the username field and set first/last name."""
+        LOG.debug('Updating user from keycloak with claims: {0}'.format(claims))
+
+        # We allow Keycloak to override the email set in Portal
+        user.email = claims.get('email', '')
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
         user.save()
+
         return user
