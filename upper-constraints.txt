@@ -5,6 +5,7 @@ django-bootstrap3<14.0
 django-classy-tags<2.0.0
 django-sekizai<2.0.0
 django-cms~=3.6.0
+django-meta<2.0.0
 django-termsandconditions<2.0
 djangocms-attributes-field<2.0.0
 git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/1.0.x#egg=djangocms_blog&_=1
