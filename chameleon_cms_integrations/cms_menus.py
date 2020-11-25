@@ -10,75 +10,81 @@ class UserMenu(CMSAttachMenu):
 
     def get_nodes(self, request):
         nodes = []
+        menu_id = 0
 
-        menu_id = 1
-
-        n = NavigationNode('Log in', reverse('login'), menu_id, attr={'visible_for_authenticated':False, 'class':'navbar-btn-alt'})
+        #
+        # Top menu
+        #
+        # menu_id += 1
+        # n = NavigationNode(_('Help Desk'), reverse('djangoRT:ticketcreateguest'), menu_id, attr={'visible_for_authenticated': False, 'class': 'navbar-btn-alt'})
+        # nodes.append(n)
+        menu_id += 1
+        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, attr={'visible_for_anonymous': False, 'class': 'navbar-btn-alt'})
         nodes.append(n)
 
-        # root node
         menu_id += 1
-        root_id = menu_id
-        greeting = '&nbsp;{0}&nbsp;'.format(request.user.username ) if request.user.is_authenticated() else ''
+        n = NavigationNode('Log in', reverse('login'), menu_id, attr={'visible_for_authenticated': False, 'class': 'navbar-btn-alt'})
+        nodes.append(n)
+
+        #
+        # Dropdown menu
+        #
+        menu_id += 1
+        greeting = '&nbsp;{0}&nbsp;'.format(request.user.username) if request.user.is_authenticated() else ''
         title = '<i class="fa fa-user"></i><span class="hidden-sm">{0}</span>'
-        n = NavigationNode(title.format(greeting), "/user/", menu_id)
+        n = NavigationNode(title.format(greeting), "/user/", menu_id, attr={'visible_for_anonymous': False})
         nodes.append(n)
 
-        # Unauthenticated menu
-        menu_id += 1
-        n = NavigationNode(_('Register'), reverse('register'), menu_id, root_id, attr={'visible_for_authenticated':False})
-        nodes.append(n)
+        root_id = menu_id
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), reverse('djangoRT:ticketcreateguest'), menu_id, root_id, attr={'visible_for_authenticated':False})
+        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, root_id)
         nodes.append(n)
 
-        # Authenticated menu
-        menu_id += 1
         dashboard_id = menu_id
-        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, root_id, attr={'visible_for_anonymous':False})
+
+        menu_id += 1
+        n = NavigationNode(_('Profile'), reverse('tas:profile'), menu_id, root_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, root_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Log out'), reverse('logout'), menu_id, root_id)
+        nodes.append(n)
+
+        #
+        # Dashboard sub-menu
+        #
+        menu_id += 1
+        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Log out'), reverse('logout'), menu_id, root_id, attr={'visible_for_anonymous':False})
-        nodes.append(n)
-
-        # user section dashboard sub-menu
-        menu_id += 1
-        n = NavigationNode(_('Dashboard'), reverse('dashboard'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Projects'), reverse('projects:user_projects'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Projects'), reverse('projects:user_projects'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Outages'), reverse('outage_list'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Outages'), reverse('outage_list'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Help Desk'), reverse('djangoRT:mytickets'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Profile'), reverse('tas:profile'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Profile'), reverse('tas:profile'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Webinars'), reverse('webinar_registration:index'), menu_id, dashboard_id)
         nodes.append(n)
 
         menu_id += 1
-        n = NavigationNode(_('Webinars'), reverse('webinar_registration:index'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
-        nodes.append(n)
-
-        menu_id += 1
-        n = NavigationNode(_('Publications'), reverse('projects:publications'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+        n = NavigationNode(_('Publications'), reverse('projects:publications'), menu_id, dashboard_id)
         nodes.append(n)
 
         if request.session.get('has_legacy_account', False):
             menu_id += 1
-            n = NavigationNode(_('Migrate account'), reverse('federation_migrate_account'), menu_id, dashboard_id, attr={'visible_for_anonymous':False})
+            n = NavigationNode(_('Migrate account'), reverse('federation_migrate_account'), menu_id, dashboard_id)
             nodes.append(n)
 
         return nodes
