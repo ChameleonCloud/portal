@@ -225,7 +225,6 @@ def dashboard(request):
     context['active_projects'] = active_projects
 
     context['show_migration_info'] = request.session.get('has_legacy_account', False)
-    context['show_federation_info'] = not request.session.get('is_federated', False)
 
     # open tickets...
     rt = rtUtil.DjangoRt()
