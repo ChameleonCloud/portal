@@ -1,8 +1,0 @@
-{% for key, val in providers.items %}
-  <form method="post" action="{% url 'chameleon_openid:openid_login' %}">
-    {% csrf_token %}
-    <input type="hidden" name="openid_url" value="{{ val.openid_url }}">
-    <button class="btn btn-info" type="submit" name="{{ key }}">Log in with {{ val.name }}</button>
-    <a class="btn btn-link" href="{{ val.site_url }}">Visit {{ val.name }} site</a>
-  </form>
-{% endfor %}

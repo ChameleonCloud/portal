@@ -2,13 +2,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import ValidationError
 from pytas.http import TASClient
-from tas.models import activate_local_user, user_is_active
 from chameleon.keystone_auth import disable_user
 import logging
 import re
 
 class TASBackend(ModelBackend):
-
     def __init__(self):
         self.tas = TASClient()
 
