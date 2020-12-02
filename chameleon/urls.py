@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse_lazy
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import RedirectView, TemplateView
-from tas import views as tas_views
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
 
 urlpatterns = [
@@ -21,7 +20,6 @@ urlpatterns = [
     url(r'^admin/usage/', include('usage.urls', namespace='usage_admin')),
 
     # contrib urls
-    url(r'^openid/', include('chameleon_openid.urls', namespace='chameleon_openid')),
     url(r'^oidc/', include('mozilla_django_oidc.urls')),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^captcha/', include('captcha.urls')),
@@ -34,19 +32,14 @@ urlpatterns = [
     url(r'^logout/', chameleon_os_login.custom_logout, name='logout'),
     url(r'^register/', chameleon_views.OIDCRegisterView.as_view(), name='register'),
     # Rollout endpoints for new login
-    url(r'^new-login-experience/$', chameleon_views.new_login_experience, name='new_login_experience'),
     url(r'^auth/force-password-login/$', chameleon_views.force_password_login, name='force_password_login'),
+    url(r'^auth/confirm/$', chameleon_os_login.confirm_legacy_credentials, name='federation_confirm_legacy_credentials'),
     url(r'^user/migrate/$', chameleon_views.migrate, name='federation_migrate_account'),
     url(r'^api/user/migrate/status/$', chameleon_views.api_migration_state),
     url(r'^api/user/migrate/job/$', chameleon_views.api_migration_job),
 
     # Legacy account endpoints
-    url(r'^sso/horizon/$', chameleon_views.horizon_sso_login, name='horizon_sso_login'),
-    url(r'^sso/horizon/unavailable', chameleon_views.horizon_sso_unavailable, name='horizon_sso_unavailable'),
     url(r'^user/', include('tas.urls', namespace='tas')),
-    url(r'^email-confirmation/', tas_views.email_confirmation),
-    url(r'^password-reset/', tas_views.password_reset),
-    url(r'^forgot-username/$', tas_views.recover_username),
 
     url(r'^user/dashboard/', chameleon_views.dashboard, name='dashboard'),
 

@@ -8,34 +8,6 @@
 
 <h3>Dashboard</h3>
 
-{% if geni_federation %}
-  {% if geni_federation.on_geni_project %}
-    {% if not geni_federation.on_chameleon_project %}
-      <div class="alert alert-warning">
-        <h4>Activate Chameleon-GENI Federation Access</h4>
-        <p>
-          As a member of the <b>{{geni_federation.geni_project_name}}</b> project on the
-          GENI Cloud, you can access resources in the Chameleon Cloud!
-        </p>
-        <p>
-          <a class="btn btn-warning" href="{% url 'chameleon_openid:activate_geni' %}">
-            Activate Access to Chameleon Cloud Resources
-          </a>
-        </p>
-      </div>
-    {% endif %}
-  {% else %}
-    <div class="alert alert-info">
-      <h4>Learn more about Chameleon-GENI Cloud Federation</h4>
-      <p>
-        Take advantage of the Chameleon-GENI Cloud Federation by joining the
-        <b>{{geni_federation.geni_project_name}}</b> project on GENI!
-        <a href="/docs/geni-federation">Read more about the federation here.</a>
-      </p>
-    </div>
-  {% endif %}
-{% endif %}
-
 {% if show_migration_info %}
 <div class="alert alert-info">
   <p>

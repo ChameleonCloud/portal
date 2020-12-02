@@ -114,7 +114,6 @@ INSTALLED_APPS = (
     # custom
     #
     'chameleon',
-    'chameleon_openid',
     'chameleon_mailman',
     'chameleon_token',
     'usage',
@@ -271,8 +270,6 @@ KEYCLOAK_CLIENT_PROVIDER_ALIAS = os.environ.get('KEYCLOAK_CLIENT_PROVIDER_ALIAS'
 KEYCLOAK_CLIENT_PROVIDER_SUB = os.environ.get('KEYCLOAK_CLIENT_PROVIDER_SUB')
 
 AUTHENTICATION_BACKENDS = (
-    'tas.auth.TASBackend',
-    'chameleon_openid.backend.OpenIDBackend',
     'chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB',
 )
 
@@ -334,10 +331,6 @@ LOGGING = {
         'chameleon_cms_integrations': {
             'handlers': ['console'],
             'level': 'INFO'
-        },
-        'chameleon_openid': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
         },
         'openid': {
             'handlers': ['console'],
@@ -738,7 +731,6 @@ if DEBUG:
 
 
 # Federation new login experience
-NEW_LOGIN_EXPERIENCE_COOKIE = 'new_login_experience'
 FORCE_OLD_LOGIN_EXPERIENCE_PARAM = 'old_login_experience'
 
 CACHES = {
