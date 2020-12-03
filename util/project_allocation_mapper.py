@@ -1,15 +1,13 @@
-from pytas.models import Allocation as tas_alloc
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
 from pytas.http import TASClient
 from allocations.models import Allocation as portal_alloc
 from allocations.allocations_api import BalanceServiceClient
 from projects.models import Project as portal_proj
-from projects.models import ProjectExtras, FieldHierarchy, Field
+from projects.models import ProjectExtras, FieldHierarchy
 from chameleon.models import PIEligibility
 from datetime import datetime
 import logging
-import json
 import pytz
 import time
 from django.conf import settings
@@ -291,18 +289,6 @@ class ProjectAllocationMapper:
                 project = self.portal_to_tas_proj_obj(project[0], fetch_balance=fetch_balance)
                 user_projects[charge_code] = project
 
-        for tas_project in self._tas_projects_for_user(username):
-            if tas_project['chargeCode'] in user_projects:
-                continue
-            if alloc_status and not any(a['status'] in alloc_status for a in tas_project['allocations']):
-                continue
-            try:
-                extras = ProjectExtras.objects.get(tas_project_id=tas_project['id'])
-                tas_project['nickname'] = extras.nickname
-            except ProjectExtras.DoesNotExist:
-                logger.warning('Couldn\'t find nickname of tas project {} in portal database'.format(tas_project['chargeCode']))
-            user_projects[tas_project['chargeCode']] = tas_project
-
         if to_pytas_model:
             return [tas_proj(initial=p) for p in list(user_projects.values())]
         else:
@@ -321,46 +307,10 @@ class ProjectAllocationMapper:
             user = self.get_user(username, to_pytas_model=True, role=role)
             if user:
                 users.append(user)
-        # Combine with result from TAS.
-        # NOTE(jason): this will not be necessary and should be removed when
-        # we have stopped writing any data to TAS for projects/allocations/
-        # memberships.
-        usernames = [u.username for u in users]
-        # Though it's "tas_project", it's actually a pytas model that _could_
-        # have been hydrated with an entry from the Portal DB. Therefore its
-        # ID might be a Portal DB ID and not a TAS ID. To ensure we don't pull
-        # users from the wrong project, get actual TAS entry via charge code.
-        _tas_project = self._tas_lookup_project(tas_project.chargeCode)
-        if _tas_project:
-            for tas_user in tas_proj(initial=_tas_project).get_users():
-                if tas_user.username not in usernames:
-                    users.append(tas_user)
-        else:
-            # Since the lookup is against the user's list of active projects,
-            # we will not find new projects that have not yet been approved.
-            logger.warning((
-                'Could not retrieve users for project %s from TAS. The project '
-                'may not be active yet. Falling back to PI user, if found.'),
-                tas_project.chargeCode)
-            pi_user = getattr(tas_project, 'pi', None)
-            if pi_user:
-                # The project PI user relation doesn't have a role... shim it.
-                pi_user.role = 'PI'
-                users.append(pi_user)
-            else:
-                logger.error('Missing PI for project %s',
-                    tas_project.chargeCode)
         return users
 
     def get_project(self, project_id):
         """Get a project by its ID (not charge code).
-
-        For projects stored in Portal's database, we look up by its primary key.
-        If the project is not found, we fall back to checking TAS's database.
-
-        NOTE(jason): we can remove the TAS fallback in the future. It is only
-            in place so we can handle cases where a list of projects is fetched
-            for a user from TAS and not Portal, and deep links need to work.
 
         Args:
             project_id (int): the project ID.
@@ -368,20 +318,9 @@ class ProjectAllocationMapper:
         Returns:
             pytas.models.Project: a TAS Project representation for the project.
         """
-        try:
-            # try get project from portal
-            project = portal_proj.objects.get(pk=project_id)
-            project = self.portal_to_tas_proj_obj(project)
-            return tas_proj(initial=project)
-        except portal_proj.DoesNotExist:
-            # project not in portal; get from tas
-            tas_project = tas_proj(project_id)
-            try:
-                extras = ProjectExtras.objects.get(tas_project_id=tas_project.id)
-                tas_project.__dict__['nickname'] = extras.nickname
-            except ProjectExtras.DoesNotExist:
-                logger.warning('Couldn\'t find nickname of tas project {} in portal database'.format(self.get_attr(tas_project, 'chargeCode')))
-            return tas_project
+        project = portal_proj.objects.get(pk=project_id)
+        project = self.portal_to_tas_proj_obj(project)
+        return tas_proj(initial=project)
 
     def allocation_approval(self, data, host):
         # update allocation model
@@ -400,55 +339,13 @@ class ProjectAllocationMapper:
                       'host': host}
         self._send_allocation_decision_notification(**email_args)
 
-    @staticmethod
-    def is_geni_user_on_chameleon_project(username):
-        on_chameleon_project = False
-
-        fed_proj = portal_proj.objects.filter(charge_code=settings.GENI_FEDERATION_PROJECTS['chameleon']['charge_code'])
-        keycloak_client = KeycloakClient()
-        for proj in keycloak_client.get_user_projects_by_username(username):
-            if proj.id == fed_proj.id:
-                on_chameleon_project = True
-                break
-
-        if not on_chameleon_project:
-            fed_proj = tas_proj(settings.GENI_FEDERATION_PROJECTS['chameleon']['id'])
-            on_chameleon_project = any(u.username == username \
-                                       for u in fed_proj.get_users())
-        return on_chameleon_project
-
     def _update_user_membership(self, tas_project, username, action=None):
         if action not in ['add', 'delete']:
             raise ValueError('Invalid membership action {}'.format(action))
 
         charge_code = self.get_attr(tas_project, 'chargeCode')
-
-        try:
-            keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(charge_code, username, action)
-        except:
-            # TODO(jason): this should return an error in the future, for now
-            # we just log the exception b/c TAS is still the main storer of
-            # user state.
-            logger.exception((
-                'Keycloak: failed to {} user {} on project {}'
-                .format(action, username, charge_code)))
-
-        # TODO(jason): the TAS branch will no longer be necessary when
-        # we have all users on Keycloak and logins being sent through there.
-        try:
-            tas_project = self._tas_lookup_project(charge_code)
-            if not tas_project:
-                raise ValueError('Could not find TAS project %s', charge_code)
-            if action == 'add':
-                return self.tas.add_project_user(tas_project['id'], username)
-            elif action == 'delete':
-                return self.tas.del_project_user(tas_project['id'], username)
-        except:
-            logger.exception((
-                'TAS: failed to {} user {} on project {}'
-                .format(action, username, charge_code)))
-            return False
+        keycloak_client = KeycloakClient()
+        keycloak_client.update_membership(charge_code, username, action)
 
     def add_user_to_project(self, tas_project, username):
         return self._update_user_membership(tas_project, username, action='add')
@@ -631,38 +528,3 @@ class ProjectAllocationMapper:
         else:
             setattr(obj, key, val)
         return obj
-
-    def _normalize_tas_projects(self, tas_projects):
-        normalized = {}
-        for p in tas_projects or []:
-            if p['source'] != 'Chameleon':
-                # Shouldn't be possible for source to be anything other than
-                # "Chameleon", but double-check.
-                continue
-            # Similarly, ensure nested allocations are from valid resource.
-            p['allocations'] = [
-                a for a in p['allocations']
-                if a['resource'] == 'Chameleon'
-            ]
-            charge_code = p['chargeCode']
-            if charge_code in normalized:
-                # Combine allocation records
-                normalized[charge_code]['allocations'].extend(p['allocations'])
-            else:
-                normalized[charge_code] = p
-        return list(normalized.values())
-
-    def _tas_projects_for_user(self, username):
-        return self._normalize_tas_projects(
-            self.tas.projects_for_user(username=username))
-
-    def _tas_all_projects(self):
-        return self._normalize_tas_projects(
-            self.tas.projects_for_group('Chameleon'))
-
-    def _tas_lookup_project(self, charge_code):
-        tas_user_projects = self._tas_projects_for_user(self.current_user)
-        return next(iter([
-            p for p in tas_user_projects
-            if p['chargeCode'] == charge_code
-        ]), None)
