@@ -82,42 +82,43 @@ def view_project(request, project_id):
     pubs_form = AddBibtexPublicationForm()
 
     if request.POST and project_pi_or_admin_or_superuser(request.user, project):
+        form = ProjectAddUserForm()
         if 'add_user' in request.POST:
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
-                # try to add user
                 try:
                     add_username = form.cleaned_data['username']
                     if mapper.add_user_to_project(project, add_username):
                         sync_project_memberships(request, add_username)
                         messages.success(request,
-                            'User "%s" added to project!' % add_username)
+                            f'User "{add_username}" added to project!')
                         form = ProjectAddUserForm()
                 except Exception as e:
-                    logger.error(e)
                     logger.exception('Failed adding user')
-                    form.add_error('username', '')
-                    form.add_error('__all__', 'Unable to add user. Confirm that the '
-                        'username is correct.')
+                    messages.error(request, (
+                        'Unable to add user. Confirm that the username is '
+                        'correct and corresponds to a current Chameleon user.'))
             else:
-                form.add_error('__all__', 'There were errors processing your request. '
-                    'Please see below for details.')
-        elif 'nickname' in request.POST:
-            nickname_form = edit_nickname(request, project_id)
-        else:
-            form = ProjectAddUserForm()
-
-        if 'del_user' in request.POST:
-            # try to remove user
+                messages.error(request, (
+                    'There were errors processing your request. '
+                    'Please see below for details.'))
+        elif 'del_user' in request.POST:
             try:
                 del_username = request.POST['username']
+                # Ensure that it's not possible to remove the PI
+                if del_username == project.pi.username:
+                    raise PermissionDenied('Removing the PI from the project is not allowed.')
                 if mapper.remove_user_from_project(project, del_username):
                     sync_project_memberships(request, del_username)
                     messages.success(request, 'User "%s" removed from project' % del_username)
+            except PermissionDenied as exc:
+                messages.error(request, exc)
             except:
                 logger.exception('Failed removing user')
                 messages.error(request, 'An unexpected error occurred while attempting '
                     'to remove this user. Please try again')
+        elif 'nickname' in request.POST:
+            nickname_form = edit_nickname(request, project_id)
 
     users = mapper.get_project_members(project)
 
@@ -139,11 +140,10 @@ def view_project(request, project_id):
 
     user_mashup = []
     for u in users:
-        if u.role == 'PI': # Exclude PI from member list
-            continue
-        user = {}
-        user['username'] = u.username
-        user['role'] = u.role
+        user = {
+            'username': u.username,
+            'role': u.role,
+        }
         try:
             portal_user = User.objects.get(username=u.username)
             user['email'] = portal_user.email
