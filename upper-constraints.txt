@@ -8,7 +8,6 @@ django-cms~=3.6.0
 django-meta<2.0.0
 django-termsandconditions<2.0
 djangocms-attributes-field<2.0.0
-git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/1.0.x#egg=djangocms_blog&_=1
 djangocms-file<3.0.0
 djangocms-link<3.0.0
 djangocms-picture<3.0.0
@@ -28,7 +27,3 @@ python-glanceclient===2.17.1
 python-keystoneclient===3.21.0
 python-novaclient===15.1.1
 python-blazarclient===2.2.1
-
-git+https://github.com/chameleoncloud/mozilla-django-oidc#egg=mozilla_django_oidc&2020-10-08
-git+https://github.com/ChameleonCloud/pytas#egg=pytas
-git+https://github.com/ChameleonCloud/python-keycloak-client#egg=python-keycloak-client

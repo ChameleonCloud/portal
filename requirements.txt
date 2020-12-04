@@ -24,7 +24,7 @@ djangocms-style
 djangocms-teaser
 djangocms-text-ckeditor
 djangocms-video
-djangocms-blog
+git+https://github.com/ChameleonCloud/djangocms-blog@chameleon/1.0.x#egg=djangocms_blog&_=1
 
 celery
 httpretty
@@ -34,7 +34,7 @@ mysqlclient
 # opbeat
 Pillow
 ply
-python-keycloak-client
+git+https://github.com/ChameleonCloud/python-keycloak-client#egg=python-keycloak-client
 python3-openid
 pytz
 PyYAML
@@ -44,9 +44,9 @@ rt
 six
 slimit
 sqlparse
-pytas
+git+https://github.com/ChameleonCloud/pytas#egg=pytas
 bibtexparser
-mozilla-django-oidc
+git+https://github.com/chameleoncloud/mozilla-django-oidc#egg=mozilla_django_oidc&2020-10-08
 python-memcached
 python-blazarclient
 python-cinderclient
