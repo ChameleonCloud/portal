@@ -459,6 +459,8 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None,
             if version:
                 version.artifact = artifact
                 version.save()
+            # Save the labels
+            artifact_form.save_m2m()
     else:
         errors.extend(artifact_form.errors)
 
