@@ -115,7 +115,7 @@ python-keystoneclient==3.17.0
 python-novaclient==11.0.0
 python-openid==2.2.5
 pytz==2019.2
-PyYAML==3.13
+PyYAML==5.1
 redis==2.10.6
 requests==2.22.0
 responses==0.10.6
