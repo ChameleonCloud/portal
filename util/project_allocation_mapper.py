@@ -88,7 +88,7 @@ class ProjectAllocationMapper:
                 else:
                     logger.warning('Couldn\'t get balance. Balance service might be down.')
             reformated_allocations.append(self.portal_to_tas_alloc_obj(alloc))
-        return reformated_allocations
+        return sorted(reformated_allocations, reverse=True, key=self.normalize_allocation_date)
 
     def _get_user_from_portal_db(self, username):
         UserModel = get_user_model()
@@ -129,19 +129,22 @@ class ProjectAllocationMapper:
                 projects[proj['chargeCode']] = proj
             projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
         return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
-
+    
     '''
-    Sort by most recent allocation request
+    Return datetime object from allocation dateRequested field for use in sorting
     '''
-    def sort_by_allocation_request_date(self, proj):
-        def request_date(alloc):
+    def normalize_allocation_date(self, alloc):
             try:
                 return datetime.strptime(alloc['dateRequested'], '%Y-%m-%dT%H:%M:%SZ')
             except:
                 # if we don't have allocations or allocation requests, go to the bottom of the list
                 return datetime.min
 
-        latest_req_date = max([ request_date(a)
+    '''
+    Sort by most recent allocation request
+    '''
+    def sort_by_allocation_request_date(self, proj):
+        latest_req_date = max([ self.normalize_allocation_date(a)
             for a in (proj.get('allocations') if proj.get('allocations') else [{"dateRequested":""}])
         ])
         return latest_req_date
