@@ -116,7 +116,6 @@ INSTALLED_APPS = (
     'chameleon',
     'chameleon_mailman',
     'chameleon_token',
-    'usage',
     'util',
     'tas',
     'djangoRT',
