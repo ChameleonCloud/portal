@@ -17,7 +17,6 @@ urlpatterns = [
     url(r'^admin/impersonate/', include('impersonate.urls')),
     url(r'^admin/allocations/', include('allocations.urls',
                                         namespace='allocations_admin')),
-    url(r'^admin/usage/', include('usage.urls', namespace='usage_admin')),
 
     # contrib urls
     url(r'^oidc/', include('mozilla_django_oidc.urls')),
