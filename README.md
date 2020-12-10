@@ -33,13 +33,13 @@ The following environment variables must be configured for `djangoRT`:
 
 Use [Docker Compose](https://docs.docker.com/compose/)! The portal now uses the [reference-api](https://github.com/ChameleonCloud/reference-api) container for Resource Discovery. See [docker-compose.yml](docker-compose.yml) and [the reference-api repository](https://github.com/ChameleonCloud/reference-api).
 
-#### Development
+### Development
 
 The `docker-compose.yml` included in this repo is setup for running the composition locally. However, a few additional dependencies need to be in place first.
 
 1. First, clone the reference-api repository and build that image:
 
-```bash
+```shell
 git clone git@github.com:ChameleonCloud/reference-api.git
 cd reference-api
 git submodule init && git submodule update
@@ -48,7 +48,30 @@ docker build -t referenceapi .
 
 2. Seed the local database (optional, but recommended). Since Portal is a CMS-based system, much of the content is embedded within the database. It can be helpful to seed your local environment with a dump from an existing database (e.g. the development database). You can do a `mysqldump` of the database and extract the SQL dump file to the `./db` folder. This folder is mounted inside a MariaDB container when running Portal locally, and this SQL dump will be automatically detected and used to seed the database when it starts.
 
+```shell
+# On portal host
+source /opt/portal-camino/conf/portal/.chameleon_env
+mysqldump -h $DB_HOST -u $DB_USER --all-databases -p | gzip >/home/$USER/portal_dump.sql.gz
+```
+
+```shell
+# On local host
+scp $PORTAL_HOST:portal_dump.sql.gz ./db/
+gunzip ./db/portal_dump.sql.gz
+```
+
 3. Seed the media repository (optional, but recommended.) If you have seeded the local database, there will be links to files assumed to exist in the media folder. If you want these files to be properly served/displayed locally, you will also have to copy down these media files. A simple way is to create a tarball and extract it to `./media`, which will be mounted as a media directory in the local container.
+
+```shell
+# On portal host
+tar -czf /home/$USER/portal_media.tar.gz -C /var/www/chameleon/media/ .
+```
+
+```shell
+# On local host
+scp $PORTAL_HOST:portal_media.tar.gz .
+tar -xzf portal_media.tar.gz -C ./media
+```
 
 4. Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
 
