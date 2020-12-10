@@ -42,8 +42,7 @@ The `docker-compose.yml` included in this repo is setup for running the composit
 ```shell
 git clone git@github.com:ChameleonCloud/reference-api.git
 cd reference-api
-git submodule init && git submodule update
-docker build -t referenceapi .
+make
 ```
 
 2. Seed the local database (optional, but recommended). Since Portal is a CMS-based system, much of the content is embedded within the database. It can be helpful to seed your local environment with a dump from an existing database (e.g. the development database). You can do a `mysqldump` of the database and extract the SQL dump file to the `./db` folder. This folder is mounted inside a MariaDB container when running Portal locally, and this SQL dump will be automatically detected and used to seed the database when it starts.
