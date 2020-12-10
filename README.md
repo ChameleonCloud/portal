@@ -77,13 +77,13 @@ tar -xzf portal_media.tar.gz -C ./media
 Finally, you can start up the containers:
 
 ```bash
-docker-compose up
+make start
 ```
 
 If you need to (re)build the image, simply run:
 
 ```bash
-docker-compose build
+make build
 ```
 
 ## Deployment
