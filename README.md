@@ -78,50 +78,15 @@ tar -xzf portal_media.tar.gz -C ./media
 Finally, you can start up the containers:
 
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker-compose up
 ```
 
 If you need to (re)build the image, simply run:
 
 ```bash
-docker-compose -f docker-compose.dev.yml build
+docker-compose build
 ```
 
-#### Production
+## Deployment
 
-There are a few additional requirements for running the composition in production. We want
-to run Django with uWSGI and Nginx in production
-(not with the [development server](https://docs.djangoproject.com/en/1.7/ref/django-admin/#django-admin-runserver)!)
-so the ports and command are different. We also need to mount in certificates and sensitive
-configuration for SSL/TLS and the media directory for Django.
-
-The Production `docker-compose.yml` would look more like the following:
-
-```yaml
-portal:
-  image: docker.chameleoncloud.org/portal:1.8
-  env_file:
-    - /path/to/chameleon.env
-  volumes:
-    - /path/to/certs/certs0:/etc/ssl/chameleoncloud.org
-    - /path/to/certs/certs1:/etc/ssl/www.chameleon.tacc.utexas.edu
-    - /path/to/certs/certs2:/etc/ssl/api.chameleoncloud.org
-    - /path/to/dhparams.pem:/etc/ssl/dhparams.pem
-    - /path/to//media:/project/media
-  ports:
-    - 80:80
-    - 443:443
-  links:
-    - referenceapi:referenceapi
-referenceapi:
-  image: referenceapi:latest
-  ports:
-    - 8000:8000
-  log_driver: syslog
-  log_opt:
-    syslog-tag: referenceapi
-```
-
-## Release History
-
-See the [Changelog](CHANGELOG.md).
+The production deployment of Portal is managed via [portal-camino](https://github.com/ChameleonCloud/portal-camino).
