@@ -72,7 +72,10 @@ scp $PORTAL_HOST:portal_media.tar.gz .
 tar -xzf portal_media.tar.gz -C ./media
 ```
 
-4. Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary.
+4. Copy the [chameleon_env.sample](chameleon_env.sample) file to `.chameleon_env` and configure the variables as necessary. Two items in particular are **required**:
+
+  * Update the `OIDC_RP_CLIENT_SECRET` to the client secret stored in the development Keycloak IdP server for the "portal-local-dev" client in the "chameleon" realm.
+  * Update the `KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET` to the client secret stored in the development Keycloak IdP server for the "portal-local-dev-admin" client in the "master" realm.
 
 Finally, you can start up the containers:
 
