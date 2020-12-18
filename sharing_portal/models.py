@@ -196,7 +196,7 @@ class ArtifactVersion(models.Model):
         query = dict(
             deposition_repo=self.deposition_repo,
             deposition_id=self.deposition_id,
-            id=self.id,
+            id=self.artifact.id,
             ownership=('own' if can_edit else 'fork')
         )
         return str(base_url + '?' + urlencode(query))
