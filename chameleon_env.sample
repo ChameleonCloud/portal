@@ -64,13 +64,15 @@ ALLOCATIONS_BALANCE_SERVICE_ROOT_URL=http://allocations_api:8080
 # Keycloak realm management
 KEYCLOAK_SERVER_URL=https://auth.dev.chameleoncloud.org
 KEYCLOAK_REALM_NAME=chameleon
+# This client is in the Keycloak "master" realm
 KEYCLOAK_PORTAL_ADMIN_CLIENT_ID=portal-local-dev-admin
 KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET=
 
 # Legacy SSO
 SSO_CALLBACK_VALID_HOSTS=['dev.tacc.chameleoncloud.org','dev.uc.chameleoncloud.org']
 # Federated SSO
-OIDC_RP_CLIENT_ID=portal-local-dev-admin
+# This client is in the Keycloak "chameleon" realm
+OIDC_RP_CLIENT_ID=portal-local-dev
 OIDC_RP_CLIENT_SECRET=
 OIDC_RP_SIGN_ALGO=RS256
 OIDC_OP_JWKS_ENDPOINT=https://auth.dev.chameleoncloud.org/auth/realms/chameleon/protocol/openid-connect/certs
