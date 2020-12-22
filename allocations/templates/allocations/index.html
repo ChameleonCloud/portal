@@ -119,12 +119,12 @@
                                     <th width="20%">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow">
+                            <tbody ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow">
+                                <tr>
                                     <td>[[ allocation.resource ]]</td>
                                     <td>[[ allocation.requestor ]]</td>
                                     <td><span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span></td>
-                                    <td>
+                                    <td rowspan="2">
                                         <p>
                                             <b>Date requested:</b> [[ allocation.dateRequested | date:'dd-MMMM-yyyy']]
                                         </p>
@@ -144,7 +144,7 @@
                                             </p>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td rowspan="2">
                                         <div ng-if="allocation.status.toLowerCase() == 'pending'">
                                             <button class="btn btn-success" ng-click="approveAllocation(project, allocation, $event)" ng-disabled="isLoading('approveAllocation', allocation)">
                                                 Approve
@@ -159,8 +159,20 @@
                                         <div ng-show="!isEmpty(getMessages('approveAllocation', allocation))">
                                             <alert ng-repeat="msg in getMessages('approveAllocation', allocation)" type="[[msg.type]]">[[msg.body]]</alert>
                                         </div>
-                                         <div ng-show="!isEmpty(getMessages('rejectAllocation', allocation))">
+                                        <div ng-show="!isEmpty(getMessages('rejectAllocation', allocation))">
                                             <alert ng-repeat="msg in getMessages('rejectAllocation', allocation)" type="[[msg.type]]">[[msg.body]]</alert>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <div ng-if="allocation.computeAllocated">
+                                            <p><b>SU Usage:</b> [[allocation.computeUsed | number : 0]] of [[allocation.computeAllocated | number : 0]]</p>
+                                            <p><b>Requested</b> [[allocation.computeRequested | number : 0]] SU</p>
+                                            <meter style="width: 100%;" 
+                                                value="[[allocation.computeUsed / allocation.computeAllocated]]"
+                                                min="0" low="0.2" optimum="0.8" high="0.95" max="1">
+                                            </meter>
                                         </div>
                                     </td>
                                 </tr>

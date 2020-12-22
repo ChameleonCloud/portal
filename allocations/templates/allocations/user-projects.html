@@ -141,12 +141,12 @@
                                         <th width="50%">Details</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow && allocation.resource == 'Chameleon'">
+                                <tbody ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow && allocation.resource == 'Chameleon'">
+                                    <tr>
                                         <td>[[ allocation.resource ]]</td>
                                         <td>[[ allocation.requestor ]]</td>
                                         <td><span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span></td>
-                                        <td>
+                                        <td rowspan="2">
                                             <p>
                                                 <b>Date requested:</b> [[ allocation.dateRequested | date:'dd-MMMM-yyyy']]
                                             </p>
@@ -164,6 +164,18 @@
                                             <div ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved'">
                                                 <p><b>Allocation dates:</b> [[ allocation.start | date:'dd-MMMM-yyyy']] - [[ allocation.end | date:'dd-MMMM-yyyy']]
                                                 </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3">
+                                            <div ng-if="allocation.computeAllocated">
+                                                <p><b>SU Usage:</b> [[allocation.computeUsed | number : 0]] of [[allocation.computeAllocated | number : 0]]</p>
+                                                <p><b>Requested</b> [[allocation.computeRequested | number : 0]] SU</p>
+                                                <meter style="width: 100%;" 
+                                                    value="[[allocation.computeUsed / allocation.computeAllocated]]"
+                                                    min="0" low="0.2" optimum="0.8" high="0.95" max="1">
+                                                </meter>
                                             </div>
                                         </td>
                                     </tr>
