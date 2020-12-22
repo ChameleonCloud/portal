@@ -113,20 +113,21 @@ class ProjectAllocationMapper:
                                  requestor = "us@tacc.utexas.edu")
         rt.createTicket(ticket)
 
+    '''
+    get all projects
+    returns list of tas_proj_obj, sorted by most recent allocation
+    allocations in each object are sorted newest to oldest
+    
+    '''
     def get_all_projects(self):
-        projects = {}
-        project_pi_info = {}
-        for proj in portal_proj.objects.select_related('pi').all():
-            project_pi_info[proj.charge_code] = self.portal_user_to_tas_obj(proj.pi)
-        for alloc in portal_alloc.objects.select_related('project', 'project__pi', 'project__type', 'project__field', 'requestor', 'reviewer').all():
-            proj = self.portal_to_tas_proj_obj(alloc.project,
-                                               fetch_allocations=False,
-                                               fetch_balance=False,
-                                               pi_info=project_pi_info[alloc.project.charge_code])
-            if proj['chargeCode'] not in projects:
-                projects[proj['chargeCode']] = proj
-            projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
-        return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
+        #each project has many allocations; each allocation has a 'date_requested'
+        #for each project, get the most recent date among its allocations, then annotate with 'newest_request'
+        #sort list of projects by 'newest_request'
+        from django.db.models import Max
+        sorted_projects = portal_proj.objects.annotate(newest_request=Max('allocations__date_requested')).order_by('newest_request').reverse().select_related('pi')     
+        #DB hit when we create iterator
+        return list(self.portal_to_tas_proj_obj(proj, fetch_balance=False) for proj in sorted_projects)
+
     
     '''
     Return datetime object from allocation dateRequested field for use in sorting
