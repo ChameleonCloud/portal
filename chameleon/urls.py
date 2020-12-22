@@ -5,14 +5,28 @@ from chameleon_mailman import views as chameleon_mailman_views
 from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import admin
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.sitemaps.views import sitemap
+from django.http import HttpResponseRedirect
 from django.views.generic import RedirectView, TemplateView
+from django.views import View
 from user_news.views import OutageListView, OutageDetailView, OutageFeed
+
+
+class AdminOIDCLogin(View):
+    """Overrides default login view to perform login via OIDC."""
+    def get(self, request, **kwargs):
+        url = reverse('oidc_authentication_init')
+        if REDIRECT_FIELD_NAME in request.GET:
+            url += f'?{REDIRECT_FIELD_NAME}={request.GET[REDIRECT_FIELD_NAME]}'
+        return HttpResponseRedirect(url)
+
 
 urlpatterns = [
     # admin urls
+    url(r'^admin/login/', AdminOIDCLogin.as_view()),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/impersonate/', include('impersonate.urls')),
     url(r'^admin/allocations/', include('allocations.urls',
