@@ -15,7 +15,7 @@ services:
     depends_on:
       - mysql
   referenceapi:
-    image: docker.chameleoncloud.org/referenceapi:latest
+    image: docker.chameleoncloud.org/referenceapi:fa7c701
     ports:
       - 127.0.0.1:8891:8000
   mysql:
