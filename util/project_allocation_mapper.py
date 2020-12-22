@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 import pytz
 import time
+from django.db.models import Max
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
@@ -114,19 +115,27 @@ class ProjectAllocationMapper:
         rt.createTicket(ticket)
 
     def get_all_projects(self):
-        projects = {}
-        project_pi_info = {}
-        for proj in portal_proj.objects.select_related('pi').all():
-            project_pi_info[proj.charge_code] = self.portal_user_to_tas_obj(proj.pi)
-        for alloc in portal_alloc.objects.select_related('project', 'project__pi', 'project__type', 'project__field', 'requestor', 'reviewer').all():
-            proj = self.portal_to_tas_proj_obj(alloc.project,
-                                               fetch_allocations=False,
-                                               fetch_balance=False,
-                                               pi_info=project_pi_info[alloc.project.charge_code])
-            if proj['chargeCode'] not in projects:
-                projects[proj['chargeCode']] = proj
-            projects[proj['chargeCode']]['allocations'].append(self.portal_to_tas_alloc_obj(alloc))
-        return sorted(list(projects.values()), reverse=True, key=self.sort_by_allocation_request_date)
+        """Get all projects, all of their allocations, for all users.
+
+        Returns:
+            List[dict]: a list of projects in the TAS representation format,
+            sorted by newest allocation request date. Allocations in each project are
+            sorted from newest to oldest by portal_to_tas_proj_obj.
+        """
+
+        # for each project, get the most recent 'date_requested' among its allocations
+        # annotate the project with 'newest_request'
+        # order the projects by the 'newest_request' annotation
+        # to optimize the query, ensure requst includes foreign keys
+
+        project_qs = portal_proj.objects.annotate(
+            newest_request=Max('allocations__date_requested')).select_related(
+            'type','pi','field').order_by('newest_request').reverse()
+
+        #The DB is hit when we create iterator
+        return list(self.portal_to_tas_proj_obj(
+            proj, fetch_balance=False) for proj in project_qs)                         
+
     
     '''
     Return datetime object from allocation dateRequested field for use in sorting
