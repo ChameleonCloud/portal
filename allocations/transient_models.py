@@ -4,6 +4,7 @@ class Allocation(models.Model):
     project = models.ForeignKey(Project)
     computeAllocated = models.IntegerField(default=-1)
     computeRequested = models.IntegerField(default=-1)
+    computeUsed = models.IntegerField(default=-1)
     dateRequested = models.DateField()
     dateReviewed = models.DateField()
     decisionSummary = models.CharField(max_length=200)
