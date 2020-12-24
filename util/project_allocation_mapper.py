@@ -117,19 +117,27 @@ class ProjectAllocationMapper:
                                  requestor = "us@tacc.utexas.edu")
         rt.createTicket(ticket)
 
-    '''
-    get all projects
-    returns list of tas_proj_obj, sorted by most recent allocation
-    allocations in each object are sorted newest to oldest
-    
-    '''
     def get_all_projects(self):
-        #each project has many allocations; each allocation has a 'date_requested'
-        #for each project, get the most recent date among its allocations, then annotate with 'newest_request'
-        #sort list of projects by 'newest_request'
-        sorted_projects = portal_proj.objects.annotate(newest_request=Max('allocations__date_requested')).order_by('newest_request').reverse().select_related('pi')     
-        #DB hit when we create iterator
-        return list(self.portal_to_tas_proj_obj(proj, fetch_balance=False) for proj in sorted_projects)
+        """Get all projects, all of their allocations, for all users.
+
+        Returns:
+            List[dict]: a list of projects in the TAS representation format,
+            sorted by newest allocation request date. Allocations in each project are
+            sorted from newest to oldest by portal_to_tas_proj_obj.
+        """
+
+        # for each project, get the most recent 'date_requested' among its allocations
+        # annotate the project with 'newest_request'
+        # order the projects by the 'newest_request' annotation
+        # to optimize the query, ensure requst includes foreign keys
+
+        project_qs = portal_proj.objects.annotate(
+            newest_request=Max('allocations__date_requested')).select_related(
+            'type','pi','field').order_by('newest_request').reverse()
+
+        #The DB is hit when we create iterator
+        return list(self.portal_to_tas_proj_obj(
+            proj, fetch_balance=False) for proj in project_qs)                         
 
     
     '''
