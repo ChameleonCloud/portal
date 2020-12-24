@@ -1,21 +1,24 @@
+import logging
+import time
+from datetime import datetime
+
+import pytz
+from allocations.allocations_api import BalanceServiceClient
+from allocations.models import Allocation as portal_alloc
+from chameleon.models import PIEligibility
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.db.models import Max
+from django.utils.html import strip_tags
+from djangoRT import rtModels, rtUtil
+from projects.models import FieldHierarchy
+from projects.models import Project as portal_proj
+from projects.models import ProjectExtras
+from pytas.http import TASClient
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
-from pytas.http import TASClient
-from allocations.models import Allocation as portal_alloc
-from allocations.allocations_api import BalanceServiceClient
-from projects.models import Project as portal_proj
-from projects.models import ProjectExtras, FieldHierarchy
-from chameleon.models import PIEligibility
-from datetime import datetime
-import logging
-import pytz
-import time
-from django.db.models import Max
-from django.conf import settings
-from django.core.mail import send_mail
-from django.utils.html import strip_tags
-from django.contrib.auth import get_user_model
-from djangoRT import rtUtil, rtModels
+
 from util.consts import allocation, project
 from util.keycloak_client import KeycloakClient
 
