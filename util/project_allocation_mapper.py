@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 import pytz
 import time
+from django.db.models import Max
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
@@ -123,7 +124,6 @@ class ProjectAllocationMapper:
         #each project has many allocations; each allocation has a 'date_requested'
         #for each project, get the most recent date among its allocations, then annotate with 'newest_request'
         #sort list of projects by 'newest_request'
-        from django.db.models import Max
         sorted_projects = portal_proj.objects.annotate(newest_request=Max('allocations__date_requested')).order_by('newest_request').reverse().select_related('pi')     
         #DB hit when we create iterator
         return list(self.portal_to_tas_proj_obj(proj, fetch_balance=False) for proj in sorted_projects)
