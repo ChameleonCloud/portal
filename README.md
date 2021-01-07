@@ -89,6 +89,17 @@ If you need to (re)build the image, simply run:
 make build
 ```
 
+### Migrations
+
+If you change a model, you must create the migration files and check them in with your code.
+The following code will generate needed migration files for the app you specify. 
+If unset, it is an empty string, and will generate them for all apps.
+
+``` shell
+APP=app_name_here make migrations
+git add '*/migrations/*.py'
+```
+
 ## Deployment
 
 The production deployment of Portal is managed via [portal-camino](https://github.com/ChameleonCloud/portal-camino).

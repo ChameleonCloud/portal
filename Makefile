@@ -3,6 +3,14 @@ DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
 DOCKER_IMAGE_LATEST := $(DOCKER_REGISTRY)/portal:latest
 
+PORTAL_MANAGE_CMD := docker-compose exec portal python manage.py
+#if APP is unset, then the variable equals the empty string.
+ifeq ($(APP),)
+MIGRATIONS_CMD := $(PORTAL_MANAGE_CMD) makemigrations
+else
+MIGRATIONS_CMD := $(PORTAL_MANAGE_CMD) makemigrations "$(APP)"
+endif
+
 .PHONY: build
 build:
 	./docker/client/build.sh
@@ -19,7 +27,11 @@ publish-latest:
 
 .PHONY: start
 start:
-	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) docker-compose up
+	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) docker-compose up -d
+
+.PHONY: migrations
+migrations: start
+	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) $(MIGRATIONS_CMD) --check
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@
