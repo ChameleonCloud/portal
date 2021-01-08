@@ -1,0 +1,27 @@
+---
+name: reviewdog
+on: [pull_request]
+jobs:
+  #Python formatting
+  black:
+    name: runner / black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-black@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+  #Python style
+  wemake-python-styleguide:
+    name: runnner / wemake-python-styleguide
+    runs-on: ubuntu-latest
+    steps:
+      - name: wemake-python-styleguide
+        uses: wemake-services/wemake-python-styleguide@0.14.1
+  mypy:
+    name: runner / mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tsuyoshicho/action-mypy@v1
+        with:
+          github_token: ${{ secrets.github_token }}
