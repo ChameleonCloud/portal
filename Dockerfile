@@ -1,4 +1,5 @@
-FROM python:3.7.9-stretch
+ARG PYTHON_IMAGE_TAG=3.7.9-stretch
+FROM python:$PYTHON_IMAGE_TAG
 
 RUN apt-get update \
   && curl -sL https://deb.nodesource.com/setup_6.x | bash \

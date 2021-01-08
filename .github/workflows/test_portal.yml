@@ -1,37 +1,26 @@
 # From https://black.readthedocs.io/en/stable/github_actions.html
 # autoformats committed code with black python autoformatter
 name: Test Portal
-
-on: 
+on:
   push:
+    branches:
+      - master
   pull_request:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: cache dependencies
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('upper-constraints.txt') }}
-    - name: install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install black flake8
-        pip install --upgrade --upgrade-strategy eager \
-        -r requirements.txt -c upper-constraints.txt
-        
-    - name: build_portal_container
+    - name: build portal container
+      env:
+        PYTHON_VERSION: ${{ matrix.python-version }}
       run: make build
+    - name: check django migrations
+      env:
+        DOCKER_IMAGE: docker.chameleoncloud.org/portal:latest
+      run: |
+        docker run --rm $DOCKER_IMAGE python3 manage.py makemigrations --check
+

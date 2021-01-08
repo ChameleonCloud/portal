@@ -2,6 +2,8 @@ DOCKER_REGISTRY ?= docker.chameleoncloud.org
 DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
 DOCKER_IMAGE_LATEST := $(DOCKER_REGISTRY)/portal:latest
+PYTHON_VERSION ?= 3.7.9
+PYTHON_IMAGE_TAG := $(PYTHON_VERSION)-stretch
 
 PORTAL_MANAGE_CMD := docker-compose exec portal python manage.py
 #if APP is unset, then the variable equals the empty string.
