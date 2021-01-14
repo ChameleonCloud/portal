@@ -2,26 +2,40 @@
 name: reviewdog
 on: [pull_request]
 jobs:
-  #Python formatting
+  # Python formatting
+  # reporter: [github-pr-review, github-pr-check, github-check]
+  # filter_mode:
+  #   added: added/modified lines
+  #   diff_context: added/modified lines +/- N lines
+  #   file: entire added / modified file
+  #   nofilter: everything in repo
+  # level: [info,warning,error]
   black:
     name: runner / black
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: reviewdog/action-black@v1
+      - name: Check out source repository
+        uses: actions/checkout@v2
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+      - uses: reviewdog/action-black@v2
         with:
           github_token: ${{ secrets.github_token }}
-  #Python style
-  wemake-python-styleguide:
-    name: runnner / wemake-python-styleguide
+          reporter: github-pr-review
+          filter_mode: added
+          level: warning
+  flake8:
+    name: runner / flake8
     runs-on: ubuntu-latest
     steps:
-      - name: wemake-python-styleguide
-        uses: wemake-services/wemake-python-styleguide@0.14.1
-  mypy:
-    name: runner / mypy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: tsuyoshicho/action-mypy@v1
+      - name: Check out source repository
+        uses: actions/checkout@v2
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+      - name: flake8 Lint
+        uses: reviewdog/action-flake8@v3
         with:
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          filter_mode: added
+          level: warning
