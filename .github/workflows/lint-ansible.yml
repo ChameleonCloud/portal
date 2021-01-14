@@ -1,0 +1,14 @@
+---
+name: reviewdog
+on:
+  pull_request:
+    branches: main
+jobs:
+  ansiblelint:
+    name: runner / ansiblelint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-ansiblelint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
