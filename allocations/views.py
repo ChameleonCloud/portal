@@ -34,20 +34,46 @@ def denied( request ):
     if user:
         logger.debug( 'Denying allocation approval view to: %s', user.username )
     context = {}
-    return render(request, 'allocations/denied.html', context)
+    return render(request, "allocations/denied.html", context)
 
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
-def view( request ):
+
+def get_all_alloc(request):
+    """Get all allocations, grouped by project.
+
+    Args:
+        request: the request that is passed in.
+
+    Raises:
+        Exception: when loading projects fails.
+
+    Returns:
+        json: dumps all data as serialized json.
+    """
     try:
         mapper = ProjectAllocationMapper(request)
         resp = mapper.get_all_projects()
-        logger.debug( 'Total projects: %s', len(resp) )
+        logger.debug("Total projects: %s", len(resp))
     except Exception as e:
-        logger.exception('Error loading chameleon projects')
-        messages.error( request, e[0] )
-        raise Exception('Error loading chameleon projects')
-    return HttpResponse(json.dumps(resp), content_type="application/json")
+        logger.exception("Error loading chameleon projects")
+        messages.error(request, e[0])
+        raise Exception("Error loading chameleon projects")
+    return json.dumps(resp)
+
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
+def view(request):
+    """Return http response of get_all_alloc. Matches Template."""
+    return HttpResponse(get_all_alloc(request), content_type="application/json")
+
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
+def return_json(request):
+    """Return http response of get_all_alloc. Does not match Template."""
+    return HttpResponse(get_all_alloc(request),
+                        content_type='application/json')
+
 
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url='/admin/allocations/denied/')
