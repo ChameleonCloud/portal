@@ -5,7 +5,7 @@ on:
     branches: main
 jobs:
   ansiblelint:
-    name: ansible-lint
+    name: runner / ansiblelint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

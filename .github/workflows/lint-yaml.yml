@@ -10,4 +10,4 @@ jobs:
       - uses: reviewdog/action-yamllint@v1
         with:
           github_token: ${{ secrets.github_token }}
-          yamllint_flags: '-c .github/actions/yamllint.yml'
+          yamllint_flags: "-c .github/actions/yamllint.yml"
