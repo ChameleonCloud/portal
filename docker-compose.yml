@@ -1,8 +1,13 @@
-version: '3.5'
+version: "3.5"
 
 services:
   portal:
     image: ${DOCKER_IMAGE_LATEST}
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      timeout: 10s
+      retries: 10
     env_file:
       - .chameleon_env
     volumes:
@@ -23,7 +28,11 @@ services:
     image: mysql:5.7
     volumes:
       - ./db:/docker-entrypoint-initdb.d
-    restart: always
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
     environment:
       MYSQL_ROOT_PASSWORD: ccpass
       MYSQL_DATABASE: chameleon_dev
@@ -42,6 +51,7 @@ services:
     image: redis:alpine
   celery:
     image: ${DOCKER_IMAGE_LATEST}
+    restart: on-failure
     command: celery -A chameleon worker -l INFO --concurrency=1 -B
     env_file:
       - .chameleon_env
