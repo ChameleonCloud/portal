@@ -126,9 +126,9 @@ def approval(request):
         data["reviewerId"] = mapper.get_portal_user_id(request.user.username)
         logger.info("Allocation approval requested by admin: %s", request.user)
         logger.info("Allocation approval request data: %s", json.dumps(data))
-        validate_datestring = validators.RegexValidator("^\d{4}-\d{2}-\d{2}$")
+        validate_datestring = validators.RegexValidator(r"^\d{4}-\d{2}-\d{2}$")
         validate_datetimestring = validators.RegexValidator(
-            "^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
         )
         if not data["decisionSummary"]:
             errors["decisionSummary"] = "Decision Summary is required."
