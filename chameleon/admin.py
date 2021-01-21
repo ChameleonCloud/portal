@@ -33,7 +33,7 @@ class PIEligibilityAdmin(admin.ModelAdmin):
 
     def user_metadata(self, obj):
         keycloak_client = KeycloakClient()
-        keycloak_user = keycloak_client.get_keycloak_user_by_username(obj.requestor.username)
+        keycloak_user = keycloak_client.get_user_by_username(obj.requestor.username)
 
         if not keycloak_user:
             return None

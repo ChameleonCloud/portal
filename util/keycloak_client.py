@@ -81,7 +81,7 @@ class KeycloakClient:
             data=json.dumps(kwargs, sort_keys=True)
         )
 
-    def get_keycloak_user_by_username(self, username):
+    def get_user_by_username(self, username):
         keycloakusers = self._users_admin()
 
         matching = keycloakusers._client.get(
@@ -102,7 +102,7 @@ class KeycloakClient:
             return None
 
     def get_user_projects_by_username(self, username):
-        user = self.get_keycloak_user_by_username(username)
+        user = self.get_user_by_username(username)
         if not user:
             return []
         keycloakuser = self._user_admin(user['id'])
@@ -110,7 +110,7 @@ class KeycloakClient:
         project_charge_codes = [project['name'] for project in keycloakuser.groups.all()]
         return project_charge_codes
 
-    def get_project_members_by_charge_code(self, charge_code):
+    def get_project_members(self, charge_code):
         group = self._lookup_group(charge_code)
         if not group:
             logger.warning('Couldn\'t find group {} in keycloak'.format(charge_code))
@@ -125,7 +125,7 @@ class KeycloakClient:
         return [m['username'] for m in members]
 
     def update_membership(self, charge_code, username, action):
-        user = self.get_keycloak_user_by_username(username)
+        user = self.get_user_by_username(username)
         if not user:
             raise ValueError(f'User {username} does not exist')
         group = self._lookup_group(charge_code)
@@ -185,7 +185,7 @@ class KeycloakClient:
                     joinDate=join_date
                 )
             )
-            user = self.get_keycloak_user_by_username(username)
+            user = self.get_user_by_username(username)
             self._add_identity(
                 user_id=user['id'],
                 userId=f'f:{self.client_provider_sub}:{username}',
@@ -202,7 +202,7 @@ class KeycloakClient:
     def update_user(self, username, email=None, affiliation_title=None,
                     affiliation_department=None, affiliation_institution=None,
                     country=None, citizenship=None, phone=None):
-        user = self.get_keycloak_user_by_username(username)
+        user = self.get_user_by_username(username)
         if not user:
             raise ValueError(f"Couldn't find user {username}")
         kc_user = self._user_admin(user['id'])

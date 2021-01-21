@@ -424,8 +424,7 @@ def edit_nickname(request, project_id):
         # try to update nickname
         try:
             nickname = form.cleaned_data['nickname']
-            ProjectAllocationMapper.update_project_nickname(project_id,
-                project.chargeCode, nickname)
+            ProjectAllocationMapper.update_project_nickname(project_id, nickname)
             form = EditNicknameForm()
             set_ks_project_nickname(project.chargeCode, nickname)
             messages.success(request, 'Update Successful')
