@@ -11,6 +11,8 @@ django-reversion
 django-simple-captcha
 django-termsandconditions
 django-webpack-loader
+django-rest-framework
+django-filter
 
 # django-cms
 django-cms
