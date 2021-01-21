@@ -38,17 +38,10 @@ def add_publications(request, project_id):
         if pubs_form.is_valid():
             bib_database = bibtexparser.loads(pubs_form.cleaned_data['bibtex_string'])
             for entry in bib_database.entries:
-                Publication.objects.create_from_bibtex(entry, project, request.user.username, not mapper.is_from_db)
+                Publication.objects.create_from_bibtex(entry, project, request.user.username)
             messages.success(request, 'Publication added successfully')
         else:
             messages.error(request, 'Error adding publication, BibTeX required fields: "publication/journal/booktitle, title, year, author"')
-    try:
-        project = mapper.get_project(project_id)
-        if project.source != 'Chameleon':
-            raise Http404('The requested project does not exist!')
-    except Exception as e:
-        logger.error(e)
-        raise Http404('The requested project does not exist!')
     pubs_form = AddBibtexPublicationForm(initial={'project_id':project.id})
 
     return render(request, 'projects/add_publications.html', {

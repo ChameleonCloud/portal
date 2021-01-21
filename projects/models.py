@@ -4,13 +4,13 @@ import logging
 from django.conf import settings
 
 logger = logging.getLogger('projects')
-    
+
 class Type(models.Model):
     name = models.CharField(max_length=255,blank=False,unique=True)
-    
+
 class Field(models.Model):
     name = models.CharField(max_length=255,blank=False,unique=True)
-    
+
 class FieldHierarchy(models.Model):
     parent = models.ForeignKey(Field,related_name='field_parent')
     child = models.ForeignKey(Field,related_name='field_child')
@@ -33,13 +33,10 @@ class ProjectExtras(models.Model):
 
 class PublicationManager(models.Manager):
 
-    def create_from_bibtex(self, bibtex_entry, project, username, is_tas):
+    def create_from_bibtex(self, bibtex_entry, project, username):
         pub = Publication()
 
-        if is_tas:
-            pub.tas_project_id = project.id
-        else:
-            pub.project_id = project.id
+        pub.project_id = project.id
         if 'booktitle' in bibtex_entry:
             pub.booktitle = bibtex_entry.get('booktitle')
         if 'journal' in bibtex_entry:
