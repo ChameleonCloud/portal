@@ -70,6 +70,8 @@ rt = "^2.0.1"
 six = "^1.15.0"
 slimit = "^0.8.1"
 sqlparse = "^0.4.1"
+djangorestframework = "~3.11.2"
+django-filter = "~=2.2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

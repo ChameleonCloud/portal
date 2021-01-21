@@ -120,6 +120,9 @@ INSTALLED_APPS = (
     "impersonate",
     "markdown_deux",
     "webpack_loader",
+    "rest_framework",
+    "django_filters",
+
     ##
     # custom
     #
