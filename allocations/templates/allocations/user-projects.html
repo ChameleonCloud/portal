@@ -99,7 +99,7 @@
                             <table class="table">
                                 <tr>
                                     <td width="30%"><b>Project Number</b></td>
-                                    <td>[[ project.chargeCode ]]</td>
+                                    <td>[[ project.charge_code ]]</td>
                                 </tr>
                                 <tr>
                                     <td><b>PI</b></td>
@@ -119,7 +119,7 @@
                                 </tr>
                                 <tr>
                                     <td><b>Type</b></td>
-                                    <td>[[ project.type ]]</td>
+                                    <td>[[ project.project_type ]]</td>
                                 </tr>
                                 <tr>
                                     <td><b>Field of Science</b></td>
@@ -144,11 +144,11 @@
                                 <tbody ng-repeat="allocation in project.allocations" ng-show="!allocation.doNotShow && allocation.resource == 'Chameleon'">
                                     <tr>
                                         <td>[[ allocation.resource ]]</td>
-                                        <td>[[ allocation.requestor ]]</td>
+                                        <td>[[ allocation.requestor.username ]]</td>
                                         <td><span ng-class="getClass(allocation)">&nbsp;[[ allocation.status ]]</span></td>
                                         <td rowspan="2">
                                             <p>
-                                                <b>Date requested:</b> [[ allocation.dateRequested | date:'dd-MMMM-yyyy']]
+                                                <b>Date requested:</b> [[ allocation.date_requested | date:'dd-MMMM-yyyy']]
                                             </p>
                                             <div ng-if="allocation.status.toLowerCase() === 'pending'">
                                                 <p>
@@ -156,24 +156,24 @@
                                                 </p>
                                             </div>
                                             <div ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved' || allocation.status.toLowerCase() === 'rejected'">
-                                                <p><b>Review date:</b> [[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]
+                                                <p><b>Review date:</b> [[ allocation.date_reviewed | date:'dd-MMMM-yyyy']]
                                                 </p>
-                                                <p><b>Decision summary:</b> [[ allocation.decisionSummary ]]
+                                                <p><b>Decision summary:</b> [[ allocation.decision_summary ]]
                                                 </p>
                                             </div>
                                             <div ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved'">
-                                                <p><b>Allocation dates:</b> [[ allocation.start | date:'dd-MMMM-yyyy']] - [[ allocation.end | date:'dd-MMMM-yyyy']]
+                                                <p><b>Allocation dates:</b> [[ allocation.start_date | date:'dd-MMMM-yyyy']] - [[ allocation.expiration_date | date:'dd-MMMM-yyyy']]
                                                 </p>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td colspan="3">
-                                            <div ng-if="allocation.computeAllocated">
-                                                <p><b>SU Usage:</b> [[allocation.computeUsed | number : 0]] of [[allocation.computeAllocated | number : 0]]</p>
-                                                <p><b>Requested</b> [[allocation.computeRequested | number : 0]] SU</p>
+                                            <div ng-if="allocation.su_allocated">
+                                                <p><b>SU Usage:</b> [[allocation.su_used | number : 0]] of [[allocation.su_allocated | number : 0]]</p>
+                                                <p><b>Requested</b> [[allocation.su_requested | number : 0]] SU</p>
                                                 <meter style="width: 100%;" 
-                                                    value="[[allocation.computeUsed / allocation.computeAllocated]]"
+                                                    value="[[allocation.su_used / allocation.su_allocated]]"
                                                     min="0" low="0.2" optimum="0.8" high="0.95" max="1">
                                                 </meter>
                                             </div>
