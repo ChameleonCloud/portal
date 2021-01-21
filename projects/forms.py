@@ -66,7 +66,7 @@ class ProjectCreateForm( forms.Form ):
     fieldId = forms.ChoiceField(
         label='Field of Science',
         choices=(),
-        initial='3',
+        initial='45',
         help_text='Please indicate a primary field of science for this research.',
     )
     accept_project_terms = forms.BooleanField(
@@ -94,7 +94,6 @@ class EditNicknameForm(forms.Form):
     )
 
     def is_valid(self, request):
-        mapper = ProjectAllocationMapper(request)
         valid = super(EditNicknameForm, self).is_valid()
         if not valid:
             return valid
@@ -102,11 +101,7 @@ class EditNicknameForm(forms.Form):
         if not self.cleaned_data['nickname']:
             return False
 
-        if mapper.is_from_db:
-            is_duplicate = Project.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
-        else:
-            is_duplicate = ProjectExtras.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
-
+        is_duplicate = Project.objects.filter(nickname=self.cleaned_data['nickname']).count() > 0
         return not is_duplicate
 
 class AllocationCreateForm(forms.Form):
