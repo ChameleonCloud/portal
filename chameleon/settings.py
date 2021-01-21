@@ -316,7 +316,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
         'pipeline': {
