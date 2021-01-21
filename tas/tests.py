@@ -274,56 +274,6 @@ class PasswordPolicy(TestCase):
         self.assertTrue(valid)
         self.assertTrue(error is None)
 
-class UserRegistrationFormTests(TestCase):
-
-    @mock.patch('tas.forms.get_country_choices')
-    @mock.patch('tas.forms.get_department_choices')
-    @mock.patch('tas.forms.get_institution_choices')
-    @mock.patch('tas.forms.check_password_policy')
-    def test_user_registration_form_with_bad_username(self,
-                                    mock_check_password_policy,
-                                    mock_get_institution_choices,
-                                    mock_get_department_choices,
-                                    mock_get_country_choices):
-
-        mock_get_institution_choices.return_value = ((1, 'The University of Texas at Austin'),)
-        mock_get_department_choices.return_value = ((127, 'Texas Advanced Computing Center'),)
-        mock_get_country_choices.return_value = ((230, 'United States'),)
-
-        # an invalid username will not call the check_password_policy
-        form_data = mock_registration_form_data()
-        form_data['username'] = 'johndoe123'
-        form = UserRegistrationForm(form_data)
-        self.assertFalse(form.is_valid())
-        self.assertTrue(form['username'].errors[0] == 'Enter a valid value.')
-        self.assertFalse(mock_check_password_policy.called)
-
-
-    @mock.patch('tas.forms.get_country_choices')
-    @mock.patch('tas.forms.get_department_choices')
-    @mock.patch('tas.forms.get_institution_choices')
-    @mock.patch('pytas.http.TASClient.get_user')
-    def test_user_registration_form(self,
-                                    mock_tas_get_user,
-                                    mock_get_institution_choices,
-                                    mock_get_department_choices,
-                                    mock_get_country_choices):
-
-        mock_tas_get_user.return_value = test_user_fixture()
-        mock_get_institution_choices.return_value = ((1, 'The University of Texas at Austin'),)
-        mock_get_department_choices.return_value = ((127, 'Texas Advanced Computing Center'),)
-        mock_get_country_choices.return_value = ((230, 'United States'),)
-
-        form_data = mock_registration_form_data()
-        form_data['password'] = form_data['confirmPassword'] = 'asdf;john;1234'
-        form = UserRegistrationForm(form_data)
-        self.assertTrue(form['password'].errors[0] == 'The password provided must not contain parts of your name or username.')
-        self.assertFalse(form.is_valid())
-
-        form_data = mock_registration_form_data()
-        form = UserRegistrationForm(form_data)
-        self.assertTrue(form.is_valid())
-
 class PasswordResetConfirmFormTests(TestCase):
 
     @mock.patch('pytas.http.TASClient.get_user')
