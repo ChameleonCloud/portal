@@ -1,4 +1,5 @@
 
 [tool.black]
-line-length = 79
+# Set line length explicitly. https://black.readthedocs.io/en/stable/the_black_code_style.html#line-length
+line-length = 88
 exclude = "/*migrations*/"
