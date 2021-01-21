@@ -55,8 +55,8 @@ def get_all_alloc(request):
         logger.debug("Total projects: %s", len(resp))
     except Exception as e:
         logger.exception("Error loading chameleon projects")
-        messages.error(request, e[0])
-        raise Exception("Error loading chameleon projects")
+        messages.error(request, e)
+        raise
     return json.dumps(resp)
 
 

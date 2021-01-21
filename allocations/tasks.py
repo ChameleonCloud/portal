@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def _deactivate_allocation(balance_service, alloc):
     charge_code = alloc.project.charge_code
-    balance = balance_service.call(charge_code) or {}
+    balance = balance_service.get_balance(charge_code) or {}
     if 'used' in balance and balance['used']:
         alloc.su_used = float(balance['used'])
     else:

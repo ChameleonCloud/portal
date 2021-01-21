@@ -94,10 +94,12 @@ angular.module('allocationsApp')
             var status = allocation.status.toLowerCase();
             if (status === 'pending') {
                 return 'label label-warning';
+            } else if (status === 'active') {
+                return 'label label-success';
             } else if (status === 'rejected') {
                 return 'label label-danger';
             } else {
-                return 'label label-success';
+                return 'label label-default';
             }
         };
         $http({
@@ -109,7 +111,6 @@ angular.module('allocationsApp')
                     $scope.loading.allocations = false;
                     $scope.projects = response.data;
                     $scope.selectedProjects = response.data;
-
                 },
                 function(error) {
                     console.log('There was an error fetching allocations. ' + error);

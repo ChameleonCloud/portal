@@ -76,10 +76,12 @@ angular
             var status = allocation.status.toLowerCase();
             if (status === 'pending') {
                 return 'label label-warning';
+            } else if (status === 'active') {
+                return 'label label-success';
             } else if (status === 'rejected') {
                 return 'label label-danger';
             } else {
-                return 'label label-success';
+                return 'label label-default';
             }
         };
 
@@ -287,7 +289,7 @@ angular
                             if (response.data.status === 'error') {
                                 NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
                                 return null;
-                            } else {                                
+                            } else {
                                 NotificationFactory.addMessage(msgKey, 'This allocation request is approved successfully.', 'success');
                                 return response.data.result;
                             }

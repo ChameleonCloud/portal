@@ -169,7 +169,7 @@
                                         <div ng-if="allocation.computeAllocated">
                                             <p><b>SU Usage:</b> [[allocation.computeUsed | number : 0]] of [[allocation.computeAllocated | number : 0]]</p>
                                             <p><b>Requested</b> [[allocation.computeRequested | number : 0]] SU</p>
-                                            <meter style="width: 100%;" 
+                                            <meter style="width: 100%;"
                                                 value="[[allocation.computeUsed / allocation.computeAllocated]]"
                                                 min="0" low="0.2" optimum="0.8" high="0.95" max="1">
                                             </meter>
