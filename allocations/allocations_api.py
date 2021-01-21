@@ -22,20 +22,27 @@ class BalanceServiceClient:
         headers['Content-Type'] = 'application/json'
         return headers
 
-    def call(self, project_code):
-        url = self.make_url(project_code)
-        data = None
+    def bulk_get_balances(self, project_codes):
+        url = self.make_url()
+        url += f'?projects={",".join(project_codes)}'
+        data = []
         try:
             resp = requests.get(url, headers=self._make_headers())
-            data = resp.json()
+            data = resp.json()["projects"]
             logger.info(
-                'Successfully retrieved balance for project %s', project_code)
+                'Successfully retrieved balance for projects: %s',
+                project_codes)
             logger.debug('Response from %s: %s', url, data)
         except Exception:
             logger.exception(
-                'Failed to retrieve balance for project %s', project_code)
-
+                'Failed to retrieve balance for projects: %s', project_codes)
         return data
+
+    def get_balance(self, project_code):
+        res = self.bulk_get_balances([project_code])
+        if not res:
+            raise RuntimeError(f'No balances returned for {project_code}')
+        return res[0]
 
     def recharge(self, project_code, su_allocated):
         url = self.make_url('recharge')
@@ -53,6 +60,8 @@ class BalanceServiceClient:
         if resp.status_code != 200:
             raise RuntimeError('Balance service reset failed!')
 
-    def make_url(self, route):
-        return '{0}/{1}'.format(
-            settings.ALLOCATIONS_BALANCE_SERVICE_ROOT_URL, route)
+    def make_url(self, route=None):
+        url = settings.ALLOCATIONS_BALANCE_SERVICE_ROOT_URL
+        if route:
+            url += '/' + route
+        return url

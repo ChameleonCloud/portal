@@ -408,7 +408,7 @@ class UserProfileForm(forms.Form):
             'invalid': 'Please select your country of citizenship.',
         })
 
-    disabled_fields = ['firstName', 'lastName', 'email']
+    disabled_fields = ['firstName', 'lastName']
     required_for_pi = ['phone', 'institution', 'country', 'citizenship']
 
     def __init__(self, *args, **kwargs):

@@ -9,6 +9,7 @@ from django.utils.html import strip_tags
 
 from tas.forms import UserProfileForm
 from util.project_allocation_mapper import ProjectAllocationMapper
+from util.keycloak_client import DuplicateUserError
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -36,9 +37,17 @@ def profile_edit(request):
 
         if form.is_valid():
             data = form.cleaned_data
-            mapper.update_user_profile(user_info, data, request_pi_eligibility)
-            messages.success(request, 'Your profile has been updated!')
-            return HttpResponseRedirect(reverse('tas:profile'))
+            try:
+                mapper.update_user_profile(request.user, data, request_pi_eligibility)
+                messages.success(request, 'Your profile has been updated!')
+                return HttpResponseRedirect(reverse('tas:profile'))
+            except DuplicateUserError:
+                messages.error(request, 'A user with this email already exists')
+            except Exception:
+                messages.error(request, 'An error occurred updating your profile')
+                LOG.exception((
+                    "An unknown error occurred updating user profile for "
+                    f"{request.user.username}"))
     else:
         kwargs = {'is_pi_eligible': False}
         if user_info['piEligibility'].upper() == 'ELIGIBLE':

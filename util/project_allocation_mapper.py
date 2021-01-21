@@ -1,4 +1,6 @@
+from itertools import chain
 import logging
+from operator import attrgetter
 import time
 from datetime import datetime
 
@@ -9,7 +11,7 @@ from chameleon.models import PIEligibility
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.db.models import Max
+from django.db.models import Max, QuerySet
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
@@ -68,30 +70,6 @@ class ProjectAllocationMapper:
                            host = host)
         send_mail(subject, strip_tags(body), settings.DEFAULT_FROM_EMAIL, [user.email], html_message=body)
 
-    def _get_project_allocations(self, project, fetch_balance=True):
-        balance_service = BalanceServiceClient()
-        reformated_allocations = []
-        for alloc in project.allocations.select_related('project', 'requestor', 'reviewer').all():
-            if fetch_balance and alloc.status == 'active':
-                balance = balance_service.call(project.charge_code)
-                if balance:
-                    su_used = 0.0
-                    # Total used = used in the past + "pending" (encumbered)
-                    # for leases that have not yet terminated but are accruing
-                    # charges.
-                    for key in ['used', 'encumbered']:
-                        try:
-                            su_used += float(balance.get(key))
-                        except (TypeError, ValueError):
-                            logger.error((
-                                'Can not find {} balance for project {}'
-                                .format(key, project.charge_code)))
-                    alloc.su_used = su_used
-                else:
-                    logger.warning('Couldn\'t get balance. Balance service might be down.')
-            reformated_allocations.append(self.portal_to_tas_alloc_obj(alloc))
-        return sorted(reformated_allocations, reverse=True, key=self.normalize_allocation_date)
-
     def _get_user_from_portal_db(self, username):
         UserModel = get_user_model()
         try:
@@ -106,24 +84,23 @@ class ProjectAllocationMapper:
         This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
         """
         rt = rtUtil.DjangoRt()
-        subject = "Chameleon PI Eligibility Request: %s" % user['username']
-        if self.is_from_db:
-            problem_description = "This PI Eligibility request can be reviewed at " +\
-                "https://www.chameleoncloud.org/admin/chameleon/pieligibility/"
-        else:
-            problem_description = ""
+        subject = f"Chameleon PI Eligibility Request: {user.username}"
+        problem_description = (
+            "This PI Eligibility request can be reviewed at "
+            "https://www.chameleoncloud.org/admin/chameleon/pieligibility/")
         ticket = rtModels.Ticket(subject = subject,
                                  problem_description = problem_description,
                                  requestor = "us@tacc.utexas.edu")
         rt.createTicket(ticket)
 
-    def get_all_projects(self):
+    def get_all_projects(self) -> 'list[dict]':
         """Get all projects, all of their allocations, for all users.
 
         Returns:
             List[dict]: a list of projects in the TAS representation format,
-            sorted by newest allocation request date. Allocations in each project are
-            sorted from newest to oldest by portal_to_tas_proj_obj.
+                sorted by newest allocation request date. Allocations in each
+                project are sorted from newest to oldest by
+                portal_to_tas_proj_obj.
         """
 
         # for each project, get the most recent 'date_requested' among its allocations
@@ -131,33 +108,57 @@ class ProjectAllocationMapper:
         # order the projects by the 'newest_request' annotation
         # to optimize the query, ensure requst includes foreign keys
 
-        project_qs = portal_proj.objects.annotate(
-            newest_request=Max('allocations__date_requested')).select_related(
-            'type','pi','field').order_by('newest_request').reverse()
+        project_qs = (
+            portal_proj.objects.annotate(newest_request=Max('allocations__date_requested'))
+            .select_related('type', 'pi', 'field')
+            .order_by('newest_request').reverse())
+        projects = self._with_relations(project_qs)
+        return [self.portal_to_tas_proj_obj(p) for p in projects]
 
-        #The DB is hit when we create iterator
-        return list(self.portal_to_tas_proj_obj(
-            proj, fetch_balance=False) for proj in project_qs)                         
+    def _with_relations(self, projects, fetch_balance=True, fetch_allocations=True):
+        if fetch_allocations and isinstance(projects, QuerySet):
+            logger.debug('Prefetching related fields')
+            projects = projects.prefetch_related(
+                'allocations', 'allocations__requestor', 'allocations__reviewer')
 
-    
+        by_charge_code = {
+            p.charge_code: p for p in projects
+        }
+
+        logger.debug(f'Fetching relations for {len(projects)} projects')
+
+        if fetch_allocations:
+            all_active_allocations = {
+                a.project.charge_code: a
+                # NOTE: this makes a nested .all() call to fetch allocations.
+                # If the input projects argument is not a QuerySet, this will
+                # make a single SQL call for each input project!
+                for a in chain(*[p.allocations.all() for p in by_charge_code.values()])
+                if a.status == 'active'
+            }
+            if fetch_balance:
+                charge_codes = all_active_allocations.keys()
+                balance_service = BalanceServiceClient()
+                logger.debug(f'Fetching balances for {len(projects)} projects')
+                for b in balance_service.bulk_get_balances(charge_codes):
+                    charge_code = b.get('charge_code')
+                    if charge_code:
+                        all_active_allocations[charge_code].su_used = (
+                            float(b.get('used') or 0.0) +
+                            float(b.get('encumbered') or 0.0))
+
+        return projects
+
+
     '''
     Return datetime object from allocation dateRequested field for use in sorting
     '''
     def normalize_allocation_date(self, alloc):
-            try:
-                return datetime.strptime(alloc['dateRequested'], '%Y-%m-%dT%H:%M:%SZ')
-            except:
-                # if we don't have allocations or allocation requests, go to the bottom of the list
-                return datetime.min
-
-    '''
-    Sort by most recent allocation request
-    '''
-    def sort_by_allocation_request_date(self, proj):
-        latest_req_date = max([ self.normalize_allocation_date(a)
-            for a in (proj.get('allocations') if proj.get('allocations') else [{"dateRequested":""}])
-        ])
-        return latest_req_date
+        try:
+            return datetime.strptime(alloc['dateRequested'], '%Y-%m-%dT%H:%M:%SZ')
+        except:
+            # if we don't have allocations or allocation requests, go to the bottom of the list
+            return datetime.min
 
     def save_allocation(self, alloc, project_charge_code, host):
         reformated_alloc = self.tas_to_portal_alloc_obj(alloc, project_charge_code)
@@ -257,20 +258,28 @@ class ProjectAllocationMapper:
             pextras.save()
 
     def update_user_profile(self, user, new_profile, is_request_pi_eligibililty):
+        keycloak_client = KeycloakClient()
+
         if is_request_pi_eligibililty:
             pie_request = PIEligibility()
-            pie_request.requestor_id = user['id']
+            pie_request.requestor_id = user.id
             pie_request.save()
             self._create_ticket_for_pi_request(user)
 
-        keycloak_client = KeycloakClient()
-        keycloak_client.update_user(user['username'],
+        email = new_profile.get('email')
+        keycloak_client.update_user(user.username,
+                                    email=email,
                                     affiliation_title=new_profile.get('title'),
                                     affiliation_department=new_profile.get('department'),
                                     affiliation_institution=new_profile.get('institution'),
                                     country=new_profile.get('country'),
                                     citizenship=new_profile.get('citizenship'),
                                     phone=new_profile.get('phone'))
+        # The email normally is saved during login; in this case we can
+        # immediately persist the change for better UX.
+        if email is not None:
+            user.email = email
+            user.save()
 
     @staticmethod
     def get_project_nickname_and_charge_code_for_publication(publication):
@@ -292,19 +301,20 @@ class ProjectAllocationMapper:
         return nickname, charge_code
 
     def get_user_projects(self, username, alloc_status=[], fetch_balance=True, to_pytas_model=False):
-        user_projects = {}
         # get user projects from portal
         keycloak_client = KeycloakClient()
-        for charge_code in keycloak_client.get_user_projects_by_username(username):
-            project = portal_proj.objects.filter(charge_code=charge_code)
-            if len(project) > 0:
-                project = self.portal_to_tas_proj_obj(project[0], fetch_balance=fetch_balance)
-                user_projects[charge_code] = project
+        charge_codes = keycloak_client.get_user_projects_by_username(username)
+        projects_qs = portal_proj.objects.filter(charge_code__in=charge_codes)
+
+        user_projects = [
+            self.portal_to_tas_proj_obj(p, alloc_status=alloc_status)
+            for p in self._with_relations(projects_qs, fetch_balance=fetch_balance)
+        ]
 
         if to_pytas_model:
-            return [tas_proj(initial=p) for p in list(user_projects.values())]
+            return [tas_proj(initial=p) for p in user_projects]
         else:
-            return list(user_projects.values())
+            return user_projects
 
     def get_project_members(self, tas_project):
         users = []
@@ -330,8 +340,10 @@ class ProjectAllocationMapper:
         Returns:
             pytas.models.Project: a TAS Project representation for the project.
         """
-        project = portal_proj.objects.get(pk=project_id)
-        project = self.portal_to_tas_proj_obj(project)
+        projects = list(self._with_relations(portal_proj.objects.filter(pk=project_id)))
+        if not projects:
+            raise portal_proj.DoesNotExist()
+        project = self.portal_to_tas_proj_obj(projects[0])
         return tas_proj(initial=project)
 
     def allocation_approval(self, data, host):
@@ -383,17 +395,14 @@ class ProjectAllocationMapper:
     def get_fields_choices(self):
         choices = (('', 'Choose One'),)
         fields = []
-        if self.is_from_db:
-            field_hierarchy = {}
-            for item in FieldHierarchy.objects.all():
-                key = (item.parent.id, item.parent.name)
-                if key not in field_hierarchy:
-                    field_hierarchy[key] = []
-                field_hierarchy[key].append((item.child.id, item.child.name))
-            for f in set(field_hierarchy.keys()) - set([item for sublist in list(field_hierarchy.values()) for item in sublist]):
-                fields.append(self._portal_field_hierarchy_to_tas_format(f, field_hierarchy))
-        else:
-            fields = self.tas.fields()
+        field_hierarchy = {}
+        for item in FieldHierarchy.objects.select_related('parent', 'child').all():
+            key = (item.parent.id, item.parent.name)
+            if key not in field_hierarchy:
+                field_hierarchy[key] = []
+            field_hierarchy[key].append((item.child.id, item.child.name))
+        for f in set(field_hierarchy.keys()) - set([item for sublist in list(field_hierarchy.values()) for item in sublist]):
+            fields.append(self._portal_field_hierarchy_to_tas_format(f, field_hierarchy))
         field_list = []
         for f in fields:
             field_list = field_list + self._parse_field_recursive(f)
@@ -431,10 +440,7 @@ class ProjectAllocationMapper:
                             }
         return reformated_alloc
 
-    def portal_to_tas_proj_obj(self, proj, fetch_allocations=True,
-                               fetch_balance=True, pi_info=None):
-        if not pi_info:
-            pi_info = self.portal_user_to_tas_obj(proj.pi)
+    def portal_to_tas_proj_obj(self, proj, fetch_allocations=True, alloc_status=[]):
         tas_proj = {'description': proj.description,
                     'piId': proj.pi_id,
                     'title': proj.title,
@@ -446,11 +452,22 @@ class ProjectAllocationMapper:
                     'field': proj.field.name if proj.field else None,
                     'allocations': [],
                     'source': 'Chameleon',
-                    'pi': pi_info,
+                    'pi': self.portal_user_to_tas_obj(proj.pi, role='PI'),
                     'id': proj.id}
+
         if fetch_allocations:
-            allocations = self._get_project_allocations(proj, fetch_balance=fetch_balance)
-            tas_proj['allocations'] = allocations
+            if alloc_status:
+                allocations_qs = proj.allocations.filter(status__in=alloc_status)
+            else:
+                allocations_qs = proj.allocations.all()
+            # NOTE(jason): we cannot sort using .order_by().reverse() or any
+            # other Django ORM utility here! It will break the prefetch_related
+            # behavior and cause a huge performance degradation.
+            allocs = sorted(allocations_qs, key=attrgetter('date_requested'), reverse=True)
+            tas_proj['allocations'] = [
+                self.portal_to_tas_alloc_obj(a) for a in allocs
+            ]
+
         return tas_proj
 
     def tas_to_portal_alloc_obj(self, alloc, project_charge_code):
@@ -490,7 +507,12 @@ class ProjectAllocationMapper:
 
     def portal_user_to_tas_obj(self, user, role='Standard'):
         try:
-            pi_eligibility = user.pi_eligibility()
+            # Short-cut if we already know the user is a PI (because they are
+            # marked as the PI for a project, for example.)
+            if role == 'PI':
+                pi_eligibility = 'Eligible'
+            else:
+                pi_eligibility = user.pi_eligibility()
         except:
             pi_eligibility = 'Ineligible'
 
