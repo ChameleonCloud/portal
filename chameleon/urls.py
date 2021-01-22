@@ -53,6 +53,7 @@ urlpatterns = [
 
     # Legacy account endpoints
     url(r'^user/', include('tas.urls', namespace='tas')),
+    url(r'^password-reset/$', chameleon_views.password_reset),
 
     url(r'^user/dashboard/', chameleon_views.dashboard, name='dashboard'),
 
