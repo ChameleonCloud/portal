@@ -297,12 +297,21 @@ LOGGING = {
         'default': {
             'format': '[DJANGO] %(levelname)s %(asctime)s %(module)s %(name)s.%(funcName)s: %(message)s'
         },
+        "sql": {
+            "()": "util.sql_format.SQLFormatter",
+            "format": "[DJANGO-SQL] [%(duration).3f] %(statement)s",
+        },
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'default',
+        },
+        'console-sql': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'sql',
         },
     },
     'loggers': {
@@ -319,7 +328,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'django.db.backends': {
-            'handlers': ['console'],
+            'handlers': ['console-sql'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
