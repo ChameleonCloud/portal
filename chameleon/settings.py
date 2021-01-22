@@ -122,7 +122,6 @@ INSTALLED_APPS = (
     "webpack_loader",
     "rest_framework",
     "django_filters",
-
     ##
     # custom
     #
