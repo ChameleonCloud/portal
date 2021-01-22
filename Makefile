@@ -1,3 +1,7 @@
+#Set language versions
+PY_IMG_TAG=3.7.9-stretch
+NODE_VER=lts
+
 DOCKER_REGISTRY ?= docker.chameleoncloud.org
 DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE := $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
@@ -14,7 +18,9 @@ endif
 .PHONY: build
 build:
 	./docker/client/build.sh
-	docker build -t $(DOCKER_IMAGE) .
+	docker build --build-arg PY_IMG_TAG=$(PY_IMG_TAG) \
+				 --build-arg NODE_VER=$(NODE_VER) \
+				 -t $(DOCKER_IMAGE) .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE_LATEST)
 
 .PHONY: publish
