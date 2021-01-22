@@ -85,6 +85,17 @@ def force_password_login(request):
     return redirect(reverse("login") + f"?{urlencode(params)}")
 
 
+def password_reset(request):
+    """Legacy view for redirecting password reset requests back to TAS.
+
+    When a user requests a password reset, the link in their mail from TAS
+    points to Portal; we simply return them to the corresponding endpoint
+    on the TACC user portal.
+    """
+    host = settings.TACC_USER_PORTAL_HOST
+    return redirect(f"{host}/password-reset?{urlencode(request.GET)}")
+
+
 @login_required
 def migrate(request):
     token_region = "KVM@TACC"
