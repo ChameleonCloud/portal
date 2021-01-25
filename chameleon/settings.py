@@ -6,6 +6,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import os
+
 from celery.schedules import crontab
 from django.utils.translation import ugettext_lazy as _
 
@@ -121,8 +122,7 @@ INSTALLED_APPS = (
     "markdown_deux",
     "webpack_loader",
     "rest_framework",
-    "django_filters",
-
+    "dynamic_rest",
     ##
     # custom
     #
@@ -247,6 +247,33 @@ STATICFILES_FINDERS = (
 
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication"
+    ],
+    # if not set explicitly, make admin only
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAdminUser",
+    ],
+    # if not set explicitly, return json response.
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "dynamic_rest.renderers.DynamicBrowsableAPIRenderer",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 100,
+}
+
+DYNAMIC_REST = {
+    # DEBUG: enable/disable internal debugging
+    "DEBUG": False,
+    # ENABLE_BROWSABLE_API: enable/disable the browsable API.
+    # It can be useful to disable it in production.
+    "ENABLE_BROWSABLE_API": True,
+}
+
+
 ## Keycloak OIDC Authentication
 OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
@@ -295,6 +322,11 @@ OPENID_PROVIDERS = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
     "formatters": {
         "default": {
             "format": "[DJANGO] %(levelname)s %(asctime)s %(module)s %(name)s.%(funcName)s: %(message)s"
@@ -307,11 +339,13 @@ LOGGING = {
     "handlers": {
         "console": {
             "level": "DEBUG",
+            "filters": ["require_debug_true"],
             "class": "logging.StreamHandler",
             "formatter": "default",
         },
         "console-sql": {
-            "level": "DEBUG",
+            "level": "INFO",
+            "filters": ["require_debug_true"],
             "class": "logging.StreamHandler",
             "formatter": "sql",
         },
@@ -331,7 +365,7 @@ LOGGING = {
         },
         "django.db.backends": {
             "handlers": ["console-sql"],
-            "level": "DEBUG" if DEBUG else "INFO",
+            "level": "DEBUG",
             "propagate": False,
         },
         "pipeline": {
