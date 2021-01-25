@@ -7,6 +7,7 @@ from functools import wraps
 
 from chameleon.models import PIEligibility
 from django.contrib import admin
+from django.contrib.admin.utils import flatten
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from util.keycloak_client import KeycloakClient
@@ -97,7 +98,7 @@ class PIEligibilityAdmin(admin.ModelAdmin):
         The regex below CANNOT validate that an orcid ID exists, or points to the
         correct user.
         """
-        orcid_id_regex = r"\d{4}-\d{4}-\d{4}-(?:\d{3}X|\d{4})"
+        orcid_id_regex = r"\d{4}-\d{4}-\d{4}-(?:\d{3}[xX]|\d{4})"
 
         def get_orcid_ids(input_str, regex):
             """Return all substrings matching regex."""
@@ -105,30 +106,20 @@ class PIEligibilityAdmin(admin.ModelAdmin):
             logger.debug(f"ORCiD Match on {input_str} results in: {match}")
             return match
 
-        def is_orcid_id(test_id, regex):
-            """Check if single ID is orcid ID."""
-            match = re.fullmatch(regex, test_id)
-            logger.debug(f"ORCiD Check on {test_id} results in: {match}")
-            return match
-
         def get_orcid_url(orcid_id):
             """Return url of form https://orcid.org/0000-0012-2345-6789."""
             base_url = "https://orcid.org/"
-            if is_orcid_id(orcid_id, orcid_id_regex):
-                result = urllib.parse.urljoin(base_url, orcid_id)
-                logger.debug(f"converting {orcid_id} to {result}")
-                return result
-            else:
-                logger.debug(f"could not map {orcid_id} to URL")
-                return None
+            result = urllib.parse.urljoin(base_url, orcid_id)
+            logger.debug(f"converting {orcid_id} to {result}")
+            return result
 
-        # Get all matching substrings
-        checked_ids = []
-        for user_id in [obj.requestor.username, obj.requestor.email]:
-            orcid_ids = get_orcid_ids(user_id, orcid_id_regex)
-            for orcid_id in orcid_ids:
-                if orcid_id:
-                    checked_ids.append(orcid_id)
+        # Get all matching substrings, regex can output array
+        checked_ids = flatten(
+            [
+                get_orcid_ids(ident, orcid_id_regex)
+                for ident in [obj.requestor.username, obj.requestor.email]
+            ]
+        )
 
         if not checked_ids:
             return "No ORCiD User Found"
