@@ -6,10 +6,10 @@ import urllib.parse
 from functools import wraps
 
 from chameleon.models import PIEligibility
-from django.contrib import admin
-from django.contrib.admin.utils import flatten
+from django.contrib.admin import ModelAdmin, site
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.html import format_html_join, mark_safe, urlize
 from util.keycloak_client import KeycloakClient
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def pi_eligibility(self):
         return "Ineligible"
 
 
-class PIEligibilityAdmin(admin.ModelAdmin):
+class PIEligibilityAdmin(ModelAdmin):
     """Class to define valid fields and methods for PI Eligibility DB entries."""
 
     readonly_fields = [
@@ -47,6 +47,8 @@ class PIEligibilityAdmin(admin.ModelAdmin):
         "reviewer",
         "review_date",
     ]
+
+    # Defines layout changes in add or change pages
     fields = (
         "requestor",
         "request_date",
@@ -63,7 +65,7 @@ class PIEligibilityAdmin(admin.ModelAdmin):
     search_fields = ["requestor__username"]
 
     def keycloak_metadata(self, obj):
-        """User metadata from keycloak backend."""
+        """User metadata from keycloak backend. Returns a list of strings."""
         keycloak_client = KeycloakClient()
         keycloak_user = keycloak_client.get_user_by_username(obj.requestor.username)
 
@@ -74,18 +76,13 @@ class PIEligibilityAdmin(admin.ModelAdmin):
             keycloak_user["lastName"], keycloak_user["firstName"]
         )
         email = keycloak_user["email"]
-        contents = [f"Name: {full_name}", f"Email: {email}"]
-
-        if not contents:
-            return "No Keycloak Metadata Found"
+        yield [f"Name: {full_name}", f"Email: {email}"]
 
         for key, val in keycloak_user["attributes"].items():
             if key not in ["joinDate"]:
                 # convert camelcase to separate out words
                 key = re.sub("([A-Z])", " \\1", key).strip().capitalize()
-                contents.append(f"{key}: {val}")
-
-        return "\n".join(contents)
+                yield [(f"{key}: {val}")]
 
     def orcid_metadata(self, obj):
         """
@@ -98,11 +95,11 @@ class PIEligibilityAdmin(admin.ModelAdmin):
         The regex below CANNOT validate that an orcid ID exists, or points to the
         correct user.
         """
-        orcid_id_regex = r"\d{4}-\d{4}-\d{4}-(?:\d{3}[xX]|\d{4})"
 
-        def get_orcid_ids(input_str, regex):
+        def get_orcid_ids(input_str):
             """Return all substrings matching regex."""
-            match = re.findall(regex, input_str)
+            orcid_id_regex = r"\d{4}-\d{4}-\d{4}-(?:\d{3}[xX]|\d{4})"
+            match = re.findall(orcid_id_regex, input_str)
             logger.debug(f"ORCiD Match on {input_str} results in: {match}")
             return match
 
@@ -113,35 +110,23 @@ class PIEligibilityAdmin(admin.ModelAdmin):
             logger.debug(f"converting {orcid_id} to {result}")
             return result
 
-        # Get all matching substrings, regex can output array
-        checked_ids = flatten(
-            [
-                get_orcid_ids(ident, orcid_id_regex)
-                for ident in [obj.requestor.username, obj.requestor.email]
-            ]
-        )
-
-        if not checked_ids:
-            return "No ORCiD User Found"
-
-        orcid_urls = [get_orcid_url(orcid_id) for orcid_id in checked_ids]
-
-        if not orcid_urls:
-            return f"Bad URL for ids: {checked_ids} "
-        else:
-            return "\n".join(orcid_urls)
+        for orcid_id in get_orcid_ids(obj.requestor.username):
+            return get_orcid_url(orcid_id)
 
     def user_metadata(self, obj):
         """Populate user metadata with discovered info from federation."""
         logger.debug(f"Fetching metadata for user {obj.requestor}")
-        metadata_arr = []
         try:
-            metadata_arr.append(self.keycloak_metadata(obj))
-            metadata_arr.append(self.orcid_metadata(obj))
+            keycloak_html = format_html_join(
+                "", "{}<br>", (u for u in self.keycloak_metadata(obj))
+            )
+            orcid_html = urlize(self.orcid_metadata(obj))
+
         except Exception as err:
             logger.debug(f"Failed to add metadata, error: {err}")
 
-        return "\n".join(metadata_arr)
+        # return metadata_html
+        return mark_safe(keycloak_html + orcid_html)
 
 
-admin.site.register(PIEligibility, PIEligibilityAdmin)
+site.register(PIEligibility, PIEligibilityAdmin)
