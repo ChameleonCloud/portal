@@ -267,10 +267,10 @@ REST_FRAMEWORK = {
 
 DYNAMIC_REST = {
     # DEBUG: enable/disable internal debugging
-    "DEBUG": False,
+    "DEBUG": DEBUG,
     # ENABLE_BROWSABLE_API: enable/disable the browsable API.
     # It can be useful to disable it in production.
-    "ENABLE_BROWSABLE_API": True,
+    "ENABLE_BROWSABLE_API": DEBUG,
 }
 
 
