@@ -1,4 +1,6 @@
 """
+Django settings file. This gets most values by loading a .env file.
+
 For more information on this file, see
 https://docs.djangoproject.com/en/1.11/topics/settings/
 
@@ -319,6 +321,15 @@ OPENID_PROVIDERS = {
 # Logger config
 #
 #####
+
+# DEBUG = True if DJANGO_ENV_DEBUG==DEBUG
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
+LOG_VERBOSITY = os.environ.get("DJANGO_LOG_VERBOSITY", "SHORT")
+SQL_LEVEL = os.environ.get("DJANGO_SQL_LEVEL", "INFO")
+SQL_VERBOSITY = os.environ.get("DJANGO_SQL_VERBOSITY", "SHORT")
+CONSOLE_WIDTH = os.environ.get("DJANGO_LOG_WIDTH", 100)
+CONSOLE_INDENT = os.environ.get("DJANGO_LOG_INDENT", 2)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -328,26 +339,32 @@ LOGGING = {
         },
     },
     "formatters": {
-        "default": {
+        "default_short": {
+            "format": "[DJANGO] %(levelname)s %(name)s.%(funcName)s: %(message)s"
+        },
+        "default_verbose": {
             "format": "[DJANGO] %(levelname)s %(asctime)s %(module)s %(name)s.%(funcName)s: %(message)s"
         },
-        "sql": {
+        "sql_short": {
+            "format": "[DJANGO-SQL] [%(duration).3f] %(sql)s",
+        },
+        "sql_verbose": {
             "()": "util.sql_format.SQLFormatter",
             "format": "[DJANGO-SQL] [%(duration).3f] %(statement)s",
         },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
             "filters": ["require_debug_true"],
+            "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
-            "formatter": "default",
+            "formatter": f"default_{LOG_VERBOSITY.lower()}",
         },
         "console-sql": {
-            "level": "INFO",
             "filters": ["require_debug_true"],
+            "level": SQL_LEVEL,
             "class": "logging.StreamHandler",
-            "formatter": "sql",
+            "formatter": f"sql_{SQL_VERBOSITY.lower()}",
         },
     },
     "loggers": {

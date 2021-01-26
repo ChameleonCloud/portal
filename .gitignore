@@ -3,6 +3,7 @@ db.sqlite3*
 run-script.sh
 .idea
 .chameleon_env
+.env*
 
 media/
 db/
