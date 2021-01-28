@@ -21,6 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "NOT_A_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-DEBUG
 DEBUG = os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG"
 
 # OpenStack Properties
@@ -319,8 +320,6 @@ OPENID_PROVIDERS = {
 # Logger config
 #
 #####
-
-# DEBUG = True if DJANGO_ENV_DEBUG==DEBUG
 LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
 LOG_VERBOSITY = os.environ.get("DJANGO_LOG_VERBOSITY", "SHORT")
 SQL_LEVEL = os.environ.get("DJANGO_SQL_LEVEL", "INFO")
@@ -560,6 +559,7 @@ TEMPLATES = [
                 "sekizai.context_processors.sekizai",
                 "cms.context_processors.cms_settings",
             ],
+            # https://docs.djangoproject.com/en/1.11/topics/templates/#module-django.template.backends.django
             "debug": os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG",
         },
     },
