@@ -1,3 +1,19 @@
+# Build Frontend Client
+ARG NODE_VER=lts
+FROM node:${NODE_VER} as node-client
+
+# Avoid rebuilding node deps unnecessarily
+WORKDIR /project
+COPY package.json package.json
+COPY yarn.lock yarn.lock
+RUN yarn install
+COPY --from=node-deps node_modules /project/node_modules
+
+# Build static JS assets
+COPY . /project
+RUN yarn build --production
+
+# Build Django Application
 ARG PY_IMG_TAG=3.7.9-stretch
 FROM python:${PY_IMG_TAG}
 
@@ -48,7 +64,7 @@ WORKDIR /project
 # translation messages, if necessary
 RUN python manage.py compilemessages
 # copy compiled JS assets
-COPY --from=client /project/static/vue /project/static/vue
-COPY --from=client /project/webpack-stats.json /project/webpack-stats.json
+COPY --from=node-client /project/static/vue /project/static/vue
+COPY --from=node-client /project/webpack-stats.json /project/webpack-stats.json
 
 EXPOSE 80 443
