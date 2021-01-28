@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: populate sample environment
+        run: make .env
       - name: build container
         run: make build
       - name: start env for tests
