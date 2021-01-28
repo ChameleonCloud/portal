@@ -1,22 +1,19 @@
-#Set language versions
-PY_IMG_TAG=3.7.9-stretch
-NODE_VER=lts
-
-DOCKER_REGISTRY ?= docker.chameleoncloud.org
-DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
-DOCKER_IMAGE := $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
-DOCKER_IMAGE_LATEST := $(DOCKER_REGISTRY)/portal:latest
-
-PORTAL_MANAGE_CMD := docker-compose exec portal python manage.py
-#if APP is unset, then the variable equals the empty string.
-ifeq ($(APP),)
-MIGRATIONS_CMD := $(PORTAL_MANAGE_CMD) makemigrations
-else
-MIGRATIONS_CMD := $(PORTAL_MANAGE_CMD) makemigrations "$(APP)"
+# Set make variables from .env file
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+	ENV_FILE_PARAM = --env-file .env
 endif
 
+DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
+DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
+DOCKER_IMAGE_LATEST ?= $(DOCKER_REGISTRY)/portal:latest
+
+.env:
+	cp .env.sample .env
+
 .PHONY: build
-build:
+build: .env
 	./docker/client/build.sh
 	docker build --build-arg PY_IMG_TAG=$(PY_IMG_TAG) \
 				 --build-arg NODE_VER=$(NODE_VER) \
@@ -33,11 +30,11 @@ publish-latest:
 
 .PHONY: start
 start:
-	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) docker-compose up -d
+	docker-compose $(ENV_FILE_PARAM) up -d
 
 .PHONY: migrations
 migrations: start
-	DOCKER_IMAGE_LATEST=$(DOCKER_IMAGE_LATEST) $(MIGRATIONS_CMD) --check
+	docker-compose exec portal makemigrations --check
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@

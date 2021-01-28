@@ -1,8 +1,14 @@
-import logging
+"""Pretty-Print SQL queries for console output."""
+from logging import Formatter
+
+from django.conf import settings
 
 
-class SQLFormatter(logging.Formatter):
+class SQLFormatter(Formatter):
+    """Color code with pygments, format with sqlparse."""
+
     def format(self, record):
+        """Do the formatting."""
         # Check if Pygments is available for coloring
         try:
             import pygments
@@ -22,7 +28,12 @@ class SQLFormatter(logging.Formatter):
 
         if sqlparse:
             # Indent the SQL query
-            sql = sqlparse.format(sql, reindent=True)
+            sql = sqlparse.format(
+                sql,
+                wrap_after=settings.CONSOLE_WIDTH,
+                indent_width=settings.CONSOLE_INDENT,
+                output_format="python",
+            )
 
         if pygments:
             # Highlight the SQL query

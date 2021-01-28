@@ -1,4 +1,6 @@
 """
+Django settings file. This gets most values by loading a .env file.
+
 For more information on this file, see
 https://docs.djangoproject.com/en/1.11/topics/settings/
 
@@ -19,9 +21,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "NOT_A_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-DEBUG
 DEBUG = os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG"
 
-## OpenStack Properties
+# OpenStack Properties
 OPENSTACK_UC_REGION = os.environ.get("OPENSTACK_UC_REGION", "CHI@UC")
 OPENSTACK_TACC_REGION = os.environ.get("OPENSTACK_TACC_REGION", "CHI@TACC")
 OPENSTACK_KVM_REGION = os.environ.get("OPENSTACK_KVM_REGION", "KVM@TACC")
@@ -42,7 +45,7 @@ OPENSTACK_AUTH_REGIONS = {
         "OPENSTACK_KVM_AUTH_URL", "https://kvm.tacc.chameleoncloud.org:5000/v3"
     ),
 }
-## Change to http for local dev only
+# Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get("SSO_CALLBACK_PROTOCOL", "https")
 SSO_CALLBACK_VALID_HOSTS = os.environ.get("SSO_CALLBACK_VALID_HOSTS", [])
 
@@ -247,7 +250,6 @@ STATICFILES_FINDERS = (
 
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication"
@@ -273,8 +275,7 @@ DYNAMIC_REST = {
     "ENABLE_BROWSABLE_API": DEBUG,
 }
 
-
-## Keycloak OIDC Authentication
+# Keycloak OIDC Authentication
 OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
 OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_RP_SIGN_ALGO")
@@ -289,7 +290,7 @@ OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60 * 5
 OIDC_EXEMPT_URLS = ["logout"]
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL")
 
-## Keycloak Client
+# Keycloak Client
 KEYCLOAK_SERVER_URL = os.environ.get("KEYCLOAK_SERVER_URL")
 KEYCLOAK_REALM_NAME = os.environ.get("KEYCLOAK_REALM_NAME", "chameleon")
 KEYCLOAK_PORTAL_ADMIN_CLIENT_ID = os.environ.get("KEYCLOAK_PORTAL_ADMIN_CLIENT_ID")
@@ -319,6 +320,13 @@ OPENID_PROVIDERS = {
 # Logger config
 #
 #####
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
+LOG_VERBOSITY = os.environ.get("DJANGO_LOG_VERBOSITY", "SHORT")
+SQL_LEVEL = os.environ.get("DJANGO_SQL_LEVEL", "INFO")
+SQL_VERBOSITY = os.environ.get("DJANGO_SQL_VERBOSITY", "SHORT")
+CONSOLE_WIDTH = os.environ.get("DJANGO_LOG_WIDTH", 100)
+CONSOLE_INDENT = os.environ.get("DJANGO_LOG_INDENT", 2)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -328,91 +336,55 @@ LOGGING = {
         },
     },
     "formatters": {
-        "default": {
+        "default_short": {
+            "format": "[DJANGO] %(levelname)s %(name)s.%(funcName)s: %(message)s"
+        },
+        "default_verbose": {
             "format": "[DJANGO] %(levelname)s %(asctime)s %(module)s %(name)s.%(funcName)s: %(message)s"
         },
-        "sql": {
+        "sql_short": {
+            "format": "[DJANGO-SQL] [%(duration).3f] %(sql)s",
+        },
+        "sql_verbose": {
             "()": "util.sql_format.SQLFormatter",
             "format": "[DJANGO-SQL] [%(duration).3f] %(statement)s",
         },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
             "filters": ["require_debug_true"],
+            "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
-            "formatter": "default",
+            "formatter": f"default_{LOG_VERBOSITY.lower()}",
         },
         "console-sql": {
-            "level": "INFO",
             "filters": ["require_debug_true"],
+            "level": SQL_LEVEL,
             "class": "logging.StreamHandler",
-            "formatter": "sql",
+            "formatter": f"sql_{SQL_VERBOSITY.lower()}",
         },
     },
     "loggers": {
-        "default": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "console": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "django": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
+        "default": {"handlers": ["console"], "level": "DEBUG"},
+        "console": {"handlers": ["console"], "level": "DEBUG"},
+        "django": {"handlers": ["console"], "level": "INFO"},
         "django.db.backends": {
             "handlers": ["console-sql"],
             "level": "DEBUG",
             "propagate": False,
         },
-        "pipeline": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-        "pytas": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
+        "pipeline": {"handlers": ["console"], "level": "INFO"},
+        "pytas": {"handlers": ["console"], "level": "INFO"},
         "chameleon_cms_integrations": {"handlers": ["console"], "level": "INFO"},
-        "openid": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "chameleon": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "auth": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "tas": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "projects": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "sharing_portal": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "allocations": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "chameleon_mailman": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-        "util": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
+        "openid": {"handlers": ["console"], "level": "INFO"},
+        "chameleon": {"handlers": ["console"], "level": "INFO"},
+        "auth": {"handlers": ["console"], "level": "INFO"},
+        "tas": {"handlers": ["console"], "level": "INFO"},
+        "projects": {"handlers": ["console"], "level": "INFO"},
+        "sharing_portal": {"handlers": ["console"], "level": "INFO"},
+        "allocations": {"handlers": ["console"], "level": "INFO"},
+        "chameleon_mailman": {"handlers": ["console"], "level": "INFO"},
+        "util": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
@@ -427,7 +399,7 @@ CMS_TOOLBAR_URL__EDIT_ON = (
 )
 
 CMS_TEMPLATES = (
-    ## Customize this
+    # Customize this
     ("cms_page.html", "Default Page"),
     ("cms_custom_page.html", "Advanced Page"),
 )
@@ -587,6 +559,7 @@ TEMPLATES = [
                 "sekizai.context_processors.sekizai",
                 "cms.context_processors.cms_settings",
             ],
+            # https://docs.djangoproject.com/en/1.11/topics/templates/#module-django.template.backends.django
             "debug": os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG",
         },
     },
@@ -737,7 +710,7 @@ PARLER_LANGUAGES = {
     },
 }
 
-### overwrite default django params
+# overwrite default django params
 # ref: https://github.com/divio/django-filer/issues/1031
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10000000
 FILE_UPLOAD_PERMISSIONS = 0o644

@@ -5,18 +5,19 @@ services:
     image: ${DOCKER_IMAGE_LATEST}
     restart: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORTAL_PORT}"]
       timeout: 10s
-      retries: 10
+      retries: 3
     env_file:
-      - .chameleon_env
+      - .env
     volumes:
       - .:/project
       - ./media:/media
       - static:/static
     ports:
-      - 127.0.0.1:8890:8888
-    command: python3 manage.py runserver 0.0.0.0:8888
+      - 127.0.0.1:8890:${PORTAL_PORT}
+    entrypoint: ["python3", "manage.py"]
+    command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
     depends_on:
       - mysql
   referenceapi:
@@ -34,10 +35,10 @@ services:
       timeout: 10s
       retries: 10
     environment:
-      MYSQL_ROOT_PASSWORD: ccpass
-      MYSQL_DATABASE: chameleon_dev
-      MYSQL_USER: ccuser
-      MYSQL_PASSWORD: ccpass
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
@@ -52,9 +53,11 @@ services:
   celery:
     image: ${DOCKER_IMAGE_LATEST}
     restart: on-failure
-    command: celery -A chameleon worker -l INFO --concurrency=1 -B
+    entrypoint: ["celery"]
+    command:
+      ["-A", "chameleon", "worker", "-l", "INFO", "--concurrency=1", "-B"]
     env_file:
-      - .chameleon_env
+      - .env
     volumes:
       - .:/project
     depends_on:
