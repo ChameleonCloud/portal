@@ -32,17 +32,22 @@ jobs:
       - name: Build Frontend Image
         uses: docker/build-push-action@v2
         with:
-          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache 
+          push: false
+          load: true
+          context: .
           file: ./docker/client/Dockerfile
           tags: client:latest
       - name: Build Portal Image
         uses: docker/build-push-action@v2
         with:
-          push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+          push: false
+          load: true
+          context: .
+          file: ./Dockerfile
           tags: portal:latest
           build-args: |
             PY_IMG_TAG=${{env.PYTHON_BASEIMG}}
