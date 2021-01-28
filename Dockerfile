@@ -1,7 +1,10 @@
-# Build Frontend Client
+# Docker Build Args
+# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG NODE_VER=lts
-FROM node:${NODE_VER} as node-client
+ARG PY_IMG_TAG=3.7.9-stretch
 
+# Build Frontend Client
+FROM node:${NODE_VER} as node-client
 # Avoid rebuilding node deps unnecessarily
 WORKDIR /project
 COPY package.json package.json
@@ -12,14 +15,13 @@ COPY . /project
 RUN yarn build --production
 
 # Build Django Application
-ARG PY_IMG_TAG=3.7.9-stretch
 FROM python:${PY_IMG_TAG} as portal
 
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install repos for node
-ARG NODE_VER=lts
+ARG NODE_VER
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VER}.x | bash -
 
 # Install apt packages
