@@ -27,8 +27,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ${{env.REGISTRY_URL}}
-          username: ${{ secrets.DOCKER_REGISTRY_RO_USER }}
-          password: ${{ secrets.DOCKER_REGISTRY_RO_PW }}
+          username: ${{ secrets.REGISTRY_RO_USER }}
+          password: ${{ secrets.REGISTRY_RO_PW }}
       - name: Build Portal Image
         uses: docker/build-push-action@v2
         with:
