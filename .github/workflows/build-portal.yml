@@ -46,3 +46,9 @@ jobs:
           build-args: |
             PY_IMG_TAG=${{env.PYTHON_BASEIMG}}
             NODE_VER=${{env.NODE_VERSION}}
+      - name: setup env for tests
+        run: make .env
+      - name: start compose for tests
+        run: make start
+      - name: run migrations check
+        run: make migrations
