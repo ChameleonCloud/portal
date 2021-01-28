@@ -7,22 +7,18 @@ WORKDIR /project
 COPY package.json package.json
 COPY yarn.lock yarn.lock
 RUN yarn install
-COPY --from=node-deps node_modules /project/node_modules
-
 # Build static JS assets
 COPY . /project
 RUN yarn build --production
 
 # Build Django Application
 ARG PY_IMG_TAG=3.7.9-stretch
-FROM python:${PY_IMG_TAG}
+FROM python:${PY_IMG_TAG} as portal
 
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install repos for node6.x. 
-# WARNING: EOL on 2019-04-30
-# https://github.com/nodejs/Release#end-of-life-releases
+# Install repos for node
 ARG NODE_VER=lts
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VER}.x | bash -
 
