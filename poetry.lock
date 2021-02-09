@@ -12,7 +12,7 @@ django-cms = ">=3.5"
 
 [[package]]
 name = "amqp"
-version = "5.0.3"
+version = "5.0.5"
 description = "Low-level AMQP client for Python (fork of amqplib)."
 category = "main"
 optional = false
@@ -248,7 +248,7 @@ stevedore = ">=2.0.1"
 
 [[package]]
 name = "cmd2"
-version = "1.4.0"
+version = "1.5.0"
 description = "cmd2 - quickly build feature-rich and user-friendly interactive command line applications in Python"
 category = "main"
 optional = false
@@ -259,7 +259,8 @@ attrs = ">=16.3.0"
 colorama = ">=0.3.7"
 importlib-metadata = {version = ">=1.6.0", markers = "python_version < \"3.8\""}
 pyperclip = ">=1.6"
-pyreadline = {version = "*", markers = "sys_platform == \"win32\""}
+pyreadline = {version = "*", markers = "sys_platform == \"win32\" and python_version < \"3.8\""}
+pyreadline3 = {version = "*", markers = "sys_platform == \"win32\" and python_version >= \"3.8\""}
 wcwidth = ">=0.1.7"
 
 [package.extras]
@@ -284,22 +285,22 @@ python-versions = "*"
 
 [[package]]
 name = "cryptography"
-version = "3.3.1"
+version = "3.4.3"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
 category = "main"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 cffi = ">=1.12"
-six = ">=1.4.1"
 
 [package.extras]
 docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
 docstest = ["doc8", "pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
 pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
+sdist = ["setuptools-rust (>=0.11.4)"]
 ssh = ["bcrypt (>=3.1.5)"]
-test = ["pytest (>=3.6.0,!=3.9.0,!=3.9.1,!=3.9.2)", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
 
 [[package]]
 name = "dataclasses"
@@ -763,22 +764,6 @@ django-filer = ">=1.2.4"
 djangocms-attributes-field = ">=0.4.0"
 
 [[package]]
-name = "djangocms-flash"
-version = "0.3.0"
-description = "Flash plugin for django CMS"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
-name = "djangocms-inherit"
-version = "0.2.2"
-description = "Inherit plugin for django CMS"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "djangocms-link"
 version = "2.6.1"
 description = "Adds a link plugin to django CMS"
@@ -816,14 +801,6 @@ python-versions = "*"
 [package.dependencies]
 django-cms = ">=3.4.5"
 djangocms-attributes-field = ">=0.4.0"
-
-[[package]]
-name = "djangocms-teaser"
-version = "0.2.0"
-description = "Teaser plugin for django CMS"
-category = "main"
-optional = false
-python-versions = "*"
 
 [[package]]
 name = "djangocms-text-ckeditor"
@@ -1012,7 +989,7 @@ python-versions = "*"
 
 [[package]]
 name = "iso8601"
-version = "0.1.13"
+version = "0.1.14"
 description = "Simple module to parse ISO 8601 dates"
 category = "main"
 optional = false
@@ -1020,7 +997,7 @@ python-versions = "*"
 
 [[package]]
 name = "josepy"
-version = "1.5.0"
+version = "1.6.0"
 description = "JOSE protocol implementation in Python"
 category = "main"
 optional = false
@@ -1316,7 +1293,7 @@ test = ["bandit (>=1.6.0,<1.7.0)", "coverage (>=4.5.1)", "fixtures (>=3.0.0)", "
 
 [[package]]
 name = "oslo.serialization"
-version = "4.0.1"
+version = "4.1.0"
 description = "Oslo Serialization library"
 category = "main"
 optional = false
@@ -1350,7 +1327,7 @@ six = ">=1.10.0"
 
 [[package]]
 name = "packaging"
-version = "20.8"
+version = "20.9"
 description = "Core utilities for Python packages"
 category = "main"
 optional = false
@@ -1524,6 +1501,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "pyreadline3"
+version = "3.3"
+description = "A python implementation of GNU readline."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyrsistent"
 version = "0.17.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -1600,22 +1585,22 @@ six = ">=1.10.0"
 
 [[package]]
 name = "python-cinderclient"
-version = "7.2.0"
+version = "7.3.0"
 description = "OpenStack Block Storage API Client Library"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-keystoneauth1 = ">=3.4.0"
-"oslo.i18n" = ">=3.15.3"
-"oslo.utils" = ">=3.33.0"
-pbr = ">=2.0.0,<2.1.0 || >2.1.0"
-PrettyTable = ">=0.7.1,<0.8"
-requests = ">=2.14.2,<2.20.0 || >2.20.0"
+keystoneauth1 = ">=4.2.1"
+"oslo.i18n" = ">=5.0.1"
+"oslo.utils" = ">=4.7.0"
+pbr = ">=5.5.0"
+PrettyTable = ">=0.7.2,<0.8"
+requests = ">=2.23.0"
 simplejson = ">=3.5.1"
-six = ">=1.10.0"
-stevedore = ">=1.20.0"
+six = ">=1.15.0"
+stevedore = ">=3.2.2"
 
 [[package]]
 name = "python-dateutil"
@@ -1947,7 +1932,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "urllib3"
-version = "1.26.2"
+version = "1.26.3"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
@@ -2018,7 +2003,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "fb2f8cf3193d01766c3e91e11196485ef1b47dfe8885f26a4b4a36741211d716"
+content-hash = "ab63457368f928fc25d849518040f8edd72226944c098c48d43e03b744c6b389"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2026,8 +2011,8 @@ aldryn-apphooks-config = [
     {file = "aldryn_apphooks_config-0.6.0-py2.py3-none-any.whl", hash = "sha256:0e72cfed9a6fd15bb0bba0da4cd4f10351b8f56f2b0f22c6fbca78fd3fa1fb72"},
 ]
 amqp = [
-    {file = "amqp-5.0.3-py3-none-any.whl", hash = "sha256:2c58528a05dcbf2ae080f3141b6a5bf467949fad9234edd8b9085b8db2e325fe"},
-    {file = "amqp-5.0.3.tar.gz", hash = "sha256:1733ebf713050504fd9d2ebc661f1fc95b3588f99ee87d2e39c84c27bfd815dc"},
+    {file = "amqp-5.0.5-py3-none-any.whl", hash = "sha256:1e759a7f202d910939de6eca45c23a107f6b71111f41d1282c648e9ac3d21901"},
+    {file = "amqp-5.0.5.tar.gz", hash = "sha256:affdd263d8b8eb3c98170b78bf83867cdb6a14901d586e00ddb65bfe2f0c4e60"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
@@ -2125,8 +2110,8 @@ cliff = [
     {file = "cliff-3.6.0.tar.gz", hash = "sha256:a3f4fa67eeafbcfa7cf9fe4b1755d410876528e1d0d115740db00b50a1250272"},
 ]
 cmd2 = [
-    {file = "cmd2-1.4.0-py3-none-any.whl", hash = "sha256:87c19e56c145fbc60eae08555f94369e6b912eca6f62246ceeeb29447437e4cb"},
-    {file = "cmd2-1.4.0.tar.gz", hash = "sha256:e59fa932418603af4e046a96c8985812b05af8a73bfd9d7a386cd1b02c6ab687"},
+    {file = "cmd2-1.5.0-py3-none-any.whl", hash = "sha256:31aaeb590ec7bd2cc2cee0172099cc6f0a1396f82ab7bc389dbff23d9b90f6ec"},
+    {file = "cmd2-1.5.0.tar.gz", hash = "sha256:701a8c9975c4abc45e5d13906ab149f959f812869106347323a3f89ac0e82a62"},
 ]
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
@@ -2137,20 +2122,13 @@ cookies = [
     {file = "cookies-2.2.1.tar.gz", hash = "sha256:d6b698788cae4cfa4e62ef8643a9ca332b79bd96cb314294b864ae8d7eb3ee8e"},
 ]
 cryptography = [
-    {file = "cryptography-3.3.1-cp27-cp27m-macosx_10_10_x86_64.whl", hash = "sha256:c366df0401d1ec4e548bebe8f91d55ebcc0ec3137900d214dd7aac8427ef3030"},
-    {file = "cryptography-3.3.1-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:9f6b0492d111b43de5f70052e24c1f0951cb9e6022188ebcb1cc3a3d301469b0"},
-    {file = "cryptography-3.3.1-cp27-cp27m-manylinux2010_x86_64.whl", hash = "sha256:a69bd3c68b98298f490e84519b954335154917eaab52cf582fa2c5c7efc6e812"},
-    {file = "cryptography-3.3.1-cp27-cp27m-win32.whl", hash = "sha256:84ef7a0c10c24a7773163f917f1cb6b4444597efd505a8aed0a22e8c4780f27e"},
-    {file = "cryptography-3.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:594a1db4511bc4d960571536abe21b4e5c3003e8750ab8365fafce71c5d86901"},
-    {file = "cryptography-3.3.1-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:0003a52a123602e1acee177dc90dd201f9bb1e73f24a070db7d36c588e8f5c7d"},
-    {file = "cryptography-3.3.1-cp27-cp27mu-manylinux2010_x86_64.whl", hash = "sha256:83d9d2dfec70364a74f4e7c70ad04d3ca2e6a08b703606993407bf46b97868c5"},
-    {file = "cryptography-3.3.1-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:dc42f645f8f3a489c3dd416730a514e7a91a59510ddaadc09d04224c098d3302"},
-    {file = "cryptography-3.3.1-cp36-abi3-manylinux1_x86_64.whl", hash = "sha256:788a3c9942df5e4371c199d10383f44a105d67d401fb4304178020142f020244"},
-    {file = "cryptography-3.3.1-cp36-abi3-manylinux2010_x86_64.whl", hash = "sha256:69e836c9e5ff4373ce6d3ab311c1a2eed274793083858d3cd4c7d12ce20d5f9c"},
-    {file = "cryptography-3.3.1-cp36-abi3-manylinux2014_aarch64.whl", hash = "sha256:9e21301f7a1e7c03dbea73e8602905a4ebba641547a462b26dd03451e5769e7c"},
-    {file = "cryptography-3.3.1-cp36-abi3-win32.whl", hash = "sha256:b4890d5fb9b7a23e3bf8abf5a8a7da8e228f1e97dc96b30b95685df840b6914a"},
-    {file = "cryptography-3.3.1-cp36-abi3-win_amd64.whl", hash = "sha256:0e85aaae861d0485eb5a79d33226dd6248d2a9f133b81532c8f5aae37de10ff7"},
-    {file = "cryptography-3.3.1.tar.gz", hash = "sha256:7e177e4bea2de937a584b13645cab32f25e3d96fc0bc4a4cf99c27dc77682be6"},
+    {file = "cryptography-3.4.3-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:3cce61b179ff415ccc67393c6d6fa577aedb23d776779527c79ebf2438d4d25b"},
+    {file = "cryptography-3.4.3-cp36-abi3-manylinux2010_x86_64.whl", hash = "sha256:bbce8faaaee586d5c84c5eacf77f227710b3bf24f229f6ced6f9fe3e7a662223"},
+    {file = "cryptography-3.4.3-cp36-abi3-manylinux2014_aarch64.whl", hash = "sha256:1a37179da6d3a67db8e324d60d9e421b3cfd5ca6467b6861d9b1ce86dd191be3"},
+    {file = "cryptography-3.4.3-cp36-abi3-manylinux2014_x86_64.whl", hash = "sha256:180baf51ad689b3b86bce7c2bf0cfff491fdea16fa2fe640a77e316ee26bad1e"},
+    {file = "cryptography-3.4.3-cp36-abi3-win32.whl", hash = "sha256:965fd6905f188876a49f1b9edadad0847ef8d056cd4995e82b9a4f03ac049bd0"},
+    {file = "cryptography-3.4.3-cp36-abi3-win_amd64.whl", hash = "sha256:c58467c96f3b79cf9eb4628371c235427db2c1ece210c2c539d38d23338875e4"},
+    {file = "cryptography-3.4.3.tar.gz", hash = "sha256:d70065c42de45e15776a53216000283a2a183ae37379badb37f527a2bdfd6221"},
 ]
 dataclasses = [
     {file = "dataclasses-0.8-py3-none-any.whl", hash = "sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf"},
@@ -2293,14 +2271,6 @@ djangocms-column = [
 djangocms-file = [
     {file = "djangocms-file-2.4.0.tar.gz", hash = "sha256:dd5051465d44fa9a3728bac7943c2efc1b806edb316a741b9dbc171a361f27bf"},
 ]
-djangocms-flash = [
-    {file = "djangocms-flash-0.3.0.tar.gz", hash = "sha256:ed827dcff35dae5ff90444c16c2c92cdba32f86fdf2dc6320eefd2c23a0b8ce2"},
-    {file = "djangocms_flash-0.3.0-py2-none-any.whl", hash = "sha256:42c6152f1604c9340a08d35ddddbcde128443c08ed93f11bf5757a421db51069"},
-]
-djangocms-inherit = [
-    {file = "djangocms-inherit-0.2.2.tar.gz", hash = "sha256:fda204da550a7a877b7d61bdd86d87bfa69ea9bae6190f719e89e2e82ba80579"},
-    {file = "djangocms_inherit-0.2.2-py2-none-any.whl", hash = "sha256:cc2efd113615f4d36349cf8749463242ed7db86b41c7f65610f9b8af1d19f06c"},
-]
 djangocms-link = [
     {file = "djangocms-link-2.6.1.tar.gz", hash = "sha256:9a1135c815367e74bbc665eb656e34740fd7f0cb862dd5b7754433b32297f789"},
     {file = "djangocms_link-2.6.1-py3-none-any.whl", hash = "sha256:1e14cb0172f04b6f917a383331582095ace61bba1c23207c44e401ef06b2d290"},
@@ -2310,10 +2280,6 @@ djangocms-picture = [
 ]
 djangocms-style = [
     {file = "djangocms-style-2.3.0.tar.gz", hash = "sha256:8d4a104d94bf0c3637d2675ad15e112fd60e3dba415b3b99e7e1d1f0c23f6b92"},
-]
-djangocms-teaser = [
-    {file = "djangocms-teaser-0.2.0.tar.gz", hash = "sha256:e4040ae64949e8297aa3653dff071ec61f2805b1744dac356b1ac0e7d31a8104"},
-    {file = "djangocms_teaser-0.2.0-py2-none-any.whl", hash = "sha256:38306585d07886844d8c7175d6497b778077118839dbfd04e5ff28f94b54d407"},
 ]
 djangocms-text-ckeditor = [
     {file = "djangocms-text-ckeditor-3.10.0.tar.gz", hash = "sha256:905fa0cfbd244fb3a12657f89b083bfb57554ba35f4358972eebc6d78f8d8c3d"},
@@ -2373,13 +2339,12 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 iso8601 = [
-    {file = "iso8601-0.1.13-py2.py3-none-any.whl", hash = "sha256:694be0743e9f1535ea873bfc7bd6fb62380c62b75822761859428073a17fd39c"},
-    {file = "iso8601-0.1.13-py3-none-any.whl", hash = "sha256:6f02f01dd13320a7f280e58516dc8d1950dfaf77527cc365a398cd9de4d3c692"},
-    {file = "iso8601-0.1.13.tar.gz", hash = "sha256:f7dec22af52025d4526be94cc1303c7d8f5379b746a3f54a8c8446384392eeb1"},
+    {file = "iso8601-0.1.14-py2.py3-none-any.whl", hash = "sha256:e7e1122f064d626e17d47cd5106bed2c620cb38fe464999e0ddae2b6d2de6004"},
+    {file = "iso8601-0.1.14.tar.gz", hash = "sha256:8aafd56fa0290496c5edbb13c311f78fa3a241f0853540da09d9363eae3ebd79"},
 ]
 josepy = [
-    {file = "josepy-1.5.0-py2.py3-none-any.whl", hash = "sha256:9351a3796e660d42bccd41a8b2a4ae8496d3659b14f57ed79bb52c111a8b0263"},
-    {file = "josepy-1.5.0.tar.gz", hash = "sha256:502a36f86efe2a6d09bf7018bca9fd8f8f24d8090a966aa037dbc844459ff9c8"},
+    {file = "josepy-1.6.0-py2.py3-none-any.whl", hash = "sha256:65f077fc5902aca1e140ddb000e7abb081d5fb8421db60b6071076ef81c5bd27"},
+    {file = "josepy-1.6.0.tar.gz", hash = "sha256:0aab1c3ceffe045e7fd5bcfe7685e27e9d2758518d9ba7116b5de34087e70bf5"},
 ]
 jsonpatch = [
     {file = "jsonpatch-1.28-py2.py3-none-any.whl", hash = "sha256:da3831be60919e8c98564acfc1fa918cb96e7c9750b0428388483f04d0d1c5a7"},
@@ -2542,16 +2507,16 @@ os-service-types = [
     {file = "oslo.log-4.4.0.tar.gz", hash = "sha256:0883be3099cd9f8e17843b574018627e1d64243aabcf6cdbe1ebdd1cb5784448"},
 ]
 "oslo.serialization" = [
-    {file = "oslo.serialization-4.0.1-py3-none-any.whl", hash = "sha256:6ed86d8378a845a24363d036bc06aef9a5ddb5b4bbfd3478d3daedee0f2bb984"},
-    {file = "oslo.serialization-4.0.1.tar.gz", hash = "sha256:f84d3dca7ffbb86394e273094c674532b6144223eca8990a38836ba99728d53e"},
+    {file = "oslo.serialization-4.1.0-py3-none-any.whl", hash = "sha256:a0acf0ff7ca88b3ee6514713571f614b5c20870005ed0eb90408fa7f9f3edb60"},
+    {file = "oslo.serialization-4.1.0.tar.gz", hash = "sha256:cecc7794df806c85cb70dbd6c2b3af19bc68047ad29e3c6442be90a0a4de5379"},
 ]
 "oslo.utils" = [
     {file = "oslo.utils-4.7.0-py3-none-any.whl", hash = "sha256:51c1127c518e44beb4b565eb86f6f33e0a441d9a3e98eaff9f58a20933687b5d"},
     {file = "oslo.utils-4.7.0.tar.gz", hash = "sha256:b95b02c60dd4fac00d46525f73d27dc4e196c19281215aea84e8d389466b1b90"},
 ]
 packaging = [
-    {file = "packaging-20.8-py2.py3-none-any.whl", hash = "sha256:24e0da08660a87484d1602c30bb4902d74816b6985b93de36926f5bc95741858"},
-    {file = "packaging-20.8.tar.gz", hash = "sha256:78598185a7008a470d64526a8059de9aaa449238f280fc9eb6b13ba6c4109093"},
+    {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},
+    {file = "packaging-20.9.tar.gz", hash = "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5"},
 ]
 pathspec = [
     {file = "pathspec-0.8.1-py2.py3-none-any.whl", hash = "sha256:aa0cb481c4041bf52ffa7b0d8fa6cd3e88a2ca4879c533c9153882ee2556790d"},
@@ -2666,6 +2631,10 @@ pyreadline = [
     {file = "pyreadline-2.1.win32.exe", hash = "sha256:65540c21bfe14405a3a77e4c085ecfce88724743a4ead47c66b84defcf82c32e"},
     {file = "pyreadline-2.1.zip", hash = "sha256:4530592fc2e85b25b1a9f79664433da09237c1a270e4d78ea5aa3a2c7229e2d1"},
 ]
+pyreadline3 = [
+    {file = "pyreadline3-3.3-py3-none-any.whl", hash = "sha256:0003fd0079d152ecbd8111202c5a7dfa6a5569ffd65b235e45f3c2ecbee337b4"},
+    {file = "pyreadline3-3.3.tar.gz", hash = "sha256:ff3b5a1ac0010d0967869f723e687d42cabc7dccf33b14934c92aa5168d260b3"},
+]
 pyrsistent = [
     {file = "pyrsistent-0.17.3.tar.gz", hash = "sha256:2e636185d9eb976a18a8a8e96efce62f2905fea90041958d8cc2a189756ebf3e"},
 ]
@@ -2679,8 +2648,8 @@ python-blazarclient = [
     {file = "python_blazarclient-2.2.1-py2.py3-none-any.whl", hash = "sha256:c0c81119f9a1b40de4851628e5089c0b884988e28d43ebe1fe6b6a05a4552e69"},
 ]
 python-cinderclient = [
-    {file = "python-cinderclient-7.2.0.tar.gz", hash = "sha256:b8f756598c629ebee1924d9357b5a560f40708bc30de19dd088abeac2f71dc56"},
-    {file = "python_cinderclient-7.2.0-py3-none-any.whl", hash = "sha256:a1bef06dcba610b229311a14e3835b99687d004137518d1df4d52c417b158769"},
+    {file = "python-cinderclient-7.3.0.tar.gz", hash = "sha256:928eb45616eb4146e3ab21534b2c87723298fbf02957bcf219408abfe7f4fc67"},
+    {file = "python_cinderclient-7.3.0-py3-none-any.whl", hash = "sha256:2106a0088c501648c755e4f438a3ee5208f285bd88cc68c0af5d0817a1423df6"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
@@ -2917,8 +2886,8 @@ unidecode = [
     {file = "Unidecode-1.1.2.tar.gz", hash = "sha256:a039f89014245e0cad8858976293e23501accc9ff5a7bdbc739a14a2b7b85cdc"},
 ]
 urllib3 = [
-    {file = "urllib3-1.26.2-py2.py3-none-any.whl", hash = "sha256:d8ff90d979214d7b4f8ce956e80f4028fc6860e4431f731ea4a8c08f23f99473"},
-    {file = "urllib3-1.26.2.tar.gz", hash = "sha256:19188f96923873c92ccb987120ec4acaa12f0461fa9ce5d3d0772bc965a39e08"},
+    {file = "urllib3-1.26.3-py2.py3-none-any.whl", hash = "sha256:1b465e494e3e0d8939b50680403e3aedaa2bc434b7d5af64dfd3c958d7f5ae80"},
+    {file = "urllib3-1.26.3.tar.gz", hash = "sha256:de3eedaad74a2683334e282005cd8d7f22f4d55fa690a2a1020a416cb0a47e73"},
 ]
 vine = [
     {file = "vine-5.0.0-py2.py3-none-any.whl", hash = "sha256:4c9dceab6f76ed92105027c49c823800dd33cacce13bdedc5b914e3514b7fb30"},

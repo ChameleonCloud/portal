@@ -2,8 +2,8 @@
 [tool.black]
 # Set line length explicitly.
 # See https://black.readthedocs.io/en/stable/the_black_code_style.html#line-length for more details
-line-length = 88
 exclude = "/*migrations*/"
+line-length = 88
 
 [tool.poetry]
 authors = ["Michael Sherman <shermanm@uchicago.edu>"]
@@ -39,14 +39,13 @@ djangocms-attributes-field = "<2.0.0"
 djangocms-blog = {git = "https://github.com/ChameleonCloud/djangocms-blog", rev = "chameleon/1.0.x"}
 djangocms-column = "^1.11.0"
 djangocms-file = "<3.0.0"
-djangocms-flash = "^0.3.0"
-djangocms-inherit = "^0.2.2"
 djangocms-link = "<3.0.0"
 djangocms-picture = "<3.0.0"
 djangocms-style = "<3.0.0"
-djangocms-teaser = "^0.2.0"
 djangocms-text-ckeditor = "^3.10.0"
 djangocms-video = "<3.0.0"
+djangorestframework = "~3.11.2"
+dynamic-rest = "^2.0.0"
 httpretty = "^1.0.5"
 kombu = "^5.0.2"
 mock = "^4.0.3"
@@ -70,8 +69,6 @@ rt = "^2.0.1"
 six = "^1.15.0"
 slimit = "^0.8.1"
 sqlparse = "^0.4.1"
-djangorestframework = "~3.11.2"
-dynamic-rest = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

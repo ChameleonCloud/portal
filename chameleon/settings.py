@@ -106,11 +106,8 @@ INSTALLED_APPS = (
     "djangocms_style",
     "djangocms_column",
     "djangocms_file",
-    "djangocms_flash",
-    "djangocms_inherit",
     "djangocms_link",
     "djangocms_picture",
-    "djangocms_teaser",
     "djangocms_video",
     "reversion",
     ##
