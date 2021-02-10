@@ -3,10 +3,11 @@ import urllib.parse
 from functools import wraps
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect, QueryDict
 from django.utils.decorators import available_attrs
 from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
+
 
 def terms_required(terms_slug):
     def decorator(view_func):
@@ -19,21 +20,28 @@ def terms_required(terms_slug):
             """Method to wrap the view passed in"""
 
             terms = TermsAndConditions.objects.filter(slug=terms_slug)[0]
-            if not request.user.is_authenticated() or _agreed_to_terms( request.user, terms ):
+            if not request.user.is_authenticated() or _agreed_to_terms(
+                request.user, terms
+            ):
                 return view_func(request, *args, **kwargs)
 
-            currentPath = request.META['PATH_INFO']
-            accept_path = reverse('tc_accept_specific_version_page', args=[terms.slug, terms.version_number])
+            currentPath = request.META["PATH_INFO"]
+            accept_path = reverse(
+                "tc_accept_specific_version_page",
+                args=[terms.slug, terms.version_number],
+            )
             login_url_parts = list(urllib.parse.urlparse(accept_path))
             querystring = QueryDict(login_url_parts[4], mutable=True)
-            querystring['returnTo'] = currentPath
-            login_url_parts[4] = querystring.urlencode(safe='/')
+            querystring["returnTo"] = currentPath
+            login_url_parts[4] = querystring.urlencode(safe="/")
             return HttpResponseRedirect(urllib.parse.urlunparse(login_url_parts))
 
         return _wrapped_view
+
     return decorator
 
-def _agreed_to_terms( user, terms ):
+
+def _agreed_to_terms(user, terms):
     try:
         UserTermsAndConditions.objects.get(user=user, terms=terms)
         return True
@@ -42,14 +50,14 @@ def _agreed_to_terms( user, terms ):
     except UserTermsAndConditions.DoesNotExist:
         return False
 
-def anonymous_required(function=None, redirect_url='/'):
+
+def anonymous_required(function=None, redirect_url="/"):
     """
     Decorator for views that checks that the user is NOT logged in, redirecting
     to the specified page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: u.is_anonymous(),
-        login_url=redirect_url
+        lambda u: u.is_anonymous(), login_url=redirect_url
     )
 
     if function:

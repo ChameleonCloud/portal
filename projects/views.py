@@ -10,7 +10,7 @@ from django.http import (
     HttpResponseNotAllowed,
     JsonResponse,
 )
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django import forms
 from datetime import datetime

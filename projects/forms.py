@@ -1,7 +1,7 @@
 from textwrap import dedent
 
 from django import forms
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from .models import Project
 import bibtexparser
