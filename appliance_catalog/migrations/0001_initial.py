@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from django.db import models, migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
             name='ApplianceTagging',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('appliance', models.ForeignKey(to='appliance_catalog.Appliance')),
+                ('appliance', models.ForeignKey(to='appliance_catalog.Appliance',on_delete=models.CASCADE,)),
             ],
             options={
             },
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='appliancetagging',
             name='keyword',
-            field=models.ForeignKey(to='appliance_catalog.Keyword'),
+            field=models.ForeignKey(to='appliance_catalog.Keyword', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

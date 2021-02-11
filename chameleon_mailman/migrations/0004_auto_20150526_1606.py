@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='mailmansubscription',
             name='user',
-            field=models.OneToOneField(related_name='subscriptions', to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(related_name='subscriptions', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

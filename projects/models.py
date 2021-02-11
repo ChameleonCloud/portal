@@ -1,7 +1,8 @@
-from django.db import models
 import json
 import logging
+
 from django.conf import settings
+from django.db import models
 
 logger = logging.getLogger("projects")
 
@@ -15,20 +16,37 @@ class Field(models.Model):
 
 
 class FieldHierarchy(models.Model):
-    parent = models.ForeignKey(Field, related_name="field_parent")
-    child = models.ForeignKey(Field, related_name="field_child")
+    parent = models.ForeignKey(
+        Field, related_name="field_parent", on_delete=models.CASCADE
+    )
+    child = models.ForeignKey(
+        Field, related_name="field_child", on_delete=models.CASCADE
+    )
 
     class Meta:
         unique_together = ("parent", "child")
 
 
 class Project(models.Model):
-    type = models.ForeignKey(Type, related_name="project_type")
+    type = models.ForeignKey(
+        Type,
+        related_name="project_type",
+        on_delete=models.CASCADE,
+    )
     description = models.TextField()
-    pi = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="project_pi")
+    pi = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="project_pi",
+        on_delete=models.CASCADE,
+    )
     title = models.TextField(blank=False)
     nickname = models.CharField(max_length=255, blank=False, unique=True)
-    field = models.ForeignKey(Field, related_name="project_field", null=True)
+    field = models.ForeignKey(
+        Field,
+        related_name="project_field",
+        null=True,
+        on_delete=models.CASCADE,
+    )
     charge_code = models.CharField(max_length=50, blank=False)
 
 
@@ -62,7 +80,9 @@ class PublicationManager(models.Manager):
 
 class Publication(models.Model):
     tas_project_id = models.IntegerField(null=True)
-    project = models.ForeignKey(Project, related_name="project_publication", null=True)
+    project = models.ForeignKey(
+        Project, related_name="project_publication", null=True, on_delete=models.CASCADE
+    )
     journal = models.CharField(max_length=500, null=True)
     publisher = models.CharField(max_length=500, null=True)
     booktitle = models.CharField(max_length=500, null=True)
