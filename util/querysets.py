@@ -1,8 +1,9 @@
-from projects.models import Project
-from allocations.models import Allocation
+import logging
+
 from django.db.models import Max, Prefetch
 
-import logging
+from allocations.models import Allocation
+from projects.models import Project
 
 logger = logging.getLogger(__name__)
 

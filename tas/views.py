@@ -1,17 +1,17 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+import logging
+
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 from tas.forms import UserProfileForm
-from util.project_allocation_mapper import ProjectAllocationMapper
 from util.keycloak_client import DuplicateUserError
-
-import logging
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 LOG = logging.getLogger(__name__)
 

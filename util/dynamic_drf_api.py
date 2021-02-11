@@ -1,8 +1,9 @@
-from allocations.allocations_api import BalanceServiceClient
-from allocations.models import Allocation
 from django.contrib.auth import get_user_model
 from dynamic_rest.serializers import DynamicModelSerializer
 from dynamic_rest.viewsets import DynamicModelViewSet
+
+from allocations.allocations_api import BalanceServiceClient
+from allocations.models import Allocation
 from projects.models import Field, Project, Type
 
 

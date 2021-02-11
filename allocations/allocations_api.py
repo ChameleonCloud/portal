@@ -1,6 +1,8 @@
+import logging
+
 import requests
 from django.conf import settings
-import logging
+
 from chameleon.keystone_auth import admin_session
 
 logger = logging.getLogger("allocations")

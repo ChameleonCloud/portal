@@ -1,15 +1,14 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+import json
+import logging
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
-from django.contrib.auth.decorators import login_required, user_passes_test
-from util.project_allocation_mapper import ProjectAllocationMapper
+from django.shortcuts import render, render_to_response
 
-import logging
-import json
+from util.project_allocation_mapper import ProjectAllocationMapper
 
 logger = logging.getLogger(__name__)
 

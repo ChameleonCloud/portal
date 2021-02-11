@@ -1,25 +1,32 @@
 import json
+import logging
 
 from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.db.models import F, Q, IntegerField, Count
+from django.db.models import Count, F, IntegerField, Q
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
+
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm, ZenodoPublishFormset
+from .forms import (
+    ArtifactForm,
+    ArtifactVersionForm,
+    AuthorFormset,
+    ShareArtifactForm,
+    ZenodoPublishFormset,
+)
 from .models import Artifact, ArtifactVersion, Author, ShareTarget
 from .tasks import publish_to_zenodo
 
-import logging
 LOG = logging.getLogger(__name__)
 
-SHARING_KEY_PARAM = 's'
+SHARING_KEY_PARAM = "s"
 
 
 def can_edit(request, artifact):
@@ -32,15 +39,19 @@ def can_edit(request, artifact):
 
 def check_edit_permission(func):
     def wrapper(request, *args, **kwargs):
-        pk = kwargs.pop('pk')
+        pk = kwargs.pop("pk")
         artifact = get_object_or_404(Artifact, pk=pk)
         if not can_edit(request, artifact):
-            messages.add_message(request, messages.ERROR,
-                'You do not have permission to edit this artifact.')
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "You do not have permission to edit this artifact.",
+            )
+            return HttpResponseRedirect(reverse("sharing_portal:detail", args=[pk]))
         # Replace pk with Artifact instance to avoid another lookup
-        kwargs.setdefault('artifact', artifact)
+        kwargs.setdefault("artifact", artifact)
         return func(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -49,7 +60,8 @@ def check_view_permission(func):
         all_versions = list(artifact.versions)
 
         if artifact.sharing_key and (
-            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key):
+            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key
+        ):
             return all_versions
 
         if request.user.is_authenticated():
@@ -58,14 +70,16 @@ def check_view_permission(func):
             if artifact.created_by == request.user:
                 return all_versions
             project_shares = ShareTarget.objects.filter(
-                artifact=artifact, project__isnull=False)
+                artifact=artifact, project__isnull=False
+            )
             # Avoid the membership lookup if there are no sharing rules in place
             if project_shares:
                 mapper = ProjectAllocationMapper(request)
                 user_projects = [
-                    p['chargeCode']
+                    p["chargeCode"]
                     for p in mapper.get_user_projects(
-                        request.user.username, fetch_balance=False)
+                        request.user.username, fetch_balance=False
+                    )
                 ]
                 if any(p.charge_code in user_projects for p in project_shares):
                     return all_versions
@@ -81,15 +95,18 @@ def check_view_permission(func):
         return []
 
     def wrapper(request, *args, **kwargs):
-        pk = kwargs.pop('pk')
+        pk = kwargs.pop("pk")
         artifact = get_object_or_404(Artifact, pk=pk)
         artifact_versions = can_view(request, artifact)
         if not artifact_versions:
-            raise Http404('The requested artifact does not exist, or you do not have permission to view.')
+            raise Http404(
+                "The requested artifact does not exist, or you do not have permission to view."
+            )
         # Replace pk with Artifact instance to avoid another lookup
-        kwargs.setdefault('artifact', artifact)
-        kwargs.setdefault('artifact_versions', artifact_versions)
+        kwargs.setdefault("artifact", artifact)
+        kwargs.setdefault("artifact_versions", artifact_versions)
         return func(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -101,7 +118,9 @@ class ArtifactFilter:
         else:
             return Q()
 
-    PUBLIC = (Q(doi__isnull=False) & Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO))
+    PUBLIC = Q(doi__isnull=False) & Q(
+        artifact_versions__deposition_repo=ArtifactVersion.ZENODO
+    )
 
     @staticmethod
     def PROJECT(projects):
@@ -113,15 +132,16 @@ def _render_list(request, artifacts, user_projects=None):
         if request.user.is_authenticated():
             mapper = ProjectAllocationMapper(request)
             user_projects = mapper.get_user_projects(
-                request.user.username, fetch_balance=False)
+                request.user.username, fetch_balance=False
+            )
         else:
             user_projects = []
 
-    template = loader.get_template('sharing_portal/index.html')
+    template = loader.get_template("sharing_portal/index.html")
     context = {
-        'hub_url': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        'artifacts': artifacts.order_by('-created_at'),
-        'projects': user_projects,
+        "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
+        "artifacts": artifacts.order_by("-created_at"),
+        "projects": user_projects,
     }
 
     return HttpResponse(template.render(context, request))
@@ -132,10 +152,15 @@ def index_all(request, collection=None):
     if request.user.is_authenticated():
         mapper = ProjectAllocationMapper(request)
         user_projects = mapper.get_user_projects(
-            request.user.username, fetch_balance=False)
-        charge_codes = [p['chargeCode'] for p in user_projects]
+            request.user.username, fetch_balance=False
+        )
+        charge_codes = [p["chargeCode"] for p in user_projects]
         projects = Project.objects.filter(charge_code__in=charge_codes)
-        f = (ArtifactFilter.MINE(request) | ArtifactFilter.PROJECT(projects) | ArtifactFilter.PUBLIC)
+        f = (
+            ArtifactFilter.MINE(request)
+            | ArtifactFilter.PROJECT(projects)
+            | ArtifactFilter.PUBLIC
+        )
     else:
         f = ArtifactFilter.PUBLIC
 
@@ -171,48 +196,64 @@ def _fetch_artifacts(filters):
     to act over the artifact versions collection; this is used to render stats
     in some places.
     """
-    return (Artifact.objects.prefetch_related('artifact_versions').filter(filters)
-        .annotate(num_versions=Count('artifact_versions')))
+    return (
+        Artifact.objects.prefetch_related("artifact_versions")
+        .filter(filters)
+        .annotate(num_versions=Count("artifact_versions"))
+    )
 
 
 @check_edit_permission
 @login_required
 def edit_artifact(request, artifact):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ArtifactForm(request.POST, instance=artifact)
 
-        if 'delete_version' in request.POST:
-            version_id = request.POST.get('delete_version')
+        if "delete_version" in request.POST:
+            version_id = request.POST.get("delete_version")
             try:
                 version = artifact.versions.get(pk=version_id)
                 if not version.doi:
                     version.delete()
-                    messages.add_message(request, messages.SUCCESS,
-                        'Successfully deleted artifact version.')
+                    messages.add_message(
+                        request,
+                        messages.SUCCESS,
+                        "Successfully deleted artifact version.",
+                    )
                 else:
-                    messages.add_message(request, messages.ERROR,
-                        'Cannot delete versions already assigned a DOI.')
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Cannot delete versions already assigned a DOI.",
+                    )
             except ArtifactVersion.DoesNotExist:
-                messages.add_message(request, messages.ERROR,
-                    'Artifact version {} does not exist'.format(version_id))
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Artifact version {} does not exist".format(version_id),
+                )
             # Return to edit form
             return HttpResponseRedirect(
-                reverse('sharing_portal:edit', args=[artifact.pk]))
+                reverse("sharing_portal:edit", args=[artifact.pk])
+            )
 
         artifact, errors = _handle_artifact_forms(request, form)
         if errors:
             (messages.add_message(request, messages.ERROR, e) for e in errors)
         else:
-            messages.add_message(request, messages.SUCCESS, 'Successfully saved artifact.')
+            messages.add_message(
+                request, messages.SUCCESS, "Successfully saved artifact."
+            )
         return HttpResponseRedirect(
-            reverse('sharing_portal:detail', args=[artifact.pk]))
+            reverse("sharing_portal:detail", args=[artifact.pk])
+        )
 
     form = ArtifactForm(instance=artifact)
-    template = loader.get_template('sharing_portal/edit.html')
+    template = loader.get_template("sharing_portal/edit.html")
     context = {
-        'artifact_form': form,
-        'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact.versions),
+        "artifact_form": form,
+        "artifact": artifact,
+        "all_versions": _artifact_display_versions(artifact.versions),
     }
 
     return HttpResponse(template.render(context, request))
@@ -221,39 +262,54 @@ def edit_artifact(request, artifact):
 @check_edit_permission
 @login_required
 def share_artifact(request, artifact):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ShareArtifactForm(request.POST)
         z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
 
         if form.is_valid():
-            if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
-                messages.add_message(request, messages.SUCCESS,
-                    'Successfully updated sharing settings')
-            if (z_form.is_valid() and _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
-                messages.add_message(request, messages.SUCCESS,
-                    ('Requested DOI(s) for artifact versions. The process '
-                     'of issuing DOIs may take a few minutes.'))
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
+            if _sync_share_targets(
+                artifact, project_shares=form.cleaned_data["projects"]
+            ):
+                messages.add_message(
+                    request, messages.SUCCESS, "Successfully updated sharing settings"
+                )
+            if z_form.is_valid() and _request_artifact_dois(
+                artifact, request_forms=z_form.cleaned_data
+            ):
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    (
+                        "Requested DOI(s) for artifact versions. The process "
+                        "of issuing DOIs may take a few minutes."
+                    ),
+                )
+            return HttpResponseRedirect(
+                reverse("sharing_portal:detail", args=[artifact.pk])
+            )
     else:
-        form = ShareArtifactForm(initial={
-            'projects': artifact.shared_to_projects.all(),
-        })
+        form = ShareArtifactForm(
+            initial={
+                "projects": artifact.shared_to_projects.all(),
+            }
+        )
         z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
 
     share_url = request.build_absolute_uri(
-        reverse('sharing_portal:detail', kwargs={'pk': artifact.pk}))
+        reverse("sharing_portal:detail", kwargs={"pk": artifact.pk})
+    )
     if artifact.sharing_key:
-        share_url += '?{key_name}={key_value}'.format(
-            key_name=SHARING_KEY_PARAM,
-            key_value=artifact.sharing_key)
+        share_url += "?{key_name}={key_value}".format(
+            key_name=SHARING_KEY_PARAM, key_value=artifact.sharing_key
+        )
 
-    template = loader.get_template('sharing_portal/share.html')
+    template = loader.get_template("sharing_portal/share.html")
     context = {
-        'share_form': form,
-        'z_management_form': z_form.management_form,
-        'z_forms': _artifact_display_versions(z_form.forms),
-        'share_url': share_url,
-        'artifact': artifact,
+        "share_form": form,
+        "z_management_form": z_form.management_form,
+        "z_forms": _artifact_display_versions(z_form.forms),
+        "share_url": share_url,
+        "artifact": artifact,
     }
 
     return HttpResponse(template.render(context, request))
@@ -264,41 +320,40 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
     version = _artifact_version(artifact_versions, version_idx)
 
     if not version:
-        error_message = 'This artifact has no version {}'.format(version_idx)
+        error_message = "This artifact has no version {}".format(version_idx)
         messages.add_message(request, messages.ERROR, error_message)
 
     if version_idx:
-        launch_url = reverse('sharing_portal:launch_version',
-            args=[artifact.pk, version_idx])
+        launch_url = reverse(
+            "sharing_portal:launch_version", args=[artifact.pk, version_idx]
+        )
         doi_info = {
-            'doi': version.doi,
-            'url': version.deposition_url,
-            'created_at': version.created_at,
+            "doi": version.doi,
+            "url": version.deposition_url,
+            "created_at": version.created_at,
         }
     else:
-        launch_url = reverse('sharing_portal:launch', args=[artifact.pk])
+        launch_url = reverse("sharing_portal:launch", args=[artifact.pk])
         doi_info = {
-            'doi': artifact.doi,
-            'url': artifact.deposition_url,
-            'created_at': None,
+            "doi": artifact.doi,
+            "url": artifact.deposition_url,
+            "created_at": None,
         }
 
     # Ensure launch URLs are authenticated if a private link is being used.
     if SHARING_KEY_PARAM in request.GET:
-        launch_url += '?{}={}'.format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
+        launch_url += "?{}={}".format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
 
-    template = loader.get_template('sharing_portal/detail.html')
+    template = loader.get_template("sharing_portal/detail.html")
 
     context = {
-        'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact_versions),
-        'doi_info': doi_info,
-        'version': version,
-        'launch_url': launch_url,
-        'related_artifacts': artifact.related_items,
-        'editable': (
-            request.user.is_staff or (
-            artifact.created_by == request.user)),
+        "artifact": artifact,
+        "all_versions": _artifact_display_versions(artifact_versions),
+        "doi_info": doi_info,
+        "version": version,
+        "launch_url": launch_url,
+        "related_artifacts": artifact.related_items,
+        "editable": (request.user.is_staff or (artifact.created_by == request.user)),
     }
 
     return HttpResponse(template.render(context, request))
@@ -310,12 +365,16 @@ def launch(request, artifact, artifact_versions, version_idx=None):
     version = _artifact_version(artifact_versions, version_idx)
 
     if not version:
-        raise Http404((
-            'There is no version {} for this artifact, or you do not have access.'
-            .format(version_idx or '')))
+        raise Http404(
+            (
+                "There is no version {} for this artifact, or you do not have access.".format(
+                    version_idx or ""
+                )
+            )
+        )
 
-    version.launch_count = F('launch_count') + 1
-    version.save(update_fields=['launch_count'])
+    version.launch_count = F("launch_count") + 1
+    version.save(update_fields=["launch_count"])
     return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
 
 
@@ -332,7 +391,7 @@ def _artifact_version(artifact_versions, version_idx=None):
 @csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 @login_required
 def embed_create(request):
-    return _embed_form(request, context={'form_title': 'Create artifact'})
+    return _embed_form(request, context={"form_title": "Create artifact"})
 
 
 @check_edit_permission
@@ -340,23 +399,23 @@ def embed_create(request):
 @login_required
 def embed_edit(request, artifact):
     context = {}
-    if 'new_version' in request.GET:
-        context['form_title'] = 'Create new version of artifact'
+    if "new_version" in request.GET:
+        context["form_title"] = "Create new version of artifact"
     else:
-        context['form_title'] = 'Edit artifact'
+        context["form_title"] = "Edit artifact"
 
     return _embed_form(request, artifact=artifact, context=context)
 
 
 @csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 def embed_cancel(request):
-    return _embed_callback(request, dict(status='cancel'))
+    return _embed_callback(request, dict(status="cancel"))
 
 
 def _embed_form(request, artifact=None, context={}):
-    new_version = (not artifact) or ('new_version' in request.GET)
+    new_version = (not artifact) or ("new_version" in request.GET)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ArtifactForm(request.POST, instance=artifact)
         authors_formset = AuthorFormset(request.POST)
         if (not artifact) or new_version:
@@ -364,11 +423,12 @@ def _embed_form(request, artifact=None, context={}):
         else:
             version_form = None
 
-        artifact, errors = _handle_artifact_forms(request, form,
-            authors_formset=authors_formset, version_form=version_form)
+        artifact, errors = _handle_artifact_forms(
+            request, form, authors_formset=authors_formset, version_form=version_form
+        )
 
         if not errors:
-            return _embed_callback(request, dict(status='success', id=artifact.pk))
+            return _embed_callback(request, dict(status="success", id=artifact.pk))
         else:
             # Fail through and return to form with errors displayed
             for err in errors:
@@ -381,42 +441,47 @@ def _embed_form(request, artifact=None, context={}):
         else:
             queryset = Author.objects.none()
             # Default to logged-in user
-            initial = [{'name': request.user.get_full_name()}]
+            initial = [{"name": request.user.get_full_name()}]
         authors_formset = AuthorFormset(queryset=queryset, initial=initial)
         if new_version:
             version_form = ArtifactVersionForm(
                 initial={
-                    'deposition_id': request.GET.get('deposition_id'),
-                    'deposition_repo': request.GET.get('deposition_repo')
-                })
+                    "deposition_id": request.GET.get("deposition_id"),
+                    "deposition_repo": request.GET.get("deposition_repo"),
+                }
+            )
         else:
             version_form = None
 
-    template = loader.get_template('sharing_portal/embed.html')
-    context.update({
-        'artifact_form': form,
-        'authors_formset': authors_formset,
-        'version_form': version_form,
-    })
+    template = loader.get_template("sharing_portal/embed.html")
+    context.update(
+        {
+            "artifact_form": form,
+            "authors_formset": authors_formset,
+            "version_form": version_form,
+        }
+    )
 
     return HttpResponse(template.render(context, request))
 
+
 def _embed_callback(request, payload):
-    template = loader.get_template('sharing_portal/embed_callback.html')
+    template = loader.get_template("sharing_portal/embed_callback.html")
     payload_wrapper = dict(
-        message='save_result',
+        message="save_result",
         body=payload,
     )
     context = {
-        'payload_json': json.dumps(payload_wrapper),
-        'jupyterhub_origin': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
+        "payload_json": json.dumps(payload_wrapper),
+        "jupyterhub_origin": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
     }
 
     return HttpResponse(template.render(context, request))
 
 
-def _handle_artifact_forms(request, artifact_form, authors_formset=None,
-                           version_form=None):
+def _handle_artifact_forms(
+    request, artifact_form, authors_formset=None, version_form=None
+):
     artifact = None
     errors = []
 
@@ -434,9 +499,10 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None,
                 # of doing this, but this is a weird form.
                 authors_formset.save()
                 authors = [
-                    f.instance for f in authors_formset.forms
-                    if f.instance.pk is not None and
-                    (f.instance not in authors_formset.deleted_objects)
+                    f.instance
+                    for f in authors_formset.forms
+                    if f.instance.pk is not None
+                    and (f.instance not in authors_formset.deleted_objects)
                 ]
             else:
                 errors.extend(authors_formset.errors)
@@ -475,10 +541,7 @@ def _artifact_display_versions(versions):
     it's reversed, the numbers still indicate chronological order.
     """
     versions_list = list(versions)
-    return [
-        (len(versions) - i, v)
-        for (i, v) in enumerate(reversed(versions_list))
-    ]
+    return [(len(versions) - i, v) for (i, v) in enumerate(reversed(versions_list))]
 
 
 def _sync_share_targets(artifact, project_shares=[]):
@@ -488,14 +551,13 @@ def _sync_share_targets(artifact, project_shares=[]):
     changed = False
     for p in existing_project_shares:
         if p not in incoming_project_shares:
-            (ShareTarget.objects.filter(artifact=artifact, project=p)
-                .delete())
-            LOG.info('Un-shared artifact %s to project %s', artifact.pk, p.pk)
+            (ShareTarget.objects.filter(artifact=artifact, project=p).delete())
+            LOG.info("Un-shared artifact %s to project %s", artifact.pk, p.pk)
             changed = True
     for p in incoming_project_shares:
         if p not in existing_project_shares:
             ShareTarget.objects.create(artifact=artifact, project=p)
-            LOG.info('Shared artifact %s to project %s', artifact.pk, p.pk)
+            LOG.info("Shared artifact %s to project %s", artifact.pk, p.pk)
             changed = True
     return changed
 
@@ -508,8 +570,7 @@ def _request_artifact_dois(artifact, request_forms=[]):
     """
     try:
         to_request = [
-            f['artifact_version_id']
-            for f in request_forms if f['request_doi']
+            f["artifact_version_id"] for f in request_forms if f["request_doi"]
         ]
         if to_request:
             for artifact_version_id in to_request:
@@ -517,4 +578,4 @@ def _request_artifact_dois(artifact, request_forms=[]):
             return True
         return False
     except Exception:
-        LOG.exception('Failed to request DOI for artifact {}'.format(artifact.pk))
+        LOG.exception("Failed to request DOI for artifact {}".format(artifact.pk))

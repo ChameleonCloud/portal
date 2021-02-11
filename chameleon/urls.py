@@ -1,8 +1,5 @@
 import logging
 
-from chameleon import os_login as chameleon_os_login
-from chameleon import views as chameleon_views
-from chameleon_mailman import views as chameleon_mailman_views
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
 from django.conf.urls import include, url
@@ -15,6 +12,10 @@ from django.http import HttpResponseRedirect
 from django.views import View
 from django.views.generic import RedirectView, TemplateView
 from dynamic_rest import routers
+
+from chameleon import os_login as chameleon_os_login
+from chameleon import views as chameleon_views
+from chameleon_mailman import views as chameleon_mailman_views
 from user_news.views import OutageDetailView, OutageFeed, OutageListView
 from util.dynamic_drf_api import (
     AllocationViewSet,

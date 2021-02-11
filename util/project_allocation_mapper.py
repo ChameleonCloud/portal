@@ -1,26 +1,26 @@
-from itertools import chain
 import logging
-from operator import attrgetter
 import time
 from datetime import datetime
+from itertools import chain
+from operator import attrgetter
 
 import pytz
-from allocations.allocations_api import BalanceServiceClient
-from allocations.models import Allocation as portal_alloc
-from chameleon.models import PIEligibility
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Max, QuerySet
 from django.utils.html import strip_tags
-from djangoRT import rtModels, rtUtil
-from projects.models import FieldHierarchy
-from projects.models import Project as portal_proj
-from projects.models import ProjectExtras
 from pytas.http import TASClient
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
 
+from allocations.allocations_api import BalanceServiceClient
+from allocations.models import Allocation as portal_alloc
+from chameleon.models import PIEligibility
+from djangoRT import rtModels, rtUtil
+from projects.models import FieldHierarchy
+from projects.models import Project as portal_proj
+from projects.models import ProjectExtras
 from util.consts import allocation, project
 from util.keycloak_client import KeycloakClient
 

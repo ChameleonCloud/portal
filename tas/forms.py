@@ -1,7 +1,8 @@
+import logging
+import re
+
 from django import forms
 from pytas.http import TASClient
-import re
-import logging
 
 logger = logging.getLogger(__name__)
 

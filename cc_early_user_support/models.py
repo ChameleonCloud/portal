@@ -6,28 +6,28 @@ PROGRAM_STATE__ACTIVE = 1
 PROGRAM_STATE__CLOSED = 2
 
 PROGRAM_STATE_CHOICES = (
-    (PROGRAM_STATE__OPEN, 'Open'),
-    (PROGRAM_STATE__ACTIVE, 'Active'),
-    (PROGRAM_STATE__CLOSED, 'Closed'),
+    (PROGRAM_STATE__OPEN, "Open"),
+    (PROGRAM_STATE__ACTIVE, "Active"),
+    (PROGRAM_STATE__CLOSED, "Closed"),
 )
+
 
 class EarlyUserProgram(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     state = models.IntegerField(
-        choices=PROGRAM_STATE_CHOICES,
-        default=PROGRAM_STATE__OPEN
+        choices=PROGRAM_STATE_CHOICES, default=PROGRAM_STATE__OPEN
     )
 
     def state_name(self):
         if self.is_open():
-            return 'Open'
+            return "Open"
         elif self.is_active():
-            return 'Active'
+            return "Active"
         elif self.is_closed():
-            return 'Closed'
+            return "Closed"
         else:
-            return 'Unknown'
+            return "Unknown"
 
     def is_open(self):
         return self.state == PROGRAM_STATE__OPEN
@@ -42,8 +42,8 @@ class EarlyUserProgram(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Early User Program'
-        verbose_name_plural = 'Early User Programs'
+        verbose_name = "Early User Program"
+        verbose_name_plural = "Early User Programs"
 
 
 PARTICIPANT_STATUS__REQUESTED = 0
@@ -51,32 +51,35 @@ PARTICIPANT_STATUS__APPROVED = 1
 PARTICIPANT_STATUS__DENIED = 2
 
 PARTICIPANT_STATUS_CHOICES = (
-    (PARTICIPANT_STATUS__REQUESTED, 'Requested'),
-    (PARTICIPANT_STATUS__APPROVED, 'Approved'),
-    (PARTICIPANT_STATUS__DENIED, 'Denied'),
+    (PARTICIPANT_STATUS__REQUESTED, "Requested"),
+    (PARTICIPANT_STATUS__APPROVED, "Approved"),
+    (PARTICIPANT_STATUS__DENIED, "Denied"),
 )
 
 
 class EarlyUserParticipant(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, )
-    program = models.ForeignKey(EarlyUserProgram, )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+    )
+    program = models.ForeignKey(
+        EarlyUserProgram,
+    )
     justification = models.TextField()
     participant_status = models.IntegerField(
-        choices=PARTICIPANT_STATUS_CHOICES,
-        default=PARTICIPANT_STATUS__REQUESTED
+        choices=PARTICIPANT_STATUS_CHOICES, default=PARTICIPANT_STATUS__REQUESTED
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def status_name(self):
         if self.is_requested():
-            return 'Requested'
+            return "Requested"
         elif self.is_approved():
-            return 'Approved'
+            return "Approved"
         elif self.is_denied():
-            return 'Denied'
+            return "Denied"
         else:
-            return 'Unknown'
+            return "Unknown"
 
     def is_requested(self):
         return self.participant_status == PARTICIPANT_STATUS__REQUESTED
@@ -91,5 +94,5 @@ class EarlyUserParticipant(models.Model):
         return self.user.username
 
     class Meta:
-        verbose_name = 'Early User Participant'
-        verbose_name_plural = 'Early User Participants'
+        verbose_name = "Early User Participant"
+        verbose_name_plural = "Early User Participants"

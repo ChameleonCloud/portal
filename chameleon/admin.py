@@ -5,11 +5,12 @@ import re
 import urllib.parse
 from functools import wraps
 
-from chameleon.models import PIEligibility
 from django.contrib.admin import ModelAdmin, site
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.html import format_html_join, mark_safe, urlize
+
+from chameleon.models import PIEligibility
 from util.keycloak_client import KeycloakClient
 
 logger = logging.getLogger(__name__)

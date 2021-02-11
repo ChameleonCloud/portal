@@ -1,42 +1,44 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from chameleon.decorators import terms_required
+import json
+import logging
+import re
+import sys
+import uuid
+from datetime import datetime
+
+from django import forms
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.http import (
     Http404,
-    HttpResponseForbidden,
     HttpResponse,
-    HttpResponseRedirect,
+    HttpResponseForbidden,
     HttpResponseNotAllowed,
+    HttpResponseRedirect,
     JsonResponse,
 )
-from django.core.urlresolvers import reverse
-from django.core.exceptions import PermissionDenied
-from django import forms
-from datetime import datetime
-from django.conf import settings
-from .models import Project, ProjectExtras
-from projects.serializer import ProjectExtrasJSONSerializer
-from django.contrib.auth.models import User
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
+from keystoneauth1 import adapter
+from keystoneclient.v3 import client as ks_client
+
+from chameleon.decorators import terms_required
+from chameleon.keystone_auth import admin_ks_client, get_user, sync_projects
+from projects.serializer import ProjectExtrasJSONSerializer
+from util.project_allocation_mapper import ProjectAllocationMapper
+
 from .forms import (
-    ProjectCreateForm,
-    ProjectAddUserForm,
+    AddBibtexPublicationForm,
     AllocationCreateForm,
     EditNicknameForm,
-    AddBibtexPublicationForm,
+    ProjectAddUserForm,
+    ProjectCreateForm,
 )
-from django.db import IntegrityError
-import re
-import logging
-import json
-from keystoneclient.v3 import client as ks_client
-from keystoneauth1 import adapter
-from django.conf import settings
-import uuid
-import sys
-from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user
-from util.project_allocation_mapper import ProjectAllocationMapper
+from .models import Project, ProjectExtras
 
 logger = logging.getLogger("projects")
 

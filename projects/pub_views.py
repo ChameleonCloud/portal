@@ -1,13 +1,16 @@
-from django.shortcuts import render
+import logging
+
+import bibtexparser
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from .forms import AddBibtexPublicationForm
-from django.contrib import messages
-from projects.views import project_pi_or_admin_or_superuser
+from django.shortcuts import render
+
 from projects.models import Publication
+from projects.views import project_pi_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
-import logging
-import bibtexparser
+
+from .forms import AddBibtexPublicationForm
 
 logger = logging.getLogger("projects")
 

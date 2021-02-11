@@ -5,26 +5,26 @@ from uuid import uuid4
 
 from celery.result import AsyncResult
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from djangoRT import rtUtil
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 
 from chameleon.celery import app as celery_app
 from chameleon.keystone_auth import (
+    WHITELISTED_PROJECTS,
     admin_ks_client,
     get_user,
     has_valid_token,
-    WHITELISTED_PROJECTS,
 )
+from djangoRT import rtUtil
 from user_news.models import Outage
-from webinar_registration.models import Webinar
 from util.project_allocation_mapper import ProjectAllocationMapper
 from webinar_registration.models import Webinar
+
 from .tasks import MigrationError, migrate_project, migrate_user
 
 LOG = logging.getLogger(__name__)

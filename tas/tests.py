@@ -1,8 +1,9 @@
+import mock
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+
 from tas.forms import *
-import mock
 
 
 def test_user_fixture():

@@ -1,11 +1,12 @@
-from keycloak.realm import KeycloakRealm
-from keycloak.admin.users import User, Users
-from keycloak.admin.groups import Groups
-from keycloak.admin.user.usergroup import UserGroups
-from keycloak.exceptions import KeycloakClientError
-from django.conf import settings
 import json
 import logging
+
+from django.conf import settings
+from keycloak.admin.groups import Groups
+from keycloak.admin.user.usergroup import UserGroups
+from keycloak.admin.users import User, Users
+from keycloak.exceptions import KeycloakClientError
+from keycloak.realm import KeycloakRealm
 
 logger = logging.getLogger(__name__)
 

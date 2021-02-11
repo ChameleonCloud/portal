@@ -1,7 +1,8 @@
-from django.db import models
 import json
 import logging
+
 from django.conf import settings
+from django.db import models
 
 logger = logging.getLogger("projects")
 

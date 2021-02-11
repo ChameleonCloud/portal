@@ -1,1 +1,1 @@
-default_app_config = 'webinar_registration.apps.WebinarRegistrationConfig'
+default_app_config = "webinar_registration.apps.WebinarRegistrationConfig"

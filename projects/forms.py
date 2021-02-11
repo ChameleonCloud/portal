@@ -1,12 +1,14 @@
+import logging
 from textwrap import dedent
 
+import bibtexparser
 from django import forms
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
-from .models import Project
-import bibtexparser
-import logging
+
 from util.project_allocation_mapper import ProjectAllocationMapper
+
+from .models import Project
 
 logger = logging.getLogger("projects")
 
