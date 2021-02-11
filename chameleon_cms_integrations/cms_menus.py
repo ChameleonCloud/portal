@@ -43,7 +43,7 @@ class UserMenu(CMSAttachMenu):
         menu_id += 1
         greeting = (
             "&nbsp;{0}&nbsp;".format(request.user.username)
-            if request.user.is_authenticated()
+            if request.user.is_authenticated
             else ""
         )
         title = '<i class="fa fa-user"></i><span class="hidden-sm">{0}</span>'

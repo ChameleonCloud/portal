@@ -1,8 +1,9 @@
 from .models import Notification
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.deprecation import MiddlewareMixin
 
-class UserNewsNotificationMiddleware:
+class UserNewsNotificationMiddleware(MiddlewareMixin):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         notifications = Notification.objects.filter(schedule_on__lt=timezone.now()).filter(schedule_off__gt=timezone.now())
