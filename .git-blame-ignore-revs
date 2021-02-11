@@ -1,0 +1,6 @@
+# List revisions to ignore in git blame, feature of git >= 2.2.3
+# use with git blame --ignore-revs-file .git-blame-ignore-revs
+# or git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Autoformat with black and isort
+eaeb8f42953c92b7ef7cf41f23d024d5d6647c49
