@@ -8,6 +8,8 @@ endif
 DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
 DOCKER_IMAGE_LATEST ?= $(DOCKER_REGISTRY)/portal:latest
+PY_IMG_TAG ?= 3.7.9-stretch
+NODE_VER ?= lts
 
 .env:
 	cp .env.sample .env
