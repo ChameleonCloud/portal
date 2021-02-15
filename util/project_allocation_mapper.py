@@ -467,16 +467,22 @@ class ProjectAllocationMapper:
         }
 
         if fetch_allocations:
-            if alloc_status:
-                allocations_qs = proj.allocations.filter(status__in=alloc_status)
-            else:
-                allocations_qs = proj.allocations.all()
+            allocations_qs = proj.allocations.all()
             # NOTE(jason): we cannot sort using .order_by().reverse() or any
             # other Django ORM utility here! It will break the prefetch_related
             # behavior and cause a huge performance degradation.
+            # We can ONLY do proj.allocations.all() -- this is because we have
+            # already called this function when (possibly) fetching allocation
+            # balances, and we store the balance counters over top of the DB
+            # values in that case. If we do a different type of query, those
+            # cached values get effectively ignored. This is pretty hacky; we
+            # should probably somehow store the pre-fetched balances in a
+            # separate structure and pull it in here somehow.
             allocs = sorted(
                 allocations_qs, key=attrgetter("date_requested"), reverse=True
             )
+            if alloc_status:
+                allocs = [a for a in allocs if a.status in alloc_status]
             tas_proj["allocations"] = [self.portal_to_tas_alloc_obj(a) for a in allocs]
 
         return tas_proj
