@@ -1,5 +1,6 @@
 """Module to manage PI Eligibility Requests."""
 
+import datetime
 import logging
 import re
 import urllib.parse
@@ -63,6 +64,11 @@ class PIEligibilityAdmin(ModelAdmin):
     list_display = ("requestor", "status", "request_date")
     list_filter = ("status",)
     search_fields = ["requestor__username"]
+
+    def save_model(self, request, obj, form, change):
+        obj.reviewer = request.user
+        obj.review_date = datetime.datetime.now()
+        obj.save()
 
     def keycloak_metadata(self, obj):
         """User metadata from keycloak backend. Returns a list of strings."""
