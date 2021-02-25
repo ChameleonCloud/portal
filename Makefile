@@ -34,6 +34,10 @@ publish-latest:
 start:
 	docker-compose $(ENV_FILE_PARAM) up -d
 
+.PHONY: clean
+clean:
+	docker-compose $(ENV_FILE_PARAM) down
+
 .PHONY: migrations
 migrations: start
 	docker-compose exec portal python manage.py makemigrations --check
