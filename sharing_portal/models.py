@@ -104,6 +104,7 @@ class Artifact(models.Model):
                                    null=True)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
     sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
+    is_public = models.BooleanField(default=False)
     labels = models.ManyToManyField(Label, related_name='artifacts',
                                     blank=True)
     associated_artifacts = models.ManyToManyField('Artifact',

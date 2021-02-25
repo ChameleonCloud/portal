@@ -48,6 +48,9 @@ def check_view_permission(func):
     def can_view(request, artifact):
         all_versions = list(artifact.versions)
 
+        if artifact.is_public:
+            return all_versions
+
         if artifact.sharing_key and (
             request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key):
             return all_versions
@@ -101,7 +104,11 @@ class ArtifactFilter:
         else:
             return Q()
 
-    PUBLIC = (Q(doi__isnull=False) & Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO))
+    PUBLIC = (
+        Q(is_public=True) |
+        (Q(doi__isnull=False) &
+         Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO))
+    )
 
     @staticmethod
     def PROJECT(projects):
@@ -325,7 +332,7 @@ def _artifact_version(artifact_versions, version_idx=None):
     version_idx = version_idx or 0
     try:
         return artifact_versions[int(version_idx) - 1]
-    except IndexError as ValueError:
+    except (IndexError, ValueError):
         return None
 
 
