@@ -36,7 +36,7 @@ start:
 
 .PHONY: migrations
 migrations: start
-	docker-compose exec portal makemigrations --check
+	docker-compose exec portal python manage.py makemigrations --check
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@
