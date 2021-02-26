@@ -11,7 +11,7 @@ from allocations.models import Allocation
 from allocations.allocations_api import BalanceServiceClient
 from util.keycloak_client import KeycloakClient
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 def _deactivate_allocation(balance_service, alloc):
     charge_code = alloc.project.charge_code
@@ -20,7 +20,7 @@ def _deactivate_allocation(balance_service, alloc):
         alloc.su_used = float(balance['used'])
     else:
         alloc.su_used = None
-        logger.error(f'Couldn\'t find used balance for project {charge_code}')
+        LOG.error(f'Couldn\'t find used balance for project {charge_code}')
     alloc.status = 'inactive'
     alloc.save()
     KeycloakClient().update_project(charge_code, has_active_allocation='false')
@@ -40,21 +40,24 @@ def expire_allocations(balance_service):
                 balance_service.reset(charge_code)
                 expired_alloc_count = expired_alloc_count + 1
         except Exception:
-            logger.exception(f'Error expiring project {charge_code}')
+            LOG.exception(f'Error expiring project {charge_code}')
+        LOG.info(f'Expired allocation {alloc.id} for {charge_code}')
 
-    logger.debug('need to expire {} allocations, and {} were actually expired'.format(len(expired_allocations), expired_alloc_count))
+    LOG.debug('need to expire {} allocations, and {} were actually expired'.format(len(expired_allocations), expired_alloc_count))
 
 def deactivate_multiple_active_allocations_of_projects():
     for proj_id in Allocation.objects.order_by().values_list('project_id', flat=True).distinct():
         project_active_allocations = list(Allocation.objects.filter(status='active', project_id=proj_id))
         if len(project_active_allocations) > 1:
-            logger.warning(f'project {proj_id} has more than one active allocations')
+            LOG.warning(f'project {proj_id} has more than one active allocations')
             by_expiration = sorted(project_active_allocations,
                                    key=attrgetter('expiration_date'), reverse=True)
             # Deactivate any allocations with earlier expiration dates
             for alloc in by_expiration[1:]:
+                charge_code = alloc.project.charge_code
                 alloc.status = 'inactive'
                 alloc.save()
+                LOG.info(f'Deactivated duplicate allocation {alloc.id} for {charge_code}')
 
 def active_approved_allocations(balance_service):
     now = datetime.now(pytz.utc)
@@ -79,9 +82,10 @@ def active_approved_allocations(balance_service):
                 balance_service.recharge(charge_code, alloc.su_allocated)
                 activated_alloc_count = activated_alloc_count + 1
         except Exception:
-            logger.exception(f'Error activating project {charge_code}')
+            LOG.exception(f'Error activating project {charge_code}')
+        LOG.info(f'Started allocation {alloc.id} for {charge_code}')
 
-    logger.debug('need to activated {} allocations, and {} were actually activated'.format(len(approved_allocations), activated_alloc_count))
+    LOG.debug('need to activated {} allocations, and {} were actually activated'.format(len(approved_allocations), activated_alloc_count))
 
 @task
 def activate_expire_allocations():
