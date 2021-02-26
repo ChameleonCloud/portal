@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import widgets
 
 from projects.models import Project
 
@@ -54,7 +55,10 @@ class ShareArtifactForm(forms.Form):
         def label_from_instance(self, project):
             return project.nickname or project.charge_code
 
-    is_public = forms.BooleanField(label='Enable all users to find and share', required=False)
+    is_public = forms.BooleanField(
+        label='Enable all users to find and share',
+        required=False,
+        widget=widgets.CheckboxInput(attrs={"v-model": "is_public"}))
     projects = ProjectChoiceField(label='Share with projects', required=False,
         queryset=Project.objects.all())
 

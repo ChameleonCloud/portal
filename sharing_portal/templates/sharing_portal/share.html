@@ -1,10 +1,14 @@
 {% extends 'layout/default.html' %}
 {% load i18n cms_tags staticfiles pipeline bootstrap3 %}
+{% load render_bundle from webpack_loader %}
+
 {% block title %}Sharing Portal | Chameleon Cloud{% endblock %}
+
 {% block styles %}
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
 {% endblock %}
+
 {% block content %}
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
@@ -18,9 +22,6 @@
 </ol>
 
 <div id="app">
-
-  {# TODO: replace with json_script filter when we're on Django 2.1 #}
-  <script id="artifact-data" type="application/json">{{ artifact_json|safe }}</script>
 
   <form id="artifactShareForm" method="post">
     {% csrf_token %}
@@ -36,20 +37,16 @@
             </div>
           </header>
 
-          <label class="control-label">Share via private link</label>
-          <p>
-            <a href="{{ share_url }}">{{ share_url }}</a>
+          <label class="control-label">Publish (without DOI)</label>
+          <p class="help-block">
+            Want to allow any Chameleon user to find and launch this artifact?
+            This is a good option if you want to share your work but don't
+            necessarily want to publish to Zenodo as a citable digital artifact.
           </p>
-
-          <label class="control-label">Share with projects</label>
-          <p>
-            You can share this artifact with other Chameleon projects. Any
-            member of those projects will then be able to view the artifact.
-          </p>
-          {% bootstrap_field share_form.projects show_label=False %}
+          {% bootstrap_field share_form.is_public %}
 
           <label class="control-label">Publish with DOI</label>
-          <p>
+          <p class="help-block">
             You can publish any version of this artifact to
             <a href="https://zenodo.org" rel="noopener noreferrer" target="_blank">Zenodo</a>,
             which will assign a DOI (Digital Object Identifier), suitable for use
@@ -57,13 +54,19 @@
             you wish to publish publicly in this way.
           </p>
 
-          <label class="control-label">Publish without DOI</label>
-          <p>
-            Want to allow any Chameleon user to find and launch this artifact?
-            This is a good option if you want to share your work but don't
-            necessarily want to publish to Zenodo as a citable digital artifact.
-          </p>
-          {% bootstrap_field share_form.is_public %}
+          <fieldset id="artifactShareFormPrivateOptions">
+            <label class="control-label">Share via private link</label>
+            <p>
+              <a href="{{ share_url }}">{{ share_url }}</a>
+            </p>
+
+            <label class="control-label">Share with projects</label>
+            <p>
+              You can share this artifact with other Chameleon projects. Any
+              member of those projects will then be able to view the artifact.
+            </p>
+            {% bootstrap_field share_form.projects show_label=False %}
+          </fieldset>
         </div>
       </div>
 
@@ -80,33 +83,16 @@
             {% bootstrap_form form form_group_class='form-group artifactVersion__doi' error_css_class='foobar' show_label=False layout='inline' %}
           </fieldset>
           {% endfor %}
-          <script nonce="{{ request.csp_nonce }}">
-            (function () {
-              document.addEventListener('DOMContentLoaded', () => {
-                const form = document.getElementById('artifactShareForm');
-                if (form) {
-                  form.addEventListener('submit', (event) => {
-                    const formData = new FormData(event.target)
-                    for (var pair of formData.entries()) {
-                      if (pair[0].indexOf('request_doi') === 0 && pair[1] == 'on') {
-                        if (! confirm(['Are you sure you want to request a DOI? ',
-                                      'This will make this version of your ',
-                                      'artifact publicly available on ',
-                                      'Zenodo: https://zenodo.org.'].join(''))) {
-                          event.preventDefault();
-                        }
-                        return;
-                      }
-                    }
-                  });
-                }
-              });
-            })();
-          </script>
         </div>
       </div>
     </div>
   </form>
 
 </div>
+
+{# TODO: replace with json_script filter when we're on Django 2.1 #}
+<script id="artifact-data" type="application/json">{{ artifact_json|safe }}</script>
+{% render_bundle 'vendor' %}
+{% render_bundle 'artifact_share' %}
+
 {% endblock %}
