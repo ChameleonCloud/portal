@@ -14,20 +14,26 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm, ZenodoPublishFormset
+from .forms import (
+    ArtifactForm,
+    ArtifactVersionForm,
+    AuthorFormset,
+    ShareArtifactForm,
+    ZenodoPublishFormset,
+)
 from .models import Artifact, ArtifactVersion, Author, ShareTarget
 from .tasks import publish_to_zenodo
 
 import logging
 LOG = logging.getLogger(__name__)
 
-SHARING_KEY_PARAM = 's'
+SHARING_KEY_PARAM = "s"
 
 
 class ArtifactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artifact
-        fields = '__all__'
+        fields = "__all__"
 
 
 def can_edit(request, artifact):
@@ -60,7 +66,8 @@ def check_view_permission(func):
             return all_versions
 
         if artifact.sharing_key and (
-            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key):
+            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key
+        ):
             return all_versions
 
         if request.user.is_authenticated():
@@ -112,10 +119,9 @@ class ArtifactFilter:
         else:
             return Q()
 
-    PUBLIC = (
-        Q(is_public=True) |
-        (Q(doi__isnull=False) &
-         Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO))
+    PUBLIC = Q(is_public=True) | (
+        Q(doi__isnull=False)
+        & Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO)
     )
 
     @staticmethod
@@ -241,7 +247,7 @@ def share_artifact(request, artifact):
         z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
 
         if form.is_valid():
-            artifact.is_public = form.cleaned_data['is_public']
+            artifact.is_public = form.cleaned_data["is_public"]
             artifact.save()
 
             if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
@@ -256,10 +262,12 @@ def share_artifact(request, artifact):
 
             return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
     else:
-        form = ShareArtifactForm(initial={
-            'is_public': artifact.is_public,
-            'projects': artifact.shared_to_projects.all(),
-        })
+        form = ShareArtifactForm(
+            initial={
+                "is_public": artifact.is_public,
+                "projects": artifact.shared_to_projects.all(),
+            }
+        )
         z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
 
     share_url = request.build_absolute_uri(

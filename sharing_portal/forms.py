@@ -56,11 +56,13 @@ class ShareArtifactForm(forms.Form):
             return project.nickname or project.charge_code
 
     is_public = forms.BooleanField(
-        label='Enable all users to find and share',
+        label="Enable all users to find and share",
         required=False,
-        widget=widgets.CheckboxInput(attrs={"v-model": "is_public"}))
-    projects = ProjectChoiceField(label='Share with projects', required=False,
-        queryset=Project.objects.all())
+        widget=widgets.CheckboxInput(attrs={"v-model": "is_public"}),
+    )
+    projects = ProjectChoiceField(
+        label="Share with projects", required=False, queryset=Project.objects.all()
+    )
 
 
 class ZenodoPublishForm(forms.Form):
