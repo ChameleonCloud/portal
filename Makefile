@@ -1,7 +1,7 @@
 # Set make variables from .env file
 ifneq (,$(wildcard ./.env))
-    include .env
-    export
+	include .env
+	export
 	ENV_FILE_PARAM = --env-file .env
 endif
 
@@ -31,7 +31,7 @@ publish-latest:
 	docker push $(DOCKER_IMAGE_LATEST)
 
 .PHONY: start
-start:
+start: .env
 	docker-compose $(ENV_FILE_PARAM) up -d
 
 .PHONY: clean
