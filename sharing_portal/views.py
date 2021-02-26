@@ -10,6 +10,8 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
 from projects.models import Project
+from rest_framework.renderers import JSONRenderer
+from rest_framework import serializers
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .forms import ArtifactForm, ArtifactVersionForm, AuthorFormset, ShareArtifactForm, ZenodoPublishFormset
@@ -20,6 +22,12 @@ import logging
 LOG = logging.getLogger(__name__)
 
 SHARING_KEY_PARAM = 's'
+
+
+class ArtifactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Artifact
+        fields = '__all__'
 
 
 def can_edit(request, artifact):
@@ -233,16 +241,23 @@ def share_artifact(request, artifact):
         z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
 
         if form.is_valid():
+            artifact.is_public = form.cleaned_data['is_public']
+            artifact.save()
+
             if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
                 messages.add_message(request, messages.SUCCESS,
                     'Successfully updated sharing settings')
-            if (z_form.is_valid() and _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
+
+            if (z_form.is_valid() and
+                _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
                 messages.add_message(request, messages.SUCCESS,
                     ('Requested DOI(s) for artifact versions. The process '
                      'of issuing DOIs may take a few minutes.'))
+
             return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
     else:
         form = ShareArtifactForm(initial={
+            'is_public': artifact.is_public,
             'projects': artifact.shared_to_projects.all(),
         })
         z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
@@ -261,6 +276,7 @@ def share_artifact(request, artifact):
         'z_forms': _artifact_display_versions(z_form.forms),
         'share_url': share_url,
         'artifact': artifact,
+        'artifact_json': JSONRenderer().render(ArtifactSerializer(instance=artifact).data),
     }
 
     return HttpResponse(template.render(context, request))
