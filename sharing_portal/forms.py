@@ -33,7 +33,8 @@ class ArtifactForm(forms.ModelForm):
         else:
             available_labels = Label.objects.filter(~Q(label=Label.CHAMELEON_SUPPORTED))
 
-        self.fields["labels"] = forms.ModelMultipleChoiceField(available_labels)
+        self.fields["labels"] = forms.ModelMultipleChoiceField(
+            available_labels, required=False)
 
     def clean_labels(self):
         labels = self.cleaned_data["labels"]
