@@ -179,7 +179,7 @@ def _fetch_artifacts(filters):
 @login_required
 def edit_artifact(request, artifact):
     if request.method == 'POST':
-        form = ArtifactForm(request.POST, instance=artifact)
+        form = ArtifactForm(request.POST, instance=artifact, request=request)
 
         if 'delete_version' in request.POST:
             version_id = request.POST.get('delete_version')
@@ -207,7 +207,7 @@ def edit_artifact(request, artifact):
         return HttpResponseRedirect(
             reverse('sharing_portal:detail', args=[artifact.pk]))
 
-    form = ArtifactForm(instance=artifact)
+    form = ArtifactForm(instance=artifact, request=request)
     template = loader.get_template('sharing_portal/edit.html')
     context = {
         'artifact_form': form,
@@ -357,7 +357,7 @@ def _embed_form(request, artifact=None, context={}):
     new_version = (not artifact) or ('new_version' in request.GET)
 
     if request.method == 'POST':
-        form = ArtifactForm(request.POST, instance=artifact)
+        form = ArtifactForm(request.POST, instance=artifact, request=request)
         authors_formset = AuthorFormset(request.POST)
         if (not artifact) or new_version:
             version_form = ArtifactVersionForm(request.POST)
@@ -374,7 +374,7 @@ def _embed_form(request, artifact=None, context={}):
             for err in errors:
                 messages.add_message(request, messages.ERROR, err)
     else:
-        form = ArtifactForm(instance=artifact)
+        form = ArtifactForm(instance=artifact, request=request)
         if artifact:
             queryset = artifact.authors.all()
             initial = None

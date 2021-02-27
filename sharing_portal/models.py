@@ -1,11 +1,6 @@
-import json
 import re
+from urllib.parse import urlencode
 import uuid
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -79,6 +74,8 @@ class Label(models.Model):
     class Meta:
         ordering = ('label',)
 
+    CHAMELEON_SUPPORTED = "chameleon"
+
     def __str__(self):
         return self.label
 
@@ -118,11 +115,11 @@ class Artifact(models.Model):
         return self.title
 
     @property
-    def versions(self):
-        return self.artifact_versions.order_by('created_at')
+    def versions(self) -> "models.QuerySet[ArtifactVersion]":
+        return self.artifact_versions.order_by("created_at")
 
     @property
-    def related_items(self):
+    def related_items(self) -> "list[Artifact]":
         """Find related artifacts based on labels.
 
         FIXME: this method looks to use an expensive query to get all the related
@@ -140,18 +137,35 @@ class Artifact(models.Model):
         return related_list[:6]
 
     @property
-    def search_terms(self):
+    def search_terms(self) -> "list[str]":
         terms = self.title.lower().split()
-        terms.extend([l.label.lower() for l in self.labels.all()])
+        terms.extend([f"tag:{l.label.lower()}" for l in self.labels.all()])
         return terms
 
     @property
-    def launch_count(self):
+    def launch_count(self) -> "int":
         return sum([v.launch_count for v in self.versions.all()])
 
     @property
-    def deposition_url(self):
+    def deposition_url(self) -> "str":
         return ZenodoClient.to_record_url(self.doi) if self.doi else None
+
+    @property
+    def is_chameleon_supported(self) -> "bool":
+        """Indicate whether this artifact is maintained by Chameleon.
+        """
+        # We don't use a .filter here because .all is already used everywhere,
+        # and if we use .all here, it's already cached.
+        return any(l.label == Label.CHAMELEON_SUPPORTED for l in self.labels.all())
+
+    @property
+    def display_labels(self) -> "list[Label]":
+        # We don't use a .filter here because .all is already used everywhere,
+        # and if we use .all here, it's already cached.
+        return [
+            l for l in self.labels.all()
+            if l.label != Label.CHAMELEON_SUPPORTED
+        ]
 
 
 class ArtifactVersion(models.Model):
