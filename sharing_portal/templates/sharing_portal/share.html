@@ -37,14 +37,6 @@
             </div>
           </header>
 
-          <label class="control-label">Publish (without DOI)</label>
-          <p class="help-block">
-            Want to allow any Chameleon user to find and launch this artifact?
-            This is a good option if you want to share your work but don't
-            necessarily want to publish to Zenodo as a citable digital artifact.
-          </p>
-          {% bootstrap_field share_form.is_public %}
-
           <label class="control-label">Publish with DOI</label>
           <p class="help-block">
             You can publish any version of this artifact to
@@ -53,6 +45,14 @@
             in academic citation. Use the "Request DOI" options for any versions
             you wish to publish publicly in this way.
           </p>
+
+          <label class="control-label">Publish (without DOI)</label>
+          <p class="help-block">
+            Want to allow any Chameleon user to find and launch this artifact?
+            This is a good option if you want to share your work but don't
+            necessarily want to publish to Zenodo as a citable digital artifact.
+          </p>
+          {% bootstrap_field share_form.is_public %}
 
           <fieldset id="artifactShareFormPrivateOptions">
             <label class="control-label">Share via private link</label>
