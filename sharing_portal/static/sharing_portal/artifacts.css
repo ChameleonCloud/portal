@@ -108,8 +108,12 @@
     font-size: 1.4rem;
     padding: 0.2rem 1rem;
     margin-right: 0.5rem;
+    vertical-align: middle;
 } .artifactStats__labels > a:last-child {
     margin-right: 0;
+} .artifactStats__labels > .artifactStats__chameleonSupported {
+    background: none;
+    padding: 0;
 }
 
 .sidebarHeading {}
