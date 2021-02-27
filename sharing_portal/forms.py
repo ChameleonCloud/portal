@@ -7,13 +7,19 @@ from projects.models import Project
 from .models import Artifact, ArtifactVersion, Author, Label
 
 import logging
+
 LOG = logging.getLogger(__name__)
 
 
 class ArtifactForm(forms.ModelForm):
     class Meta:
         model = Artifact
-        fields = ("title", "short_description", "description", "labels",)
+        fields = (
+            "title",
+            "short_description",
+            "description",
+            "labels",
+        )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -24,16 +30,17 @@ class ArtifactForm(forms.ModelForm):
         if self.request.user.is_staff:
             available_labels = Label.objects.all()
         else:
-            available_labels = (
-                Label.objects.filter(~Q(label=Label.CHAMELEON_SUPPORTED)))
+            available_labels = Label.objects.filter(~Q(label=Label.CHAMELEON_SUPPORTED))
 
         self.fields["labels"] = forms.ModelMultipleChoiceField(available_labels)
 
     def clean_labels(self):
         labels = self.cleaned_data["labels"]
         # Ensure only staff members can save w/ the "chameleon" label.
-        if (any(l.label == Label.CHAMELEON_SUPPORTED for l in labels) and
-            not self.request.user.is_staff):
+        if (
+            any(l.label == Label.CHAMELEON_SUPPORTED for l in labels)
+            and not self.request.user.is_staff
+        ):
             raise ValidationError("Invalid label")
         return labels
 

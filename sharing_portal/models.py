@@ -72,7 +72,7 @@ class Label(models.Model):
     label = LabelField(max_length=50)
 
     class Meta:
-        ordering = ('label',)
+        ordering = ("label",)
 
     CHAMELEON_SUPPORTED = "chameleon"
 
@@ -152,8 +152,7 @@ class Artifact(models.Model):
 
     @property
     def is_chameleon_supported(self) -> "bool":
-        """Indicate whether this artifact is maintained by Chameleon.
-        """
+        """Indicate whether this artifact is maintained by Chameleon."""
         # We don't use a .filter here because .all is already used everywhere,
         # and if we use .all here, it's already cached.
         return any(l.label == Label.CHAMELEON_SUPPORTED for l in self.labels.all())
@@ -162,10 +161,7 @@ class Artifact(models.Model):
     def display_labels(self) -> "list[Label]":
         # We don't use a .filter here because .all is already used everywhere,
         # and if we use .all here, it's already cached.
-        return [
-            l for l in self.labels.all()
-            if l.label != Label.CHAMELEON_SUPPORTED
-        ]
+        return [l for l in self.labels.all() if l.label != Label.CHAMELEON_SUPPORTED]
 
 
 class ArtifactVersion(models.Model):
