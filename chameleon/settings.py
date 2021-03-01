@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     "djangocms_inherit",
     "djangocms_link",
     "djangocms_picture",
+    "aldryn_bootstrap3",
     "djangocms_teaser",
     "djangocms_video",
     "reversion",
@@ -753,15 +754,26 @@ CELERY_BEAT_SCHEDULE = {
 
 # Content-Security-Policy
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
-CSP_SCRIPT_SRC = ["'self'", "https://www.google-analytics.com", "'unsafe-inline'"]
+CSP_SCRIPT_SRC = [
+    "'self'",
+    "https://www.google-analytics.com",
+    "'unsafe-inline'",
+]
 CSP_CONNECT_SRC = ["'self'", "https://www.google-analytics.com"]
 CSP_IMG_SRC = [
     "'self'",
     "https://www.google-analytics.com",
     "https://*.googleusercontent.com",
 ]
-CSP_FONT_SRC = ["'self'", "https://fonts.gstatic.com"]
-CSP_STYLE_SRC = ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"]
+CSP_FONT_SRC = [
+    "'self'",
+    "https://fonts.gstatic.com",
+]
+CSP_STYLE_SRC = [
+    "'self'",
+    "https://fonts.googleapis.com",
+    "'unsafe-inline'",
+]
 CSP_INCLUDE_NONCE_IN = ["script-src"]
 # Add rules for the Vue JS dev server
 if DEBUG:
