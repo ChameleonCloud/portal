@@ -1,0 +1,23 @@
+{% load i18n cms_tags static sekizai_tags %}
+<div id="plugin plugin-blog js-carousel-id-{{ instance.pk }}" 
+    class="carousel slide" 
+    data-ride="carousel">
+    {% with carousel=instance %}
+
+    {# INFO: indicators #}
+    <ol class="carousel-indicators">
+        {% for post in posts_list %}
+        <li data-target="#js-carousel-id-{{ instance.pk }}" data-slide-to="{{ forloop.counter0 }}"
+        {% if forloop.first%} class="active" {% endif %}></li>
+        {% endfor %}
+    </ol>
+
+    {# Wrapper for slides #}
+    <div class="carousel-inner blog-latest-entries"
+        role="listbox">
+        {% for post in posts_list %}
+        {% include "./carousel_blog_item.html" with post=post image="true" TRUNCWORDS_COUNT=TRUNCWORDS_COUNT %}
+        {% endfor %}
+    </div>
+    {% endwith %}
+</div>

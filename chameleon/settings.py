@@ -752,9 +752,14 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Djangocms_blog templates
+BLOG_PLUGIN_TEMPLATE_FOLDERS = (
+    ("frontpage", _("Frontpage Display")),  # reads templates/djangocms_blog/frontpage/
+)
+
 # Carousel Styles
 ALDRYN_BOOTSTRAP3_CAROUSEL_STYLES = [
-    ('feature', _('Featured Version')),
+    ("feature", _("Featured Version")),
 ]
 
 # Content-Security-Policy
