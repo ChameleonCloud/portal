@@ -752,6 +752,11 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Carousel Styles
+ALDRYN_BOOTSTRAP3_CAROUSEL_STYLES = [
+    ('feature', _('Featured Version')),
+]
+
 # Content-Security-Policy
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
 CSP_SCRIPT_SRC = [
