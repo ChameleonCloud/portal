@@ -2,8 +2,8 @@
 
 <article id="post-{{ post.slug }}" class="post-item item
     {% if forloop.first %} active{% endif %}">
-    <div class="row well" style="margin: 1em 2em; height: 15em;">
-        <div class="col-md-8">
+    <div class=row>
+        <div class=col-md-8>
             <header>
                 <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
                 {% if post.subtitle %}
@@ -14,17 +14,21 @@
                 {% endblock %}
             </header>
             <div class="blog-lead">
-                {% render_model post "abstract" "" "" "truncatewords_html:15|safe" %}
+                {% if not TRUNCWORDS_COUNT %}
+                {% render_model post "abstract" "" "" "safe" %}
+                {% else %}
+                {% render_model post "abstract" "" "" "truncatewords_html:TRUNCWORDS_COUNT|safe" %}
+                {% endif %}
             </div>
             <footer class="read-more">
                 <a href="{{ post.get_absolute_url }}">{% trans "read more" %} &raquo;</a>
             </footer>
         </div>
+        {% if image and post.main_image %}
         <div class="col-md-4">
-            {% if image and post.main_image %}
             <img src="{{ post.main_image.url  }}" alt="{{ post.main_image.default_alt_text }}"
-                class="img-thumbnail img-responsive" />
-            {% endif %}
+                class="img-rounded img-fluid" />
         </div>
+        {% endif %}
     </div>
 </article>

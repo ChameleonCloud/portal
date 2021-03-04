@@ -387,3 +387,29 @@ article {
     background-color: #fff;
     border: 1px solid #ddd;
 }
+
+.plugin-blog .carousel-control {
+  background-image: none;
+  // position: absolute;
+  margin: 0em -2.5em;
+}
+
+.plugin-blog .carousel-indicators {
+  margin-bottom: 0em;
+}
+
+.carousel {
+  border-radius: 1em;
+  border: 2px solid $brand-info;
+  background-color: rgb(168, 210, 230);
+  min-height: 18em;
+}
+
+.carousel-inner .item{
+  padding: 1em 3em;
+}
+
+.img-fluid {
+  height:auto;
+  max-width: 100%;
+}

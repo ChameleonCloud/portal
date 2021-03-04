@@ -1,23 +1,32 @@
 {% load i18n cms_tags static sekizai_tags %}
-<div id="plugin plugin-blog js-carousel-id-{{ instance.pk }}" 
-    class="carousel slide" 
-    data-ride="carousel">
+<div id="js-carousel-id-{{ instance.pk }}" class="plugin plugin-blog carousel slide" data-ride="carousel">
     {% with carousel=instance %}
 
-    {# INFO: indicators #}
-    <ol class="carousel-indicators">
-        {% for post in posts_list %}
-        <li data-target="#js-carousel-id-{{ instance.pk }}" data-slide-to="{{ forloop.counter0 }}"
-        {% if forloop.first%} class="active" {% endif %}></li>
-        {% endfor %}
-    </ol>
+    <div class="carousel-container">
+        {# INFO: indicators #}
+        <ol class="carousel-indicators">
+            {% for post in posts_list %}
+            <li data-target="#js-carousel-id-{{ instance.pk }}" data-slide-to="{{ forloop.counter0 }}" 
+            {% if forloop.first%} class="active" {% endif %}></li>
+            {% endfor %}
+        </ol>
 
-    {# Wrapper for slides #}
-    <div class="carousel-inner blog-latest-entries"
-        role="listbox">
-        {% for post in posts_list %}
-        {% include "./carousel_blog_item.html" with post=post image="true" TRUNCWORDS_COUNT=TRUNCWORDS_COUNT %}
-        {% endfor %}
+        {# Wrapper for slides #}
+            <div class="carousel-inner blog-latest-entries" role="listbox">
+                {% for post in posts_list %}
+                {% include "./carousel_blog_item.html" with post=post image="true" TRUNCWORDS_COUNT=20 %}
+                {% endfor %}
+            </div>
+
+        {# INFO: controls #}
+        <a class="left carousel-control" href="#js-carousel-id-{{ instance.pk }}" role="button" data-slide="prev">
+            <span class="fa fa-chevron-left glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">{% trans "Previous" %}</span>
+        </a>
+        <a class="right carousel-control" href="#js-carousel-id-{{ instance.pk }}" role="button" data-slide="next">
+            <span class="fa fa-chevron-right glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">{% trans "Next" %}</span>
+        </a>
     </div>
     {% endwith %}
 </div>
