@@ -100,6 +100,7 @@ INSTALLED_APPS = (
     # django-cms
     #
     "cms",
+    "aldryn_bootstrap3",
     "menus",
     "sekizai",
     "treebeard",
