@@ -1,8 +1,10 @@
 {% load i18n cms_tags static sekizai_tags %}
-<div id="js-carousel-id-{{ instance.pk }}" class="plugin plugin-blog carousel slide" data-ride="carousel">
-    {% with carousel=instance %}
-
-    <div class="carousel-container">
+<style>
+    
+</style>
+<div class="plugin plugin-blog">
+    <div id="js-carousel-id-{{ instance.pk }}" class="carousel slide" data-ride="carousel"">
+     {% with carousel=instance %}
         {# INFO: indicators #}
         <ol class="carousel-indicators">
             {% for post in posts_list %}
@@ -12,11 +14,11 @@
         </ol>
 
         {# Wrapper for slides #}
-            <div class="carousel-inner blog-latest-entries" role="listbox">
-                {% for post in posts_list %}
-                {% include "./carousel_blog_item.html" with post=post image="true" TRUNCWORDS_COUNT=20 %}
-                {% endfor %}
-            </div>
+        <div class="carousel-inner blog-latest-entries" role="listbox">
+            {% for post in posts_list %}
+            {% include "./carousel_blog_item.html" with post=post image="true" TRUNC_COUNT=200 %}
+            {% endfor %}
+        </div>
 
         {# INFO: controls #}
         <a class="left carousel-control" href="#js-carousel-id-{{ instance.pk }}" role="button" data-slide="prev">

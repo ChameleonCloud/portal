@@ -1,0 +1,41 @@
+{% load i18n easy_thumbnails_tags cms_tags %}
+<style>
+    ul.post-detail {
+        padding: 0;
+    }
+    ul.post-detail {
+        list-style-type: none;
+    }
+
+    ul.post-detail li {
+        display: inline-block;
+    }
+
+    .post-date {
+        font-weight:bold;
+    }
+</style>
+<ul class="post-detail">
+    <li class="post-date">
+        {{ post.date_published|date:"DATE_FORMAT" }}
+    </li>
+    {% if post.author %}
+    {% trans "by" %} <li>
+        <a href="{% url 'djangocms_blog:posts-author' post.author.get_username %}">{% if post.author.get_full_name %}{{ post.author.get_full_name }}{% else %}{{ post.author }}{% endif %}</a>
+    </li>
+    {% endif %}
+</ul>
+<ul class="post-detail tags">
+    {% if post.categories.exists %}<i class="fa fa-tags" aria-hidden="true" style="padding-right: .5em;"></i>
+        {% for category in post.categories.all %}
+            {% if category.slug %}
+                <li class="category_{{ forloop.counter }}"><a href="{% url 'djangocms_blog:posts-category' category=category.slug %}" class="blog-categories-{{ category.count }}">{{ category.name }}</a>{% if not forloop.last %},&nbsp;{% endif %}</li>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if post.tags.exists %}
+        {% for tag in post.tags.all %}
+            <li class="tag_{{ forloop.counter }}"><a href="{% url 'djangocms_blog:posts-tagged' tag=tag.slug %}" class="blog-tag blog-tag-{{ tag.count }}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}</li>
+        {% endfor %}
+    {% endif %}
+</ul>

@@ -1,33 +1,29 @@
 {% load i18n easy_thumbnails_tags cms_tags %}
+<style>
 
-<article id="post-{{ post.slug }}" class="post-item item
+</style>
+<article id="post-{{ post.slug }}" class="post-item item row
     {% if forloop.first %} active{% endif %}">
-    <div class=row>
-        <div class=col-md-8>
-            <header>
-                <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
-                {% if post.subtitle %}
-                <h5>{{ post.subtitle }}</h5>
-                {% endif %}
-                {% block blog_meta %}
-                {% include "djangocms_blog/includes/blog_meta.html" %}
-                {% endblock %}
-            </header>
-            <div class="blog-lead">
-                {% if not TRUNCWORDS_COUNT %}
-                {% render_model post "abstract" "" "" "safe" %}
-                {% else %}
-                {% render_model post "abstract" "" "" "truncatewords_html:TRUNCWORDS_COUNT|safe" %}
-                {% endif %}
+    <div class="carousel_slide">
+        <div class="carousel_text col-xs-8 col-sm-6">
+            <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
+            {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
+            {% block blog_meta %}
+            {% include "./carousel_blog_meta.html" %}
+            {% endblock %}
+            <div class="blog-lead hidden-sm hidden-md hidden-lg">
+                {% render_model post "abstract" "" "" "striptags|truncatechars:100" %}
             </div>
-            <footer class="read-more">
-                <a href="{{ post.get_absolute_url }}">{% trans "read more" %} &raquo;</a>
-            </footer>
-        </div>
+            <div class="blog-lead hidden-xs hidden-md hidden-lg">
+                {% render_model post "abstract" "" "" "striptags|truncatechars:150" %}
+            </div>
+            <div class="blog-lead hidden-xs hidden-sm">
+                {% render_model post "abstract" "" "" "striptags|truncatechars:200" %}
+            </div>
+        </div>        
         {% if image and post.main_image %}
-        <div class="col-md-4">
-            <img src="{{ post.main_image.url  }}" alt="{{ post.main_image.default_alt_text }}"
-                class="img-rounded img-fluid" />
+        <div class="carousel_img col-xs-4 col-sm-6 hidden-sm hidden-xs">
+            <img class="img-thumbnail" src="{{ post.main_image.url }}" alt="{{ post.main_image.default_alt_text }}" />
         </div>
         {% endif %}
     </div>

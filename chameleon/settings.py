@@ -110,7 +110,6 @@ INSTALLED_APPS = (
     "djangocms_inherit",
     "djangocms_link",
     "djangocms_picture",
-    "aldryn_bootstrap3",
     "djangocms_teaser",
     "djangocms_video",
     "reversion",
@@ -756,11 +755,6 @@ CELERY_BEAT_SCHEDULE = {
 BLOG_PLUGIN_TEMPLATE_FOLDERS = (
     ("frontpage", _("Frontpage Display")),  # reads templates/djangocms_blog/frontpage/
 )
-
-# Carousel Styles
-ALDRYN_BOOTSTRAP3_CAROUSEL_STYLES = [
-    ("feature", _("Featured Version")),
-]
 
 # Content-Security-Policy
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN

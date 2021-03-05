@@ -1,0 +1,27 @@
+{% load i18n easy_thumbnails_tags cms_tags %}
+<style>
+    ul.post-detail {
+        padding: 0;
+    }
+    ul.post-detail {
+        list-style-type: none;
+    }
+
+    ul.post-detail li {
+        display: inline-block;
+    }
+
+    .post-date {
+        font-weight:bold;
+    }
+</style>
+<ul class="post-detail">
+    <li class="post-date">
+        {{ post.date_published|date:"DATE_FORMAT" }}
+    </li>
+    {% if post.author %}
+    {% trans "by" %} <li>
+        <a href="{% url 'djangocms_blog:posts-author' post.author.get_username %}">{% if post.author.get_full_name %}{{ post.author.get_full_name }}{% else %}{{ post.author }}{% endif %}</a>
+    </li>
+    {% endif %}
+</ul>
