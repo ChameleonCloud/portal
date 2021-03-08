@@ -1,0 +1,28 @@
+
+.glide__arrows .glide__arrow {
+  border-color: rgb(85, 155, 81);
+  color: rgb(85, 155, 81);
+}
+.glide__bullets .glide__bullet {
+  border-color: rgb(85, 155, 81);
+}
+.glide__slides .glide__slide {
+  height: auto;
+}
+.slide_container {
+  height: 100%;
+  border: 3px solid rgb(85, 155, 81);
+  border-radius: 1em;
+  background-color: rgba(168, 210, 230, 0.4);
+}
+.slide_content {
+  margin: 1em 7em;
+  margin-bottom: 2em;
+  display: flex;
+}
+article {
+  flex: 2;
+}
+.post_image {
+  flex: 1;
+}

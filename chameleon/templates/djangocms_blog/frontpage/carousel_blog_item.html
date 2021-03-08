@@ -1,30 +1,26 @@
-{% load i18n easy_thumbnails_tags cms_tags %}
-<style>
-
-</style>
-<article id="post-{{ post.slug }}" class="post-item item row
-    {% if forloop.first %} active{% endif %}">
-    <div class="carousel_slide">
-        <div class="carousel_text col-xs-8 col-sm-6">
-            <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
-            {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
-            {% block blog_meta %}
-            {% include "./carousel_blog_meta.html" %}
-            {% endblock %}
-            <div class="blog-lead hidden-sm hidden-md hidden-lg">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:100" %}
+{% load i18n easy_thumbnails_tags cms_tags static %}
+<li class="glide__slide">
+    <div class="slide_container">
+        <div class="slide_content">
+            <article id="post-{{ post.slug }}" class="post-item">
+                <header>
+                    <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
+                    {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
+                    {% block blog_meta %}
+                    {% include "./carousel_blog_meta.html" %}
+                    {% endblock %}
+                </header>
+                <div class="blog-lead">
+                    {% render_model post "abstract" "" "" "safe" %}
+                </div>
+            </article>
+            {% if image and post.main_image %}
+            <div class="post_image hidden-xs">
+                {% thumbnail post.main_image 400x300 upscale as thumb %}
+                <img class="img-thumbnail" src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+                    alt="{{ post.main_image.default_alt_text|default:'' }}" />
             </div>
-            <div class="blog-lead hidden-xs hidden-md hidden-lg">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:150" %}
-            </div>
-            <div class="blog-lead hidden-xs hidden-sm">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:200" %}
-            </div>
-        </div>        
-        {% if image and post.main_image %}
-        <div class="carousel_img col-xs-4 col-sm-6 hidden-sm hidden-xs">
-            <img class="img-thumbnail" src="{{ post.main_image.url }}" alt="{{ post.main_image.default_alt_text }}" />
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-</article>
+</li>
