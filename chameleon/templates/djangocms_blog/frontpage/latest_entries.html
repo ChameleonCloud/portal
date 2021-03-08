@@ -2,28 +2,37 @@
 {% load render_bundle from webpack_loader %}
 {% render_bundle 'vendor' %}
 
-<div class="plugin plugin-blog">
+<div class="plugin plugin-blog glide">
 
-    <div class="glide">
-        <div class="glide__track" data-glide-el="track">
-            <ul class="glide__slides blog-latest-entries">
-                {% for post in posts_list %}
-                {% include "./carousel_blog_item.html" with post=post image="true" TRUNC_COUNT=200 %}
-                {% endfor %}
-            </ul>
-        </div>
+  <div class="glide-arrow-container">
+    <h3>
+      <span>Recent news</span>
+      <span class="glide__arrows" data-glide-el="controls">
+        <button class="glide__arrow glide__arrow--left" data-glide-dir="<">prev</button>
+        <button class="glide__arrow glide__arrow--right" data-glide-dir=">">next</button>
+      </span>
+    </h3>
+  </div>
 
-        <div class="glide__bullets" data-glide-el="controls[nav]">
-            {% for post in posts_list %}
-            <button class="glide__bullet" data-glide-dir="={{forloop.counter0}}"></button>
-            {% endfor %}
+  <div class="glide__track" data-glide-el="track">
+    <ul class="glide__slides blog-latest-entries">
+      {% for post in posts_list %}
+      <li class="glide__slide">
+        <div class="slide_container">
+          <div class="slide_content">
+            {% include "./carousel_blog_item.html" with post=post image="true" TRUNC_COUNT=200 %}
+          </div>
         </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
 
-        <div class="glide__arrows" data-glide-el="controls">
-            <button class="glide__arrow glide__arrow--left" data-glide-dir="<">prev</button>
-            <button class="glide__arrow glide__arrow--right" data-glide-dir=">">next</button>
-        </div>
-    </div>
+  <!-- <div class="glide__bullets" data-glide-el="controls[nav]">
+    {% for post in posts_list %}
+    <button class="glide__bullet" data-glide-dir="={{forloop.counter0}}"></button>
+    {% endfor %}
+  </div> -->
 </div>
 
 {% render_bundle 'frontpage_carousel' %}

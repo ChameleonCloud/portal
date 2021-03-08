@@ -1,26 +1,27 @@
 {% load i18n easy_thumbnails_tags cms_tags static %}
-<li class="glide__slide">
-    <div class="slide_container">
-        <div class="slide_content">
-            <article id="post-{{ post.slug }}" class="post-item">
-                <header>
-                    <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
-                    {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
-                    {% block blog_meta %}
-                    {% include "./carousel_blog_meta.html" %}
-                    {% endblock %}
-                </header>
-                <div class="blog-lead">
-                    {% render_model post "abstract" "" "" "safe" %}
-                </div>
-            </article>
-            {% if image and post.main_image %}
-            <div class="post_image hidden-xs">
-                {% thumbnail post.main_image 400x300 upscale as thumb %}
-                <img class="img-thumbnail" src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
-                    alt="{{ post.main_image.default_alt_text|default:'' }}" />
-            </div>
-            {% endif %}
-        </div>
+<article id="post-{{ post.slug }}" class="post-item">
+  <header>
+    <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
+    {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
+    <div class="post-detail">
+      <span class="post-date">
+        {{ post.date_published|date:"DATE_FORMAT" }}
+      </span>
+      {% if post.author %}
+      {% trans "by" %} <span>
+        <a href="{% url 'djangocms_blog:posts-author' post.author.get_username %}">{% if post.author.get_full_name %}{{ post.author.get_full_name }}{% else %}{{ post.author }}{% endif %}</a>
+      </span>
+      {% endif %}
     </div>
-</li>
+  </header>
+  <div class="blog-lead">
+    {% render_model post "abstract" "" "" "safe" %}
+  </div>
+</article>
+{% if image and post.main_image %}
+<div class="post-image hidden-xs">
+  {% thumbnail post.main_image 400x300 upscale as thumb %}
+  <img class="img-thumbnail" src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+    alt="{{ post.main_image.default_alt_text|default:'' }}" />
+</div>
+{% endif %}

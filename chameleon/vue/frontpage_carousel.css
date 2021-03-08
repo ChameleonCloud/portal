@@ -1,28 +1,52 @@
 
+.glide-arrow-container h3 {
+  border: none;
+} .glide-arrow-container h3 > span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.glide__arrows {
+  font-size: 14px;
+  margin-left: 1em;
+}
+
 .glide__arrows .glide__arrow {
-  border-color: rgb(85, 155, 81);
-  color: rgb(85, 155, 81);
+  background: white;
+  color: #239ff0;
+  transform: none;
+  position: unset;
+  display: inline-block;
+  padding: .5em 1em;
+  margin-right: .25em;
+  vertical-align: middle;
 }
+
 .glide__bullets .glide__bullet {
-  border-color: rgb(85, 155, 81);
+  border-color: #239ff0;
 }
+
 .glide__slides .glide__slide {
   height: auto;
 }
+
 .slide_container {
   height: 100%;
-  border: 3px solid rgb(85, 155, 81);
-  border-radius: 1em;
-  background-color: rgba(168, 210, 230, 0.4);
 }
+
 .slide_content {
-  margin: 1em 7em;
-  margin-bottom: 2em;
   display: flex;
-}
-article {
-  flex: 2;
-}
-.post_image {
+  padding-bottom: 4em;
+} .slide_content .post-item {
   flex: 1;
+} .slide_content .post-item .post-detail {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 1em;
+} .slide_content .post-item .post-date {
+  font-weight: bold;
+} .slide_content .post-image {
+  margin-left: 2em;
+} .slide_content a[href] {
+  color: #239ff0;
 }
