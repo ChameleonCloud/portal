@@ -18,8 +18,8 @@
     <ul class="glide__slides blog-latest-entries">
       {% for post in posts_list %}
       <li class="glide__slide">
-        <div class="slide_container">
-          <div class="slide_content">
+        <div class="slide-container">
+          <div class="slide-content">
             {% include "./carousel_blog_item.html" with post=post image="true" TRUNC_COUNT=200 %}
           </div>
         </div>
@@ -27,12 +27,6 @@
       {% endfor %}
     </ul>
   </div>
-
-  <!-- <div class="glide__bullets" data-glide-el="controls[nav]">
-    {% for post in posts_list %}
-    <button class="glide__bullet" data-glide-dir="={{forloop.counter0}}"></button>
-    {% endfor %}
-  </div> -->
 </div>
 
 {% render_bundle 'frontpage_carousel' %}
