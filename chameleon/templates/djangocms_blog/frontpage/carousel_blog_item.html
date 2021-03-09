@@ -1,30 +1,27 @@
-{% load i18n easy_thumbnails_tags cms_tags %}
-<style>
-
-</style>
-<article id="post-{{ post.slug }}" class="post-item item row
-    {% if forloop.first %} active{% endif %}">
-    <div class="carousel_slide">
-        <div class="carousel_text col-xs-8 col-sm-6">
-            <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
-            {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
-            {% block blog_meta %}
-            {% include "./carousel_blog_meta.html" %}
-            {% endblock %}
-            <div class="blog-lead hidden-sm hidden-md hidden-lg">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:100" %}
-            </div>
-            <div class="blog-lead hidden-xs hidden-md hidden-lg">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:150" %}
-            </div>
-            <div class="blog-lead hidden-xs hidden-sm">
-                {% render_model post "abstract" "" "" "striptags|truncatechars:200" %}
-            </div>
-        </div>        
-        {% if image and post.main_image %}
-        <div class="carousel_img col-xs-4 col-sm-6 hidden-sm hidden-xs">
-            <img class="img-thumbnail" src="{{ post.main_image.url }}" alt="{{ post.main_image.default_alt_text }}" />
-        </div>
-        {% endif %}
+{% load i18n easy_thumbnails_tags cms_tags static %}
+<article id="post-{{ post.slug }}" class="post-item">
+  <header>
+    <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
+    {% if post.subtitle %}<h5>{{ post.subtitle }}</h5>{% endif %}
+    <div class="post-detail">
+      <span class="post-date">
+        {{ post.date_published|date:"DATE_FORMAT" }}
+      </span>
+      {% if post.author %}
+      {% trans "by" %} <span>
+        <a href="{% url 'djangocms_blog:posts-author' post.author.get_username %}">{% if post.author.get_full_name %}{{ post.author.get_full_name }}{% else %}{{ post.author }}{% endif %}</a>
+      </span>
+      {% endif %}
     </div>
+  </header>
+  <div class="blog-lead">
+    {% render_model post "abstract" "" "" "safe" %}
+  </div>
 </article>
+{% if image and post.main_image %}
+<div class="post-image hidden-xs">
+  {% thumbnail post.main_image 400x300 upscale as thumb %}
+  <img class="img-thumbnail" src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}"
+    alt="{{ post.main_image.default_alt_text|default:'' }}" />
+</div>
+{% endif %}

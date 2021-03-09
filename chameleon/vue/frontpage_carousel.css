@@ -1,0 +1,48 @@
+
+.glide-arrow-container h3 {
+  border: none;
+} .glide-arrow-container h3 > span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.glide__arrows {
+  font-size: 14px;
+  margin-left: 1em;
+}
+
+.glide__arrows .glide__arrow {
+  background: white;
+  color: #239ff0;
+  transform: none;
+  position: unset;
+  display: inline-block;
+  padding: .5em 1em;
+  margin-right: .25em;
+  vertical-align: middle;
+}
+
+.glide__slides .glide__slide {
+  height: auto;
+}
+
+.slide-container {
+  height: 100%;
+}
+
+.slide-content {
+  display: flex;
+  padding-bottom: 4em;
+} .slide-content .post-item {
+  flex: 1;
+} .slide-content .post-item .post-detail {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 1em;
+} .slide-content .post-item .post-date {
+  font-weight: bold;
+} .slide-content .post-image {
+  margin-left: 2em;
+} .slide-content a[href] {
+  color: #239ff0;
+}
