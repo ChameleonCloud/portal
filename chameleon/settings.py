@@ -328,6 +328,10 @@ SQL_VERBOSITY = os.environ.get("DJANGO_SQL_VERBOSITY", "SHORT")
 CONSOLE_WIDTH = os.environ.get("DJANGO_LOG_WIDTH", 100)
 CONSOLE_INDENT = os.environ.get("DJANGO_LOG_INDENT", 2)
 
+import logging
+# Ensure Python `warnings` are ingested by logging infra
+logging.captureWarnings(True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -369,6 +373,11 @@ LOGGING = {
         "default": {"handlers": ["console"], "level": "DEBUG"},
         "console": {"handlers": ["console"], "level": "DEBUG"},
         "django": {"handlers": ["console"], "level": "INFO"},
+        "py.warnings": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
         "django.db.backends": {
             "handlers": ["console-sql"],
             "level": "DEBUG",
