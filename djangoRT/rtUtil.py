@@ -11,12 +11,12 @@ class DjangoRt:
     RESPONSE_REQUIRED = 'response required'
 
     def __init__(self):
-        self.rtHost = settings.DJANGO_RT['RT_HOST']
-        self.rtUn = settings.DJANGO_RT['RT_UN']
-        self.rtPw = settings.DJANGO_RT['RT_PW']
-        self.rtQueue = settings.DJANGO_RT['RT_QUEUE']
+        host = settings.DJANGO_RT['RT_HOST']
+        username = settings.DJANGO_RT['RT_UN']
+        password = settings.DJANGO_RT['RT_PW']
+        self.queue = settings.DJANGO_RT['RT_QUEUE']
 
-        self.tracker = rt.Rt(self.rtHost, self.rtUn, self.rtPw)
+        self.tracker = rt.Rt(host, username, password)
         self.tracker.login()
 
     def getUserTickets(self, userEmail, show_resolved=False):
@@ -54,7 +54,7 @@ class DjangoRt:
 
     # Returns the ticket id of the created ticket
     def createTicket(self, ticket):
-        return self.tracker.create_ticket(Queue=self.rtQueue,
+        return self.tracker.create_ticket(Queue=self.queue,
                                           Subject=ticket.subject,
                                           Text=ticket.problem_description.replace('\n', '\n '),
                                           Requestors=ticket.requestor,
