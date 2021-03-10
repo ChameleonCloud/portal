@@ -8,6 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import os
+import re
 
 from celery.schedules import crontab
 from django.utils.translation import ugettext_lazy as _
@@ -729,6 +730,15 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get(
     "ALLOCATIONS_BALANCE_SERVICE_ROOT_URL", ""
 )
+
+# check if balance URL starts with https://www.chameleoncloud.org and https://chameleoncloud.org.
+# if it matches, raise an exception to prevent testing against production redis db.
+# in prod it uses a local container host configuration value.
+if re.match("^https://.*chameleoncloud.org*", ALLOCATIONS_BALANCE_SERVICE_ROOT_URL):
+    raise ValueError(
+        "Please use local container host configuration to access production redis!"
+    )
+
 PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get(
     "PENDING_ALLOCATION_NOTIFICATION_EMAIL", ""
 )
