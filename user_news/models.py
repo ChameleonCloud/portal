@@ -80,6 +80,7 @@ class Outage(News):
         ('',''),
         ('SEV-1','SEV-1'),
         ('SEV-2','SEV-2'),
+        ('SEV-3','SEV-3'),
     )
     severity = models.CharField(choices=SEVERITY_LEVEL, blank=False, default='', max_length=50)
 
