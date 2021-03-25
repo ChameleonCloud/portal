@@ -171,6 +171,20 @@
                                                 Reject
                                             </button>
                                         </div>
+                                        <div ng-if="allocation.status.toLowerCase() == 'approved'">
+                                            <button class="btn btn-danger"
+                                                ng-click="rejectAllocation(project, allocation, $event)"
+                                                ng-disabled="isLoading('rejectAllocation', allocation)">
+                                                Reject
+                                            </button>
+                                        </div>
+                                        <div ng-if="allocation.status.toLowerCase() == 'rejected'">
+                                            <button class="btn btn-success"
+                                                ng-click="approveAllocation(project, allocation, $event)"
+                                                ng-disabled="isLoading('approveAllocation', allocation)">
+                                                Approve
+                                            </button>
+                                        </div>
                                         <div class="alert alert-info"
                                             ng-show="isLoading('approveAllocation', allocation) || isLoading('rejectAllocation', allocation)">
                                             <h4><span class="fa fa-spinner fa-spin"></span><span
