@@ -86,6 +86,12 @@ class ProjectCreateForm(forms.Form):
         initial="45",
         help_text="Please indicate a primary field of science for this research.",
     )
+    typeId = forms.ChoiceField(
+        label="Type",
+        choices=(),
+        initial="",
+        help_text="Please indicate a project type.",
+    )
     accept_project_terms = forms.BooleanField(
         label="I agree to abide by Chameleon Acceptable Use Policies.",
         help_text=get_accept_project_terms_help_text_lazy(),
@@ -98,8 +104,9 @@ class ProjectCreateForm(forms.Form):
             super(ProjectCreateForm, self).__init__(*args, **kwargs)
             mapper = ProjectAllocationMapper(request)
             self.fields["fieldId"].choices = mapper.get_fields_choices()
+            self.fields["typeId"].choices = mapper.get_project_types_choices()
         else:
-            logger.error("Couldn't get field list.")
+            logger.error("Couldn't get field or type list.")
 
 
 class EditNicknameForm(forms.Form):
@@ -122,6 +129,29 @@ class EditNicknameForm(forms.Form):
         return not Project.objects.filter(
             nickname=self.cleaned_data["nickname"]
         ).exists()
+
+
+class EditTypeForm(forms.Form):
+    typeId = forms.ChoiceField(
+        label="",
+        choices=(),
+        initial="",
+        help_text="",
+        required=True,
+    )
+
+    def is_valid(self, request):
+        return super(EditTypeForm, self).is_valid()
+
+    def __init__(self, *args, **kwargs):
+        if "request" in kwargs:
+            request = kwargs["request"]
+            del kwargs["request"]
+            super(EditTypeForm, self).__init__(*args, **kwargs)
+            mapper = ProjectAllocationMapper(request)
+            self.fields["typeId"].choices = mapper.get_project_types_choices()
+        else:
+            logger.error("Couldn't get type list.")
 
 
 class AllocationCreateForm(forms.Form):
