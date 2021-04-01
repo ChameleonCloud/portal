@@ -356,19 +356,25 @@ class ProjectAllocationMapper:
         }
         self._send_allocation_decision_notification(**email_args)
 
-    def _update_user_membership(self, tas_project, username, action=None):
+    def _update_user_membership(self, tas_project, user_ref, action=None):
         if action not in ["add", "delete"]:
             raise ValueError("Invalid membership action {}".format(action))
 
+        UserModel = get_user_model()
+        try:
+            user = UserModel.objects.get(username=user_ref)
+        except UserModel.DoesNotExist:
+            user = UserModel.objects.get(email=user_ref)
+
         charge_code = self.get_attr(tas_project, "chargeCode")
         keycloak_client = KeycloakClient()
-        keycloak_client.update_membership(charge_code, username, action)
+        keycloak_client.update_membership(charge_code, user.username, action)
 
-    def add_user_to_project(self, tas_project, username):
-        return self._update_user_membership(tas_project, username, action="add")
+    def add_user_to_project(self, tas_project, user_ref):
+        return self._update_user_membership(tas_project, user_ref, action="add")
 
-    def remove_user_from_project(self, tas_project, username):
-        return self._update_user_membership(tas_project, username, action="delete")
+    def remove_user_from_project(self, tas_project, user_ref):
+        return self._update_user_membership(tas_project, user_ref, action="delete")
 
     def _parse_field_recursive(self, parent, level=0):
         result = [(parent["id"], "--- " * level + parent["name"])]

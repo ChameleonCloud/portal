@@ -101,7 +101,7 @@ def view_project(request, project_id):
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
                 try:
-                    add_username = form.cleaned_data["username"]
+                    add_username = form.cleaned_data["user_ref"]
                     if mapper.add_user_to_project(project, add_username):
                         messages.success(
                             request, f'User "{add_username}" added to project!'
@@ -126,9 +126,9 @@ def view_project(request, project_id):
                 )
         elif "del_user" in request.POST:
             try:
-                del_username = request.POST["username"]
+                del_username = request.POST["user_ref"]
                 # Ensure that it's not possible to remove the PI
-                if del_username == project.pi.username:
+                if del_username in [project.pi.username, project.pi.email]:
                     raise PermissionDenied(
                         "Removing the PI from the project is not allowed."
                     )
