@@ -1,9 +1,7 @@
+from django.conf import settings
 from django.db import models
 import json
-import logging
-from django.conf import settings
-
-logger = logging.getLogger("projects")
+from operator import attrgetter
 
 
 class Type(models.Model):
@@ -30,6 +28,48 @@ class Project(models.Model):
     nickname = models.CharField(max_length=255, blank=False, unique=True)
     field = models.ForeignKey(Field, related_name="project_field", null=True)
     charge_code = models.CharField(max_length=50, blank=False)
+
+    def as_tas(self, **kwargs):
+        return Project.to_tas(self, **kwargs)
+
+    @classmethod
+    def to_tas(cls, proj, fetch_allocations=True, alloc_status=[]):
+        tas_proj = {
+            "description": proj.description,
+            "piId": proj.pi_id,
+            "title": proj.title,
+            "nickname": proj.nickname,
+            "chargeCode": proj.charge_code,
+            "typeId": proj.type_id,
+            "fieldId": proj.field_id,
+            "type": proj.type.name if proj.type else None,
+            "field": proj.field.name if proj.field else None,
+            "allocations": [],
+            "source": "Chameleon",
+            "pi": proj.pi.as_tas(role="PI"),
+            "id": proj.id,
+        }
+
+        if fetch_allocations:
+            allocations_qs = proj.allocations.all()
+            # NOTE(jason): we cannot sort using .order_by().reverse() or any
+            # other Django ORM utility here! It will break the prefetch_related
+            # behavior and cause a huge performance degradation.
+            # We can ONLY do proj.allocations.all() -- this is because we have
+            # already called this function when (possibly) fetching allocation
+            # balances, and we store the balance counters over top of the DB
+            # values in that case. If we do a different type of query, those
+            # cached values get effectively ignored. This is pretty hacky; we
+            # should probably somehow store the pre-fetched balances in a
+            # separate structure and pull it in here somehow.
+            allocs = sorted(
+                allocations_qs, key=attrgetter("date_requested"), reverse=True
+            )
+            if alloc_status:
+                allocs = [a for a in allocs if a.status in alloc_status]
+            tas_proj["allocations"] = [a.as_tas() for a in allocs]
+
+        return tas_proj
 
 
 class ProjectExtras(models.Model):
