@@ -103,7 +103,6 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data["username"]
                     if mapper.add_user_to_project(project, add_username):
-                        sync_project_memberships(request, add_username)
                         messages.success(
                             request, f'User "{add_username}" added to project!'
                         )
@@ -134,7 +133,6 @@ def view_project(request, project_id):
                         "Removing the PI from the project is not allowed."
                     )
                 if mapper.remove_user_from_project(project, del_username):
-                    sync_project_memberships(request, del_username)
                     messages.success(
                         request, 'User "%s" removed from project' % del_username
                     )
@@ -222,45 +220,6 @@ def set_ks_project_nickname(chargeCode, nickname):
                 nickname, chargeCode, region
             )
         )
-
-
-def sync_project_memberships(request, username):
-    """Re-sync a user's Keystone project memberships.
-
-    This calls utils.auth.keystone_auth.sync_projects under the hood, which
-    will dynamically create missing projects as well.
-
-    Args:
-        request (Request): the parent request; used for region detection.
-        username (str): the username to sync memberships for.
-
-    Return:
-        List[keystone.Project]: a list of Keystone projects the user is a
-            member of.
-    """
-    mapper = ProjectAllocationMapper(request)
-    try:
-        ks_admin = admin_ks_client(request=request)
-        ks_user = get_user(ks_admin, username)
-
-        if not ks_user:
-            logger.error(
-                (
-                    "Could not fetch Keystone user for {}, skipping membership syncing".format(
-                        username
-                    )
-                )
-            )
-            return
-
-        active_projects = mapper.get_user_projects(
-            username, alloc_status=["active"], to_pytas_model=True
-        )
-
-        return sync_projects(ks_admin, ks_user, active_projects)
-    except Exception as e:
-        logger.error("Could not sync project memberships for %s: %s", username, e)
-        return []
 
 
 @login_required
