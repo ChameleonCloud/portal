@@ -169,10 +169,10 @@ class AllocationCreateForm(forms.Form):
 
 
 class ProjectAddUserForm(forms.Form):
-    username = forms.CharField(
+    user_ref = forms.CharField(
         label="Add a User to Project",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Username of User"}),
+        widget=forms.TextInput(attrs={"placeholder": "Username or email"}),
     )
 
 
