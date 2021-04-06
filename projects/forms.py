@@ -109,6 +109,7 @@ class ProjectCreateForm(forms.Form):
             logger.error("Couldn't get field or type list.")
 
 
+
 class EditNicknameForm(forms.Form):
     nickname = forms.CharField(
         label="",
@@ -129,6 +130,7 @@ class EditNicknameForm(forms.Form):
         return not Project.objects.filter(
             nickname=self.cleaned_data["nickname"]
         ).exists()
+
 
 
 class EditTypeForm(forms.Form):
@@ -152,6 +154,7 @@ class EditTypeForm(forms.Form):
             self.fields["typeId"].choices = mapper.get_project_types_choices()
         else:
             logger.error("Couldn't get type list.")
+
 
 
 class AllocationCreateForm(forms.Form):

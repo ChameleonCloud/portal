@@ -494,6 +494,7 @@ def edit_nickname(request, project_id):
     return form
 
 
+
 @require_POST
 def edit_type(request, project_id):
     form_args = {"request": request}
@@ -521,6 +522,7 @@ def edit_type(request, project_id):
         messages.error(request, "Failed to update project type")
 
     return form
+
 
 
 def get_extras(request):
