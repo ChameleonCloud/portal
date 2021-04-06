@@ -15,6 +15,7 @@ from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
 from projects.models import Project
+from projects.models import Type
 from pytas.http import TASClient
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
@@ -244,6 +245,13 @@ class ProjectAllocationMapper:
         project.nickname = nickname
         project.save()
 
+    @staticmethod
+    def update_project_type(project_id, project_type_id):
+        project = Project.objects.get(pk=project_id)
+        project_type = Type.objects.get(pk=project_type_id)
+        project.type = project_type
+        project.save()
+
     def update_user_profile(self, user, new_profile, is_request_pi_eligibililty):
         keycloak_client = KeycloakClient()
 
@@ -414,6 +422,12 @@ class ProjectAllocationMapper:
             field_list = field_list + self._parse_field_recursive(f)
         for item in field_list:
             choices += (item,)
+        return choices
+
+    def get_project_types_choices(self):
+        choices = (("", "Choose One"),)
+        for item in Type.objects.all():
+            choices += ((item.id, item.name),)
         return choices
 
     def portal_to_tas_alloc_obj(self, alloc):

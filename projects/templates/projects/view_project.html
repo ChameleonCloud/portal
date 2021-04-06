@@ -46,7 +46,21 @@
       </tr>
       <tr>
         <th>Type</th>
-        <td>{{ project.type }}</td>
+        <td>
+          {% if is_admin %}
+            <span id='project_type'>{{ project_type|default_if_none:'' }}</span><span id='icon_show_type_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
+            <span id='project_type_edit_form' class='hidden'>
+            <form method="POST" id='project_type_edit_form' name='frm_edit_type'>
+              {% csrf_token %}
+              {% bootstrap_form type_form %}
+            <button type="submit" class="btn btn-xs" id="btn_update_project_type">Update</button>
+            <button type="button" class="btn btn-xs" id="btn_type_cancel">Cancel</button>
+            </form>
+          </span>
+          {% else %}
+            <span id='project_type'>{{ project_type|default_if_none:'' }}</span>
+          {% endif %}
+        </td>
       </tr>
       <tr>
         <th>Field of Science</th>

@@ -24,6 +24,7 @@ from .forms import (
     ProjectAddUserForm,
     AllocationCreateForm,
     EditNicknameForm,
+    EditTypeForm,
     AddBibtexPublicationForm,
 )
 from django.db import IntegrityError
@@ -93,6 +94,8 @@ def view_project(request, project_id):
 
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
+    type_form_args = {"request": request}
+    type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
 
     if request.POST and project_pi_or_admin_or_superuser(request.user, project):
@@ -147,6 +150,8 @@ def view_project(request, project_id):
                 )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
+        elif "typeId" in request.POST:
+            type_form = edit_type(request, project_id)
 
     users = mapper.get_project_members(project)
 
@@ -189,10 +194,13 @@ def view_project(request, project_id):
         {
             "project": project,
             "project_nickname": project.nickname,
+            "project_type": project.type,
             "users": user_mashup,
             "is_pi": request.user.username == project.pi.username,
+            "is_admin": request.user.is_superuser,
             "form": form,
             "nickname_form": nickname_form,
+            "type_form": type_form,
             "pubs_form": pubs_form,
         },
     )
@@ -424,9 +432,6 @@ def create_project(request):
 
             project["allocations"] = [allocation]
 
-            # startup
-            project["typeId"] = 2
-
             # source
             project["source"] = "Chameleon"
             try:
@@ -475,13 +480,49 @@ def edit_nickname(request, project_id):
             ProjectAllocationMapper.update_project_nickname(project_id, nickname)
             form = EditNicknameForm()
             set_ks_project_nickname(project.chargeCode, nickname)
-            messages.success(request, "Update Successful")
+            messages.success(
+                request,
+                "Update successful! Click <a href='{}'>here</a> to reload".format(
+                    request.path
+                ),
+            )
         except:
             messages.error(request, "Nickname not available")
     else:
         messages.error(request, "Nickname not available")
 
     return form
+
+
+
+@require_POST
+def edit_type(request, project_id):
+    form_args = {"request": request}
+    if not request.user.is_superuser:
+        messages.error(request, "Only the admin users can update project type.")
+        return EditTypeForm(**form_args)
+
+    form = EditTypeForm(request.POST, **form_args)
+    if form.is_valid(request):
+        # try to update type
+        try:
+            project_type_id = int(form.cleaned_data["typeId"])
+            ProjectAllocationMapper.update_project_type(project_id, project_type_id)
+            form = EditTypeForm(**form_args)
+            messages.success(
+                request,
+                "Update successful! Click <a href='{}'>here</a> to reload".format(
+                    request.path
+                ),
+            )
+        except Exception:
+            logger.exception("Failed to update project type")
+            messages.error(request, "Failed to update project type")
+    else:
+        messages.error(request, "Failed to update project type")
+
+    return form
+
 
 
 def get_extras(request):
