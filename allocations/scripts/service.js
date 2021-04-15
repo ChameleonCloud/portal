@@ -74,7 +74,7 @@ angular
         var factory = {};
         factory.getClass = function(allocation) {
             var status = allocation.status.toLowerCase();
-            if (status === 'pending') {
+            if (status === 'pending' || status === 'waiting') {
                 return 'label label-warning';
             } else if (status === 'active') {
                 return 'label label-success';
@@ -291,6 +291,31 @@ angular
                                 return null;
                             } else {
                                 NotificationFactory.addMessage(msgKey, 'This allocation request is approved successfully.', 'success');
+                                return response.data.result;
+                            }
+                        },
+                        function() {
+                            NotificationFactory.removeLoading(msgKey);
+                            NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
+                        });
+        };
+        
+        factory.waitingAllocation = function(data) {
+        var msgKey = "waitingAllocation" + data.allocation.id;
+        var errorMsg = "There was an error sending message to PI. Please try again or file a ticket if this seems persistent.";
+        NotificationFactory.clearMessages(errorMsg);
+        return $http({
+                        method: 'POST',
+                        url: '/admin/allocations/contact/',
+                        data: data
+                    })
+                    .then(function(response) {
+                            NotificationFactory.removeLoading(msgKey);
+                            if (response.data.status === 'error') {
+                                NotificationFactory.addMessage(msgKey, errorMsg, 'danger');
+                                return null;
+                            } else {
+                                NotificationFactory.addMessage(msgKey, 'Contact PI successfully. Reload to see changes.', 'success');
                                 return response.data.result;
                             }
                         },

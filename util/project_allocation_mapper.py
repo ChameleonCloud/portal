@@ -105,6 +105,21 @@ class ProjectAllocationMapper:
         )
         rt.createTicket(ticket)
 
+    def _create_ticket_for_pending_allocation(
+        self, requestor, problem_description, owner
+    ):
+        rt = rtUtil.DjangoRt()
+        subject = (
+            "More information required to approve your Chameleon allocation request"
+        )
+        ticket = rtModels.Ticket(
+            subject=subject,
+            problem_description=problem_description,
+            requestor=requestor,
+            owner=owner,
+        )
+        return rt.createTicket(ticket)
+
     def get_all_projects(self) -> "list[dict]":
         """Get all projects, all of their allocations, for all users.
 
@@ -363,6 +378,18 @@ class ProjectAllocationMapper:
             "host": host,
         }
         self._send_allocation_decision_notification(**email_args)
+
+    def contact_pi_via_rt(self, data):
+        rt_info = data["rt"]
+        ticket_id = self._create_ticket_for_pending_allocation(
+            rt_info["requestor"], rt_info["problem_description"], rt_info["owner"]
+        )
+
+        allocation = data["allocation"]
+        alloc = Allocation.objects.get(pk=allocation["id"])
+        setattr(alloc, "status", "waiting")
+        setattr(alloc, "decision_summary", f"RT ticket created with id: {ticket_id}")
+        alloc.save()
 
     def _update_user_membership(self, tas_project, user_ref, action=None):
         if action not in ["add", "delete"]:

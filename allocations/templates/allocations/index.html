@@ -70,6 +70,11 @@
                                         <input type="checkbox" ng-model="filter.rejected" ng-change="updateSelected()">
                                         Rejected</label>
                                 </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" ng-model="filter.waiting" ng-change="updateSelected()">
+                                        Waiting</label>
+                                </div>
                                 <button type="button" ng-click="reset()">Clear/Show All</button>
                             </div>
                         </div>
@@ -143,6 +148,9 @@
                                                 <b>Justification:</b> [[ allocation.justification ]]
                                             </p>
                                         </div>
+                                        <div ng-if="allocation.status.toLowerCase() === 'waiting'">
+                                            <p><b>Decision summary:</b> [[ allocation.decisionSummary ]]
+                                        </div>
                                         <div
                                             ng-if="allocation.status.toLowerCase() === 'active' || allocation.status.toLowerCase() === 'inactive' || allocation.status.toLowerCase() === 'approved' || allocation.status.toLowerCase() === 'rejected'">
                                             <p><b>Review date:</b> [[ allocation.dateReviewed | date:'dd-MMMM-yyyy']]
@@ -160,6 +168,23 @@
                                     </td>
                                     <td rowspan="2">
                                         <div ng-if="allocation.status.toLowerCase() == 'pending'">
+                                            <button class="btn btn-success" style="width:30%"
+                                                ng-click="approveAllocation(project, allocation, $event)"
+                                                ng-disabled="isLoading('approveAllocation', allocation)">
+                                                Approve
+                                            </button>
+                                            <button class="btn btn-danger" style="width:30%"
+                                                ng-click="rejectAllocation(project, allocation, $event)"
+                                                ng-disabled="isLoading('rejectAllocation', allocation)">
+                                                Reject
+                                            </button>
+                                            <button class="btn btn-warning" style="width:35%"
+                                                ng-click="waitingAllocation(project, allocation, $event)"
+                                                ng-disabled="isLoading('waitingAllocation', allocation)">
+                                                Contact PI
+                                            </button>
+                                        </div>
+                                        <div ng-if="allocation.status.toLowerCase() == 'waiting'">
                                             <button class="btn btn-success"
                                                 ng-click="approveAllocation(project, allocation, $event)"
                                                 ng-disabled="isLoading('approveAllocation', allocation)">
@@ -193,12 +218,22 @@
                                                     ng-show="isLoading('rejectAllocation', allocation)">
                                                     Reject</span>ing this allocation request...</h4>
                                         </div>
+                                        <div class="alert alert-info"
+                                            ng-show="isLoading('waitingAllocation', allocation)">
+                                            <h4><span class="fa fa-spinner fa-spin"></span><span
+                                                    ng-show="isLoading('waitingAllocation', allocation)">
+                                                    Sending message to PI</span></h4>
+                                        </div>
                                         <div ng-show="!isEmpty(getMessages('approveAllocation', allocation))">
                                             <alert ng-repeat="msg in getMessages('approveAllocation', allocation)"
                                                 type="[[msg.type]]">[[msg.body]]</alert>
                                         </div>
                                         <div ng-show="!isEmpty(getMessages('rejectAllocation', allocation))">
                                             <alert ng-repeat="msg in getMessages('rejectAllocation', allocation)"
+                                                type="[[msg.type]]">[[msg.body]]</alert>
+                                        </div>
+                                        <div ng-show="!isEmpty(getMessages('waitingAllocation', allocation))">
+                                            <alert ng-repeat="msg in getMessages('waitingAllocation', allocation)"
                                                 type="[[msg.type]]">[[msg.body]]</alert>
                                         </div>
                                     </td>

@@ -62,6 +62,7 @@ class DjangoRt:
             Text=ticket.problem_description.replace("\n", "\n "),
             Requestors=ticket.requestor,
             Cc=",".join(ticket.cc),
+            Owner=ticket.owner,
         )
 
     def replyToTicket(self, ticket_id, text="", files=[]):
