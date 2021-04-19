@@ -119,5 +119,29 @@ angular.module('allocationsApp')
                 $event.currentTarget.blur();
             });
         };
+        
+        $scope.waitingAllocation = function(project, allocation, $event) {
+            var modalInstance = $modal.open({
+                templateUrl: '/admin/allocations/template/contact.html/',
+                controller: 'modalController',
+                resolve: {
+                    data: function() {
+                        return {};
+                    }
+                }
+            });
+            modalInstance.result.then(function(data) {
+                $event.currentTarget.blur();
+                var postData = angular.copy(data);
+                postData.allocation = angular.copy(allocation);
+            	postData.rt.requestor = project.pi.email;
+                try {
+                    delete postData.doNotShow;
+                } catch (err) {}
+                AllocationFactory.waitingAllocation(postData);
+            }, function() {
+                $event.currentTarget.blur();
+            });
+        };
 
     }]);

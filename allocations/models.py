@@ -16,6 +16,7 @@ class Allocation(models.Model):
         ("inactive", "expired or overused"),
         ("active", "active"),
         ("pending", "waiting for review decision"),
+        ("waiting", "collecting more information from the PI"),
         ("rejected", "rejected"),
         ("approved", "approved but not active"),
     )

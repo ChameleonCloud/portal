@@ -7,6 +7,7 @@ urlpatterns = [
     url(r"^view/$", views.view, name="view"),
     url(r"^json/$", views.return_json, name="return_json"),
     url(r"^approval/$", views.approval, name="approval"),
+    url(r"^contact/$", views.contact, name="contact"),
     url(r"^denied/$", views.denied, name="denied"),
     url(r"^user/$", views.user_select, name="user_select"),
     url(r"^user/(?P<username>.+?)/$", views.user_projects, name="user_projects"),

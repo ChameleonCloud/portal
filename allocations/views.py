@@ -142,6 +142,8 @@ def approval(request):
             "approved",
             "Rejected",
             "rejected",
+            "Waiting",
+            "waiting",
         ]:
             errors[
                 "status"
@@ -253,6 +255,43 @@ def approval(request):
                 status = "success"
             except Exception as e:
                 logger.exception("Error processing allocation approval.")
+                status = "error"
+                errors[
+                    "message"
+                ] = "An unexpected error occurred. If this problem persists please create a help ticket."
+
+        else:
+            logger.info("Request data failed validation. %s", list(errors.values()))
+            status = "error"
+
+    else:
+        status = "error"
+        errors["message"] = "Only POST method allowed."
+    resp["status"] = status
+    resp["errors"] = errors
+    return HttpResponse(json.dumps(resp), content_type="application/json")
+
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
+def contact(request):
+    resp = {}
+    errors = {}
+    status = ""
+    if request.POST:
+        mapper = ProjectAllocationMapper(request)
+        data = json.loads(request.body)
+        data["rt"]["owner"] = request.user.username
+
+        if data["allocation"]["status"] not in ["Pending", "pending"]:
+            errors["allocation"] = "Contacting PI when allocation is pending."
+
+        if len(errors) == 0:
+            try:
+                mapper.contact_pi_via_rt(data)
+                status = "success"
+            except Exception:
+                logger.exception("Error contacting PI.")
                 status = "error"
                 errors[
                     "message"

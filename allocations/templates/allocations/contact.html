@@ -1,0 +1,22 @@
+<div class="modal-header">
+    <h3 class="modal-title">Contact PI via RT</h3>
+</div>
+<form novalidate id="modalForm" class="modalForm" name="modalForm">
+    <div class="modal-body">
+        <table class="table table-striped table-hover">
+            <tr>
+                <td><strong>Message to PI</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
+                <td>
+                    <textarea ng-model="data.rt.problem_description" name="problemDescription" rows="4" cols="53" ng-required="true"></textarea>
+                    <div style="color:red" ng-show="modalForm.problemDescription.$dirty && modalForm.problemDescription.$invalid">
+                        <div ng-show="modalForm.problemDescription.$error.required">Message is required.</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-success" ng-click="ok()" ng-disabled="modalForm.$invalid">Contact</button>
+        <button class="btn btn-info" ng-click="cancel()">Cancel</button>
+    </div>
+</form>
