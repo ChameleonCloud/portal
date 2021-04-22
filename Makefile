@@ -16,7 +16,6 @@ NODE_VER ?= lts
 
 .PHONY: build
 build: .env
-	./docker/client/build.sh
 	docker build --build-arg PY_IMG_TAG=$(PY_IMG_TAG) \
 				 --build-arg NODE_VER=$(NODE_VER) \
 				 -t $(DOCKER_IMAGE) .

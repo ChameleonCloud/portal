@@ -1,8 +1,0 @@
-# Ignore everything
-*
-# Allow yarn packaging meta
-!package.json
-!yarn.lock
-# Allow Vue components and config
-!**/vue/*
-!vue.config.js
