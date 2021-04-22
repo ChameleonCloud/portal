@@ -114,11 +114,15 @@ class ProjectAllocationMapper:
         )
         ticket = rtModels.Ticket(
             subject=subject,
-            problem_description=problem_description,
+            problem_description="Ticket created to contact the PI for more information.",
             requestor=requestor,
             owner=owner,
         )
-        return rt.createTicket(ticket)
+
+        ticket_id = rt.createTicket(ticket)
+        rt.replyToTicket(ticket_id, text=problem_description)
+
+        return ticket_id
 
     def get_all_projects(self) -> "list[dict]":
         """Get all projects, all of their allocations, for all users.
