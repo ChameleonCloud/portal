@@ -330,6 +330,7 @@ CONSOLE_WIDTH = os.environ.get("DJANGO_LOG_WIDTH", 100)
 CONSOLE_INDENT = os.environ.get("DJANGO_LOG_INDENT", 2)
 
 import logging
+
 # Ensure Python `warnings` are ingested by logging infra
 logging.captureWarnings(True)
 
@@ -358,7 +359,6 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "filters": ["require_debug_true"],
             "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
             "formatter": f"default_{LOG_VERBOSITY.lower()}",
