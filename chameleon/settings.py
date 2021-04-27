@@ -72,7 +72,8 @@ ALLOWED_HOSTS = [
     "chameleon.local",
     "chameleoncloud.org",
     "www.chameleoncloud.org",
-    "dev.chameleon.tacc.utexas.edu",
+    "dev.chameleon.org",
+    "www.dev.chameleoncloud.org",
 ]
 
 # Application definition
