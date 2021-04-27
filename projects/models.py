@@ -10,9 +10,15 @@ from django.utils import timezone
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Field(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class FieldHierarchy(models.Model):
@@ -30,7 +36,10 @@ class Project(models.Model):
     title = models.TextField(blank=False)
     nickname = models.CharField(max_length=255, blank=False, unique=True)
     field = models.ForeignKey(Field, related_name="project_field", null=True)
-    charge_code = models.CharField(max_length=50, blank=False)
+    charge_code = models.CharField(max_length=50, blank=False, unique=True)
+
+    def __str__(self) -> str:
+        return self.charge_code
 
     def as_tas(self, **kwargs):
         return Project.to_tas(self, **kwargs)
