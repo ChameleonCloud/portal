@@ -1,7 +1,10 @@
+import json
+import secrets
+from operator import attrgetter
+
 from django.conf import settings
 from django.db import models
-import json
-from operator import attrgetter
+from django.utils import timezone
 
 
 class Type(models.Model):
@@ -76,6 +79,69 @@ class ProjectExtras(models.Model):
     tas_project_id = models.IntegerField(primary_key=True)
     charge_code = models.CharField(max_length=50, blank=False, null=False)
     nickname = models.CharField(max_length=50, blank=False, null=False, unique=True)
+
+
+class InvitationQuerySet(models.QuerySet):
+    pass
+
+
+class InvitationManager(models.Manager):
+    pass
+
+
+class Invitation(models.Model):
+    """Model to hold invitations of users to projects."""
+
+    STATUS = [("ISSUED", "Issued"), ("ACCEPTED", "Accepted")]
+
+    def _generate_secret():
+        """Generate secure code.
+
+        https://docs.python.org/3/library/secrets.html#secrets.token_urlsafe
+        Each byte creates 1.3 characters on average, but we need to store into
+        a fixed length field. Using nchars for both bytes and characters ensures
+        that we always have sufficient randomness, but will fit in the db field.
+        As of 2021, a resonable standard is 20 bytes of randomness, or 26 characters.
+        """
+        nbytes = 26
+        nchars = nbytes
+        return secrets.token_urlsafe(nbytes)[:nchars]
+
+    def _generate_expiration():
+        now = timezone.now()
+        duration = timezone.timedelta(days=30)
+        return now + duration
+
+    # This information is needed on creation
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user_issued = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=True
+    )
+    date_issued = models.DateTimeField(auto_now_add=True, editable=False)
+    date_expires = models.DateTimeField(default=_generate_expiration, editable=False)
+    email_address = models.EmailField(blank=False)
+    email_code = models.CharField(
+        max_length=26, default=_generate_secret, editable=False
+    )
+
+    status = models.CharField(
+        choices=STATUS, max_length=30, default="ISSUED", editable=False
+    )
+
+    # This information is filled on response
+    user_accepted = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING,
+        related_name="accepted_user",
+        editable=False,
+        null=True,
+    )
+    date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
+
+    def __str__(self) -> str:
+        return self.email_address
+
+    objects = InvitationManager()
 
 
 class PublicationManager(models.Manager):
