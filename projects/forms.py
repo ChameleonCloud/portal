@@ -1,12 +1,13 @@
+import logging
 from textwrap import dedent
 
+import bibtexparser
 from django import forms
 from django.core.urlresolvers import reverse_lazy
 from django.utils.functional import lazy
-from .models import Project
-import bibtexparser
-import logging
 from util.project_allocation_mapper import ProjectAllocationMapper
+
+from .models import Project
 
 logger = logging.getLogger("projects")
 
@@ -109,7 +110,6 @@ class ProjectCreateForm(forms.Form):
             logger.error("Couldn't get field or type list.")
 
 
-
 class EditNicknameForm(forms.Form):
     nickname = forms.CharField(
         label="",
@@ -130,7 +130,6 @@ class EditNicknameForm(forms.Form):
         return not Project.objects.filter(
             nickname=self.cleaned_data["nickname"]
         ).exists()
-
 
 
 class EditTypeForm(forms.Form):
@@ -154,7 +153,6 @@ class EditTypeForm(forms.Form):
             self.fields["typeId"].choices = mapper.get_project_types_choices()
         else:
             logger.error("Couldn't get type list.")
-
 
 
 class AllocationCreateForm(forms.Form):
@@ -207,6 +205,10 @@ class ProjectAddUserForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "Username or email"}),
     )
+
+
+class InviteUserEmailForm(ProjectAddUserForm):
+    pass
 
 
 class AddBibtexPublicationForm(forms.Form):

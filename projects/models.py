@@ -152,6 +152,11 @@ class Invitation(models.Model):
 
     objects = InvitationManager()
 
+    def save(self, *args, **kwargs) -> None:
+        _send_invitation_email(self.email_address, self.email_code)
+
+        return super().save(*args, **kwargs)
+
 
 class PublicationManager(models.Manager):
     def create_from_bibtex(self, bibtex_entry, project, username):
