@@ -565,15 +565,15 @@ python-versions = "*"
 Django = ">=1.11"
 
 [[package]]
-name = "django-ranged-response"
-version = "0.2.0"
-description = "Modified Django FileResponse that adds Content-Range headers."
+name = "django-recaptcha"
+version = "2.0.6"
+description = "Django recaptcha form field/widget app."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django = "*"
+django = ">1.11,<4.0"
 
 [[package]]
 name = "django-reversion"
@@ -598,23 +598,6 @@ python-versions = "*"
 django = ">=1.11"
 django-classy-tags = ">=0.9.0"
 six = "*"
-
-[[package]]
-name = "django-simple-captcha"
-version = "0.5.12"
-description = "A very simple, yet powerful, Django captcha application"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-Django = ">=1.8"
-django-ranged-response = "0.2.0"
-Pillow = ">=2.2.2,<5.1.0 || >5.1.0"
-six = ">=1.2.0"
-
-[package.extras]
-test = ["testfixtures"]
 
 [[package]]
 name = "django-sortedm2m"
@@ -2052,7 +2035,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "730b4d5f9bed411a7ac8de8192bc6bb66d77cb0a9ecf2326cb66b204be3ef0c3"
+content-hash = "33f7a0762b208ba8d6daef1d212c70a8a7dd19fb54b19473053fbed5f7c83b1e"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2271,8 +2254,8 @@ django-polymorphic = [
     {file = "django-polymorphic-2.1.2.tar.gz", hash = "sha256:6e08a76c91066635ccb7ef3ebbe9a0ad149febae6b30be2579716ec16d3c6461"},
     {file = "django_polymorphic-2.1.2-py2.py3-none-any.whl", hash = "sha256:0a25058e95e5e99fe0beeabb8f4734effe242d7b5b77dca416fba9fd3062da6a"},
 ]
-django-ranged-response = [
-    {file = "django-ranged-response-0.2.0.tar.gz", hash = "sha256:f71fff352a37316b9bead717fc76e4ddd6c9b99c4680cdf4783b9755af1cf985"},
+django-recaptcha = [
+    {file = "django_recaptcha-2.0.6-py2.py3-none-any.whl", hash = "sha256:567784963fd5400feaf92e8951d8dbbbdb4b4c48a76e225d4baa63a2c9d2cd8c"},
 ]
 django-reversion = [
     {file = "django-reversion-3.0.7.tar.gz", hash = "sha256:72fc53580a6b538f0cfff10f27f42333f67d79c406399289c94ec5a193cfb3e1"},
@@ -2280,10 +2263,6 @@ django-reversion = [
 ]
 django-sekizai = [
     {file = "django-sekizai-1.1.0.tar.gz", hash = "sha256:e2f6e666d4dd9d3ecc27284acb85ef709e198014f5d5af8c6d54ed04c2d684d9"},
-]
-django-simple-captcha = [
-    {file = "django-simple-captcha-0.5.12.zip", hash = "sha256:fc25f0425e282aa82d2a65013049a8dc7c0682f8e05d32681c39a0c55ed322bd"},
-    {file = "django_simple_captcha-0.5.12-py2.7.egg", hash = "sha256:33f6a01fb8da1a2283bcc56db35cbb3fdc3f444157363ae25f0b48d111ca52de"},
 ]
 django-sortedm2m = [
     {file = "django-sortedm2m-3.0.2.tar.gz", hash = "sha256:8acc3638b7a2587533c7776deaa2c6c035220c8f9fff85ed67858a9c6bf51e7c"},

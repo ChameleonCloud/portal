@@ -1,7 +1,5 @@
 import logging
 
-from chameleon import os_login as chameleon_os_login
-from chameleon import views as chameleon_views
 from chameleon_mailman import views as chameleon_mailman_views
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
@@ -23,6 +21,9 @@ from util.dynamic_drf_api import (
     TypeViewSet,
     UserViewSet,
 )
+
+from chameleon import os_login as chameleon_os_login
+from chameleon import views as chameleon_views
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,6 @@ urlpatterns = (
         # contrib urls
         url(r"^oidc/", include("mozilla_django_oidc.urls")),
         url(r"^ckeditor/", include("ckeditor_uploader.urls")),
-        url(r"^captcha/", include("captcha.urls")),
         url(r"^terms/", include("termsandconditions.urls")),
         url(
             r"^sitemap\.xml$",

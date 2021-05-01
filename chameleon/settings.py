@@ -10,8 +10,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import re
 
-from celery.schedules import crontab
 from django.utils.translation import ugettext_lazy as _
+
+from celery.schedules import crontab
 
 gettext = lambda s: s
 
@@ -307,6 +308,11 @@ AUTHENTICATION_BACKENDS = ("chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB",
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/user/dashboard"
+
+
+# Recaptcha keys
+RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY")
+RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY")
 
 
 OPENID_PROVIDERS = {
@@ -782,9 +788,15 @@ CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
 CSP_SCRIPT_SRC = [
     "'self'",
     "https://www.google-analytics.com",
+    "https://www.google.com/recaptcha/",
+    "https://www.gstatic.com/recaptcha/",
     "'unsafe-inline'",
 ]
 CSP_CONNECT_SRC = ["'self'", "https://www.google-analytics.com"]
+CSP_FRAME_SRC = [
+    "https://www.google.com/recaptcha/",
+    "https://recaptcha.google.com/recaptcha/",
+]
 CSP_IMG_SRC = [
     "'self'",
     "https://www.google-analytics.com",
