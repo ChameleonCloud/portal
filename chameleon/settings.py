@@ -784,6 +784,7 @@ BLOG_PLUGIN_TEMPLATE_FOLDERS = (
 )
 
 # Content-Security-Policy
+# Ensure that all items include self.
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
 CSP_SCRIPT_SRC = [
     "'self'",
@@ -792,8 +793,12 @@ CSP_SCRIPT_SRC = [
     "https://www.gstatic.com/recaptcha/",
     "'unsafe-inline'",
 ]
-CSP_CONNECT_SRC = ["'self'", "https://www.google-analytics.com"]
+CSP_CONNECT_SRC = [
+    "'self'",
+    "https://www.google-analytics.com",
+]
 CSP_FRAME_SRC = [
+    "'self'",
     "https://www.google.com/recaptcha/",
     "https://recaptcha.google.com/recaptcha/",
 ]
