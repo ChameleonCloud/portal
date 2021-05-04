@@ -1,13 +1,18 @@
+ARG NODE_VER=lts
 ARG PY_IMG_TAG=3.7.9-stretch
-FROM python:${PY_IMG_TAG}
 
+FROM node:${NODE_VER} as client
+WORKDIR /project
+COPY package.json yarn.lock ./
+RUN yarn install
+COPY . ./
+RUN yarn build --production
+
+FROM python:${PY_IMG_TAG}
+ARG NODE_VER=lts
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install repos for node6.x. 
-# WARNING: EOL on 2019-04-30
-# https://github.com/nodejs/Release#end-of-life-releases
-ARG NODE_VER=lts
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VER}.x | bash -
 
 # Install apt packages
@@ -21,21 +26,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Install npm packages
-RUN npm install -g \
-  yuglify@^2.0.0
-
 # install python dependencies
 WORKDIR /setup
 
 # Use pip to install poetry. We don't use virtualenvs in the build context.
 # Therefore, the vendored install provides no additional isolation.
-RUN pip install \
-  poetry~=1.1 \
-  uWSGI~=2.0
+RUN pip install --upgrade pip && \
+  pip install \
+  poetry~=1.1
 
-COPY poetry.lock /setup/poetry.lock
-COPY pyproject.toml /setup/pyproject.toml
+COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN poetry install --no-dev --no-root
 
