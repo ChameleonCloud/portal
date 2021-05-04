@@ -67,15 +67,17 @@ ZENODO_DEFAULT_ACCESS_TOKEN = os.getenv("ZENODO_DEFAULT_ACCESS_TOKEN")
 
 # TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = [
+_default_allowed_hosts = [
     "127.0.0.1",
     "localhost",
     "chameleon.local",
     "chameleoncloud.org",
     "www.chameleoncloud.org",
-    "dev.chameleon.org",
+    "dev.chameleoncloud.org",
     "www.dev.chameleoncloud.org",
 ]
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
 
 # Application definition
 
