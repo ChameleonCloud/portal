@@ -54,17 +54,17 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "attrs"
-version = "20.3.0"
+version = "21.2.0"
 description = "Classes Without Boilerplate"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "furo", "sphinx", "pre-commit"]
-docs = ["furo", "sphinx", "zope.interface"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
+dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit"]
+docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
+tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface"]
+tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins"]
 
 [[package]]
 name = "babel"
@@ -565,15 +565,15 @@ python-versions = "*"
 Django = ">=1.11"
 
 [[package]]
-name = "django-recaptcha"
-version = "2.0.6"
-description = "Django recaptcha form field/widget app."
+name = "django-recaptcha3"
+version = "0.4.0"
+description = "Django reCaptcha v3 field/widget"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django = ">1.11,<4.0"
+requests = "*"
 
 [[package]]
 name = "django-reversion"
@@ -911,7 +911,7 @@ six = "*"
 
 [[package]]
 name = "flake8"
-version = "3.9.1"
+version = "3.9.2"
 description = "the modular source code checker: pep8 pyflakes and co"
 category = "dev"
 optional = false
@@ -959,7 +959,7 @@ lxml = ["lxml"]
 
 [[package]]
 name = "httpretty"
-version = "1.0.5"
+version = "1.1.1"
 description = "HTTP client mock for Python"
 category = "main"
 optional = false
@@ -991,7 +991,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 
 [[package]]
 name = "importlib-resources"
-version = "5.1.2"
+version = "5.1.3"
 description = "Read resources from Python packages"
 category = "main"
 optional = false
@@ -1002,7 +1002,7 @@ zipp = {version = ">=0.4", markers = "python_version < \"3.8\""}
 
 [package.extras]
 docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "pytest-enabler", "pytest-black (>=0.3.7)", "pytest-mypy"]
+testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-black (>=0.3.7)", "pytest-mypy"]
 
 [[package]]
 name = "inflection"
@@ -1254,7 +1254,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "oslo.config"
-version = "8.6.0"
+version = "8.7.0"
 description = "Oslo Configuration API"
 category = "main"
 optional = false
@@ -1300,7 +1300,7 @@ six = ">=1.10.0"
 
 [[package]]
 name = "oslo.log"
-version = "4.4.0"
+version = "4.5.0"
 description = "oslo.log library"
 category = "main"
 optional = false
@@ -1320,7 +1320,7 @@ python-dateutil = ">=2.7.0"
 [package.extras]
 fixtures = ["fixtures (>=3.0.0)"]
 systemd = ["systemd-python (>=234)"]
-test = ["bandit (>=1.6.0,<1.7.0)", "coverage (>=4.5.1)", "fixtures (>=3.0.0)", "hacking (>=2.0.0,<2.1.0)", "oslotest (>=3.3.0)", "stestr (>=2.0.0)", "testtools (>=2.3.0)"]
+test = ["bandit (>=1.6.0,<1.7.0)", "coverage (>=4.5.1)", "fixtures (>=3.0.0)", "hacking (>=2.0.0,<2.1.0)", "oslotest (>=3.3.0)", "pre-commit (>=2.6.0)", "stestr (>=2.0.0)", "testtools (>=2.3.0)"]
 
 [[package]]
 name = "oslo.serialization"
@@ -1338,7 +1338,7 @@ pytz = ">=2013.6"
 
 [[package]]
 name = "oslo.utils"
-version = "4.8.0"
+version = "4.9.0"
 description = "Oslo Utility library"
 category = "main"
 optional = false
@@ -1841,7 +1841,7 @@ tests = ["coverage (>=3.7.1,<6.0.0)", "pytest-cov", "pytest-localserver", "flake
 
 [[package]]
 name = "rfc3986"
-version = "1.4.0"
+version = "1.5.0"
 description = "Validating URI References per RFC 3986"
 category = "main"
 optional = false
@@ -1882,7 +1882,7 @@ python-versions = ">=2.5, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "six"
-version = "1.15.0"
+version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
 category = "main"
 optional = false
@@ -2040,7 +2040,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "e9073643dca76855d4d9dabadec882306d1304b7d17fc027bb2a00a306a98811"
+content-hash = "05fbb1c03371d2aafafc7e34c5702723b28f55fb7f4442ad10bf952c189ea3a8"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2064,8 +2064,8 @@ atomicwrites = [
     {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
 ]
 attrs = [
-    {file = "attrs-20.3.0-py2.py3-none-any.whl", hash = "sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6"},
-    {file = "attrs-20.3.0.tar.gz", hash = "sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700"},
+    {file = "attrs-21.2.0-py2.py3-none-any.whl", hash = "sha256:149e90d6d8ac20db7a955ad60cf0e6881a3f20d37096140088356da6c716b0b1"},
+    {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
 babel = [
     {file = "Babel-2.9.1-py2.py3-none-any.whl", hash = "sha256:ab49e12b91d937cd11f0b67cb259a57ab4ad2b59ac7a3b41d6c06c0ac5b0def9"},
@@ -2259,8 +2259,9 @@ django-polymorphic = [
     {file = "django-polymorphic-2.1.2.tar.gz", hash = "sha256:6e08a76c91066635ccb7ef3ebbe9a0ad149febae6b30be2579716ec16d3c6461"},
     {file = "django_polymorphic-2.1.2-py2.py3-none-any.whl", hash = "sha256:0a25058e95e5e99fe0beeabb8f4734effe242d7b5b77dca416fba9fd3062da6a"},
 ]
-django-recaptcha = [
-    {file = "django_recaptcha-2.0.6-py2.py3-none-any.whl", hash = "sha256:567784963fd5400feaf92e8951d8dbbbdb4b4c48a76e225d4baa63a2c9d2cd8c"},
+django-recaptcha3 = [
+    {file = "django-recaptcha3-0.4.0.tar.gz", hash = "sha256:cfeb612b27528ec58e358df1b4e507639ca0f90abeca20badb4beef47e49a070"},
+    {file = "django_recaptcha3-0.4.0-py3-none-any.whl", hash = "sha256:ff1b91b9ddda2753a7a63cd4badec89aabd3d1b067ece9aa68c56b964d5c9cc4"},
 ]
 django-reversion = [
     {file = "django-reversion-3.0.7.tar.gz", hash = "sha256:72fc53580a6b538f0cfff10f27f42333f67d79c406399289c94ec5a193cfb3e1"},
@@ -2361,8 +2362,8 @@ ecdsa = [
     {file = "ecdsa-0.14.1.tar.gz", hash = "sha256:64c613005f13efec6541bb0a33290d0d03c27abab5f15fbab20fb0ee162bdd8e"},
 ]
 flake8 = [
-    {file = "flake8-3.9.1-py2.py3-none-any.whl", hash = "sha256:3b9f848952dddccf635be78098ca75010f073bfe14d2c6bda867154bea728d2a"},
-    {file = "flake8-3.9.1.tar.gz", hash = "sha256:1aa8990be1e689d96c745c5682b687ea49f2e05a443aff1f8251092b0014e378"},
+    {file = "flake8-3.9.2-py2.py3-none-any.whl", hash = "sha256:bf8fd333346d844f616e8d47905ef3a3384edae6b4e9beb0c5101e25e3110907"},
+    {file = "flake8-3.9.2.tar.gz", hash = "sha256:07528381786f2a6237b061f6e96610a4167b226cb926e2aa2b6b1d78057c576b"},
 ]
 funcsigs = [
     {file = "funcsigs-1.0.2-py2.py3-none-any.whl", hash = "sha256:330cc27ccbf7f1e992e69fef78261dc7c6569012cf397db8d3de0234e6c937ca"},
@@ -2376,7 +2377,7 @@ html5lib = [
     {file = "html5lib-1.1.tar.gz", hash = "sha256:b2e5b40261e20f354d198eae92afc10d750afb487ed5e50f9c4eaf07c184146f"},
 ]
 httpretty = [
-    {file = "httpretty-1.0.5.tar.gz", hash = "sha256:e53c927c4d3d781a0761727f1edfad64abef94e828718e12b672a678a8b3e0b5"},
+    {file = "httpretty-1.1.1.tar.gz", hash = "sha256:05223ede0a720564eeed95fbea00000c9569a9863e3661ad513a0c03e6e6eba1"},
 ]
 idna = [
     {file = "idna-2.10-py2.py3-none-any.whl", hash = "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"},
@@ -2387,8 +2388,8 @@ importlib-metadata = [
     {file = "importlib_metadata-4.0.1.tar.gz", hash = "sha256:8c501196e49fb9df5df43833bdb1e4328f64847763ec8a50703148b73784d581"},
 ]
 importlib-resources = [
-    {file = "importlib_resources-5.1.2-py3-none-any.whl", hash = "sha256:ebab3efe74d83b04d6bf5cd9a17f0c5c93e60fb60f30c90f56265fce4682a469"},
-    {file = "importlib_resources-5.1.2.tar.gz", hash = "sha256:642586fc4740bd1cad7690f836b3321309402b20b332529f25617ff18e8e1370"},
+    {file = "importlib_resources-5.1.3-py3-none-any.whl", hash = "sha256:3b9c774e0e7e8d9c069eb2fe6aee7e9ae71759a381dec02eb45249fba7f38713"},
+    {file = "importlib_resources-5.1.3.tar.gz", hash = "sha256:0786b216556e53b34156263ab654406e543a8b0d9b1381019e25a36a09263c36"},
 ]
 inflection = [
     {file = "inflection-0.3.1.tar.gz", hash = "sha256:18ea7fb7a7d152853386523def08736aa8c32636b047ade55f7578c4edeb16ca"},
@@ -2549,8 +2550,8 @@ os-service-types = [
     {file = "os_service_types-1.7.0-py2.py3-none-any.whl", hash = "sha256:0505c72205690910077fb72b88f2a1f07533c8d39f2fe75b29583481764965d6"},
 ]
 "oslo.config" = [
-    {file = "oslo.config-8.6.0-py3-none-any.whl", hash = "sha256:396bbd4f29f9679c56134d013ee2e9d03e4d4265360d91c21d30e8e26099f9d7"},
-    {file = "oslo.config-8.6.0.tar.gz", hash = "sha256:dadb10ea187b6282622a31be3a15bd1c45dc0bc2a4f232ec8762ae8196982f28"},
+    {file = "oslo.config-8.7.0-py3-none-any.whl", hash = "sha256:5b1b9439bfb76e0091172aee77b509144f22e08127ddee4d10a7eb5407740b07"},
+    {file = "oslo.config-8.7.0.tar.gz", hash = "sha256:5b28db6e8716feddb83fc8d97584513d7f48b54ee774c74b0c5a8d61c8d4fa73"},
 ]
 "oslo.context" = [
     {file = "oslo.context-3.2.0-py3-none-any.whl", hash = "sha256:ed71f2431bfc71b2cdb220ae2206a3dd22c621b5cbc9241bb69998a47a591d8c"},
@@ -2561,16 +2562,16 @@ os-service-types = [
     {file = "oslo.i18n-5.0.1.tar.gz", hash = "sha256:3484b71e30f75c437523302d1151c291caf4098928269ceec65ce535456e035b"},
 ]
 "oslo.log" = [
-    {file = "oslo.log-4.4.0-py3-none-any.whl", hash = "sha256:189726ef91641f365344e5040a8f4f06729672f81bf915da587e0db2910c0a27"},
-    {file = "oslo.log-4.4.0.tar.gz", hash = "sha256:0883be3099cd9f8e17843b574018627e1d64243aabcf6cdbe1ebdd1cb5784448"},
+    {file = "oslo.log-4.5.0-py3-none-any.whl", hash = "sha256:8539cfa12f49c52d3ccfaf29c72935c80d784bce90a8733684db2b830be6a33c"},
+    {file = "oslo.log-4.5.0.tar.gz", hash = "sha256:63619fc00483f37c7ae6a6d6775d1ebb2b57e241c731f0295d1473b2c01c7278"},
 ]
 "oslo.serialization" = [
     {file = "oslo.serialization-4.1.0-py3-none-any.whl", hash = "sha256:a0acf0ff7ca88b3ee6514713571f614b5c20870005ed0eb90408fa7f9f3edb60"},
     {file = "oslo.serialization-4.1.0.tar.gz", hash = "sha256:cecc7794df806c85cb70dbd6c2b3af19bc68047ad29e3c6442be90a0a4de5379"},
 ]
 "oslo.utils" = [
-    {file = "oslo.utils-4.8.0-py3-none-any.whl", hash = "sha256:573cb04bcc428bd47e881a16be420fb8e3f77d055a88fc4c80db5d1ee12d684f"},
-    {file = "oslo.utils-4.8.0.tar.gz", hash = "sha256:193111209bed092229b75be725194a6d4f3464c2692a2ac9fb34c46cd8013edb"},
+    {file = "oslo.utils-4.9.0-py3-none-any.whl", hash = "sha256:c10740e4462c32956afa1ba5156191cb678b2b63c60485d1a73542d1622677d6"},
+    {file = "oslo.utils-4.9.0.tar.gz", hash = "sha256:4d29cae87f0ce48ec0e1c5577787c5cd10723c614f2d5a642f42c5efdf787e9c"},
 ]
 packaging = [
     {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},
@@ -2822,8 +2823,8 @@ responses = [
     {file = "responses-0.13.3.tar.gz", hash = "sha256:18a5b88eb24143adbf2b4100f328a2f5bfa72fbdacf12d97d41f07c26c45553d"},
 ]
 rfc3986 = [
-    {file = "rfc3986-1.4.0-py2.py3-none-any.whl", hash = "sha256:af9147e9aceda37c91a05f4deb128d4b4b49d6b199775fd2d2927768abdc8f50"},
-    {file = "rfc3986-1.4.0.tar.gz", hash = "sha256:112398da31a3344dc25dbf477d8df6cb34f9278a94fee2625d89e4514be8bb9d"},
+    {file = "rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
+    {file = "rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
 ]
 rsa = [
     {file = "rsa-4.7.2-py3-none-any.whl", hash = "sha256:78f9a9bf4e7be0c5ded4583326e7461e3a3c5aae24073648b4bdfa797d78c9d2"},
@@ -2881,8 +2882,8 @@ simplejson = [
     {file = "simplejson-3.17.2.tar.gz", hash = "sha256:75ecc79f26d99222a084fbdd1ce5aad3ac3a8bd535cd9059528452da38b68841"},
 ]
 six = [
-    {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
-    {file = "six-1.15.0.tar.gz", hash = "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259"},
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
 slimit = [
     {file = "slimit-0.8.1.zip", hash = "sha256:f433dcef899f166b207b67d91d3f7344659cb33b8259818f084167244e17720b"},

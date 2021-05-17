@@ -124,7 +124,7 @@ INSTALLED_APPS = (
     #
     "ckeditor",
     "pipeline",
-    "captcha",
+    "snowpenguin.django.recaptcha3",
     "bootstrap3",
     "termsandconditions",
     "impersonate",
@@ -315,6 +315,8 @@ LOGIN_REDIRECT_URL = "/user/dashboard"
 # Recaptcha keys
 RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", default="")
 RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", default="")
+RECAPTCHA_DEFAULT_ACTION = "generic"
+RECAPTCHA_SCORE_THRESHOLD = 0.5
 
 
 OPENID_PROVIDERS = {

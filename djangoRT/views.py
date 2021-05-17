@@ -1,18 +1,18 @@
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse
-from djangoRT import rtUtil, forms, rtModels
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 import logging
 import mimetypes
 
-from novaclient import client as nova_client
 from blazarclient import client as blazar_client
-from glanceclient import Client as glance_client
-from dateutil import parser
 from chameleon.keystone_auth import admin_ks_client, get_user, project_scoped_session
+from dateutil import parser
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from glanceclient import Client as glance_client
+from novaclient import client as nova_client
 
+from djangoRT import forms, rtModels, rtUtil
 
 logger = logging.getLogger("default")
 
@@ -165,7 +165,11 @@ def ticketcreate(request):
             }
         )
 
-    return render(request, "djangoRT/ticketCreate.html", {"form": form})
+    return render(
+        request,
+        "djangoRT/ticketCreate.html",
+        {"form": form, "recaptcha_action": "ticket/new"},
+    )
 
 
 def ticketcreateguest(request):
@@ -178,11 +182,19 @@ def ticketcreateguest(request):
         if ticket_id is not None:
             # Clear out the form
             form = forms.TicketGuestForm()
-            return render(request, "djangoRT/ticketCreateGuest.html", {"form": form})
+            return render(
+                request,
+                "djangoRT/ticketCreateGuest.html",
+                {"form": form, "recaptcha_action": "ticket/new/guest"},
+            )
     else:
         form = forms.TicketGuestForm()
 
-    return render(request, "djangoRT/ticketCreateGuest.html", {"form": form})
+    return render(
+        request,
+        "djangoRT/ticketCreateGuest.html",
+        {"form": form, "recaptcha_action": "ticket/new/guest"},
+    )
 
 
 @login_required

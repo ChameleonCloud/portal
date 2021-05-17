@@ -1,25 +1,25 @@
 import logging
 
-from captcha.fields import ReCaptchaField, ReCaptchaV2Checkbox, ReCaptchaV3
 from django import forms
 from django.core.validators import validate_email
+from snowpenguin.django.recaptcha3.fields import ReCaptchaField
 
 from .models import TicketCategories
 
 logger = logging.getLogger(__name__)
 
+
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):
     def to_python(self, value):
-        """ Normalize data to a list of strings. """
-
+        """Normalize data to a list of strings."""
         # Return an empty list if no input was given.
         if not value:
             return []
         return value.split(",")
 
     def validate(self, value):
-        """ Check if value consists only of valid emails. """
+        """Check if value consists only of valid emails."""
 
         # Use the parent's handling of required fields, etc.
         super(MultiEmailField, self).validate(value)
@@ -64,6 +64,8 @@ class BaseTicketForm(forms.Form):
     )
     attachment = forms.FileField(required=False)
 
+    captcha = ReCaptchaField()
+
     def __init__(self, *args, **kwargs):
         super(BaseTicketForm, self).__init__(*args, **kwargs)
         self.fields["category"].choices = get_ticket_categories()
@@ -88,12 +90,7 @@ class TicketForm(BaseTicketForm):
 
 
 class TicketGuestForm(BaseTicketForm):
-    """Anonymous users ticket form.
-
-    Adds a CAPTCHA to reduce spam submissions.
-    """
-
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    """Anonymous users ticket form."""
 
 
 class ReplyForm(forms.Form):
