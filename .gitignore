@@ -5,6 +5,8 @@ run-script.sh
 .chameleon_env
 .env*
 
+static/styles/tmp*
+
 media/
 db/
 
