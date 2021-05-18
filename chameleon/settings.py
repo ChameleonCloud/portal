@@ -395,6 +395,7 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "snowpenguin.django.recaptcha3": {"handlers": ["console"], "level": "DEBUG"},
         "pipeline": {"handlers": ["console"], "level": "INFO"},
         "pytas": {"handlers": ["console"], "level": "INFO"},
         "chameleon_cms_integrations": {"handlers": ["console"], "level": "INFO"},

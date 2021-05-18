@@ -5,7 +5,7 @@
 
 {% block head_scripts %}
 {% recaptcha_init %}
-{% recaptcha_ready action_name='ticket/new/guest' %}
+{% recaptcha_ready action_name=recaptcha_action %}
 {% endblock %}
 
 {% block title %}Create a Ticket{% endblock %}
