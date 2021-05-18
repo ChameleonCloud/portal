@@ -7,7 +7,8 @@ services:
     env_file: .env
     restart: "no"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     volumes:
       - .:/project
       - ./media:/media
@@ -16,17 +17,11 @@ services:
       - 127.0.0.1:8890:${PORTAL_PORT}
     entrypoint: ["python3", "manage.py"]
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
-  vue:
-    image: node:lts
-    command: sh -c 'yarn && yarn serve'
-    working_dir: /project
-    volumes:
-      - .:/project
-    ports:
-      - 127.0.0.1:9000:9000
   mysql:
     image: mariadb:10
     restart: "no"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
     volumes:
       - ./db:/docker-entrypoint-initdb.d
     environment:
@@ -34,6 +29,38 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
+  vue:
+    image: node:lts
+    command: sh -c 'yarn && yarn serve'
+    working_dir: /project
+    volumes:
+    - .:/project
+    ports:
+    - 127.0.0.1:9000:9000
+  celery:
+    image: portal_portal
+    entrypoint: ["celery"]
+    command:
+      ["-A", "chameleon", "worker", "-l", "INFO", "--concurrency=1", "-B"]
+    env_file:
+      - .env
+    volumes:
+      - .:/project
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  referenceapi:
+    image: docker.chameleoncloud.org/referenceapi:latest
+    ports:
+      - 127.0.0.1:8891:8000
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+  mail:
+    image: bytemark/smtp
 
 volumes:
   static:

@@ -11,27 +11,41 @@ DOCKER_IMAGE_LATEST ?= $(DOCKER_REGISTRY)/portal:latest
 PY_IMG_TAG ?= 3.7.9-stretch
 NODE_VER ?= lts
 
-PORTAL_RUN_CMD = docker compose run portal $(1)
+COMPOSE_CMD = docker compose -f docker-compose.yml
+PORTAL_RUN_CMD = ${COMPOSE_CMD} run --rm portal
 
 .env:
 	cp .env.sample .env
 
 .PHONY: build
 build: .env
-	docker compose build
+	${COMPOSE_CMD} build
 
+.PHONY: down
+down:
+	${COMPOSE_CMD} down
+
+.PHONY: down-volume
+down-volume:
+	${COMPOSE_CMD} down -v
+
+.PHONY: frontend
+frontend:
+	${COMPOSE_CMD} up -d portal vue
+
+.PHONY: start
+start-all:
+	${COMPOSE_CMD} up -d
+
+# Run commands against portal and db
 .PHONY: check
 check:
-	$(call PORTAL_RUN_CMD, check)
+	${PORTAL_RUN_CMD} check
 
 .PHONY: migrate
 migrate:
-	$(call PORTAL_RUN_CMD, migrate)
+	${PORTAL_RUN_CMD} migrate
 
 .PHONY: makemigrations
 makemigrations:
-	$(call PORTAL_RUN_CMD, makemigrations)
-
-.PHONY: start
-start: build
-	docker compose up -d
+	${PORTAL_RUN_CMD} makemigrations --check
