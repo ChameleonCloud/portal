@@ -1,15 +1,13 @@
-version: "3.5"
-
+version: "3.8"
 services:
   portal:
-    image: ${DOCKER_IMAGE_LATEST}
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PORTAL_PORT}"]
-      timeout: 10s
-      retries: 3
-    env_file:
-      - .env
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file: .env
+    restart: "no"
+    depends_on:
+      - mysql
     volumes:
       - .:/project
       - ./media:/media
@@ -18,51 +16,6 @@ services:
       - 127.0.0.1:8890:${PORTAL_PORT}
     entrypoint: ["python3", "manage.py"]
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
-    depends_on:
-      - mysql
-  referenceapi:
-    image: docker.chameleoncloud.org/referenceapi:latest
-    ports:
-      - 127.0.0.1:8891:8000
-  mysql:
-    container_name: mysql
-    image: mysql:5.7
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 10s
-      retries: 10
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - 127.0.0.1:8889:80
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-    depends_on:
-      - mysql
-  redis:
-    image: redis:alpine
-  celery:
-    image: ${DOCKER_IMAGE_LATEST}
-    restart: on-failure
-    entrypoint: ["celery"]
-    command:
-      ["-A", "chameleon", "worker", "-l", "INFO", "--concurrency=1", "-B"]
-    env_file:
-      - .env
-    volumes:
-      - .:/project
-    depends_on:
-      - mysql
-      - redis
   vue:
     image: node:lts
     command: sh -c 'yarn && yarn serve'
@@ -71,9 +24,16 @@ services:
       - .:/project
     ports:
       - 127.0.0.1:9000:9000
-  mail:
-    image: bytemark/smtp
-    restart: always
+  mysql:
+    image: mariadb:10
+    restart: "no"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
 
 volumes:
   static:
