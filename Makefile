@@ -49,3 +49,7 @@ migrate:
 .PHONY: makemigrations
 makemigrations:
 	${PORTAL_RUN_CMD} makemigrations --check
+
+.PHONY: test
+test:
+	${PORTAL_RUN_CMD} test
