@@ -25,8 +25,11 @@ services:
     ports:
       - 127.0.0.1:8891:8000
   mysql:
-    container_name: mysql
-    image: mysql:5.7
+    image: mariadb:10
+    restart: "no"
+    healthcheck:
+      test: [CMD, mysqladmin, "-u${DB_USER}", "-p${DB_PASSWORD}", --silent, status]
+      interval: "1s"
     volumes:
       - ./db:/docker-entrypoint-initdb.d
     restart: on-failure
