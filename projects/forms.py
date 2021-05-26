@@ -178,8 +178,8 @@ class AllocationCreateForm(forms.Form):
         label="Resource Justification",
         help_text=(
             "Please provide an update on the use of your current allocation - any "
-            "success stories, publications, presentations, or just a general "
-            "update on the progress of your research on Chameleon. This is helpful "
+            "success stories, presentations, or just a general update on the "
+            "progress of your research on Chameleon. This is helpful "
             "for us as we communicate with NSF regarding the value Chameleon is "
             "bringing to the research community."
         ),
@@ -213,7 +213,10 @@ class AddBibtexPublicationForm(forms.Form):
     project_id = forms.CharField(widget=forms.HiddenInput())
     bibtex_string = forms.CharField(
         label="Publication(s) in BibTeX format",
-        help_text="Please enter journal articles/publication in BibTex Format.",
+        help_text=(
+            "Please enter publications in BibTex Format. If you can provide "
+            "a link, please enter in note or howpublished using the url package."
+        ),
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "@article{..."}),
     )
