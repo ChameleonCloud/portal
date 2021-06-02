@@ -6,22 +6,15 @@
 <h2>Publications</h2>
 {% for p in publications %}
 
-<h4>
-  {{ p.title }} |
-  <small>{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}</small>
-</h4>
-<table class="table table-responsive" data-project-id="{{ p.chargeCode }}">
-  <tbody>
-    <tr>
-      <th>Author(s)</th>
-      <td>{{ p.author }}</td>
-    </tr>
-    <tr>
-      <th>Abstract</th>
-      <td>{{ p.abstract }}</td>
-    </tr>
-  </tbody>
-</table>
+<p>
+<form role="form" method="post" style="display:inline">
+  {% csrf_token %}
+  <input type="hidden" name="pub_ref" value="{{ p.id }}">
+  <button type="submit" class="btn btn-xs btn-link" name="del_pub"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove publication</span></button>
+</form>
+<small>[{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}]</small>
+<a href="{{ p.link }}">{{ p.title }}</a>, {{ p.author }} In <i>{{ p.forum }}</i>. {{ p.month }} {{ p.year }}
+</p>
 
 {% endfor %}
 

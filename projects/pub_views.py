@@ -8,6 +8,7 @@ from projects.models import Publication
 from util.project_allocation_mapper import ProjectAllocationMapper
 import logging
 import bibtexparser
+import datetime
 
 logger = logging.getLogger("projects")
 
@@ -15,6 +16,18 @@ logger = logging.getLogger("projects")
 @login_required
 def user_publications(request):
     context = {}
+    if "del_pub" in request.POST:
+        try:
+            del_pub_id = request.POST["pub_ref"]
+            logger.debug("deleting publication with id {}".format(del_pub_id))
+            Publication.objects.get(pk=del_pub_id).delete()
+        except Exception:
+            logger.exception("Failed removing publication")
+            messages.error(
+                request,
+                "An unexpected error occurred while attempting "
+                "to remove this publication. Please try again",
+            )
     context["publications"] = []
     pubs = Publication.objects.filter(added_by_username=request.user.username)
     for pub in pubs:
@@ -22,9 +35,17 @@ def user_publications(request):
         if project:
             context["publications"].append(
                 {
+                    "id": pub.id,
                     "title": pub.title,
                     "author": pub.author,
-                    "abstract": pub.abstract,
+                    "link": "" if not pub.link else pub.link,
+                    "forum": pub.forum,
+                    "month": ""
+                    if not pub.month
+                    else datetime.datetime.strptime(str(pub.month), "%m").strftime(
+                        "%b"
+                    ),
+                    "year": pub.year,
                     "nickname": project.nickname,
                     "chargeCode": project.charge_code,
                 }
