@@ -75,9 +75,10 @@ _default_allowed_hosts = [
     "www.chameleoncloud.org",
     "dev.chameleoncloud.org",
     "www.dev.chameleoncloud.org",
+    "129.114.97.96",
 ]
-
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
+ALLOWED_HOSTS = _default_allowed_hosts
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
 
 # Application definition
 
