@@ -43,3 +43,14 @@ migrations: start
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@
+
+COMPOSE_TEST_CMD :=  docker-compose -f tests-compose.yml
+
+.PHONY: deploy-tests
+deploy-tests:
+	$(COMPOSE_TEST_CMD) run --rm portal migrate
+	$(COMPOSE_TEST_CMD) run --rm portal collectstatic --no-input
+
+.PHONY: deploy-tests-clean
+deploy-tests-clean:
+	$(COMPOSE_TEST_CMD) down -v
