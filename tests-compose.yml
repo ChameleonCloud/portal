@@ -1,0 +1,35 @@
+version: "3.5"
+
+services:
+  mysql:
+    container_name: mysql
+    image: mariadb
+    volumes:
+      - db_vol:/docker-entrypoint-initdb.d
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+  portal:
+    image: ${DOCKER_IMAGE_LATEST}
+    depends_on:
+      - mysql
+    env_file:
+      - .env
+    volumes:
+      - media:/media
+      - static:/static
+    ports:
+      - 127.0.0.1:8890:${PORTAL_PORT}
+    entrypoint: ["python3", "manage.py"]
+
+volumes:
+  media:
+  static:
+  db_vol:
