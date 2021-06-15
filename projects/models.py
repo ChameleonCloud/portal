@@ -121,6 +121,9 @@ class Invitation(models.Model):
         duration = timezone.timedelta(days=30)
         return now + duration
 
+    def _send_invitation_email(self, email_address, email_code):
+        print(f"Mocking send email: {email_address} with code {email_code}")
+
     # This information is needed on creation
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user_issued = models.ForeignKey(
@@ -153,7 +156,7 @@ class Invitation(models.Model):
     objects = InvitationManager()
 
     def save(self, *args, **kwargs) -> None:
-        _send_invitation_email(self.email_address, self.email_code)
+        self._send_invitation_email(self.email_address, self.email_code)
 
         return super().save(*args, **kwargs)
 

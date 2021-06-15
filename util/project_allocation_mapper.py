@@ -14,6 +14,7 @@ from django.db.models import Max, QuerySet
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
+from projects.models import Invitation
 from projects.models import Project
 from projects.models import Type
 from pytas.http import TASClient
@@ -341,6 +342,30 @@ class ProjectAllocationMapper:
                 users.append(user)
         return users
 
+    def get_project_invitations(self, project_id):
+        logger.info("getting invites")
+        invitations = (
+                Invitation.objects.all()
+                .filter(project=project_id, status="Issued")
+        )
+        print(invitations)
+        return invitations
+
+    def add_project_invitation(self, project_id, email_address, user_issued):
+        projects = list(Project.objects.filter(pk=project_id))
+        if not projects:
+            raise Project.DoesNotExist()
+        project = projects[0]
+        logger.info("inviting ", email_address, "to", project, "from", user_issued)
+        invite = Invitation(
+                project=project,
+                email_address=email_address,
+                user_issued=user_issued
+        )
+        invite.save()
+        pass
+
+
     def get_project(self, project_id):
         """Get a project by its ID (not charge code).
 
@@ -528,6 +553,9 @@ class ProjectAllocationMapper:
                 }
             )
         return tas_formatted_user
+
+    def accept_invite(self, invite_code):
+        pass
 
     def get_attr(self, obj, key):
         """Attempt to resolve the key either as an attribute or a dict key"""

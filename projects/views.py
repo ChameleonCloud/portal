@@ -36,6 +36,7 @@ from .forms import (
     AllocationCreateForm,
     EditNicknameForm,
     EditTypeForm,
+    InviteUserEmailForm,
     ProjectAddUserForm,
     ProjectCreateForm,
 )
@@ -85,6 +86,8 @@ def user_projects(request):
 
 @login_required
 def accept_invite(request, invite_code):
+    mapper = ProjectAllocationMapper(request)
+    mapper.accept_invite(invite_code)
     pass
 
 
@@ -100,6 +103,7 @@ def view_project(request, project_id):
         raise Http404("The requested project does not exist!")
 
     form = ProjectAddUserForm()
+    invite_form = InviteUserEmailForm()
     nickname_form = EditNicknameForm()
     type_form_args = {"request": request}
     type_form = EditTypeForm(**type_form_args)
@@ -159,6 +163,8 @@ def view_project(request, project_id):
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
+        elif "user_email" in request.POST:
+            invite_form = invite_user(request, project_id)
 
     users = mapper.get_project_members(project)
 
@@ -195,6 +201,15 @@ def view_project(request, project_id):
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
 
+    invitations = mapper.get_project_invitations(project_id)
+    clean_invitations = []
+    for i in invitations:
+        new_item = {}
+        new_item["email_address"] = i.email_address
+        new_item["email_code"] = i.email_code
+        clean_invitations.append(new_item)
+    logger.info(clean_invitations)
+
     return render(
         request,
         "projects/view_project.html",
@@ -203,9 +218,11 @@ def view_project(request, project_id):
             "project_nickname": project.nickname,
             "project_type": project.type,
             "users": user_mashup,
+            "invitations": clean_invitations,
             "is_pi": request.user.username == project.pi.username,
             "is_admin": request.user.is_superuser,
             "form": form,
+            "invite_form": invite_form,
             "nickname_form": nickname_form,
             "type_form": type_form,
             "pubs_form": pubs_form,
@@ -469,6 +486,36 @@ def create_project(request):
 def edit_project(request):
     context = {}
     return render(request, "projects/edit_project.html", context)
+
+
+@require_POST
+def invite_user(request, project_id):
+    logger.info("INVITING USER")
+    mapper = ProjectAllocationMapper(request)
+    project = mapper.get_project(project_id)
+    if not project_pi_or_admin_or_superuser(request.user, project):
+        messages.error(request, "Only the project PI can invite users.")
+        return InviteUserEmailForm()
+
+    form = InviteUserEmailForm(request.POST)
+    logger.info("GOT FORM")
+    if form.is_valid(request):
+        try:
+            email_address = form.cleaned_data["user_email"]
+            mapper.add_project_invitation(project_id, email_address, request.user)
+            form = InviteUserEmailForm()
+            messages.success(
+                request,
+                "Invite sent! Click <a href='{}'>here</a> to reload".format(
+                    request.path
+                ),
+            )
+        except Exception as e:
+            logger.error(e)
+            messages.error(request, "Problem sending invite")
+    else:
+        messages.error(request, "Email address is not valid")
+    return form
 
 
 @require_POST
