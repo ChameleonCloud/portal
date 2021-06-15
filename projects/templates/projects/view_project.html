@@ -131,14 +131,6 @@
     <button type="submit" class="btn btn-default" name="add_user">Add user</button>
   </div>
 </form>
-
-<form class="form-inline" role="form" method="post">
-  {% csrf_token %}
-  {% bootstrap_form invite_form %}
-  <div class="form-group">
-    <button type="submit" class="btn btn-default" name="invite_user">Invite user</button>
-  </div>
-</form>
 {% endif %}
 
 <h4>Current Users</h4>
@@ -158,19 +150,28 @@
 </ul>
 
 {% if is_pi %}
-<h4>Pending Invitations</h4>
-<ul class="list-unstyled">
-  {% for i in invitations %}
-  <li>
-    {{i.email_address}}
-    <form role="form" method="post" style="display:inline">
-      {% csrf_token %}
-      <input type="hidden" name="email_code" value="{{ i.email_code }}">
-      <button type="submit" class="btn btn-xs btn-link" name="del_invite"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove invitation</span></button>
-    </form>
-  </li>
-  {% endfor %}
-</ul>
+  <h4>Pending Invitations</h4>
+
+  <form class="form-inline" role="form" method="post">
+    {% csrf_token %}
+    {% bootstrap_form invite_form %}
+    <div class="form-group">
+      <button type="submit" class="btn btn-default" name="invite_user">Invite user</button>
+    </div>
+  </form>
+
+  <ul class="list-unstyled">
+    {% for i in invitations %}
+    <li>
+      {{i.email_address}}
+      <form role="form" method="post" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="email_address" value="{{ i.email_address }}">
+        <button type="submit" class="btn btn-xs btn-link" name="del_invite"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove invitation</span></button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
 {% endif %}
 
 {% comment %}

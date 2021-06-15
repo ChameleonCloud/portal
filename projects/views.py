@@ -159,6 +159,20 @@ def view_project(request, project_id):
                     "An unexpected error occurred while attempting "
                     "to remove this user. Please try again",
                 )
+        elif "del_invite" in request.POST:
+            try:
+                email_address = request.POST["email_address"]
+                if mapper.remove_invitation(project_id, email_address):
+                    messages.success(
+                        request, 'Invitation for "%s" removed' % email_address
+                    )
+            except:
+                logger.exception("Failed to delete invitation")
+                messages.error(
+                    request,
+                    "An unexpected error occurred while attempting "
+                    "to remove this invitation. Please try again",
+                )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:

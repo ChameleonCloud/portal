@@ -440,6 +440,15 @@ class ProjectAllocationMapper:
     def remove_user_from_project(self, tas_project, user_ref):
         return self._update_user_membership(tas_project, user_ref, action="delete")
 
+    def remove_invitation(self, project_id, user_email):
+        projects = list(Project.objects.filter(pk=project_id))
+        if not projects:
+            raise Project.DoesNotExist()
+        project = projects[0]
+        invitation = Invitation.objects.get(project=project, email_address=user_email)
+        invitation.delete()
+        return True
+
     def _parse_field_recursive(self, parent, level=0):
         result = [(parent["id"], "--- " * level + parent["name"])]
         level = level + 1
