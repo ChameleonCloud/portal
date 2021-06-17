@@ -356,7 +356,7 @@ class ProjectAllocationMapper:
         invitations = [i for i in invitations if i.can_accept()]
         return invitations
 
-    def add_project_invitation(self, project_id, email_address, user_issued):
+    def add_project_invitation(self, project_id, email_address, user_issued, host):
         project = Project.objects.get(pk=project_id)
         invitation = Invitation(
                 project=project,
@@ -364,7 +364,41 @@ class ProjectAllocationMapper:
                 user_issued=user_issued
         )
         invitation.save()
-        invitation.send_invitation_email()
+        self.send_invitation_email(invitation, host)
+
+    def send_invitation_email(self, invitation, host):
+        project_title = invitation.project.title
+        project_charge_code = invitation.project.charge_code
+        url = f"https://{host}/user/projects/join/{invitation.email_code}"
+        subject = f"Invitation for project \"{project_title}\" ({project_charge_code})"
+        body = f"""
+        <p>
+        You have been invited to join the Chameleon project "{project_title}"
+        ({project_charge_code}).
+        </p>
+        <p>
+        Join by clicking <a href="{url}">this link</a>,
+        or by going to {url} in your browser. Once there, you will be asked to
+        sign into an existing Chameleon account, or create one.
+        </p>
+        <p>
+        This invitation will expire in
+        {Invitation.default_days_until_expiration()} days.
+        </p>
+        <p><i>This is an automatic email, please <b>DO NOT</b> reply!
+        If you have any question or issue, please submit a ticket on our
+        <a href="https://{host}/user/help/">help desk</a>.
+        </i></p>
+        <p>Thanks,</p>
+        <p>Chameleon Team</p>
+        """
+        send_mail(
+            subject=subject,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[invitation.email_address],
+            message=strip_tags(body),
+            html_message=body,
+        )
 
     def accept_invite(self, user, invite_code):
         invitation = Invitation.objects.get(email_code=invite_code)
@@ -381,14 +415,14 @@ class ProjectAllocationMapper:
         invitation = Invitation.objects.get(project=project, email_code=email_code)
         invitation.delete()
 
-    def resend_invitation(self, project_id, email_code, user_issued):
+    def resend_invitation(self, project_id, email_code, user_issued, host):
         project = Project.objects.get(pk=project_id)
         invitation = Invitation.objects.get(project=project, email_code=email_code)
         # Make the old invitation expire
         invitation.date_expires = timezone.now()
         invitation.save()
         # Send a new invitation
-        self.add_project_invitation(project_id, invitation.email_address, user_issued)
+        self.add_project_invitation(project_id, invitation.email_address, user_issued, host)
 
 
     def get_project(self, project_id):

@@ -105,6 +105,10 @@ class Invitation(models.Model):
 
     STATUS = [("ISSUED", "Issued"), ("ACCEPTED", "Accepted")]
 
+    @staticmethod
+    def default_days_until_expiration():
+        return 30
+
     def _generate_secret():
         """Generate secure code.
 
@@ -120,12 +124,8 @@ class Invitation(models.Model):
 
     def _generate_expiration():
         now = timezone.now()
-        duration = timezone.timedelta(days=30)
+        duration = timezone.timedelta(days=Invitation.default_days_until_expiration())
         return now + duration
-
-    def send_invitation_email(self):
-        # TODO
-        logger.info(f"Mocking send email: {self.email_address} with code {self.email_code}")
 
     # This information is needed on creation
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

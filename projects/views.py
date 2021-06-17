@@ -189,7 +189,7 @@ def view_project(request, project_id):
         elif "resend_invite" in request.POST:
             try:
                 email_code = request.POST["email_code"]
-                mapper.resend_invitation(project_id, email_code, request.user)
+                mapper.resend_invitation(project_id, email_code, request.user, request.get_host())
                 messages.success(
                     request, 'Invitation resent'
                 )
@@ -546,7 +546,7 @@ def invite_user(request, project_id):
                 messages.error(request, "That email is tied to a user already"
                                         "on the project!")
             else:
-                mapper.add_project_invitation(project_id, email_address, request.user)
+                mapper.add_project_invitation(project_id, email_address, request.user, request.get_host())
                 form = InviteUserEmailForm()
                 messages.success(
                     request,
