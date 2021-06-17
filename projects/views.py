@@ -93,7 +93,7 @@ def accept_invite(request, invite_code):
         if accepted:
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
-                    reverse("projects:view_project",args=result)
+                    reverse("projects:view_project",args=[result])
             )
         else:
             messages.error(request, result)

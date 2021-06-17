@@ -351,16 +351,13 @@ class ProjectAllocationMapper:
         return False
 
     def get_project_invitations(self, project_id):
-        logger.info("getting invites")
         invitations = (Invitation.objects.filter(project=project_id))
         # Only show an invitation if it can be accepted
         invitations = [i for i in invitations if i.can_accept()]
-        print(invitations)
         return invitations
 
     def add_project_invitation(self, project_id, email_address, user_issued):
         project = Project.objects.get(pk=project_id)
-        logger.info("inviting ", email_address, "to", project, "from", user_issued)
         invitation = Invitation(
                 project=project,
                 email_address=email_address,
@@ -371,11 +368,10 @@ class ProjectAllocationMapper:
 
     def accept_invite(self, user, invite_code):
         invitation = Invitation.objects.get(email_code=invite_code)
-        logger.info("accepting: " + str(invitation.is_accepted) + " " + invitation.status)
         if invitation.can_accept():
             invitation.accept(user)
             project = self.get_project(invitation.project.id)
-            user_ref = invitation.user.username
+            user_ref = invitation.user_accepted.username
             self.add_user_to_project(project, user_ref)
             return True, invitation.project.id
         return False, invitation.get_cant_accept_reason()
