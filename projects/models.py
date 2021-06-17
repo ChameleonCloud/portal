@@ -1,4 +1,5 @@
 import json
+import logging
 import secrets
 from operator import attrgetter
 
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+logger = logging.getLogger(__name__)
 
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
@@ -121,8 +123,9 @@ class Invitation(models.Model):
         duration = timezone.timedelta(days=30)
         return now + duration
 
-    def _send_invitation_email(self, email_address, email_code):
-        print(f"Mocking send email: {email_address} with code {email_code}")
+    def send_invitation_email(self):
+        # TODO
+        logger.info(f"Mocking send email: {self.email_address} with code {self.email_code}")
 
     # This information is needed on creation
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -130,7 +133,7 @@ class Invitation(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=True
     )
     date_issued = models.DateTimeField(auto_now_add=True, editable=False)
-    date_expires = models.DateTimeField(default=_generate_expiration, editable=False)
+    date_expires = models.DateTimeField(default=_generate_expiration, editable=True)
     email_address = models.EmailField(blank=False)
     email_code = models.CharField(
         max_length=26, default=_generate_secret, editable=False
@@ -151,13 +154,32 @@ class Invitation(models.Model):
     date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
 
     def __str__(self) -> str:
-        return self.email_address
+        return f"{self.email_address}, {self.email_code}, {self.status}, {'EXPIRED' if self._is_expired() else self.date_expires}"
 
     objects = InvitationManager()
 
-    def save(self, *args, **kwargs) -> None:
-        self._send_invitation_email(self.email_address, self.email_code)
+    def accept(self, user):
+        self.status = "ACCEPTED"
+        self.date_accepted = timezone.now()
+        self.user_accepted = user
+        self.save()
 
+    def get_cant_accept_reason(self):
+        if not self._is_accepted():
+            return "This invitation has already been accepted!"
+        elif not self._is_expired():
+            return "This invitation has expired!"
+
+    def can_accept(self):
+        return not self._is_accepted() and not self._is_expired()
+
+    def _is_accepted(self):
+        return self.status == "ACCEPTED"
+
+    def _is_expired(self):
+        return self.date_expires < timezone.now()
+
+    def save(self, *args, **kwargs) -> None:
         return super().save(*args, **kwargs)
 
 

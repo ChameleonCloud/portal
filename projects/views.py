@@ -18,6 +18,7 @@ from django.db import IntegrityError
 from django.http import (
     Http404,
     HttpResponse,
+    HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponseNotAllowed,
     HttpResponseRedirect,
@@ -40,7 +41,7 @@ from .forms import (
     ProjectAddUserForm,
     ProjectCreateForm,
 )
-from .models import Project, ProjectExtras
+from .models import Invitation, Project, ProjectExtras
 
 logger = logging.getLogger("projects")
 
@@ -87,8 +88,18 @@ def user_projects(request):
 @login_required
 def accept_invite(request, invite_code):
     mapper = ProjectAllocationMapper(request)
-    mapper.accept_invite(invite_code)
-    pass
+    try:
+        accepted, result = mapper.accept_invite(request.user, invite_code)
+        if accepted:
+            messages.success(request, "Accepted invitation")
+            return HttpResponseRedirect(
+                    reverse("projects:view_project",args=result)
+            )
+        else:
+            messages.error(request, result)
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+    except Invitation.DoesNotExist:
+        raise Http404("That invitation does not exist!")
 
 
 @login_required
@@ -128,6 +139,8 @@ def view_project(request, project_id):
                         (
                             "Unable to add user. Confirm that the username is "
                             "correct and corresponds to a current Chameleon user."
+                            "You can also send an invite to and email address if"
+                            "the user does not yet have an account."
                         ),
                     )
             else:
@@ -161,17 +174,31 @@ def view_project(request, project_id):
                 )
         elif "del_invite" in request.POST:
             try:
-                email_address = request.POST["email_address"]
-                if mapper.remove_invitation(project_id, email_address):
-                    messages.success(
-                        request, 'Invitation for "%s" removed' % email_address
-                    )
+                email_code = request.POST["email_code"]
+                mapper.remove_invitation(project_id, email_code)
+                messages.success(
+                    request, 'Invitation for "%s" removed' % email_code
+                )
             except:
                 logger.exception("Failed to delete invitation")
                 messages.error(
                     request,
                     "An unexpected error occurred while attempting "
                     "to remove this invitation. Please try again",
+                )
+        elif "resend_invite" in request.POST:
+            try:
+                email_code = request.POST["email_code"]
+                mapper.resend_invitation(project_id, email_code, request.user)
+                messages.success(
+                    request, 'Invitation resent'
+                )
+            except:
+                logger.exception("Failed to resend invitation")
+                messages.error(
+                    request,
+                    "An unexpected error occurred while attempting "
+                    "to resend this invitation. Please try again"
                 )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
@@ -221,6 +248,7 @@ def view_project(request, project_id):
         new_item = {}
         new_item["email_address"] = i.email_address
         new_item["email_code"] = i.email_code
+        new_item["status"] = i.status
         clean_invitations.append(new_item)
     logger.info(clean_invitations)
 
@@ -504,7 +532,6 @@ def edit_project(request):
 
 @require_POST
 def invite_user(request, project_id):
-    logger.info("INVITING USER")
     mapper = ProjectAllocationMapper(request)
     project = mapper.get_project(project_id)
     if not project_pi_or_admin_or_superuser(request.user, project):
@@ -512,18 +539,19 @@ def invite_user(request, project_id):
         return InviteUserEmailForm()
 
     form = InviteUserEmailForm(request.POST)
-    logger.info("GOT FORM")
     if form.is_valid(request):
         try:
             email_address = form.cleaned_data["user_email"]
-            mapper.add_project_invitation(project_id, email_address, request.user)
-            form = InviteUserEmailForm()
-            messages.success(
-                request,
-                "Invite sent! Click <a href='{}'>here</a> to reload".format(
-                    request.path
-                ),
-            )
+            if mapper.email_exists_on_project(project_id, email_address):
+                messages.error(request, "That email is tied to a user already"
+                                        "on the project!")
+            else:
+                mapper.add_project_invitation(project_id, email_address, request.user)
+                form = InviteUserEmailForm()
+                messages.success(
+                    request,
+                    "Invite sent!".format(request.path),
+                )
         except Exception as e:
             logger.error(e)
             messages.error(request, "Problem sending invite")

@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Max, QuerySet
+from django.utils import timezone
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
@@ -342,28 +343,56 @@ class ProjectAllocationMapper:
                 users.append(user)
         return users
 
+    def email_exists_on_project(self, project_id, email_address):
+        project = self.get_project(project_id)
+        for member in self.get_project_members(project):
+            if email_address == member.email:
+                return True
+        return False
+
     def get_project_invitations(self, project_id):
         logger.info("getting invites")
-        invitations = (
-                Invitation.objects.all()
-                .filter(project=project_id, status="Issued")
-        )
+        invitations = (Invitation.objects.filter(project=project_id))
+        # Only show an invitation if it can be accepted
+        invitations = [i for i in invitations if i.can_accept()]
         print(invitations)
         return invitations
 
     def add_project_invitation(self, project_id, email_address, user_issued):
-        projects = list(Project.objects.filter(pk=project_id))
-        if not projects:
-            raise Project.DoesNotExist()
-        project = projects[0]
+        project = Project.objects.get(pk=project_id)
         logger.info("inviting ", email_address, "to", project, "from", user_issued)
-        invite = Invitation(
+        invitation = Invitation(
                 project=project,
                 email_address=email_address,
                 user_issued=user_issued
         )
-        invite.save()
-        pass
+        invitation.save()
+        invitation.send_invitation_email()
+
+    def accept_invite(self, user, invite_code):
+        invitation = Invitation.objects.get(email_code=invite_code)
+        logger.info("accepting: " + str(invitation.is_accepted) + " " + invitation.status)
+        if invitation.can_accept():
+            invitation.accept(user)
+            project = self.get_project(invitation.project.id)
+            user_ref = invitation.user.username
+            self.add_user_to_project(project, user_ref)
+            return True, invitation.project.id
+        return False, invitation.get_cant_accept_reason()
+
+    def remove_invitation(self, project_id, email_code):
+        project = Project.objects.get(pk=project_id)
+        invitation = Invitation.objects.get(project=project, email_code=email_code)
+        invitation.delete()
+
+    def resend_invitation(self, project_id, email_code, user_issued):
+        project = Project.objects.get(pk=project_id)
+        invitation = Invitation.objects.get(project=project, email_code=email_code)
+        # Make the old invitation expire
+        invitation.date_expires = timezone.now()
+        invitation.save()
+        # Send a new invitation
+        self.add_project_invitation(project_id, invitation.email_address, user_issued)
 
 
     def get_project(self, project_id):
@@ -439,15 +468,6 @@ class ProjectAllocationMapper:
 
     def remove_user_from_project(self, tas_project, user_ref):
         return self._update_user_membership(tas_project, user_ref, action="delete")
-
-    def remove_invitation(self, project_id, user_email):
-        projects = list(Project.objects.filter(pk=project_id))
-        if not projects:
-            raise Project.DoesNotExist()
-        project = projects[0]
-        invitation = Invitation.objects.get(project=project, email_address=user_email)
-        invitation.delete()
-        return True
 
     def _parse_field_recursive(self, parent, level=0):
         result = [(parent["id"], "--- " * level + parent["name"])]
@@ -563,8 +583,6 @@ class ProjectAllocationMapper:
             )
         return tas_formatted_user
 
-    def accept_invite(self, invite_code):
-        pass
 
     def get_attr(self, obj, key):
         """Attempt to resolve the key either as an attribute or a dict key"""
