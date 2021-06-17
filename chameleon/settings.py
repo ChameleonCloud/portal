@@ -670,6 +670,7 @@ EMAIL_HOST_USER = os.environ.get("SMTP_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@chameleoncloud.org")
 
+
 # User News Outage Notification
 OUTAGE_NOTIFICATION_EMAIL = os.environ.get("OUTAGE_NOTIFICATION_EMAIL", "")
 
@@ -752,6 +753,7 @@ PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get(
     "PENDING_ALLOCATION_NOTIFICATION_EMAIL", ""
 )
 ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY = 60 * 5
+ACTIVATE_EXPIRE_INVITATION_FREQUENCY = 60 * 5
 
 ########
 # Tasks
@@ -774,6 +776,12 @@ CELERY_BEAT_SCHEDULE = {
     },
     "activate-expire-allocations": {
         "task": "allocations.tasks.activate_expire_allocations",
+        "schedule": crontab(
+            minute="*/{}".format(int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY // 60))
+        ),
+    },
+    "activate-expire-invitations": {
+        "task": "projects.tasks.activate_expire_invitations",
         "schedule": crontab(
             minute="*/{}".format(int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY // 60))
         ),
