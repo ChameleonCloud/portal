@@ -12,6 +12,7 @@
         <div v-else>
           <div v-if="panel === 'search'">
             <HardwareCatalogueFilters
+              ref="filters"
               v-bind:filteredNodes="filteredNodes"
               v-bind:allNodes="allNodes"
               v-on:filtersChange="onFiltersChanged"
@@ -139,8 +140,6 @@ export default {
       panel: "search",
       allNodes: [],
       filteredNodes: [],
-      searchQuery: "",
-      searchStrict: false,
     };
   },
   methods: {
@@ -156,13 +155,11 @@ export default {
       this.loading = false;
       console.log(`Loaded ${this.allNodes.length} nodes`);
     },
-    updateSearch() {},
-    clearSearch() {},
     changeView(panel) {
       this.panel = panel;
     },
     reset() {
-      this.filteredNodes = this.allNodes;
+      this.$refs.filters.reset();
     },
     onFiltersChanged(filters) {
       if (!filters) {
@@ -170,9 +167,12 @@ export default {
         return;
       }
 
-      this.filteredNodes = this.allNodes.filter((node) => {
-        return filters.every((f) => f(node));
-      });
+      let filtered = this.allNodes;
+      for (const filterFn of filters) {
+        filtered = filterFn(filtered);
+      }
+
+      this.filteredNodes = filtered;
     },
   },
   mounted() {

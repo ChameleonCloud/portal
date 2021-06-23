@@ -1,9 +1,5 @@
 <template>
   <div>
-    <p class="lead">
-      Filter nodes using the options below, then generate a reservation script
-      to reserve those nodes.
-    </p>
     <h4>
       Applied Filters:
       <span v-if="!activeFilters.length"> None</span>
@@ -13,7 +9,7 @@
         class="label label-default label-filter"
       >
         <span class="label-text"
-          >{{ filter.label }}
+          >{{ filter.tagLabel }}
           <span
             v-on:click="toggleFilter(filter)"
             class="pseudolink fa fa-times"
@@ -21,14 +17,20 @@
         </span>
       </span>
     </h4>
+
     <h4 class="filter-state">
       <strong>{{ total }} node<span v-if="total > 1">s</span></strong>
       <span v-if="total < maximum">
         filtered from {{ maximum }} originally.
       </span>
     </h4>
+
     <div class="row">
-      <div v-for="filter in filters" :key="filter.label" class="col col-sm-3">
+      <div
+        v-for="filter in coarseFilters"
+        :key="filter.label"
+        class="col col-sm-3"
+      >
         <button
           type="button"
           class="btn btn-lg btn-primary btn-filter btn-block"
@@ -47,6 +49,74 @@
       </div>
     </div>
 
+    <div class="row">
+      <div
+        v-for="(filters, groupLabel) in simpleCapabilityFilters"
+        :key="groupLabel"
+        class="col col-sm-2"
+      >
+        <strong>{{ groupLabel }}</strong>
+
+        <div v-for="filter in filters" :key="filter.label" class="checkbox">
+          <label
+            ><input
+              type="checkbox"
+              :name="groupLabel"
+              :value="filter.label"
+              :checked="filter.active"
+              v-on:change="toggleFilter(filter)"
+            />
+            {{ filter.label }} ({{ filter.currentMatches }})</label
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <h4>
+        <a v-on:click="toggleAdvancedFilters()"
+          ><span
+            class="fa"
+            :class="{
+              'fa-minus': showAdvanced,
+              'fa-plus': !showAdvanced,
+            }"
+          ></span
+          >Advanced Filters</a
+        >
+      </h4>
+      <div class="col-md-12">
+        <div v-if="showAdvanced">
+          <div
+            v-for="(advFilters, sectionLabel) in advancedCapabilityFilters"
+            :key="sectionLabel"
+            class="filter-section"
+          >
+            <h5 class="bg-success">{{ sectionLabel }}</h5>
+            <div v-for="(filters, groupLabel) in advFilters" :key="groupLabel">
+              <strong>{{ groupLabel }}</strong>
+              <div
+                v-for="filter in filters"
+                :key="filter.label"
+                class="checkbox"
+              >
+                <label
+                  ><input
+                    type="checkbox"
+                    :name="sectionLabel"
+                    :value="filter.label"
+                    :checked="filter.active"
+                    v-on:change="toggleFilter(filter)"
+                  />
+                  {{ filter.label }} ({{ filter.currentMatches }})</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <input
       type="text"
       name="nodeViewSearch"
@@ -58,6 +128,7 @@
       :labels="{ checked: 'ALL', unchecked: 'ANY' }"
     ></toggle-button>
     <button class="btn btn-sm" v-on:click="clearSearch()">Clear</button>
+
     <h4 class="filter-state">
       <strong>{{ total }} node<span v-if="total > 1">s</span></strong>
       <span v-if="total < maximum">
@@ -74,13 +145,75 @@
 </style>
 
 <script>
+import filesize from "filesize";
+import JSPath from "jspath";
 import ToggleButton from "vue-js-toggle-button";
 import Vue from "vue";
 
 Vue.use(ToggleButton);
 
-function createFilter(label, filterFn) {
-  return { label, filterFn, active: false, maxMatches: 0, currentMatches: 0 };
+function createFilter(label, filterFn, options) {
+  if (typeof filterFn === "string") {
+    const pathSpec = filterFn;
+    filterFn = (nodes) => {
+      return JSPath.apply(pathSpec, nodes);
+    };
+  }
+
+  const tagLabel = `${(options && options.tagPrefix) || ""}${label}`;
+  return {
+    label,
+    tagLabel,
+    filterFn,
+    active: false,
+    maxMatches: 0,
+    currentMatches: 0,
+  };
+}
+
+function createCapabilityFilters(capability, nodes, options) {
+  const choices = new Set(JSPath.apply(capability, nodes));
+  return Array.from(choices)
+    .sort()
+    .map((choice) => {
+      const parts = capability.split(".");
+      const suffix = parts.pop();
+      const choiceMatcher = typeof choice === "string" ? `"${choice}"` : choice;
+      return createFilter(
+        choice,
+        `.{${parts.join(".")}.${suffix} === ${choiceMatcher}}`,
+        options
+      );
+    });
+}
+
+function createRawCapabilityFilters(capabilityFn, nodes, options) {
+  const choices = new Set(nodes.map(capabilityFn));
+  return Array.from(choices)
+    .sort()
+    .map((choice) => {
+      return createFilter(
+        choice,
+        (nodes) => nodes.filter((n) => capabilityFn(n) === choice),
+        options
+      );
+    });
+}
+
+function createAdvancedCapabilityFilters(pathSpec, nodes) {
+  const entries = JSPath.apply(pathSpec, nodes);
+  const subKeys = new Set(
+    Array.prototype.concat.apply([], entries.map(Object.keys))
+  );
+  const filters = {};
+  subKeys.forEach((subPath) => {
+    filters[subPath] = createCapabilityFilters(
+      `${pathSpec}.${subPath}`,
+      nodes,
+      { tagPrefix: `${subPath}: ` }
+    );
+  });
+  return filters;
 }
 
 export default {
@@ -89,23 +222,68 @@ export default {
     allNodes: Array,
   },
   data() {
+    const coarseFilters = [
+      createFilter("Cascade Lake", ".{.nodeType ^= 'compute_cascadelake'}"),
+      createFilter("Skylake", ".{.nodeType === 'compute_skylake'}"),
+      createFilter("Haswell", ".{.nodeType === 'compute_haswell'}"),
+      createFilter("Infiniband", ".{.nodeType === 'compute_haswell_ib'}"),
+      createFilter("GPU", ".{.nodeType ^= 'gpu_'}"),
+      createFilter("Storage", ".{.nodeType === 'storage'}"),
+      createFilter("Storage Hierarchy", ".{.nodeType === 'storage_hierarchy'}"),
+      createFilter("FPGA", ".{.nodeType === 'fpga'}"),
+      createFilter("Low power Xeon", ".{.nodeType === 'lowpower_xeon'}"),
+      createFilter("Atom", ".{.nodeType === 'atom'}"),
+      createFilter("ARM64", ".{.nodeType === 'arm64'}"),
+    ];
+
+    const simpleCapabilityFilters = {
+      Site: createCapabilityFilters(".parent.parent.uid", this.allNodes),
+      "Platform Type": createCapabilityFilters(
+        ".architecture.platformType",
+        this.allNodes
+      ),
+      "# CPUS": createCapabilityFilters(
+        ".architecture.smpSize",
+        this.allNodes,
+        { tagPrefix: "CPUS: " }
+      ),
+      "# Threads": createCapabilityFilters(
+        ".architecture.smtSize",
+        this.allNodes,
+        { tagPrefix: "Threads: " }
+      ),
+      "RAM Size": createCapabilityFilters(
+        ".mainMemory.humanizedRamSize",
+        this.allNodes,
+        { tagPrefix: "RAM: " }
+      ),
+      "Storage Size": createRawCapabilityFilters(
+        (node) => {
+          const total = node.storageDevices.reduce((sum, dev) => {
+            return sum + dev.size;
+          }, 0);
+          return filesize(total, { round: 0 });
+        },
+        this.allNodes,
+        { tagPrefix: "Storage: " }
+      ),
+    };
+
+    const advancedCapabilityFilters = {
+      Processor: createAdvancedCapabilityFilters(".processor", this.allNodes),
+      Placement: createAdvancedCapabilityFilters(".placement", this.allNodes),
+      FPGA: createAdvancedCapabilityFilters(".fpga", this.allNodes),
+      "Network Devices": [],
+      "Storage Devices": [],
+    };
+
     return {
-      filters: [
-        createFilter(
-          "Cascade Lake",
-          ({ nodeType }) => nodeType.indexOf("compute_cascadelake") === 0
-        ),
-        createFilter(
-          "Skylake",
-          ({ nodeType }) => nodeType === "compute_skylake"
-        ),
-        createFilter("GPU", ({ nodeType }) => nodeType.indexOf("gpu_") === 0),
-        createFilter(
-          "Storage Hierarchy",
-          ({ nodeType }) => nodeType === "storage_hierarchy"
-        ),
-        createFilter("FPGA", ({ nodeType }) => nodeType === "fpga"),
-      ],
+      showAdvanced: false,
+      searchStrict: false,
+      searchQuery: "",
+      coarseFilters,
+      simpleCapabilityFilters,
+      advancedCapabilityFilters,
     };
   },
   watch: {
@@ -114,8 +292,18 @@ export default {
     },
   },
   computed: {
+    allFilters() {
+      let all = Array.from(this.coarseFilters);
+      all = all.concat(...Object.values(this.simpleCapabilityFilters));
+      for (const section in this.advancedCapabilityFilters) {
+        all = all.concat(
+          ...Object.values(this.advancedCapabilityFilters[section])
+        );
+      }
+      return all;
+    },
     activeFilters() {
-      return this.filters.filter(({ active }) => active);
+      return this.allFilters.filter(({ active }) => active);
     },
     maximum() {
       return this.allNodes.length;
@@ -125,6 +313,12 @@ export default {
     },
   },
   methods: {
+    reset() {
+      for (const filter of this.allFilters) {
+        filter.active = false;
+      }
+      this.$emit("filtersChange", []);
+    },
     toggleFilter(filter) {
       filter.active = !filter.active;
       this.$emit(
@@ -132,28 +326,21 @@ export default {
         this.activeFilters.map(({ filterFn }) => filterFn)
       );
     },
+    toggleAdvancedFilters() {
+      this.showAdvanced = !this.showAdvanced;
+    },
     updateFilterCounts() {
-      for (const filter of this.filters) {
-        filter.currentMatches = 0;
-      }
-      for (const node of this.filteredNodes) {
-        for (const filter of this.filters) {
-          if (filter.filterFn(node)) {
-            filter.currentMatches++;
-          }
-        }
+      for (const filter of this.allFilters) {
+        filter.currentMatches = filter.filterFn(this.filteredNodes).length;
       }
     },
   },
   mounted() {
-    for (const node of this.allNodes) {
-      for (const filter of this.filters) {
-        if (filter.filterFn(node)) {
-          filter.maxMatches++;
-        }
-      }
+    for (const filter of this.allFilters) {
+      filter.currentMatches = filter.maxMatches = filter.filterFn(
+        this.allNodes
+      ).length;
     }
-    this.updateFilterCounts();
   },
 };
 </script>

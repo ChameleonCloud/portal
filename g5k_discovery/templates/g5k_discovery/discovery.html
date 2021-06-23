@@ -1,12 +1,7 @@
 {% extends 'layout/default.html' %}
-{% load sekizai_tags staticfiles %}
 {% load render_bundle from webpack_loader %}
 
 {% block title %}Chameleon Resource Browser{% endblock %}
-
-{% block styles %}
-<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}">
-{% endblock %}
 
 {% block content %}
 <div>
@@ -27,21 +22,6 @@
     </div>
 </div>
 <h1 class="title">Chameleon Resource Browser</h1>
-<br />
-<div ng-app="discoveryApp" class="discovery-app" ng-cloak>
-    <div class="content" ng-controller="MainController">
-        <div ng-show="showSingleValuesWarning" class="alert alert-warning">Currently reserving based on only single
-            parameter filter is supported.</div>
-        <div ng-include="'template/filters.html'" ng-if="!showNodes"></div>
-        <div ng-if="showNodes" ng-init="viewLoading = true;">
-            <div ng-if="viewLoading" class="well">
-                <h4><span class="fa fa-refresh fa-spin"></span> Loading nodes...</h4>
-            </div>
-            <div ng-include="'template/nodes.html/'" onload="viewLoading = false;"></div>
-        </div>
-    </div>
-</div>
-
 {% csrf_token %}
 <div id="app"></div>
 {% endblock content %}
