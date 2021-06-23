@@ -330,8 +330,14 @@ export default {
       this.showAdvanced = !this.showAdvanced;
     },
     updateFilterCounts() {
+      const isFiltered = this.allNodes.length > this.filteredNodes.length;
       for (const filter of this.allFilters) {
-        filter.currentMatches = filter.filterFn(this.filteredNodes).length;
+        // Save performance on a common case, where there are no filters in play.
+        if (isFiltered) {
+          filter.currentMatches = filter.filterFn(this.filteredNodes).length;
+        } else {
+          filter.currentMatches = filter.maxMatches;
+        }
       }
     },
   },
