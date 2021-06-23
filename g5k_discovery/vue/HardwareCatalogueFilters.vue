@@ -3,18 +3,16 @@
     <h4>
       Applied Filters:
       <span v-if="!activeFilters.length"> None</span>
-      <span
-        v-for="filter in activeFilters"
-        :key="filter.label"
-        class="label label-default label-filter"
-      >
-        <span class="label-text"
-          >{{ filter.tagLabel }}
-          <span
-            v-on:click="toggleFilter(filter)"
-            class="pseudolink fa fa-times"
-          ></span>
-        </span>
+      <span v-for="filter in activeFilters" :key="filter.label">
+        <span class="label label-default">
+          <span class="label-text"
+            >{{ filter.tagLabel }}
+            <span
+              v-on:click="toggleFilter(filter)"
+              class="pseudolink fa fa-times"
+            ></span>
+          </span> </span
+        >{{ " " }}
       </span>
     </h4>
 
