@@ -62,6 +62,7 @@
               :name="groupLabel"
               :value="filter.label"
               :checked="filter.active"
+              :disabled="!filter.currentMatches"
               v-on:change="toggleFilter(filter)"
             />
             {{ filter.label }} ({{ filter.currentMatches }})</label
@@ -104,6 +105,7 @@
                     :name="sectionLabel"
                     :value="filter.label"
                     :checked="filter.active"
+                    :disabled="!filter.currentMatches"
                     v-on:change="toggleFilter(filter)"
                   />
                   {{ filter.label }} ({{ filter.currentMatches }})</label
