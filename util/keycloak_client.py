@@ -115,10 +115,7 @@ class KeycloakClient:
         if not user:
             return []
         keycloakuser = self._user_admin(user["id"])
-
-        projects = [
-            project for project in keycloakuser.groups.all()
-        ]
+        projects = [project for project in keycloakuser.groups.all()]
         return projects
 
     def get_project_members(self, charge_code):

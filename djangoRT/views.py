@@ -16,7 +16,6 @@ from glanceclient import Client as glance_client
 from ironicclient import client as ironic_client
 from dateutil import parser
 from chameleon.keystone_auth import admin_session, admin_ks_client
-from django.contrib.auth.models import User
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
 
@@ -105,8 +104,9 @@ def _handle_ticket_form(request, form):
 
     if request.user.username:
         region_list = get_region_list(request.user.username)
-        openstack_user_data = render_to_string('djangoRT/project_details.txt',
-                                               {'regions': region_list})
+        openstack_user_data = render_to_string(
+            'djangoRT/project_details.txt', {'regions': region_list}
+        )
     else:
         openstack_user_data = "\n---\n    No openstack data for anonymous user."
 
@@ -299,13 +299,9 @@ def get_region_list(username):
     region_list = []
     for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         try:
-            region_list.append(
-                get_openstack_data(username, region, projects)
-            )
+            region_list.append(get_openstack_data(username, region, projects))
         except Exception as err:
-            logger.error(
-                f'Failed to get OpenStack data for region {region}: {err}'
-            )
+            logger.error(f'Failed to get OpenStack data for region {region}: {err}')
     return region_list
 
 
@@ -320,13 +316,15 @@ def get_openstack_data(username, region, projects):
     # we know there is only going to be one domain
     domains = list(admin_client.domains.list(name="chameleon"))
     if not domains:
-        logger.error("Didn't find the domain \"chameleon\", skipping this site")
+        logger.error('Didn\'t find the domain "chameleon", skipping this site')
         return current_region
     domain_id = domains[0].id
 
     ks_users_list = list(admin_client.users.list(name=username, domain=domain_id))
     if len(ks_users_list) > 1:
-        logger.warning(f"Found {len(ks_users_list)} users for {username}, using the first.")
+        logger.warning(
+            f"Found {len(ks_users_list)} users for {username}, using the first."
+        )
     ks_user = ks_users_list[0]
 
     all_ks_projects = {
@@ -423,12 +421,9 @@ def remove_empty_lines(string):
 
 def get_server_info(sess, project_id):
     server_list = []
-    nova = nova_client.Client(
-        "2",
-        session=sess
-    )
+    nova = nova_client.Client("2", session=sess)
     glance = glance_client("2", service_type="image", session=sess)
-    servers = nova.servers.list(search_opts={'all_tenants': True})
+    servers = nova.servers.list(search_opts={"all_tenants": True})
     for server in servers:
         if server.tenant_id != project_id:
             continue
@@ -439,15 +434,14 @@ def get_server_info(sess, project_id):
         server_dict["id"] = server.id
         server_dict["networks"] = []
         for network in server.addresses.keys():
-            network_dict = {
-                "name": network,
-                "addresses": []
-            }
+            network_dict = {"name": network, "addresses": []}
             for address in server.addresses[network]:
-                network_dict["addresses"].append({
-                    "addr": address["addr"],
-                    "type": address["OS-EXT-IPS:type"],
-                })
+                network_dict["addresses"].append(
+                    {
+                        "addr": address["addr"],
+                        "type": address["OS-EXT-IPS:type"],
+                    }
+                )
             server_dict["networks"].append(network_dict)
         image = glance.images.get(str(server.image["id"]))
         server_dict["image_name"] = str(image.name)
