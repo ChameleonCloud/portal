@@ -54,9 +54,10 @@ mysqlclient = "^1.0"
 ply = "^3.11"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
 python = "^3.6"
-python-blazarclient = "2.2.1"
+python-blazarclient = {git = "https://github.com/ChameleonCloud/python-blazarclient", branch = "chameleoncloud/stable/train"}
 python-cinderclient = "^7.2.0"
 python-glanceclient = "2.17.1"
+python-ironicclient = "4.7.0"
 python-keycloak-client = {git = "https://github.com/ChameleonCloud/python-keycloak-client"}
 python-keystoneclient = "3.21.0"
 python-memcached = "^1.59"
