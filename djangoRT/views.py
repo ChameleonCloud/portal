@@ -105,7 +105,7 @@ def _handle_ticket_form(request, form):
     if request.user.username:
         region_list = get_region_list(request.user.username)
         openstack_user_data = render_to_string(
-            'djangoRT/project_details.txt', {'regions': region_list}
+            "djangoRT/project_details.txt", {"regions": region_list}
         )
     else:
         openstack_user_data = "\n---\n    No openstack data for anonymous user."
@@ -301,7 +301,7 @@ def get_region_list(username):
         try:
             region_list.append(get_openstack_data(username, region, projects))
         except Exception as err:
-            logger.error(f'Failed to get OpenStack data for region {region}: {err}')
+            logger.error(f"Failed to get OpenStack data for region {region}: {err}")
     return region_list
 
 
