@@ -20,4 +20,4 @@ def activate_expire_invitations():
         except Exception:
             LOG.exception(f'Error expiring invitation with code {invitation.email_address}')
         LOG.info(f'Expired invitation {invitation.email_code} on project {charge_code}')
-    LOG.debug('need to expire {} invitations, and {} were actually expired'.format(len(expired_invitations), expired_alloc_count))
+    LOG.debug('need to expire {} invitations, and {} were actually expired'.format(len(expired_invitations), expired_invitation_count))

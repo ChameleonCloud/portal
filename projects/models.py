@@ -130,7 +130,7 @@ class Invitation(models.Model):
     # This information is needed on creation
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     user_issued = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=True
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=False
     )
     date_issued = models.DateTimeField(auto_now_add=True, editable=False)
     date_expires = models.DateTimeField(default=_generate_expiration, editable=True)
@@ -178,9 +178,6 @@ class Invitation(models.Model):
 
     def _is_expired(self):
         return self.date_expires < timezone.now()
-
-    def save(self, *args, **kwargs) -> None:
-        return super().save(*args, **kwargs)
 
 
 class PublicationManager(models.Manager):

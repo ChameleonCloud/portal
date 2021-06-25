@@ -1,20 +1,16 @@
 import json
 import logging
-import re
 import sys
-import uuid
 from datetime import datetime
 
 from chameleon.decorators import terms_required
-from chameleon.keystone_auth import admin_ks_client, get_user, sync_projects
-from django import forms
+from chameleon.keystone_auth import admin_ks_client
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db import IntegrityError
 from django.http import (
     Http404,
     HttpResponse,
@@ -26,8 +22,6 @@ from django.http import (
 )
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
-from keystoneauth1 import adapter
-from keystoneclient.v3 import client as ks_client
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from projects.serializer import ProjectExtrasJSONSerializer

@@ -163,7 +163,7 @@
   <ul class="list-unstyled">
     {% for i in invitations %}
     <li>
-      {{i.email_address}}
+      {{ i.email_address }}
       <form role="form" method="post" style="display:inline">
         {% csrf_token %}
         <input type="hidden" name="email_code" value="{{ i.email_code }}">
