@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.http import (
     Http404,
@@ -36,6 +37,7 @@ from .forms import (
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
+from .util import email_exists_on_project, get_project_members
 
 logger = logging.getLogger("projects")
 
@@ -84,13 +86,17 @@ def accept_invite(request, invite_code):
     mapper = ProjectAllocationMapper(request)
     try:
         accepted, result = mapper.accept_invite(request.user, invite_code)
-        if accepted:
+        invitation = Invitation.objects.get(email_code=invite_code)
+        if invitation.can_accept():
+            invitation.accept(user)
+            user_ref = invitation.user_accepted.username
+            mapper.add_user_to_project(invitation.project, user_ref)
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
-                    reverse("projects:view_project",args=[result])
+                    reverse("projects:view_project",args=[invitation.project.id])
             )
         else:
-            messages.error(request, result)
+            messages.error(request, invitation.get_cant_accept_reason())
             return HttpResponseRedirect(reverse("projects:user_projects"))
     except Invitation.DoesNotExist:
         raise Http404("That invitation does not exist!")
@@ -169,7 +175,7 @@ def view_project(request, project_id):
         elif "del_invite" in request.POST:
             try:
                 email_code = request.POST["email_code"]
-                mapper.remove_invitation(project_id, email_code)
+                remove_invitation(project_id, email_code)
                 messages.success(
                     request, 'Invitation for "%s" removed' % email_code
                 )
@@ -183,7 +189,7 @@ def view_project(request, project_id):
         elif "resend_invite" in request.POST:
             try:
                 email_code = request.POST["email_code"]
-                mapper.resend_invitation(project_id, email_code, request.user, request.get_host())
+                resend_invitation(project_id, email_code, request.user, request.get_host())
                 messages.success(
                     request, 'Invitation resent'
                 )
@@ -201,10 +207,6 @@ def view_project(request, project_id):
         elif "user_email" in request.POST:
             invite_form = invite_user(request, project_id)
 
-    users = mapper.get_project_members(project)
-
-    if not project_member_or_admin_or_superuser(request.user, project, users):
-        raise PermissionDenied
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -221,11 +223,16 @@ def view_project(request, project_id):
             if isinstance(a.end, str):
                 a.end = datetime.strptime(a.end, "%Y-%m-%dT%H:%M:%SZ")
 
+    users = get_project_members(project)
+    if not project_member_or_admin_or_superuser(request.user, project, users):
+        raise PermissionDenied
     user_mashup = []
+
     for u in users:
+        role = "Standard" if u.username != project.pi.username else "PI"
         user = {
             "username": u.username,
-            "role": u.role,
+            "role": role,
         }
         try:
             portal_user = User.objects.get(username=u.username)
@@ -236,7 +243,9 @@ def view_project(request, project_id):
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
 
-    invitations = mapper.get_project_invitations(project_id)
+    invitations = (Invitation.objects.filter(project=project_id))
+    invitations = [i for i in invitations if i.can_accept()]
+
     clean_invitations = []
     for i in invitations:
         new_item = {}
@@ -263,6 +272,68 @@ def view_project(request, project_id):
             "type_form": type_form,
             "pubs_form": pubs_form,
         },
+    )
+
+
+def remove_invitation(project_id, email_code):
+    project = Project.objects.get(pk=project_id)
+    invitation = Invitation.objects.get(project=project, email_code=email_code)
+    invitation.delete()
+
+
+def resend_invitation(project_id, email_code, user_issued, host):
+    project = Project.objects.get(pk=project_id)
+    invitation = Invitation.objects.get(project=project, email_code=email_code)
+    # Make the old invitation expire
+    invitation.date_expires = timezone.now()
+    invitation.save()
+    # Send a new invitation
+    add_project_invitation(project_id, invitation.email_address, user_issued, host)
+
+
+def add_project_invitation(project_id, email_address, user_issued, host):
+    project = Project.objects.get(pk=project_id)
+    invitation = Invitation(
+            project=project,
+            email_address=email_address,
+            user_issued=user_issued
+    )
+    invitation.save()
+    self.send_invitation_email(invitation, host)
+
+
+def send_invitation_email(self, invitation, host):
+    project_title = invitation.project.title
+    project_charge_code = invitation.project.charge_code
+    url = f"https://{host}/user/projects/join/{invitation.email_code}"
+    subject = f"Invitation for project \"{project_title}\" ({project_charge_code})"
+    body = f"""
+    <p>
+    You have been invited to join the Chameleon project "{project_title}"
+    ({project_charge_code}).
+    </p>
+    <p>
+    Join by clicking <a href="{url}">this link</a>,
+    or by going to {url} in your browser. Once there, you will be asked to
+    sign into an existing Chameleon account, or create one.
+    </p>
+    <p>
+    This invitation will expire in
+    {Invitation.default_days_until_expiration()} days.
+    </p>
+    <p><i>This is an automatic email, please <b>DO NOT</b> reply!
+    If you have any question or issue, please submit a ticket on our
+    <a href="https://{host}/user/help/">help desk</a>.
+    </i></p>
+    <p>Thanks,</p>
+    <p>Chameleon Team</p>
+    """
+    send_mail(
+        subject=subject,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[invitation.email_address],
+        message=strip_tags(body),
+        html_message=body,
     )
 
 
@@ -536,7 +607,7 @@ def invite_user(request, project_id):
     if form.is_valid(request):
         try:
             email_address = form.cleaned_data["user_email"]
-            if mapper.email_exists_on_project(project_id, email_address):
+            if email_exists_on_project(project_id, email_address):
                 messages.error(request, "That email is tied to a user already"
                                         "on the project!")
             else:

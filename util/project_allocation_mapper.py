@@ -15,7 +15,6 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
-from projects.models import Invitation
 from projects.models import Project
 from projects.models import Type
 from pytas.http import TASClient
@@ -327,102 +326,6 @@ class ProjectAllocationMapper:
             return [tas_proj(initial=p) for p in user_projects]
         else:
             return user_projects
-
-    def get_project_members(self, tas_project):
-        users = []
-        # try get members from keycloak
-        keycloak_client = KeycloakClient()
-        pi_username = tas_project.pi.username
-        for username in keycloak_client.get_project_members(tas_project.chargeCode):
-            if username == pi_username:
-                role = "PI"
-            else:
-                role = "Standard"
-            user = self.get_user(username, to_pytas_model=True, role=role)
-            if user:
-                users.append(user)
-        return users
-
-    def email_exists_on_project(self, project_id, email_address):
-        project = self.get_project(project_id)
-        for member in self.get_project_members(project):
-            if email_address == member.email:
-                return True
-        return False
-
-    def get_project_invitations(self, project_id):
-        invitations = (Invitation.objects.filter(project=project_id))
-        # Only show an invitation if it can be accepted
-        invitations = [i for i in invitations if i.can_accept()]
-        return invitations
-
-    def add_project_invitation(self, project_id, email_address, user_issued, host):
-        project = Project.objects.get(pk=project_id)
-        invitation = Invitation(
-                project=project,
-                email_address=email_address,
-                user_issued=user_issued
-        )
-        invitation.save()
-        self.send_invitation_email(invitation, host)
-
-    def send_invitation_email(self, invitation, host):
-        project_title = invitation.project.title
-        project_charge_code = invitation.project.charge_code
-        url = f"https://{host}/user/projects/join/{invitation.email_code}"
-        subject = f"Invitation for project \"{project_title}\" ({project_charge_code})"
-        body = f"""
-        <p>
-        You have been invited to join the Chameleon project "{project_title}"
-        ({project_charge_code}).
-        </p>
-        <p>
-        Join by clicking <a href="{url}">this link</a>,
-        or by going to {url} in your browser. Once there, you will be asked to
-        sign into an existing Chameleon account, or create one.
-        </p>
-        <p>
-        This invitation will expire in
-        {Invitation.default_days_until_expiration()} days.
-        </p>
-        <p><i>This is an automatic email, please <b>DO NOT</b> reply!
-        If you have any question or issue, please submit a ticket on our
-        <a href="https://{host}/user/help/">help desk</a>.
-        </i></p>
-        <p>Thanks,</p>
-        <p>Chameleon Team</p>
-        """
-        send_mail(
-            subject=subject,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[invitation.email_address],
-            message=strip_tags(body),
-            html_message=body,
-        )
-
-    def accept_invite(self, user, invite_code):
-        invitation = Invitation.objects.get(email_code=invite_code)
-        if invitation.can_accept():
-            invitation.accept(user)
-            project = self.get_project(invitation.project.id)
-            user_ref = invitation.user_accepted.username
-            self.add_user_to_project(project, user_ref)
-            return True, invitation.project.id
-        return False, invitation.get_cant_accept_reason()
-
-    def remove_invitation(self, project_id, email_code):
-        project = Project.objects.get(pk=project_id)
-        invitation = Invitation.objects.get(project=project, email_code=email_code)
-        invitation.delete()
-
-    def resend_invitation(self, project_id, email_code, user_issued, host):
-        project = Project.objects.get(pk=project_id)
-        invitation = Invitation.objects.get(project=project, email_code=email_code)
-        # Make the old invitation expire
-        invitation.date_expires = timezone.now()
-        invitation.save()
-        # Send a new invitation
-        self.add_project_invitation(project_id, invitation.email_address, user_issued, host)
 
 
     def get_project(self, project_id):
