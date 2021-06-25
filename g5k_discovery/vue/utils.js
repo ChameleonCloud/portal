@@ -18,3 +18,10 @@ export function mapValues(obj, mapFn) {
       ([key, value]) => [key, mapFn(value)]
     ));
 };
+
+export function mapKeys(obj, mapFn) {
+  return Object.fromEntries(
+    Object.entries(obj).map(
+      ([key, value]) => [mapFn(key), value]
+    ));
+};

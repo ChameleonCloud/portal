@@ -21,7 +21,8 @@
             <div class="btn-group">
               <button
                 class="btn btn-sm btn-success"
-                v-on:click="showReservationScript()"
+                data-toggle="modal"
+                data-target="#show-reservation"
               >
                 Reserve
               </button>
@@ -37,42 +38,77 @@
             </div>
           </div>
 
+          <div class="modal" tabindex="-1" role="dialog" id="show-reservation">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                  <h5 class="modal-title">Reserve from selection</h5>
+                </div>
+                <div class="modal-body">
+                  <p>Using the Blazar CLI:</p>
+                  <pre>
+openstack reservation lease create \
+  --reservation type=physical:host,min=1,max=1,resource_properties={{
+                      reservationProperties
+                    }} NAME_OF_LEASE
+                  </pre>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <section v-show="panel === 'results'">
             <div class="row">
               <div class="col-md-6">
-                <div class="form-inline">
-                  <div class="form-group">
-                    <input
-                      type="text"
-                      class="form-control"
-                      name="nodeViewSearch"
-                      v-on:input="updateSearch()"
-                      placeholder="Search by any node properties."
-                    />
-                  </div>
+                <div class="btn-group">
+                  <button class="btn btn-sm" v-on:click="changeView('search')">
+                    Back
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="nodeViewSearch"
+                    v-on:input="updateSearch"
+                    placeholder="Search by any node properties."
+                  />
                 </div>
               </div>
             </div>
 
             <div class="row">
               <div class="col-md-12">
-                <Paginate
-                  v-show="filteredNodes"
-                  :items="filteredNodes"
+                <InfiniteScroller
+                  v-show="visibleNodes"
+                  :items="visibleNodes"
                   v-slot="slot"
                 >
                   <HardwareDetails :hardware="slot.item" />
-                </Paginate>
-                <div v-show="!filteredNodes" class="alert alert-warning">
+                </InfiniteScroller>
+                <div v-show="!visibleNodes" class="alert alert-warning">
                   Node(s) not found.
                 </div>
               </div>
-            </div>
-
-            <div class="btn-group">
-              <button class="btn btn-sm" v-on:click="changeView('search')">
-                Back
-              </button>
             </div>
           </section>
         </div>
@@ -88,7 +124,7 @@
 import axios from "axios";
 import HardwareCatalogueFilters from "./HardwareCatalogueFilters.vue";
 import HardwareDetails from "./HardwareDetails.vue";
-import Paginate from "./Paginate.vue";
+import InfiniteScroller from "./InfiniteScroller.vue";
 
 function extractLink(links, linkRel) {
   const link = links.find(({ rel }) => rel === linkRel);
@@ -139,7 +175,7 @@ export default {
   components: {
     HardwareCatalogueFilters,
     HardwareDetails,
-    Paginate,
+    InfiniteScroller,
   },
   data() {
     return {
@@ -148,22 +184,50 @@ export default {
       searchQuery: "",
       allNodes: [],
       filteredNodes: [],
+      visibleNodes: [],
+      reservationProperties: [],
     };
   },
   methods: {
     async fetchNodes() {
+      const deepValues = (obj) => {
+        return Object.values(obj).reduce((acc, subObj) => {
+          if (typeof subObj === "object" && subObj !== null) {
+            acc = acc.concat(deepValues(subObj));
+          } else if (typeof subObj === "string") {
+            acc.push(subObj);
+          }
+          return acc;
+        }, []);
+      };
+
       this.loading = true;
       this.allNodes = await axios
         .get("sites.json")
         .then(({ data }) => data)
         .then(traverse("clusters"))
         .then(traverse("nodes"))
-        .then((results) => flatten(results.map(({ items }) => items)));
-      this.filteredNodes = this.allNodes;
+        .then((results) => flatten(results.map(({ items }) => items)))
+        .then((items) =>
+          items.map((item) => {
+            // Generate a search index
+            item._searchIndex = deepValues(item).join("|").toLowerCase();
+            return item;
+          })
+        );
+      this.visibleNodes = this.filteredNodes = this.allNodes;
       this.loading = false;
     },
     changeView(panel) {
       this.panel = panel;
+    },
+    updateVisibleNodes() {
+      this.visibleNodes = this.filteredNodes.filter((node) => {
+        return (
+          !this.searchQuery ||
+          node._searchIndex.includes(this.searchQuery.toLowerCase())
+        );
+      });
     },
     reset() {
       this.$refs.filters.reset();
@@ -180,8 +244,12 @@ export default {
       }
 
       this.filteredNodes = filtered;
+      this.updateVisibleNodes();
     },
-    updateSearch(event) {},
+    updateSearch(event) {
+      this.searchQuery = event.target.value;
+      this.updateVisibleNodes();
+    },
   },
   mounted() {
     this.fetchNodes();

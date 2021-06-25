@@ -48,8 +48,9 @@
 
 <script>
 import JSPath from "jspath";
+import { capitalCase } from "change-case";
 import { advancedCapabilities, simpleCapabilities } from "./capabilities";
-import { mapValues } from "./utils";
+import { mapKeys, mapValues } from "./utils";
 
 export default {
   props: {
@@ -63,13 +64,28 @@ export default {
       advancedCapabilities: mapValues(
         advancedCapabilities,
         ({ discover, custom }) => {
+          let allCapabilities = {};
+
           if (discover) {
-            return JSPath.apply(discover.prefix, this.hardware)[0];
-          } else {
-            return mapValues(custom, ({ capability }) =>
-              this.resolveCapability(capability)
-            );
+            allCapabilities = {
+              ...allCapabilities,
+              ...mapKeys(
+                JSPath.apply(discover.prefix, this.hardware)[0] || {},
+                capitalCase
+              ),
+            };
           }
+
+          if (custom) {
+            allCapabilities = {
+              ...allCapabilities,
+              ...mapValues(custom, ({ capability }) =>
+                this.resolveCapability(capability)
+              ),
+            };
+          }
+
+          return allCapabilities;
         }
       ),
     };
