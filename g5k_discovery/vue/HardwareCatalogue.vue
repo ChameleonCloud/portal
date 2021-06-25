@@ -5,12 +5,12 @@
         <div v-if="loading">
           <div class="well">
             <h4>
-              <span class="fa fa-refresh fa-spin"></span> Loading nodes...
+              <span class="fa fa-refresh fa-spin"></span> Loading hardware...
             </h4>
           </div>
         </div>
         <div v-else>
-          <div v-if="panel === 'search'">
+          <div v-show="panel === 'search'">
             <HardwareCatalogueFilters
               ref="filters"
               v-bind:filteredNodes="filteredNodes"
@@ -37,41 +37,44 @@
             </div>
           </div>
 
-          <ol v-if="panel === 'results'">
-            <li v-for="node in filteredNodes" :key="node.uid" class="node">
-              <h4 class="node-header">
-                <a
-                  :href="
-                    'node/sites/' +
-                    node.parent.parent.uid +
-                    '/clusters/' +
-                    node.parent.uid +
-                    '/nodes/' +
-                    node.uid
-                  "
-                  >{{ node.nodeName || node.uid }}</a
-                >
-              </h4>
-              <section>
-                <div class="row">
-                  <div class="col col-sm-3">
-                    <strong>Site: </strong>{{ node.parent.parent.uid }}
-                  </div>
-                  <div class="col col-sm-3">
-                    <strong>Node Type: </strong>{{ node.nodeType }}
+          <section v-show="panel === 'results'">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-inline">
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="nodeViewSearch"
+                      v-on:input="updateSearch()"
+                      placeholder="Search by any node properties."
+                    />
                   </div>
                 </div>
-              </section>
-            </li>
-          </ol>
-          <div v-if="!filteredNodes" class="alert alert-warning">
-            Node(s) not found.
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-sm" v-on:click="changeView('search')">
-              Back
-            </button>
-          </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                <Paginate
+                  v-show="filteredNodes"
+                  :items="filteredNodes"
+                  v-slot="slot"
+                >
+                  <HardwareDetails :hardware="slot.item" />
+                </Paginate>
+                <div v-show="!filteredNodes" class="alert alert-warning">
+                  Node(s) not found.
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn btn-sm" v-on:click="changeView('search')">
+                Back
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -84,6 +87,8 @@
 <script>
 import axios from "axios";
 import HardwareCatalogueFilters from "./HardwareCatalogueFilters.vue";
+import HardwareDetails from "./HardwareDetails.vue";
+import Paginate from "./Paginate.vue";
 
 function extractLink(links, linkRel) {
   const link = links.find(({ rel }) => rel === linkRel);
@@ -132,12 +137,15 @@ function traverse(linkRel) {
 
 export default {
   components: {
-    HardwareCatalogueFilters: HardwareCatalogueFilters,
+    HardwareCatalogueFilters,
+    HardwareDetails,
+    Paginate,
   },
   data() {
     return {
       loading: true,
       panel: "search",
+      searchQuery: "",
       allNodes: [],
       filteredNodes: [],
     };
@@ -153,7 +161,6 @@ export default {
         .then((results) => flatten(results.map(({ items }) => items)));
       this.filteredNodes = this.allNodes;
       this.loading = false;
-      console.log(`Loaded ${this.allNodes.length} nodes`);
     },
     changeView(panel) {
       this.panel = panel;
@@ -174,6 +181,7 @@ export default {
 
       this.filteredNodes = filtered;
     },
+    updateSearch(event) {},
   },
   mounted() {
     this.fetchNodes();

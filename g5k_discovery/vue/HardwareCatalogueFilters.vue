@@ -72,19 +72,19 @@
     </div>
 
     <div class="row">
-      <h4>
-        <a v-on:click="toggleAdvancedFilters()"
-          ><span
-            class="fa"
-            :class="{
-              'fa-minus': showAdvanced,
-              'fa-plus': !showAdvanced,
-            }"
-          ></span
-          >Advanced Filters</a
-        >
-      </h4>
       <div class="col-md-12">
+        <h4>
+          <a role="button" v-on:click="toggleAdvancedFilters()"
+            ><span
+              class="fa"
+              :class="{
+                'fa-minus': showAdvanced,
+                'fa-plus': !showAdvanced,
+              }"
+            ></span>
+            Advanced Filters</a
+          >
+        </h4>
         <div v-if="showAdvanced">
           <div
             v-for="(advFilters, sectionLabel) in advancedCapabilityFilters"
@@ -92,42 +92,36 @@
             class="filter-section"
           >
             <h5 class="bg-success">{{ sectionLabel }}</h5>
-            <div v-for="(filters, groupLabel) in advFilters" :key="groupLabel">
-              <strong>{{ groupLabel }}</strong>
+            <div class="row">
               <div
-                v-for="filter in filters"
-                :key="filter.label"
-                class="checkbox"
+                class="col-md-2"
+                v-for="(filters, groupLabel) in advFilters"
+                :key="groupLabel"
               >
-                <label
-                  ><input
-                    type="checkbox"
-                    :name="sectionLabel"
-                    :value="filter.label"
-                    :checked="filter.active"
-                    :disabled="!filter.currentMatches"
-                    v-on:change="toggleFilter(filter)"
-                  />
-                  {{ filter.label }} ({{ filter.currentMatches }})</label
+                <strong>{{ groupLabel }}</strong>
+                <div
+                  v-for="filter in filters"
+                  :key="filter.label"
+                  class="checkbox"
                 >
+                  <label
+                    ><input
+                      type="checkbox"
+                      :name="sectionLabel"
+                      :value="filter.label"
+                      :checked="filter.active"
+                      :disabled="!filter.currentMatches"
+                      v-on:change="toggleFilter(filter)"
+                    />
+                    {{ filter.label }} ({{ filter.currentMatches }})</label
+                  >
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <input
-      type="text"
-      name="nodeViewSearch"
-      v-on:input="updateSearch()"
-      placeholder="Search by any node properties."
-    />
-    <toggle-button
-      v-model="searchStrict"
-      :labels="{ checked: 'ALL', unchecked: 'ANY' }"
-    ></toggle-button>
-    <button class="btn btn-sm" v-on:click="clearSearch()">Clear</button>
 
     <h4 class="filter-state">
       <strong>{{ total }} node<span v-if="total > 1">s</span></strong>
@@ -145,12 +139,9 @@
 </style>
 
 <script>
-import filesize from "filesize";
 import JSPath from "jspath";
-import ToggleButton from "vue-js-toggle-button";
-import Vue from "vue";
-
-Vue.use(ToggleButton);
+import { capitalCase } from "change-case";
+import { advancedCapabilities, simpleCapabilities } from "./capabilities";
 
 function createFilter(label, filterFn, options) {
   if (typeof filterFn === "string") {
@@ -200,14 +191,17 @@ function createRawCapabilityFilters(capabilityFn, nodes, options) {
     });
 }
 
-function createAdvancedCapabilityFilters(pathSpec, nodes) {
+function createAdvancedCapabilityFilters(pathSpec, nodes, options) {
   const entries = JSPath.apply(pathSpec, nodes);
   const subKeys = new Set(
     Array.prototype.concat.apply([], entries.map(Object.keys))
   );
+  if (options && options.ignore) {
+    options.ignore.forEach((key) => subKeys.delete(key));
+  }
   const filters = {};
   subKeys.forEach((subPath) => {
-    filters[subPath] = createCapabilityFilters(
+    filters[capitalCase(subPath)] = createCapabilityFilters(
       `${pathSpec}.${subPath}`,
       nodes,
       { tagPrefix: `${subPath}: ` }
@@ -236,51 +230,36 @@ export default {
       createFilter("ARM64", ".{.nodeType === 'arm64'}"),
     ];
 
-    const simpleCapabilityFilters = {
-      Site: createCapabilityFilters(".parent.parent.uid", this.allNodes),
-      "Platform Type": createCapabilityFilters(
-        ".architecture.platformType",
-        this.allNodes
-      ),
-      "# CPUS": createCapabilityFilters(
-        ".architecture.smpSize",
-        this.allNodes,
-        { tagPrefix: "CPUS: " }
-      ),
-      "# Threads": createCapabilityFilters(
-        ".architecture.smtSize",
-        this.allNodes,
-        { tagPrefix: "Threads: " }
-      ),
-      "RAM Size": createCapabilityFilters(
-        ".mainMemory.humanizedRamSize",
-        this.allNodes,
-        { tagPrefix: "RAM: " }
-      ),
-      "Storage Size": createRawCapabilityFilters(
-        (node) => {
-          const total = node.storageDevices.reduce((sum, dev) => {
-            return sum + dev.size;
-          }, 0);
-          return filesize(total, { round: 0 });
-        },
-        this.allNodes,
-        { tagPrefix: "Storage: " }
-      ),
+    // Needs to be an arrow-function because we need 'this' reference.
+    const processCapabilities = (capabilities) => {
+      return Object.fromEntries(
+        Object.entries(capabilities).map(([key, { capability, tagPrefix }]) => {
+          const factoryFn =
+            typeof capability === "function"
+              ? createRawCapabilityFilters
+              : createCapabilityFilters;
+          return [key, factoryFn(capability, this.allNodes, { tagPrefix })];
+        })
+      );
     };
 
-    const advancedCapabilityFilters = {
-      Processor: createAdvancedCapabilityFilters(".processor", this.allNodes),
-      Placement: createAdvancedCapabilityFilters(".placement", this.allNodes),
-      FPGA: createAdvancedCapabilityFilters(".fpga", this.allNodes),
-      "Network Devices": [],
-      "Storage Devices": [],
-    };
+    const simpleCapabilityFilters = processCapabilities(simpleCapabilities);
+    const advancedCapabilityFilters = Object.fromEntries(
+      Object.entries(advancedCapabilities).map(
+        ([key, { discover, custom }]) => {
+          const discoveredCaps = discover
+            ? createAdvancedCapabilityFilters(discover.prefix, this.allNodes, {
+                ignore: discover.ignore,
+              })
+            : {};
+          const customCaps = custom ? processCapabilities(custom) : {};
+          return [key, { ...discoveredCaps, ...customCaps }];
+        }
+      )
+    );
 
     return {
       showAdvanced: false,
-      searchStrict: false,
-      searchQuery: "",
       coarseFilters,
       simpleCapabilityFilters,
       advancedCapabilityFilters,
