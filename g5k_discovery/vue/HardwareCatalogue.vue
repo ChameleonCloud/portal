@@ -57,8 +57,9 @@
                   <pre>
 openstack reservation lease create \
   --reservation type=physical:host,min=1,max=1,resource_properties={{
-                      reservationProperties
-                    }} NAME_OF_LEASE
+                      reservationPropertiesJSON
+                    }} \
+  NAME_OF_LEASE
                   </pre>
                 </div>
                 <div class="modal-footer">
@@ -188,6 +189,11 @@ export default {
       reservationProperties: [],
     };
   },
+  computed: {
+    reservationPropertiesJSON() {
+      return JSON.stringify(this.reservationProperties);
+    },
+  },
   methods: {
     async fetchNodes() {
       const deepValues = (obj) => {
@@ -239,8 +245,39 @@ export default {
       }
 
       let filtered = this.allNodes;
+      const constraints = [];
+      let canUseConstraints = true;
       for (const filterFn of filters) {
-        filtered = filterFn(filtered);
+        let result = filterFn(filtered);
+        // A bit hacky, but we're unwrapping effectively a named tuple here.
+        // Only the JSPath filters return such a type.
+        let constraint = null;
+        if (!Array.isArray(result)) {
+          constraint = result.constraint;
+          result = result.result;
+        }
+
+        filtered = result;
+        if (constraint) {
+          constraints.push(constraint);
+        } else {
+          canUseConstraints = false;
+        }
+      }
+
+      if (canUseConstraints) {
+        if (constraints.length <= 1) {
+          this.reservationProperties = constraints.length ? constraints[0] : [];
+        } else {
+          this.reservationProperties = ["and", ...constraints];
+        }
+      } else {
+        this.reservationProperties = [
+          "in",
+          // TODO: support just 'name' here...
+          "$node_name",
+          filtered.map(({ name, nodeName }) => name || nodeName),
+        ];
       }
 
       this.filteredNodes = filtered;

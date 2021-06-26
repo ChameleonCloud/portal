@@ -140,14 +140,16 @@
 
 <script>
 import JSPath from "jspath";
-import { capitalCase } from "change-case";
+import { capitalCase, snakeCase } from "change-case";
 import { advancedCapabilities, simpleCapabilities } from "./capabilities";
 
 function createFilter(label, filterFn, options) {
+  const constraint = options && options.constraint;
+
   if (typeof filterFn === "string") {
     const pathSpec = filterFn;
     filterFn = (nodes) => {
-      return JSPath.apply(pathSpec, nodes);
+      return { result: JSPath.apply(pathSpec, nodes), constraint };
     };
   }
 
@@ -170,10 +172,25 @@ function createCapabilityFilters(capability, nodes, options) {
       const parts = capability.split(".");
       const suffix = parts.pop();
       const choiceMatcher = typeof choice === "string" ? `"${choice}"` : choice;
+
+      let constraint = null;
+      // Blazar can't go up the chain using the "parent" syntax we use here.
+      // Treat this as not having a sane constraint;
+      if (!capability.includes("parent")) {
+        constraint = [
+          "==",
+          `\$${parts.slice(1).concat(suffix).map(snakeCase).join(".")}`,
+          choice,
+        ];
+      }
+
       return createFilter(
         choice,
         `.{${parts.join(".")}.${suffix} === ${choiceMatcher}}`,
-        options
+        {
+          constraint,
+          ...options,
+        }
       );
     });
 }
@@ -217,17 +234,43 @@ export default {
   },
   data() {
     const coarseFilters = [
-      createFilter("Cascade Lake", ".{.nodeType ^= 'compute_cascadelake'}"),
-      createFilter("Skylake", ".{.nodeType === 'compute_skylake'}"),
-      createFilter("Haswell", ".{.nodeType === 'compute_haswell'}"),
-      createFilter("Infiniband", ".{.nodeType === 'compute_haswell_ib'}"),
-      createFilter("GPU", ".{.nodeType ^= 'gpu_'}"),
-      createFilter("Storage", ".{.nodeType === 'storage'}"),
-      createFilter("Storage Hierarchy", ".{.nodeType === 'storage_hierarchy'}"),
-      createFilter("FPGA", ".{.nodeType === 'fpga'}"),
-      createFilter("Low power Xeon", ".{.nodeType === 'lowpower_xeon'}"),
-      createFilter("Atom", ".{.nodeType === 'atom'}"),
-      createFilter("ARM64", ".{.nodeType === 'arm64'}"),
+      createFilter("Cascade Lake", ".{.nodeType ^= 'compute_cascadelake'}", {
+        constraint: ["==", "$node_type", "compute_cascadelake"],
+      }),
+      createFilter("Skylake", ".{.nodeType === 'compute_skylake'}", {
+        constraint: ["==", "$node_type", "compute_skylake"],
+      }),
+      createFilter("Haswell", ".{.nodeType === 'compute_haswell'}", {
+        constraint: ["==", "$node_type", "compute_haswell"],
+      }),
+      createFilter("Infiniband", ".{.nodeType === 'compute_haswell_ib'}", {
+        constraint: ["==", "$node_type", "compute_haswell_ib"],
+      }),
+      createFilter("GPU", ".{.nodeType ^= 'gpu_'}", {
+        constraint: ["==", "$gpu.gpu", "True"],
+      }),
+      createFilter("Storage", ".{.nodeType === 'storage'}", {
+        constraint: ["==", "$node_type", "storage"],
+      }),
+      createFilter(
+        "Storage Hierarchy",
+        ".{.nodeType === 'storage_hierarchy'}",
+        {
+          constraint: ["==", "$node_type", "storage_hierarchy"],
+        }
+      ),
+      createFilter("FPGA", ".{.nodeType === 'fpga'}", {
+        constraint: ["==", "$node_type", "fpga"],
+      }),
+      createFilter("Low power Xeon", ".{.nodeType === 'lowpower_xeon'}", {
+        constraint: ["==", "$node_type", "lowpower_xeon"],
+      }),
+      createFilter("Atom", ".{.nodeType === 'atom'}", {
+        constraint: ["==", "$node_type", "atom"],
+      }),
+      createFilter("ARM64", ".{.nodeType === 'arm64'}", {
+        constraint: ["==", "$node_type", "arm64"],
+      }),
     ];
 
     // Needs to be an arrow-function because we need 'this' reference.
@@ -308,12 +351,19 @@ export default {
     toggleAdvancedFilters() {
       this.showAdvanced = !this.showAdvanced;
     },
+    getFilterResult(filter, nodeList) {
+      let result = filter.filterFn(nodeList);
+      return Array.isArray(result) ? result : result.result;
+    },
     updateFilterCounts() {
       const isFiltered = this.allNodes.length > this.filteredNodes.length;
       for (const filter of this.allFilters) {
         // Save performance on a common case, where there are no filters in play.
         if (isFiltered) {
-          filter.currentMatches = filter.filterFn(this.filteredNodes).length;
+          filter.currentMatches = this.getFilterResult(
+            filter,
+            this.filteredNodes
+          ).length;
         } else {
           filter.currentMatches = filter.maxMatches;
         }
@@ -322,7 +372,8 @@ export default {
   },
   mounted() {
     for (const filter of this.allFilters) {
-      filter.currentMatches = filter.maxMatches = filter.filterFn(
+      filter.currentMatches = filter.maxMatches = this.getFilterResult(
+        filter,
         this.allNodes
       ).length;
     }
