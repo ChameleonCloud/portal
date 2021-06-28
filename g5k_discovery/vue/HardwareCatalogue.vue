@@ -18,24 +18,20 @@
               v-on:filtersChange="onFiltersChanged"
             />
 
-            <div class="btn-group">
-              <button
-                class="btn btn-sm btn-success"
-                data-toggle="modal"
-                data-target="#show-reservation"
-              >
-                Reserve
-              </button>
-              <button
-                class="btn btn-sm btn-info"
-                v-on:click="changeView('results')"
-              >
-                View
-              </button>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-sm" v-on:click="reset()">Reset</button>
-            </div>
+            <button
+              class="btn btn-sm btn-info"
+              v-on:click="changeView('results')"
+            >
+              View</button
+            >{{ " " }}
+            <button
+              class="btn btn-sm btn-success"
+              data-toggle="modal"
+              data-target="#show-reservation"
+            >
+              Reserve</button
+            >{{ " " }}
+            <button class="btn btn-sm" v-on:click="reset()">Reset</button>
           </div>
 
           <div class="modal" tabindex="-1" role="dialog" id="show-reservation">

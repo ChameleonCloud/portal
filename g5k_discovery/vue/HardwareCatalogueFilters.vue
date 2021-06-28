@@ -164,10 +164,17 @@ function createFilter(label, filterFn, options) {
   };
 }
 
+function sortChoices(a, b) {
+  if (!isNaN(parseInt(a)) && !isNaN(parseInt(b))) {
+    return parseInt(a) > parseInt(b) ? 1 : -1;
+  }
+  return a > b ? 1 : -1;
+}
+
 function createCapabilityFilters(capability, nodes, options) {
   const choices = new Set(JSPath.apply(capability, nodes));
   return Array.from(choices)
-    .sort()
+    .sort(sortChoices)
     .map((choice) => {
       const parts = capability.split(".");
       const suffix = parts.pop();
@@ -198,7 +205,7 @@ function createCapabilityFilters(capability, nodes, options) {
 function createRawCapabilityFilters(capabilityFn, nodes, options) {
   const choices = new Set(nodes.map(capabilityFn));
   return Array.from(choices)
-    .sort()
+    .sort(sortChoices)
     .map((choice) => {
       return createFilter(
         choice,
