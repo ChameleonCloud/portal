@@ -166,12 +166,12 @@
       {{ i.email_address }}
       <form role="form" method="post" style="display:inline">
         {% csrf_token %}
-        <input type="hidden" name="email_code" value="{{ i.email_code }}">
+        <input type="hidden" name="invite_id" value="{{ i.id }}">
         <button type="submit" class="btn btn-xs btn-link" name="resend_invite"><i class="fa fa-envelope text-info"></i><span class="sr-only">Resend invitation</span></button>
       </form>
       <form role="form" method="post" style="display:inline">
         {% csrf_token %}
-        <input type="hidden" name="email_code" value="{{ i.email_code }}">
+        <input type="hidden" name="invite_id" value="{{ i.id }}">
         <button type="submit" class="btn btn-xs btn-link" name="del_invite"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove invitation</span></button>
       </form>
     </li>

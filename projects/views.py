@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.http import (
     Http404,
     HttpResponse,
@@ -22,6 +23,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import render
+from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
 from util.project_allocation_mapper import ProjectAllocationMapper
 
@@ -174,11 +176,9 @@ def view_project(request, project_id):
                 )
         elif "del_invite" in request.POST:
             try:
-                email_code = request.POST["email_code"]
-                remove_invitation(project_id, email_code)
-                messages.success(
-                    request, 'Invitation for "%s" removed' % email_code
-                )
+                invite_id = request.POST["invite_id"]
+                remove_invitation(invite_id)
+                messages.success(request, 'Invitation removed')
             except:
                 logger.exception("Failed to delete invitation")
                 messages.error(
@@ -188,8 +188,8 @@ def view_project(request, project_id):
                 )
         elif "resend_invite" in request.POST:
             try:
-                email_code = request.POST["email_code"]
-                resend_invitation(project_id, email_code, request.user, request.get_host())
+                invite_id = request.POST["invite_id"]
+                resend_invitation(invite_id, request.user, request.get_host())
                 messages.success(
                     request, 'Invitation resent'
                 )
@@ -250,7 +250,7 @@ def view_project(request, project_id):
     for i in invitations:
         new_item = {}
         new_item["email_address"] = i.email_address
-        new_item["email_code"] = i.email_code
+        new_item["id"] = i.id
         new_item["status"] = i.status
         clean_invitations.append(new_item)
     logger.info(clean_invitations)
@@ -275,19 +275,18 @@ def view_project(request, project_id):
     )
 
 
-def remove_invitation(project_id, email_code):
-    project = Project.objects.get(pk=project_id)
-    invitation = Invitation.objects.get(project=project, email_code=email_code)
+def remove_invitation(invite_id):
+    invitation = Invitation.objects.get(pk=invite_id)
     invitation.delete()
 
 
-def resend_invitation(project_id, email_code, user_issued, host):
-    project = Project.objects.get(pk=project_id)
-    invitation = Invitation.objects.get(project=project, email_code=email_code)
+def resend_invitation(invite_id, user_issued, host):
+    invitation = Invitation.objects.get(pk=invite_id)
     # Make the old invitation expire
     invitation.date_expires = timezone.now()
     invitation.save()
     # Send a new invitation
+    project_id = invitation.project.id
     add_project_invitation(project_id, invitation.email_address, user_issued, host)
 
 
@@ -299,10 +298,10 @@ def add_project_invitation(project_id, email_address, user_issued, host):
             user_issued=user_issued
     )
     invitation.save()
-    self.send_invitation_email(invitation, host)
+    send_invitation_email(invitation, host)
 
 
-def send_invitation_email(self, invitation, host):
+def send_invitation_email(invitation, host):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
     url = f"https://{host}/user/projects/join/{invitation.email_code}"
@@ -607,11 +606,11 @@ def invite_user(request, project_id):
     if form.is_valid(request):
         try:
             email_address = form.cleaned_data["user_email"]
-            if email_exists_on_project(project_id, email_address):
-                messages.error(request, "That email is tied to a user already"
+            if email_exists_on_project(project, email_address):
+                messages.error(request, "That email is tied to a user already "
                                         "on the project!")
             else:
-                mapper.add_project_invitation(project_id, email_address, request.user, request.get_host())
+                add_project_invitation(project_id, email_address, request.user, request.get_host())
                 form = InviteUserEmailForm()
                 messages.success(
                     request,
@@ -620,6 +619,7 @@ def invite_user(request, project_id):
         except Exception as e:
             logger.error(e)
             messages.error(request, "Problem sending invite")
+            raise e
     else:
         messages.error(request, "Email address is not valid")
     return form
