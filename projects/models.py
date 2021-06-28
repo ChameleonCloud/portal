@@ -103,7 +103,9 @@ class InvitationManager(models.Manager):
 class Invitation(models.Model):
     """Model to hold invitations of users to projects."""
 
-    STATUS = [("ISSUED", "Issued"), ("ACCEPTED", "Accepted")]
+    STATUS_ISSUED = "ISSUED"
+    STATUS_ACCEPTED = "ACCEPTED"
+    STATUSES = [(STATUS_ISSUED, "Issued"), (STATUS_ACCEPTED, "Accepted")]
 
     @staticmethod
     def default_days_until_expiration():
@@ -140,7 +142,7 @@ class Invitation(models.Model):
     )
 
     status = models.CharField(
-        choices=STATUS, max_length=30, default="ISSUED", editable=False
+        choices=STATUSES, max_length=30, default=STATUS_ISSUED, editable=False
     )
 
     # This information is filled on response
@@ -159,7 +161,7 @@ class Invitation(models.Model):
     objects = InvitationManager()
 
     def accept(self, user):
-        self.status = "ACCEPTED"
+        self.status = Invitation.STATUS_ACCEPTED
         self.date_accepted = timezone.now()
         self.user_accepted = user
         self.save()
@@ -174,7 +176,7 @@ class Invitation(models.Model):
         return not self._is_accepted() and not self._is_expired()
 
     def _is_accepted(self):
-        return self.status == "ACCEPTED"
+        return self.status == Invitation.STATUS_ACCEPTED
 
     def _is_expired(self):
         return self.date_expires < timezone.now()

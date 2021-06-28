@@ -87,12 +87,13 @@ def user_projects(request):
 def accept_invite(request, invite_code):
     mapper = ProjectAllocationMapper(request)
     try:
-        accepted, result = mapper.accept_invite(request.user, invite_code)
         invitation = Invitation.objects.get(email_code=invite_code)
+        user = request.user
         if invitation.can_accept():
             invitation.accept(user)
+            project = mapper.get_project(invitation.project.id)
             user_ref = invitation.user_accepted.username
-            mapper.add_user_to_project(invitation.project, user_ref)
+            mapper.add_user_to_project(project, user_ref)
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
                     reverse("projects:view_project",args=[invitation.project.id])
@@ -253,7 +254,6 @@ def view_project(request, project_id):
         new_item["id"] = i.id
         new_item["status"] = i.status
         clean_invitations.append(new_item)
-    logger.info(clean_invitations)
 
     return render(
         request,

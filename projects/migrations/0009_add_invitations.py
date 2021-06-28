@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import projects.models
+from projects.models import Invitation
 
 
 class Migration(migrations.Migration):
@@ -21,10 +21,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_issued', models.DateTimeField(auto_now_add=True)),
-                ('date_expires', models.DateTimeField(default=projects.models.Invitation._generate_expiration, editable=False)),
+                ('date_expires', models.DateTimeField(default=Invitation._generate_expiration, editable=False)),
                 ('email_address', models.EmailField(max_length=254)),
-                ('email_code', models.CharField(default=projects.models.Invitation._generate_secret, editable=False, max_length=26)),
-                ('status', models.CharField(choices=[('ISSUED', 'Issued'), ('ACCEPTED', 'Accepted')], default='ISSUED', editable=False, max_length=30)),
+                ('email_code', models.CharField(default=Invitation._generate_secret, editable=False, max_length=26)),
+                ('status', models.CharField(choices=Invitation.STATUSES, default=Invitation.STATUS_ISSUED, editable=False, max_length=30)),
                 ('date_accepted', models.DateTimeField(editable=False, null=True)),
             ],
         ),

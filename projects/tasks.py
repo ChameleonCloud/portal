@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 def activate_expire_invitations():
     now = timezone.now()
 
-    expired_invitations = Invitation.objects.filter(status='ISSUED', date_expires__lte=now)
+    expired_invitations = Invitation.objects.filter(status=Invitation.STATUS_ISSUED, date_expires__lte=now)
     expired_invitation_count = 0
     for invitation in expired_invitations:
         charge_code = invitation.project.charge_code
