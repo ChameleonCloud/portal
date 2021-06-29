@@ -110,6 +110,14 @@ class KeycloakClient:
         ]
         return project_charge_codes
 
+    def get_full_user_projects_by_username(self, username):
+        user = self.get_user_by_username(username)
+        if not user:
+            return []
+        keycloakuser = self._user_admin(user["id"])
+        projects = [project for project in keycloakuser.groups.all()]
+        return projects
+
     def get_project_members(self, charge_code):
         group = self._lookup_group(charge_code)
         if not group:

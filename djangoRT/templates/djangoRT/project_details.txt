@@ -1,23 +1,57 @@
-
-
 ________________________________ Project Support Details ________________________________
 
 {% for region in regions %}
 Region: {{region.name}}
     {% for project in region.projects %}
-    Project: {{project.name}} ID: {{project.id}}
+    Project: {{project.charge_code}}
+        ID: {{project.id}}
         {% if project.leases %}
         Leases:{% for lease in project.leases %}
             {{lease.name}} - {{lease.status}}
                 Date Range: {{lease.start_date}} - {{lease.end_date}}
-                ID: {{lease.id}}{% endfor %}
+                ID: {{lease.id}}
+                Hosts:
+                    {% for host in lease.hosts %}
+                    {{ host.node_name }} (uid: {{ host.uid }}) {{ host.node_type }}
+                        provision_state: {{host.provision_state}}
+                        instance_uuid: {{host.instance_uuid}}
+                        {% if host.last_error %}
+                        last_error: {{host.last_error}}
+                        {% endif %}
+                    {% endfor %}
+                {% if lease.networks %}
+                Networks:{% for network in lease.networks %}
+                    id: {{ network.id }}
+                        physical_network: {{ network.physical_network }}
+                        segment_id: {{ network.segment_id }}{% endfor %} {% endif %}
+            {% endfor %}
+        {% else %}
+        {% if project.lease_error %}
+        Error getting leases for project
+        {% else %}
+        No recent leases for project
+        {% endif %}
         {% endif %}
         {% if project.servers %}
-        Instances:{% for server in project.servers %}
+        Instances:
+            {% for server in project.servers %}
             {{server.name}} - {{server.status}}
                 Created Date: {{server.created_date}}
                 Image: {{server.image_name}}   -  {{server.image_id}}
-                ID: {{server.id}}{% endfor %}
+                ID: {{server.id}}
+                {% for network in server.networks %}
+                Network: {{network.name}}
+                    {% for address in network.addresses %}
+                    {{address.type}} - {{address.addr}}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+        {% if project.server_error %}
+        Error getting instances for project
+        {% else %}
+        No instances for project
+        {% endif %}
         {% endif %}
     {% endfor %}
 {% endfor %}
