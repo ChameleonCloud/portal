@@ -56,6 +56,7 @@ def deactivate_multiple_active_allocations_of_projects():
             for alloc in by_expiration[1:]:
                 charge_code = alloc.project.charge_code
                 alloc.status = 'inactive'
+                alloc.expiration_date = datetime.now(pytz.utc)
                 alloc.save()
                 LOG.info(f'Deactivated duplicate allocation {alloc.id} for {charge_code}')
 
