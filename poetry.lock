@@ -585,7 +585,7 @@ django = ">1.11,<4.0"
 
 [[package]]
 name = "django-reversion"
-version = "3.0.7"
+version = "3.0.9"
 description = "An extension to the Django web framework that provides version control for model instances."
 category = "main"
 optional = false
@@ -2167,7 +2167,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "d19e8d6134c36133d74d97b3c0d0dd985e9d4beb0763404fc80272b19bed3766"
+content-hash = "e1bdc95f2a6b6b8b6524429ff137d4e18c779e11ba138e27cd6a1cfa29c76dcf"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2406,8 +2406,8 @@ django-recaptcha = [
     {file = "django_recaptcha-2.0.6-py2.py3-none-any.whl", hash = "sha256:567784963fd5400feaf92e8951d8dbbbdb4b4c48a76e225d4baa63a2c9d2cd8c"},
 ]
 django-reversion = [
-    {file = "django-reversion-3.0.7.tar.gz", hash = "sha256:72fc53580a6b538f0cfff10f27f42333f67d79c406399289c94ec5a193cfb3e1"},
-    {file = "django_reversion-3.0.7-py3-none-any.whl", hash = "sha256:ecab4703ecc0871dc325c3e100139def84eb153622df3413fbcd9de7d3503c78"},
+    {file = "django-reversion-3.0.9.tar.gz", hash = "sha256:a5af55f086a3f9c38be2f049c251e06005b9ed48ba7a109473736b1fc95a066f"},
+    {file = "django_reversion-3.0.9-py3-none-any.whl", hash = "sha256:1b57127a136b969f4b843a915c72af271febe7f336469db6c27121f8adcad35c"},
 ]
 django-sekizai = [
     {file = "django-sekizai-1.1.0.tar.gz", hash = "sha256:e2f6e666d4dd9d3ecc27284acb85ef709e198014f5d5af8c6d54ed04c2d684d9"},
