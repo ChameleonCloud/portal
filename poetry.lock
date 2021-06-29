@@ -1737,21 +1737,20 @@ six = ">=1.5"
 
 [[package]]
 name = "python-glanceclient"
-version = "2.17.1"
+version = "3.4.0"
 description = "OpenStack Image API Client Library"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 keystoneauth1 = ">=3.6.2"
 "oslo.i18n" = ">=3.15.3"
 "oslo.utils" = ">=3.33.0"
 pbr = ">=2.0.0,<2.1.0 || >2.1.0"
-PrettyTable = ">=0.7.1,<0.8"
+PrettyTable = ">=0.7.1"
 pyOpenSSL = ">=17.1.0"
 requests = ">=2.14.2"
-six = ">=1.10.0"
 warlock = ">=1.2.0,<2"
 wrapt = ">=1.7.0"
 
@@ -2167,7 +2166,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "d19e8d6134c36133d74d97b3c0d0dd985e9d4beb0763404fc80272b19bed3766"
+content-hash = "8c22e46a72ef27c2dfd721e32ae1f8aca6b5a06185ed8c71cdd8755d1243dcd3"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2886,8 +2885,8 @@ python-dateutil = [
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
 ]
 python-glanceclient = [
-    {file = "python-glanceclient-2.17.1.tar.gz", hash = "sha256:342ae26f9be89fef5929384843b8f0601dd1149a618329774b846cb3540fac8e"},
-    {file = "python_glanceclient-2.17.1-py2.py3-none-any.whl", hash = "sha256:e537fc6e17b5bae6ed9fa296544882d0131b92e6a676f03d14309851839096f0"},
+    {file = "python-glanceclient-3.4.0.tar.gz", hash = "sha256:2bf28ef90afedbc7f9ea1541a43639bb720ca146e856abb05f32166a83b5563d"},
+    {file = "python_glanceclient-3.4.0-py3-none-any.whl", hash = "sha256:aac595fb591f61da0e1a1afd6b509608b25864c9f2f6bbdf8f5745ebc2be664c"},
 ]
 python-ironicclient = [
     {file = "python-ironicclient-4.7.0.tar.gz", hash = "sha256:8df53ac396bf657547e1532151f064729905c689cabe8641d932c804bbaf2afe"},
