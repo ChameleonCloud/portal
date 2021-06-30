@@ -152,14 +152,6 @@
 {% if is_pi %}
   <h4>Pending Invitations</h4>
 
-  <form class="form-inline" role="form" method="post">
-    {% csrf_token %}
-    {% bootstrap_form invite_form %}
-    <div class="form-group">
-      <button type="submit" class="btn btn-default" name="invite_user">Invite user</button>
-    </div>
-  </form>
-
   <ul class="list-unstyled">
     {% for i in invitations %}
     <li>

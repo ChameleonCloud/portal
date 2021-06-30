@@ -207,17 +207,6 @@ class ProjectAddUserForm(forms.Form):
     )
 
 
-class InviteUserEmailForm(forms.Form):
-    user_email = forms.EmailField(
-        label="Invite a User by email to Project",
-        required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Email"}),
-    )
-
-    def is_valid(self, request):
-        return super(InviteUserEmailForm, self).is_valid()
-
-
 class AddBibtexPublicationForm(forms.Form):
     project_id = forms.CharField(widget=forms.HiddenInput())
     bibtex_string = forms.CharField(

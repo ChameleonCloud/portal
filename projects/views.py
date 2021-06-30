@@ -9,10 +9,11 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.utils import timezone
+from django.core.validators import validate_email
 from django.http import (
     Http404,
     HttpResponse,
@@ -34,7 +35,6 @@ from .forms import (
     AllocationCreateForm,
     EditNicknameForm,
     EditTypeForm,
-    InviteUserEmailForm,
     ProjectAddUserForm,
     ProjectCreateForm,
 )
@@ -117,7 +117,6 @@ def view_project(request, project_id):
         raise Http404("The requested project does not exist!")
 
     form = ProjectAddUserForm()
-    invite_form = InviteUserEmailForm()
     nickname_form = EditNicknameForm()
     type_form_args = {"request": request}
     type_form = EditTypeForm(**type_form_args)
@@ -135,15 +134,43 @@ def view_project(request, project_id):
                             request, f'User "{add_username}" added to project!'
                         )
                         form = ProjectAddUserForm()
-                except Exception as e:
+                except User.DoesNotExist:
+                    # Try sending an invite
+                    email_address = form.cleaned_data["user_ref"]
+                    try:
+                        validate_email(email_address)
+                        if email_exists_on_project(project, email_address):
+                            messages.error(request, "That email is tied to a "
+                                                    "user already on the "
+                                                    "project!")
+                        else:
+                            add_project_invitation(project_id, email_address,
+                                                   request.user,
+                                                   request.get_host())
+                            messages.success(
+                                request,
+                                "Invite sent!".format(request.path),
+                            )
+                    except ValidationError:
+                        messages.error(
+                            request,
+                            (
+                                "Unable to add user. Confirm that the username "
+                                "is correct and corresponds to a current "
+                                "Chameleon user. You can also send an invite "
+                                "to an email address if the user does not yet "
+                                "have an account."
+                            ),
+                        )
+                    except Exception:
+                        messages.error(request, "Problem sending invite, "
+                                                "please try again.")
+                except Exception:
                     logger.exception("Failed adding user")
                     messages.error(
                         request,
                         (
-                            "Unable to add user. Confirm that the username is "
-                            "correct and corresponds to a current Chameleon user."
-                            "You can also send an invite to and email address if"
-                            "the user does not yet have an account."
+                            "Unable to add user. Please try again."
                         ),
                     )
             else:
@@ -205,8 +232,6 @@ def view_project(request, project_id):
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
-        elif "user_email" in request.POST:
-            invite_form = invite_user(request, project_id)
 
 
     for a in project.allocations:
@@ -267,7 +292,6 @@ def view_project(request, project_id):
             "is_pi": request.user.username == project.pi.username,
             "is_admin": request.user.is_superuser,
             "form": form,
-            "invite_form": invite_form,
             "nickname_form": nickname_form,
             "type_form": type_form,
             "pubs_form": pubs_form,
@@ -592,37 +616,6 @@ def create_project(request):
 def edit_project(request):
     context = {}
     return render(request, "projects/edit_project.html", context)
-
-
-@require_POST
-def invite_user(request, project_id):
-    mapper = ProjectAllocationMapper(request)
-    project = mapper.get_project(project_id)
-    if not project_pi_or_admin_or_superuser(request.user, project):
-        messages.error(request, "Only the project PI can invite users.")
-        return InviteUserEmailForm()
-
-    form = InviteUserEmailForm(request.POST)
-    if form.is_valid(request):
-        try:
-            email_address = form.cleaned_data["user_email"]
-            if email_exists_on_project(project, email_address):
-                messages.error(request, "That email is tied to a user already "
-                                        "on the project!")
-            else:
-                add_project_invitation(project_id, email_address, request.user, request.get_host())
-                form = InviteUserEmailForm()
-                messages.success(
-                    request,
-                    "Invite sent!".format(request.path),
-                )
-        except Exception as e:
-            logger.error(e)
-            messages.error(request, "Problem sending invite")
-            raise e
-    else:
-        messages.error(request, "Email address is not valid")
-    return form
 
 
 @require_POST
