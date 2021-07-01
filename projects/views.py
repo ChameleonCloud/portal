@@ -1,43 +1,45 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+import json
+import logging
+import sys
+from datetime import datetime
+
 from chameleon.decorators import terms_required
+from chameleon.keystone_auth import admin_ks_client
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
+from django.utils import timezone
+from django.core.validators import validate_email
 from django.http import (
     Http404,
-    HttpResponseForbidden,
     HttpResponse,
-    HttpResponseRedirect,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
     HttpResponseNotAllowed,
+    HttpResponseRedirect,
     JsonResponse,
 )
-from django.core.urlresolvers import reverse
-from django.core.exceptions import PermissionDenied
-from django import forms
-from datetime import datetime
-from django.conf import settings
-from .models import Project, ProjectExtras
-from projects.serializer import ProjectExtrasJSONSerializer
-from django.contrib.auth.models import User
+from django.shortcuts import render
+from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
+from util.project_allocation_mapper import ProjectAllocationMapper
+
+from projects.serializer import ProjectExtrasJSONSerializer
+
 from .forms import (
-    ProjectCreateForm,
-    ProjectAddUserForm,
+    AddBibtexPublicationForm,
     AllocationCreateForm,
     EditNicknameForm,
     EditTypeForm,
-    AddBibtexPublicationForm,
+    ProjectAddUserForm,
+    ProjectCreateForm,
 )
-from django.db import IntegrityError
-import re
-import logging
-import json
-from keystoneclient.v3 import client as ks_client
-from keystoneauth1 import adapter
-from django.conf import settings
-import uuid
-import sys
-from chameleon.keystone_auth import admin_ks_client, sync_projects, get_user
-from util.project_allocation_mapper import ProjectAllocationMapper
+from .models import Invitation, Project, ProjectExtras
+from .util import email_exists_on_project, get_project_members
 
 logger = logging.getLogger("projects")
 
@@ -82,6 +84,28 @@ def user_projects(request):
 
 
 @login_required
+def accept_invite(request, invite_code):
+    mapper = ProjectAllocationMapper(request)
+    try:
+        invitation = Invitation.objects.get(email_code=invite_code)
+        user = request.user
+        if invitation.can_accept():
+            invitation.accept(user)
+            project = mapper.get_project(invitation.project.id)
+            user_ref = invitation.user_accepted.username
+            mapper.add_user_to_project(project, user_ref)
+            messages.success(request, "Accepted invitation")
+            return HttpResponseRedirect(
+                reverse("projects:view_project", args=[invitation.project.id])
+            )
+        else:
+            messages.error(request, invitation.get_cant_accept_reason())
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+    except Invitation.DoesNotExist:
+        raise Http404("That invitation does not exist!")
+
+
+@login_required
 def view_project(request, project_id):
     mapper = ProjectAllocationMapper(request)
     try:
@@ -110,14 +134,45 @@ def view_project(request, project_id):
                             request, f'User "{add_username}" added to project!'
                         )
                         form = ProjectAddUserForm()
-                except Exception as e:
+                except User.DoesNotExist:
+                    # Try sending an invite
+                    email_address = form.cleaned_data["user_ref"]
+                    try:
+                        validate_email(email_address)
+                        if email_exists_on_project(project, email_address):
+                            messages.error(
+                                request,
+                                "That email is tied to a user already on the "
+                                "project!",
+                            )
+                        else:
+                            add_project_invitation(
+                                project_id,
+                                email_address,
+                                request.user,
+                                request.get_host(),
+                            )
+                            messages.success(request, "Invite sent!")
+                    except ValidationError:
+                        messages.error(
+                            request,
+                            (
+                                "Unable to add user. Confirm that the username "
+                                "is correct and corresponds to a current "
+                                "Chameleon user. You can also send an invite "
+                                "to an email address if the user does not yet "
+                                "have an account."
+                            ),
+                        )
+                    except Exception:
+                        messages.error(
+                            request, "Problem sending invite, please try again."
+                        )
+                except Exception:
                     logger.exception("Failed adding user")
                     messages.error(
                         request,
-                        (
-                            "Unable to add user. Confirm that the username is "
-                            "correct and corresponds to a current Chameleon user."
-                        ),
+                        "Unable to add user. Please try again."
                     )
             else:
                 messages.error(
@@ -148,15 +203,34 @@ def view_project(request, project_id):
                     "An unexpected error occurred while attempting "
                     "to remove this user. Please try again",
                 )
+        elif "del_invite" in request.POST:
+            try:
+                invite_id = request.POST["invite_id"]
+                remove_invitation(invite_id)
+                messages.success(request, "Invitation removed")
+            except Exception:
+                logger.exception("Failed to delete invitation")
+                messages.error(
+                    request,
+                    "An unexpected error occurred while attempting "
+                    "to remove this invitation. Please try again",
+                )
+        elif "resend_invite" in request.POST:
+            try:
+                invite_id = request.POST["invite_id"]
+                resend_invitation(invite_id, request.user, request.get_host())
+                messages.success(request, "Invitation resent")
+            except Exception:
+                logger.exception("Failed to resend invitation")
+                messages.error(
+                    request,
+                    "An unexpected error occurred while attempting "
+                    "to resend this invitation. Please try again"
+                )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
-
-    users = mapper.get_project_members(project)
-
-    if not project_member_or_admin_or_superuser(request.user, project, users):
-        raise PermissionDenied
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -173,11 +247,16 @@ def view_project(request, project_id):
             if isinstance(a.end, str):
                 a.end = datetime.strptime(a.end, "%Y-%m-%dT%H:%M:%SZ")
 
+    users = get_project_members(project)
+    if not project_member_or_admin_or_superuser(request.user, project, users):
+        raise PermissionDenied
     user_mashup = []
+
     for u in users:
+        role = "Standard" if u.username != project.pi.username else "PI"
         user = {
             "username": u.username,
-            "role": u.role,
+            "role": role,
         }
         try:
             portal_user = User.objects.get(username=u.username)
@@ -188,6 +267,17 @@ def view_project(request, project_id):
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
 
+    invitations = Invitation.objects.filter(project=project_id)
+    invitations = [i for i in invitations if i.can_accept()]
+
+    clean_invitations = []
+    for i in invitations:
+        new_item = {}
+        new_item["email_address"] = i.email_address
+        new_item["id"] = i.id
+        new_item["status"] = i.status
+        clean_invitations.append(new_item)
+
     return render(
         request,
         "projects/view_project.html",
@@ -196,6 +286,7 @@ def view_project(request, project_id):
             "project_nickname": project.nickname,
             "project_type": project.type,
             "users": user_mashup,
+            "invitations": clean_invitations,
             "is_pi": request.user.username == project.pi.username,
             "is_admin": request.user.is_superuser,
             "form": form,
@@ -203,6 +294,65 @@ def view_project(request, project_id):
             "type_form": type_form,
             "pubs_form": pubs_form,
         },
+    )
+
+
+def remove_invitation(invite_id):
+    invitation = Invitation.objects.get(pk=invite_id)
+    invitation.delete()
+
+
+def resend_invitation(invite_id, user_issued, host):
+    invitation = Invitation.objects.get(pk=invite_id)
+    # Make the old invitation expire
+    invitation.date_expires = timezone.now()
+    invitation.save()
+    # Send a new invitation
+    project_id = invitation.project.id
+    add_project_invitation(project_id, invitation.email_address, user_issued, host)
+
+
+def add_project_invitation(project_id, email_address, user_issued, host):
+    project = Project.objects.get(pk=project_id)
+    invitation = Invitation(
+        project=project, email_address=email_address, user_issued=user_issued
+    )
+    invitation.save()
+    send_invitation_email(invitation, host)
+
+
+def send_invitation_email(invitation, host):
+    project_title = invitation.project.title
+    project_charge_code = invitation.project.charge_code
+    url = f"https://{host}/user/projects/join/{invitation.email_code}"
+    subject = f'Invitation for project "{project_title}" ({project_charge_code})'
+    body = f"""
+    <p>
+    You have been invited to join the Chameleon project "{project_title}"
+    ({project_charge_code}).
+    </p>
+    <p>
+    Join by clicking <a href="{url}">this link</a>,
+    or by going to {url} in your browser. Once there, you will be asked to
+    sign into an existing Chameleon account, or create one.
+    </p>
+    <p>
+    This invitation will expire in
+    {Invitation.default_days_until_expiration()} days.
+    </p>
+    <p><i>This is an automatic email, please <b>DO NOT</b> reply!
+    If you have any question or issue, please submit a ticket on our
+    <a href="https://{host}/user/help/">help desk</a>.
+    </i></p>
+    <p>Thanks,</p>
+    <p>Chameleon Team</p>
+    """
+    send_mail(
+        subject=subject,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[invitation.email_address],
+        message=strip_tags(body),
+        html_message=body,
     )
 
 
@@ -494,7 +644,6 @@ def edit_nickname(request, project_id):
     return form
 
 
-
 @require_POST
 def edit_type(request, project_id):
     form_args = {"request": request}
@@ -522,7 +671,6 @@ def edit_type(request, project_id):
         messages.error(request, "Failed to update project type")
 
     return form
-
 
 
 def get_extras(request):

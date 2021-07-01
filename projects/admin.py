@@ -1,5 +1,6 @@
 from django.contrib import admin
-from projects.models import Publication
+
+from projects.models import Invitation, Publication
 
 
 class PublicationAdmin(admin.ModelAdmin):
@@ -35,3 +36,4 @@ class PublicationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Publication, PublicationAdmin)
+admin.site.register(Invitation)

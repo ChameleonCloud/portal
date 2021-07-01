@@ -326,21 +326,6 @@ class ProjectAllocationMapper:
         else:
             return user_projects
 
-    def get_project_members(self, tas_project):
-        users = []
-        # try get members from keycloak
-        keycloak_client = KeycloakClient()
-        pi_username = tas_project.pi.username
-        for username in keycloak_client.get_project_members(tas_project.chargeCode):
-            if username == pi_username:
-                role = "PI"
-            else:
-                role = "Standard"
-            user = self.get_user(username, to_pytas_model=True, role=role)
-            if user:
-                users.append(user)
-        return users
-
     def get_project(self, project_id):
         """Get a project by its ID (not charge code).
 

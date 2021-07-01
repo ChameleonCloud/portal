@@ -1,17 +1,29 @@
-from django.conf import settings
-from django.db import models
 import json
+import logging
+import secrets
 from operator import attrgetter
 
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
 from projects.pub_utils import PublicationUtils
+
+logger = logging.getLogger(__name__)
 
 
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Field(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class FieldHierarchy(models.Model):
@@ -29,7 +41,10 @@ class Project(models.Model):
     title = models.TextField(blank=False)
     nickname = models.CharField(max_length=255, blank=False, unique=True)
     field = models.ForeignKey(Field, related_name="project_field", null=True)
-    charge_code = models.CharField(max_length=50, blank=False)
+    charge_code = models.CharField(max_length=50, blank=False, unique=True)
+
+    def __str__(self) -> str:
+        return self.charge_code
 
     def as_tas(self, **kwargs):
         return Project.to_tas(self, **kwargs)
@@ -78,6 +93,96 @@ class ProjectExtras(models.Model):
     tas_project_id = models.IntegerField(primary_key=True)
     charge_code = models.CharField(max_length=50, blank=False, null=False)
     nickname = models.CharField(max_length=50, blank=False, null=False, unique=True)
+
+
+class InvitationQuerySet(models.QuerySet):
+    pass
+
+
+class InvitationManager(models.Manager):
+    pass
+
+
+class Invitation(models.Model):
+    """Model to hold invitations of users to projects."""
+
+    STATUS_ISSUED = "ISSUED"
+    STATUS_ACCEPTED = "ACCEPTED"
+    STATUSES = [(STATUS_ISSUED, "Issued"), (STATUS_ACCEPTED, "Accepted")]
+
+    @staticmethod
+    def default_days_until_expiration():
+        return 30
+
+    def _generate_secret():
+        """Generate secure code.
+
+        https://docs.python.org/3/library/secrets.html#secrets.token_urlsafe
+        Each byte creates 1.3 characters on average, but we need to store into
+        a fixed length field. Using nchars for both bytes and characters ensures
+        that we always have sufficient randomness, but will fit in the db field.
+        As of 2021, a resonable standard is 20 bytes of randomness, or 26 characters.
+        """
+        nbytes = 26
+        nchars = nbytes
+        return secrets.token_urlsafe(nbytes)[:nchars]
+
+    def _generate_expiration():
+        now = timezone.now()
+        duration = timezone.timedelta(days=Invitation.default_days_until_expiration())
+        return now + duration
+
+    # This information is needed on creation
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user_issued = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=False
+    )
+    date_issued = models.DateTimeField(auto_now_add=True, editable=False)
+    date_expires = models.DateTimeField(default=_generate_expiration, editable=True)
+    email_address = models.EmailField(blank=False)
+    email_code = models.CharField(
+        max_length=26, default=_generate_secret, editable=False
+    )
+
+    status = models.CharField(
+        choices=STATUSES, max_length=30, default=STATUS_ISSUED, editable=False
+    )
+
+    # This information is filled on response
+    user_accepted = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING,
+        related_name="accepted_user",
+        editable=False,
+        null=True,
+    )
+    date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.email_address}, {self.email_code}, {self.status}, {'EXPIRED' if self._is_expired() else self.date_expires}"
+
+    objects = InvitationManager()
+
+    def accept(self, user):
+        self.status = Invitation.STATUS_ACCEPTED
+        self.date_accepted = timezone.now()
+        self.user_accepted = user
+        self.save()
+
+    def get_cant_accept_reason(self):
+        if not self._is_accepted():
+            return "This invitation has already been accepted!"
+        elif not self._is_expired():
+            return "This invitation has expired!"
+
+    def can_accept(self):
+        return not self._is_accepted() and not self._is_expired()
+
+    def _is_accepted(self):
+        return self.status == Invitation.STATUS_ACCEPTED
+
+    def _is_expired(self):
+        return self.date_expires < timezone.now()
 
 
 class PublicationManager(models.Manager):
