@@ -3,16 +3,14 @@ import logging
 import secrets
 from operator import attrgetter
 
-<<<<<<< HEAD
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
-=======
 from projects.pub_utils import PublicationUtils
 
->>>>>>> master
+logger = logging.getLogger(__name__)
+
 
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)

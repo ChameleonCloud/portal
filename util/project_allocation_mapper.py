@@ -11,7 +11,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Max, QuerySet
-from django.utils import timezone
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 from projects.models import FieldHierarchy
@@ -327,7 +326,6 @@ class ProjectAllocationMapper:
         else:
             return user_projects
 
-
     def get_project(self, project_id):
         """Get a project by its ID (not charge code).
 
@@ -515,7 +513,6 @@ class ProjectAllocationMapper:
                 }
             )
         return tas_formatted_user
-
 
     def get_attr(self, obj, key):
         """Attempt to resolve the key either as an attribute or a dict key"""

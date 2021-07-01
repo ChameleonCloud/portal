@@ -96,7 +96,7 @@ def accept_invite(request, invite_code):
             mapper.add_user_to_project(project, user_ref)
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
-                    reverse("projects:view_project",args=[invitation.project.id])
+                reverse("projects:view_project", args=[invitation.project.id])
             )
         else:
             messages.error(request, invitation.get_cant_accept_reason())
@@ -140,17 +140,18 @@ def view_project(request, project_id):
                     try:
                         validate_email(email_address)
                         if email_exists_on_project(project, email_address):
-                            messages.error(request, "That email is tied to a "
-                                                    "user already on the "
-                                                    "project!")
-                        else:
-                            add_project_invitation(project_id, email_address,
-                                                   request.user,
-                                                   request.get_host())
-                            messages.success(
+                            messages.error(
                                 request,
-                                "Invite sent!".format(request.path),
+                                "That email is tied to a user already on the "
+                                "project!")
+                        else:
+                            add_project_invitation(
+                                project_id,
+                                email_address,
+                                request.user,
+                                request.get_host()
                             )
+                            messages.success(request, "Invite sent!")
                     except ValidationError:
                         messages.error(
                             request,
@@ -163,15 +164,15 @@ def view_project(request, project_id):
                             ),
                         )
                     except Exception:
-                        messages.error(request, "Problem sending invite, "
-                                                "please try again.")
+                        messages.error(
+                            request,
+                            "Problem sending invite, please try again."
+                        )
                 except Exception:
                     logger.exception("Failed adding user")
                     messages.error(
                         request,
-                        (
-                            "Unable to add user. Please try again."
-                        ),
+                        "Unable to add user. Please try again."
                     )
             else:
                 messages.error(
@@ -206,8 +207,8 @@ def view_project(request, project_id):
             try:
                 invite_id = request.POST["invite_id"]
                 remove_invitation(invite_id)
-                messages.success(request, 'Invitation removed')
-            except:
+                messages.success(request, "Invitation removed")
+            except Exception:
                 logger.exception("Failed to delete invitation")
                 messages.error(
                     request,
@@ -218,10 +219,8 @@ def view_project(request, project_id):
             try:
                 invite_id = request.POST["invite_id"]
                 resend_invitation(invite_id, request.user, request.get_host())
-                messages.success(
-                    request, 'Invitation resent'
-                )
-            except:
+                messages.success(request, 'Invitation resent')
+            except Exception:
                 logger.exception("Failed to resend invitation")
                 messages.error(
                     request,
@@ -232,7 +231,6 @@ def view_project(request, project_id):
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
-
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -269,7 +267,7 @@ def view_project(request, project_id):
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
 
-    invitations = (Invitation.objects.filter(project=project_id))
+    invitations = Invitation.objects.filter(project=project_id)
     invitations = [i for i in invitations if i.can_accept()]
 
     clean_invitations = []
@@ -317,9 +315,7 @@ def resend_invitation(invite_id, user_issued, host):
 def add_project_invitation(project_id, email_address, user_issued, host):
     project = Project.objects.get(pk=project_id)
     invitation = Invitation(
-            project=project,
-            email_address=email_address,
-            user_issued=user_issued
+        project=project, email_address=email_address, user_issued=user_issued
     )
     invitation.save()
     send_invitation_email(invitation, host)
@@ -329,7 +325,7 @@ def send_invitation_email(invitation, host):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
     url = f"https://{host}/user/projects/join/{invitation.email_code}"
-    subject = f"Invitation for project \"{project_title}\" ({project_charge_code})"
+    subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""
     <p>
     You have been invited to join the Chameleon project "{project_title}"

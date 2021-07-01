@@ -1,8 +1,6 @@
-import logging
-
-from projects.models import Project
 from django.contrib.auth import get_user_model
 from util.keycloak_client import KeycloakClient
+
 
 def get_project_members(project):
     users = []
@@ -20,6 +18,7 @@ def email_exists_on_project(project, email_address):
         if email_address == member.email:
             return True
     return False
+
 
 # Sometimes the project is pytas, sometimes its a Django Model. This tries
 # to determine which should be used.

@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from projects.models import Invitation, Publication
 
+
 class PublicationAdmin(admin.ModelAdmin):
 
     readonly_fields = [
