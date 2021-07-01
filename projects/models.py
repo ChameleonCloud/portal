@@ -3,11 +3,16 @@ import logging
 import secrets
 from operator import attrgetter
 
+<<<<<<< HEAD
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+=======
+from projects.pub_utils import PublicationUtils
+
+>>>>>>> master
 
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
@@ -187,19 +192,17 @@ class PublicationManager(models.Manager):
         pub = Publication()
 
         pub.project_id = project.id
-        if "booktitle" in bibtex_entry:
-            pub.booktitle = bibtex_entry.get("booktitle")
-        if "journal" in bibtex_entry:
-            pub.journal = bibtex_entry.get("journal")
-        if "publisher" in bibtex_entry:
-            pub.publisher = bibtex_entry.get("publisher")
+
+        pub.publication_type = bibtex_entry.get("ENTRYTYPE")
         pub.title = bibtex_entry.get("title")
         pub.year = bibtex_entry.get("year")
+        pub.month = PublicationUtils.get_month(bibtex_entry)
         pub.author = bibtex_entry.get("author")
-        if bibtex_entry.get("abstract"):
-            pub.abstract = bibtex_entry.get("abstract")
         pub.bibtex_source = json.dumps(bibtex_entry)
         pub.added_by_username = username
+        pub.forum = PublicationUtils.get_forum(bibtex_entry)
+        pub.link = PublicationUtils.get_link(bibtex_entry)
+
         pub.save()
         return pub
 
@@ -207,14 +210,14 @@ class PublicationManager(models.Manager):
 class Publication(models.Model):
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(Project, related_name="project_publication", null=True)
-    journal = models.CharField(max_length=500, null=True)
-    publisher = models.CharField(max_length=500, null=True)
-    booktitle = models.CharField(max_length=500, null=True)
+    publication_type = models.CharField(max_length=50, null=False)
+    forum = models.CharField(max_length=500, null=True)
     title = models.CharField(max_length=500, null=False)
     year = models.IntegerField(null=False)
+    month = models.IntegerField(null=True)
     author = models.CharField(max_length=500, null=False)
     bibtex_source = models.TextField()
-    abstract = models.TextField(blank=True, null=True)
+    link = models.CharField(max_length=500, null=True)
     added_by_username = models.CharField(max_length=100)
     entry_created_date = models.DateField(auto_now_add=True)
 

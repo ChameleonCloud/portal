@@ -29,6 +29,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # install python dependencies
 WORKDIR /setup
 
+# BUG: this is not being carried over from the builder somehow
+COPY package.json yarn.lock ./
+RUN npm install -g \
+yuglify
+
 # Use pip to install poetry. We don't use virtualenvs in the build context.
 # Therefore, the vendored install provides no additional isolation.
 RUN pip install --upgrade pip && \
