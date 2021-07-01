@@ -96,7 +96,7 @@ def accept_invite(request, invite_code):
             mapper.add_user_to_project(project, user_ref)
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
-                    reverse("projects:view_project",args=[invitation.project.id])
+                    reverse("projects:view_project", args=[invitation.project.id])
             )
         else:
             messages.error(request, invitation.get_cant_accept_reason())
@@ -147,10 +147,7 @@ def view_project(request, project_id):
                             add_project_invitation(project_id, email_address,
                                                    request.user,
                                                    request.get_host())
-                            messages.success(
-                                request,
-                                "Invite sent!".format(request.path),
-                            )
+                            messages.success(request, "Invite sent!")
                     except ValidationError:
                         messages.error(
                             request,
@@ -207,7 +204,7 @@ def view_project(request, project_id):
                 invite_id = request.POST["invite_id"]
                 remove_invitation(invite_id)
                 messages.success(request, 'Invitation removed')
-            except:
+            except Exception:
                 logger.exception("Failed to delete invitation")
                 messages.error(
                     request,
@@ -221,7 +218,7 @@ def view_project(request, project_id):
                 messages.success(
                     request, 'Invitation resent'
                 )
-            except:
+            except Exception:
                 logger.exception("Failed to resend invitation")
                 messages.error(
                     request,
