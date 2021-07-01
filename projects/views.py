@@ -143,13 +143,14 @@ def view_project(request, project_id):
                             messages.error(
                                 request,
                                 "That email is tied to a user already on the "
-                                "project!")
+                                "project!",
+                            )
                         else:
                             add_project_invitation(
                                 project_id,
                                 email_address,
                                 request.user,
-                                request.get_host()
+                                request.get_host(),
                             )
                             messages.success(request, "Invite sent!")
                     except ValidationError:
@@ -165,8 +166,7 @@ def view_project(request, project_id):
                         )
                     except Exception:
                         messages.error(
-                            request,
-                            "Problem sending invite, please try again."
+                            request, "Problem sending invite, please try again."
                         )
                 except Exception:
                     logger.exception("Failed adding user")
@@ -219,7 +219,7 @@ def view_project(request, project_id):
             try:
                 invite_id = request.POST["invite_id"]
                 resend_invitation(invite_id, request.user, request.get_host())
-                messages.success(request, 'Invitation resent')
+                messages.success(request, "Invitation resent")
             except Exception:
                 logger.exception("Failed to resend invitation")
                 messages.error(
