@@ -140,7 +140,6 @@ def view_project(request, project_id):
                     try:
                         validate_email(email_address)
                         if email_exists_on_project(project, email_address):
-<<<<<<< HEAD
                             messages.error(
                                 request,
                                 "That email is tied to a user already on the "
@@ -152,15 +151,6 @@ def view_project(request, project_id):
                                 request.user,
                                 request.get_host()
                             )
-=======
-                            messages.error(request, "That email is tied to a "
-                                                    "user already on the "
-                                                    "project!")
-                        else:
-                            add_project_invitation(project_id, email_address,
-                                                   request.user,
-                                                   request.get_host())
->>>>>>> bdeda28f527006a520ad35cfe8b6cb46cdaa2ce3
                             messages.success(request, "Invite sent!")
                     except ValidationError:
                         messages.error(
@@ -217,11 +207,7 @@ def view_project(request, project_id):
             try:
                 invite_id = request.POST["invite_id"]
                 remove_invitation(invite_id)
-<<<<<<< HEAD
                 messages.success(request, "Invitation removed")
-=======
-                messages.success(request, 'Invitation removed')
->>>>>>> bdeda28f527006a520ad35cfe8b6cb46cdaa2ce3
             except Exception:
                 logger.exception("Failed to delete invitation")
                 messages.error(
@@ -233,13 +219,7 @@ def view_project(request, project_id):
             try:
                 invite_id = request.POST["invite_id"]
                 resend_invitation(invite_id, request.user, request.get_host())
-<<<<<<< HEAD
                 messages.success(request, 'Invitation resent')
-=======
-                messages.success(
-                    request, 'Invitation resent'
-                )
->>>>>>> bdeda28f527006a520ad35cfe8b6cb46cdaa2ce3
             except Exception:
                 logger.exception("Failed to resend invitation")
                 messages.error(
