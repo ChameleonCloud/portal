@@ -1,5 +1,9 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from util.keycloak_client import KeycloakClient
+
+logger = logging.getLogger("projects.util")
 
 
 def get_project_members(project):
@@ -7,9 +11,11 @@ def get_project_members(project):
     # try get members from keycloak
     keycloak_client = KeycloakClient()
     for username in keycloak_client.get_project_members(get_charge_code(project)):
-        user = get_user_model().objects.get(username=username)
-        if user:
+        try:
+            user = get_user_model().objects.get(username=username)
             users.append(user)
+        except get_user_model().DoesNotExist:
+            logger.exception(f"Could not get user model for {username}")
     return users
 
 
