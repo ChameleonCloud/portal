@@ -25,7 +25,13 @@ LOG = logging.getLogger(__name__)
 @never_cache
 def custom_login(request, current_app=None, extra_context=None):
     if request.GET.get(settings.FORCE_OLD_LOGIN_EXPERIENCE_PARAM) != '1':
-        return HttpResponseRedirect(reverse('oidc_authentication_init'))
+        base_path = reverse('oidc_authentication_init')
+        # Preserve the next redirect if it exists
+        if "next" in request.GET:
+            next_path = request.GET["next"]
+            redir_path = f"{base_path}?next={next_path}"
+            return HttpResponseRedirect(redir_path)
+        return HttpResponseRedirect(base_path)
 
     login_return = login(request, current_app=None, extra_context=None)
     password = request.POST.get('password', False)
