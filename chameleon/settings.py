@@ -106,18 +106,14 @@ INSTALLED_APPS = (
     # django-cms
     #
     "cms",
-    "aldryn_bootstrap3",
     "menus",
     "sekizai",
     "treebeard",
     "djangocms_style",
     "djangocms_column",
     "djangocms_file",
-    "djangocms_flash",
-    "djangocms_inherit",
     "djangocms_link",
     "djangocms_picture",
-    "djangocms_teaser",
     "djangocms_video",
     "reversion",
     ##

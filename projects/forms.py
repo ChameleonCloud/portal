@@ -3,7 +3,7 @@ from textwrap import dedent
 
 import bibtexparser
 from django import forms
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from util.project_allocation_mapper import ProjectAllocationMapper
 
