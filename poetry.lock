@@ -350,7 +350,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "django"
-version = "2.1.15"
+version = "2.2.24"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
@@ -358,6 +358,7 @@ python-versions = ">=3.5"
 
 [package.dependencies]
 pytz = "*"
+sqlparse = ">=0.2.2"
 
 [package.extras]
 argon2 = ["argon2-cffi (>=16.1.0)"]
@@ -365,14 +366,14 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-angular"
-version = "2.2.4"
+version = "2.3"
 description = "Let Django play well with AngularJS"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django = ">=1.10"
+django = ">=2.1"
 
 [[package]]
 name = "django-appdata"
@@ -419,14 +420,14 @@ six = "*"
 
 [[package]]
 name = "django-cms"
-version = "3.6.1"
-description = "An Advanced Django CMS"
+version = "3.9.0"
+description = "Lean enterprise content management powered by Django."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-Django = ">=1.11,<2.2"
+Django = ">=2.2"
 django-classy-tags = ">=0.7.2"
 django-formtools = ">=2.1"
 django-sekizai = ">=0.7"
@@ -466,14 +467,14 @@ Unidecode = ">=0.04,<1.2"
 
 [[package]]
 name = "django-formtools"
-version = "2.2"
+version = "2.3"
 description = "A set of high-level abstractions for Django forms"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-Django = ">=1.11"
+Django = ">=2.2"
 
 [[package]]
 name = "django-impersonate"
@@ -655,14 +656,14 @@ future = ">=0.15.2"
 
 [[package]]
 name = "django-treebeard"
-version = "4.3.1"
+version = "4.5.1"
 description = "Efficient tree implementations for Django"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-Django = ">=1.8"
+Django = ">=2.2"
 
 [[package]]
 name = "django-webpack-loader"
@@ -2132,7 +2133,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "6c54bf07a756f24519c5d46758f98d335df7b5924545dc8f125e24be465b8056"
+content-hash = "f3690a6b260444e1158cceca8603db6c92ff1608071ff33872d9b3522a58cbe5"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2298,11 +2299,11 @@ defusedxml = [
     {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
 ]
 django = [
-    {file = "Django-2.1.15-py3-none-any.whl", hash = "sha256:48522428f4a285cf265af969f4744c5ebb027c7f41958ba48b639ace2068ffe7"},
-    {file = "Django-2.1.15.tar.gz", hash = "sha256:a794f7a2f4b7c928eecfbc4ebad03712ff27fb545abe269bf01aa8500781eb1c"},
+    {file = "Django-2.2.24-py3-none-any.whl", hash = "sha256:f2084ceecff86b1e631c2cd4107d435daf4e12f1efcdf11061a73bf0b5e95f92"},
+    {file = "Django-2.2.24.tar.gz", hash = "sha256:3339ff0e03dee13045aef6ae7b523edff75b6d726adf7a7a48f53d5a501f7db7"},
 ]
 django-angular = [
-    {file = "django-angular-2.2.4.tar.gz", hash = "sha256:2522ce91df803a83fba4000557b677431e00c44d9615ec16d59a851032213b0a"},
+    {file = "django-angular-2.3.tar.gz", hash = "sha256:f83b7d4dbc7bb8f7bd7ef7bc05a80faf50ec137963fbb45dace94b99bafdc190"},
 ]
 django-appdata = [
     {file = "django-appdata-0.3.2.tar.gz", hash = "sha256:b57259ca306bf2be3f0b8be882b9c86c99603067a126ce8cefad8a26ebe85df9"},
@@ -2320,8 +2321,7 @@ django-classy-tags = [
     {file = "django-classy-tags-1.0.0.tar.gz", hash = "sha256:ad6a25fc2b58a098f00d86bd5e5dad47922f5ca4e744bc3cccb7b4be5bc35eb1"},
 ]
 django-cms = [
-    {file = "django-cms-3.6.1.tar.gz", hash = "sha256:a464fc7405acbbc3061e4c8a5489954d09e91d594cdc0fbcf41c7dc8993c9ab6"},
-    {file = "django_cms-3.6.1-py2.py3-none-any.whl", hash = "sha256:9f9fb0207d18ac9dbe7593d977b6e38336c8b256050425243b581719ef346fee"},
+    {file = "django_cms-3.9.0-py2.py3-none-any.whl", hash = "sha256:6feaa6f3b7f225e08f221cf33d6135a1e268e9b781dae4bf916239c3f54e7b27"},
 ]
 django-csp = [
     {file = "django_csp-3.7-py2.py3-none-any.whl", hash = "sha256:01443a07723f9a479d498bd7bb63571aaa771e690f64bde515db6cdb76e8041a"},
@@ -2331,8 +2331,8 @@ django-filer = [
     {file = "django-filer-1.7.1.tar.gz", hash = "sha256:7bf8cda6cbdd02c30198c59dfe2027624ee70a204f2d4f6cc2a0a8563df9b286"},
 ]
 django-formtools = [
-    {file = "django-formtools-2.2.tar.gz", hash = "sha256:c5272c03c1cd51b2375abf7397a199a3148a9fbbf2f100e186467a84025d13b2"},
-    {file = "django_formtools-2.2-py2.py3-none-any.whl", hash = "sha256:304fa777b8ef9e0693ce7833f885cb89ba46b0e46fc23b01176900a93f46742f"},
+    {file = "django-formtools-2.3.tar.gz", hash = "sha256:9663b6eca64777b68d6d4142efad8597fe9a685924673b25aa8a1dcff4db00c3"},
+    {file = "django_formtools-2.3-py3-none-any.whl", hash = "sha256:4699937e19ee041d803943714fe0c1c7ad4cab802600eb64bbf4cdd0a1bfe7d9"},
 ]
 django-impersonate = [
     {file = "django-impersonate-1.4.1.tar.gz", hash = "sha256:63b62d06f93b0318698c68f7314c78473914c262d4164eb66ad860bb83e04771"},
@@ -2397,7 +2397,8 @@ django-termsandconditions = [
     {file = "django-termsandconditions-1.2.15.tar.gz", hash = "sha256:fd1b3cd21f35d38a5721bdf74cf551913581f0406801eec36d8abe66b969c221"},
 ]
 django-treebeard = [
-    {file = "django-treebeard-4.3.1.tar.gz", hash = "sha256:83aebc34a9f06de7daaec330d858d1c47887e81be3da77e3541fe7368196dd8a"},
+    {file = "django-treebeard-4.5.1.tar.gz", hash = "sha256:80150017725239702054e5fa64dc66e383dc13ac262c8d47ee5a82cb005969da"},
+    {file = "django_treebeard-4.5.1-py3-none-any.whl", hash = "sha256:7c2b1cdb1e9b46d595825186064a1228bc4d00dbbc186db5b0b9412357fba91c"},
 ]
 django-webpack-loader = [
     {file = "django-webpack-loader-0.7.0.tar.gz", hash = "sha256:7a3c88201aa54481f9399465615cbe7b9aece8081496a6d0287b7cb8e232f447"},
