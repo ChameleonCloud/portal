@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "user_news"
+
 urlpatterns = [
     url(r'^$', views.UserNewsListView.as_view(), name='list'),
     url(r'^rss/$', views.UserNewsFeed(), name='feed'),

@@ -2,6 +2,8 @@ from django.conf.urls import url
 
 from . import pub_views, views
 
+app_name = "projects"
+
 urlpatterns = [
     url(r"^$", views.user_projects, name="user_projects"),
     url(r"^new/$", views.create_project, name="create_project"),

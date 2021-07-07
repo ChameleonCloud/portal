@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "g5k_discovery"
+
 urlpatterns = [
     url(r'^$', views.index, name='discovery'),
     url(r'^node/(?P<resource>.+?)\.json/$', views.node_data, name='node_json'),

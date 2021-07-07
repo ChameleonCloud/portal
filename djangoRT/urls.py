@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "django_rt"
+
 urlpatterns = [
     url(r"^$", views.mytickets, name="mytickets"),
     url(r"^ticket/(?P<ticket_id>\d+)/$", views.ticketdetail, name="ticketdetail"),

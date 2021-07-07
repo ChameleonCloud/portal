@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "sharing_portal"
+
 urlpatterns = [
     url(r'^$', views.index_all, name='index_all'),
     url(r'^public$', views.index_public, name='index_public'),

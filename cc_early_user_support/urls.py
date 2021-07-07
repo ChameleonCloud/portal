@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "cc_early_user_support"
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^program/(?P<id>\d+)/$', views.view_program, name='program'),

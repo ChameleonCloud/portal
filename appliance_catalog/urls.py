@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "appliance_catalog"
+
 urlpatterns = [
     url(r'^$', views.app_list, name='app_list'),
     url(r'^(?P<pk>\d+)/$', views.app_detail, name='app_detail'),

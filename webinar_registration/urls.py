@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from . import views
 
+app_name = "webinar_registration"
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^webinar/(?P<id>\d+)/$', views.webinar, name='webinar'),
