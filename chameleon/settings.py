@@ -834,10 +834,6 @@ if DEBUG:
     # Webpack uses eval to provide its Hot Module Replacement capability
     CSP_SCRIPT_SRC.append("'unsafe-eval'")
 
-
-# Federation new login experience
-FORCE_OLD_LOGIN_EXPERIENCE_PARAM = "old_login_experience"
-
 CACHES = {
     "default": {
         "BACKEND": os.environ.get(
