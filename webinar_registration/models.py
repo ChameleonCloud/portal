@@ -34,8 +34,8 @@ class Webinar(models.Model):
 
 
 class WebinarRegistrant(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, )
-    webinar = models.ForeignKey(Webinar, )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    webinar = models.ForeignKey(Webinar, on_delete=models.CASCADE)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

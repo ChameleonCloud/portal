@@ -14,12 +14,19 @@ class PIEligibility(models.Model):
         ("ELIGIBLE", "Eligible"),
         ("INELIGIBLE", "Ineligible"),
     ]
-    requestor = models.ForeignKey(settings.AUTH_USER_MODEL, editable=False)
+    requestor = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            editable=False,
+            on_delete=models.CASCADE)
     request_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS, default="REQUESTED")
     review_date = models.DateTimeField(auto_now_add=False, editable=False, null=True)
     reviewer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, editable=False, related_name="+"
+        settings.AUTH_USER_MODEL,
+        null=True,
+        editable=False,
+        related_name="+",
+        on_delete=models.CASCADE
     )
     review_summary = models.TextField(blank=True, null=True)
 

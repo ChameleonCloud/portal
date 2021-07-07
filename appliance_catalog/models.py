@@ -34,8 +34,13 @@ class Appliance(models.Model):
     project_flagged = models.BooleanField(default=False, blank=True)
     keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', blank=True)
     version = models.CharField(max_length=100)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='appliances')
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    created_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            related_name='appliances',
+            on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
@@ -46,5 +51,5 @@ class Appliance(models.Model):
 
 
 class ApplianceTagging(models.Model):
-    keyword = models.ForeignKey(Keyword)
-    appliance = models.ForeignKey(Appliance)
+    keyword = models.ForeignKey(Keyword, on_delete=models.CASCADE)
+    appliance = models.ForeignKey(Appliance, on_delete=models.CASCADE)

@@ -58,8 +58,8 @@ PARTICIPANT_STATUS_CHOICES = (
 
 
 class EarlyUserParticipant(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, )
-    program = models.ForeignKey(EarlyUserProgram, )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    program = models.ForeignKey(EarlyUserProgram, on_delete=models.CASCADE)
     justification = models.TextField()
     participant_status = models.IntegerField(
         choices=PARTICIPANT_STATUS_CHOICES,

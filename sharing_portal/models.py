@@ -97,9 +97,15 @@ class Artifact(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(blank=True, null=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='artifacts',
-                                   null=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+    created_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            related_name='artifacts',
+            null=True,
+            on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            null=True,
+            on_delete=models.CASCADE)
     sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
     is_public = models.BooleanField(default=False)
     labels = models.ManyToManyField(Label, related_name='artifacts',
