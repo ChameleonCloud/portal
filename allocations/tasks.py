@@ -25,10 +25,12 @@ def warn_user_for_expiring_allocation():
     target_expiration_date = today + timedelta(days=days_this_month)
 
     # Find allocations that are expiring between today and 1 month, and have not been warned of their impending doom
-    expiring_allocations = Allocation.objects.filter(status='active',
-                                                     expiration_date__lte=target_expiration_date,
-                                                     expiration_date__gte=today,
-                                                     expiration_warning_issued__isnull=True)
+    expiring_allocations = Allocation.objects.filter(
+        status='active',
+        expiration_date__lte=target_expiration_date,
+        expiration_date__gte=today,
+        expiration_warning_issued__isnull=True
+    )
     emails_sent = 0
     for alloc in expiring_allocations:
         charge_code = alloc.project.charge_code
@@ -48,9 +50,9 @@ def warn_user_for_expiring_allocation():
 
         email_body = f"""
         <p>
-            The allocation for project <b>{charge_code}</b> will expire <b>{time_description}.</b> 
-            See our 
-            <a href="https://chameleoncloud.readthedocs.io/en/latest/user/project.html#recharge-or-extend-your-allocation">Documentation</a> 
+            The allocation for project <b>{charge_code}</b> will expire <b>{time_description}.</b>
+            See our
+            <a href="https://chameleoncloud.readthedocs.io/en/latest/user/project.html#recharge-or-extend-your-allocation">Documentation</a>
             on how to recharge or extend your allocation.
         </p>
         """
@@ -61,7 +63,7 @@ def warn_user_for_expiring_allocation():
                 subject=f"NOTICE: Your allocation for project {charge_code} expires {time_description}!",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[alloc.project.pi.email],
-                message=strip_tags(email_body),
+                message=strip_tags(email_body.replace('\n', ' ').strip()),
                 html_message=email_body,
             )
         except Exception:
