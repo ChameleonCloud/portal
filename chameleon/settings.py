@@ -168,7 +168,6 @@ MIDDLEWARE = (
     "csp.middleware.CSPMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
-    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "user_news.middleware.UserNewsNotificationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

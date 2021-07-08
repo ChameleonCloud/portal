@@ -44,13 +44,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='earlyuserparticipant',
             name='program',
-            field=models.ForeignKey(to='cc_early_user_support.EarlyUserProgram'),
+            field=models.ForeignKey(to='cc_early_user_support.EarlyUserProgram', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='earlyuserparticipant',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

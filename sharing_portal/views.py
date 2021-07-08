@@ -70,7 +70,7 @@ def check_view_permission(func):
         ):
             return all_versions
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.is_staff:
                 return all_versions
             if artifact.created_by == request.user:
@@ -114,7 +114,7 @@ def check_view_permission(func):
 class ArtifactFilter:
     @staticmethod
     def MINE(request):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return Q(created_by=request.user)
         else:
             return Q()
@@ -131,7 +131,7 @@ class ArtifactFilter:
 
 def _render_list(request, artifacts, user_projects=None):
     if not user_projects:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             mapper = ProjectAllocationMapper(request)
             user_projects = mapper.get_user_projects(
                 request.user.username, fetch_balance=False)
@@ -150,7 +150,7 @@ def _render_list(request, artifacts, user_projects=None):
 
 def index_all(request, collection=None):
     user_projects = None
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         mapper = ProjectAllocationMapper(request)
         user_projects = mapper.get_user_projects(
             request.user.username, fetch_balance=False)

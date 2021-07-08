@@ -162,7 +162,7 @@ def _handle_ticket_form(request, form):
 
 def ticketcreate(request):
     # Don't require login, be nice and take to guest ticket page.
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("djangoRT:ticketcreateguest"))
 
     if request.method == "POST":
@@ -185,7 +185,7 @@ def ticketcreate(request):
 
 
 def ticketcreateguest(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(reverse("djangoRT:ticketcreate"))
 
     if request.method == "POST":

@@ -35,8 +35,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('webinar', models.ForeignKey(to='webinar_registration.Webinar')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('webinar', models.ForeignKey(to='webinar_registration.Webinar', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Webinar Registrant',

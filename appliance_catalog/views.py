@@ -63,7 +63,7 @@ def get_appliances(request):
     else:
         appliances = Appliance.objects.all()
         # filter out any that need review unless they belong to me
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         appliances = appliances.filter(Q(needs_review = False) | Q(created_by = request.user))
     else:
         appliances = appliances.exclude(needs_review = True)
