@@ -2133,7 +2133,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "521e642204c60c66e12c7b8e87e5bde28f7a2e09b374ad91e2d4a188182cbf74"
+content-hash = "1a0bece6354d6c5e99e994fcf00327d2996fa84d5643c22ef25bb7c45a5718f9"
 
 [metadata.files]
 aldryn-apphooks-config = [
