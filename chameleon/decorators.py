@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.urls import reverse
 from django.http import HttpResponseRedirect, QueryDict
-from django.utils.decorators import available_attrs
 from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
 
 def terms_required(terms_slug):

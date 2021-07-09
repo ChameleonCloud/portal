@@ -1,8 +1,8 @@
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 app_name = "blog_comments"
 
 urlpatterns = [
-    url(r'^post/(?P<pk>\d+)/comment/', views.add_comment_to_post, name='add_comment_to_post'),
+    re_path(r'^post/(?P<pk>\d+)/comment/$', views.add_comment_to_post, name='add_comment_to_post'),
 ]

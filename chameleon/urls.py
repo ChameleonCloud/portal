@@ -1,9 +1,10 @@
 import logging
 
 from chameleon_mailman import views as chameleon_mailman_views
+from django.urls import re_path
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -62,7 +63,7 @@ urlpatterns = (
         url(r"^ckeditor/", include("ckeditor_uploader.urls")),
         url(r"^terms/", include("termsandconditions.urls")),
         url(
-            r"^sitemap\.xml",
+            r"^sitemap\.xml$",
             sitemap,
             {"sitemaps": {"cmspages": CMSSitemap}},
             name="django.contrib.sitemaps.views.sitemap",
@@ -73,34 +74,34 @@ urlpatterns = (
         url(r"^register/", chameleon_views.OIDCRegisterView.as_view(), name="register"),
         # Rollout endpoints for new login
         url(
-            r"^auth/force-password-login/",
+            r"^auth/force-password-login/$",
             chameleon_views.force_password_login,
             name="force_password_login",
         ),
         url(
-            r"^auth/confirm/",
+            r"^auth/confirm/$",
             chameleon_os_login.confirm_legacy_credentials,
             name="federation_confirm_legacy_credentials",
         ),
         url(
-            r"^user/migrate/",
+            r"^user/migrate/$",
             chameleon_views.migrate,
             name="federation_migrate_account",
         ),
-        url(r"^api/user/migrate/status/", chameleon_views.api_migration_state),
-        url(r"^api/user/migrate/job/", chameleon_views.api_migration_job),
+        url(r"^api/user/migrate/status/$", chameleon_views.api_migration_state),
+        url(r"^api/user/migrate/job/$", chameleon_views.api_migration_job),
         # Legacy account endpoints
         url(r"^user/", include("tas.urls", namespace="tas")),
-        url(r"^password-reset/", chameleon_views.password_reset),
+        url(r"^password-reset/$", chameleon_views.password_reset),
         url(r"^user/dashboard/", chameleon_views.dashboard, name="dashboard"),
         url(
             r"^feed\.xml",
             RedirectView.as_view(permanent=True, url=reverse_lazy("user_news:feed")),
         ),
-        url(r"^user/outages/", OutageListView.as_view(), name="outage_list"),
-        url(r"^user/outages/rss/", OutageFeed(), name="outage_feed"),
+        url(r"^user/outages/$", OutageListView.as_view(), name="outage_list"),
+        url(r"^user/outages/rss/$", OutageFeed(), name="outage_feed"),
         url(
-            r"^user/outages/(?P<slug>[-_\w]+)/",
+            r"^user/outages/(?P<slug>[-_\w]+)/$",
             OutageDetailView.as_view(),
             name="outage_detail",
         ),
@@ -124,7 +125,7 @@ urlpatterns = (
         ),
         # mailing list resource for mailman autosubscribe
         url(
-            r"^mailman/new_members.txt",
+            r"^mailman/new_members.txt$",
             chameleon_mailman_views.mailman_export_list,
             name="mailman_export_list",
         ),
@@ -133,7 +134,7 @@ urlpatterns = (
         url(r"^blog/", include("djangocms_blog.urls", namespace="Blog")),
         # robots.txt
         url(
-            r"^robots.txt",
+            r"^robots.txt$",
             TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
         ),
         # cms urls
