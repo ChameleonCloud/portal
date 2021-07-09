@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import re
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from celery.schedules import crontab
 

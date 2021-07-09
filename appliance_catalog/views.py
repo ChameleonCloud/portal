@@ -7,7 +7,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from django.shortcuts import render_to_response
 from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -362,7 +361,7 @@ def get_keywords(request, appliance_id=None):
 def app_template(request, resource):
     logger.debug('Template requested: %s.html', resource)
     templateUrl = 'appliance_catalog/%s.html' %resource
-    return render_to_response(templateUrl)
+    return render(request, templateUrl)
 
 
 @login_required

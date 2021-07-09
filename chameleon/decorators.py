@@ -14,7 +14,7 @@ def terms_required(terms_slug):
         This decorator checks to see if the user is logged in, and if so, if they have accepted the site terms.
         """
 
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             """Method to wrap the view passed in"""
 

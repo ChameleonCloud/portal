@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import RedirectView

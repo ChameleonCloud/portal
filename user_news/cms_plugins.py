@@ -1,7 +1,7 @@
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from user_news.models import News, UserNewsPluginModel
 
 @plugin_pool.register_plugin
