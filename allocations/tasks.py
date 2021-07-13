@@ -15,6 +15,7 @@ from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
 
+
 def _send_expiration_warning_mail(alloc, today):
     """
     For a single allocation, send warning email to its project's PI
@@ -29,8 +30,10 @@ def _send_expiration_warning_mail(alloc, today):
         return None
 
     if not email:
-        LOG.warning(f"PI for project {charge_code} has no email; "
-                    "cannot send expiration warning")
+        LOG.warning(
+            f"PI for project {charge_code} has no email; "
+            "cannot send expiration warning"
+        )
         return None
 
     time_until_expiration = expiration_date - today
@@ -40,11 +43,15 @@ def _send_expiration_warning_mail(alloc, today):
         time_description = "today"
     else:
         # "in 1 day" | "in <n> days"
-        time_description = f"in {time_until_expiration.days} " \
-                           f"day{'s' if time_until_expiration.days != 1 else ''}"
+        time_description = (
+            f"in {time_until_expiration.days} "
+            f"day{'s' if time_until_expiration.days != 1 else ''}"
+        )
 
-    docs_url = "https://chameleoncloud.readthedocs.io/en/latest/user/project.html" \
-               "#recharge-or-extend-your-allocation "
+    docs_url = (
+        "https://chameleoncloud.readthedocs.io/en/latest/user/project.html"
+        "#recharge-or-extend-your-allocation "
+    )
     email_body = f"""
             <p>
                 The allocation for project <b>{charge_code}</b> 
@@ -58,16 +65,17 @@ def _send_expiration_warning_mail(alloc, today):
     try:
         mail_sent = send_mail(
             subject=f"NOTICE: Your allocation for project {charge_code} "
-                    f"expires {time_description}!",
+            f"expires {time_description}!",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
-            message=strip_tags(' '.join(email_body.split()).strip()),
+            message=strip_tags(" ".join(email_body.split()).strip()),
             html_message=email_body,
         )
     except Exception:
         pass
 
     return mail_sent
+
 
 def warn_user_for_expiring_allocation():
     """
@@ -84,7 +92,7 @@ def warn_user_for_expiring_allocation():
         status='active',
         expiration_date__lte=target_expiration_date,
         expiration_date__gte=today,
-        expiration_warning_issued__isnull=True
+        expiration_warning_issued__isnull=True,
     )
 
     emails_sent = 0
@@ -95,24 +103,34 @@ def warn_user_for_expiring_allocation():
         # If we successfully sent mail, log it in the database
         if mail_sent:
             emails_sent += 1
-            LOG.info(f"Warned PI about allocation {alloc.id} "
-                     f"expiring on {alloc.expiration_date}")
+            LOG.info(
+                f"Warned PI about allocation {alloc.id} "
+                f"expiring on {alloc.expiration_date}"
+            )
             if alloc.expiration_warning_issued:
-                LOG.warning(f"Issued a duplicate expiration warning for "
-                            f"project {charge_code}.")
+                LOG.warning(
+                    f"Issued a duplicate expiration warning for "
+                    f"project {charge_code}."
+                )
             try:
                 with transaction.atomic():
                     alloc.expiration_warning_issued = now
                     alloc.save()
             except Exception:
-                LOG.error(f"Failed to update ORM with expiration warning timestamp "
-                          f"for project {charge_code}.")
+                LOG.error(
+                    f"Failed to update ORM with expiration warning timestamp "
+                    f"for project {charge_code}."
+                )
         else:
             LOG.error(
-                f"Failed to send expiration warning email for project {charge_code}")
+                f"Failed to send expiration warning email for project {charge_code}"
+            )
 
-    LOG.debug(f"Needed to send mail for {len(expiring_allocations)}, "
-              f"and {emails_sent} emails were actually sent.")
+    LOG.debug(
+        f"Needed to send mail for {len(expiring_allocations)}, "
+        f"and {emails_sent} emails were actually sent."
+    )
+
 
 def _deactivate_allocation(balance_service, alloc):
     charge_code = alloc.project.charge_code
