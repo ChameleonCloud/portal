@@ -4,7 +4,8 @@ import logging
 import pytz
 from operator import attrgetter
 
-from celery.decorators import task
+from celery.decorators import task, periodic_task
+from celery.schedules import crontab
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
@@ -20,6 +21,8 @@ def _send_expiration_warning_mail(alloc, today):
     """
     For a single allocation, send warning email to its project's PI
     """
+    assert alloc.expiration_warning_issued is None
+
     charge_code = alloc.project.charge_code
     email = alloc.project.pi.email
     expiration_date = alloc.expiration_date.date()
@@ -77,6 +80,7 @@ def _send_expiration_warning_mail(alloc, today):
     return mail_sent
 
 
+@periodic_task(run_every=crontab(minute=0, hour=7))
 def warn_user_for_expiring_allocation():
     """
     Sends an email to users when their allocation is within one month of expiring
@@ -107,11 +111,6 @@ def warn_user_for_expiring_allocation():
                 f"Warned PI about allocation {alloc.id} "
                 f"expiring on {alloc.expiration_date}"
             )
-            if alloc.expiration_warning_issued:
-                LOG.warning(
-                    f"Issued a duplicate expiration warning for "
-                    f"project {charge_code}."
-                )
             try:
                 with transaction.atomic():
                     alloc.expiration_warning_issued = now
@@ -210,8 +209,6 @@ def active_approved_allocations(balance_service):
 @task
 def activate_expire_allocations():
     balance_service = BalanceServiceClient()
-    # warn users about allocations expiring within the month
-    warn_user_for_expiring_allocation()
     # expire allocations
     expire_allocations(balance_service)
     # check projects with multiple active allocations
