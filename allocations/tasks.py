@@ -1,17 +1,135 @@
-
-
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta, timezone
 import logging
 import pytz
 from operator import attrgetter
 
-from celery.decorators import task
+from celery.decorators import task, periodic_task
+from celery.schedules import crontab
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
+from django.utils.html import strip_tags
 from allocations.models import Allocation
 from allocations.allocations_api import BalanceServiceClient
 from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
+
+
+def _send_expiration_warning_mail(alloc, today):
+    """
+    For a single allocation, send warning email to its project's PI
+    """
+    assert alloc.expiration_warning_issued is None
+
+    charge_code = alloc.project.charge_code
+    email = alloc.project.pi.email
+    expiration_date = alloc.expiration_date.date()
+
+    # Edge cases
+    if not expiration_date:
+        LOG.warning(f"Allocation {alloc.id} has no expiration date.")
+        return None
+
+    if not email:
+        LOG.warning(
+            f"PI for project {charge_code} has no email; "
+            "cannot send expiration warning"
+        )
+        return None
+
+    time_until_expiration = expiration_date - today
+
+    # Little string to describe the expiration to make the email look nicer
+    if expiration_date == today:
+        time_description = "today"
+    else:
+        # "in 1 day" | "in <n> days"
+        time_description = (
+            f"in {time_until_expiration.days} "
+            f"day{'s' if time_until_expiration.days != 1 else ''}"
+        )
+
+    docs_url = (
+        "https://chameleoncloud.readthedocs.io/en/latest/user/project.html"
+        "#recharge-or-extend-your-allocation "
+    )
+    email_body = f"""
+            <p>
+                The allocation for project <b>{charge_code}</b> 
+                will expire <b>{time_description}.</b> See our
+                <a href={docs_url}>Documentation</a>
+                on how to recharge or extend your allocation.
+            </p>
+            """
+
+    mail_sent = None
+    try:
+        mail_sent = send_mail(
+            subject=f"NOTICE: Your allocation for project {charge_code} "
+            f"expires {time_description}!",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            message=strip_tags(" ".join(email_body.split()).strip()),
+            html_message=email_body,
+        )
+    except Exception:
+        pass
+
+    return mail_sent
+
+
+@periodic_task(run_every=crontab(minute=0, hour=7))
+def warn_user_for_expiring_allocation():
+    """
+    Sends an email to users when their allocation is within one month of expiring
+    """
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    days_this_month = calendar.monthrange(today.year, today.month)[1]
+    target_expiration_date = today + timedelta(days=days_this_month)
+
+    # Find allocations that are expiring between today and 1 month,
+    # and have not been warned of their impending doom
+    expiring_allocations = Allocation.objects.filter(
+        status='active',
+        expiration_date__lte=target_expiration_date,
+        expiration_date__gte=today,
+        expiration_warning_issued__isnull=True,
+    )
+
+    emails_sent = 0
+    for alloc in expiring_allocations:
+        mail_sent = _send_expiration_warning_mail(alloc, today)
+        charge_code = alloc.project.charge_code
+
+        # If we successfully sent mail, log it in the database
+        if mail_sent:
+            emails_sent += 1
+            LOG.info(
+                f"Warned PI about allocation {alloc.id} "
+                f"expiring on {alloc.expiration_date}"
+            )
+            try:
+                with transaction.atomic():
+                    alloc.expiration_warning_issued = now
+                    alloc.save()
+            except Exception:
+                LOG.error(
+                    f"Failed to update ORM with expiration warning timestamp "
+                    f"for project {charge_code}."
+                )
+        else:
+            LOG.error(
+                f"Failed to send expiration warning email for project {charge_code}"
+            )
+
+    LOG.debug(
+        f"Needed to send mail for {len(expiring_allocations)}, "
+        f"and {emails_sent} emails were actually sent."
+    )
+
 
 def _deactivate_allocation(balance_service, alloc):
     charge_code = alloc.project.charge_code
