@@ -787,6 +787,10 @@ CELERY_BEAT_SCHEDULE = {
             minute="*/{}".format(int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY // 60))
         ),
     },
+    "warn-user-for-expiring-allocation": {
+        "task": "allocations.tasks.warn_user_for_expiring_allocation",
+        "schedule": crontab(minute=0, hour=7),
+    },
 }
 
 # Djangocms_blog templates

@@ -4,8 +4,7 @@ import logging
 import pytz
 from operator import attrgetter
 
-from celery.decorators import task, periodic_task
-from celery.schedules import crontab
+from celery.decorators import task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
@@ -57,7 +56,7 @@ def _send_expiration_warning_mail(alloc, today):
     )
     email_body = f"""
             <p>
-                The allocation for project <b>{charge_code}</b> 
+                The allocation for project <b>{charge_code}</b>
                 will expire <b>{time_description}.</b> See our
                 <a href={docs_url}>Documentation</a>
                 on how to recharge or extend your allocation.
@@ -80,7 +79,6 @@ def _send_expiration_warning_mail(alloc, today):
     return mail_sent
 
 
-@periodic_task(run_every=crontab(minute=0, hour=7))
 def warn_user_for_expiring_allocation():
     """
     Sends an email to users when their allocation is within one month of expiring
