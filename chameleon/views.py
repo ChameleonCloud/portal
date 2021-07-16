@@ -42,8 +42,6 @@ def dashboard(request):
     )
     context["active_projects"] = active_projects
 
-    context["show_migration_info"] = request.session.get("has_legacy_account", False)
-
     # open tickets...
     rt = rtUtil.DjangoRt()
     context["open_tickets"] = rt.getUserTickets(request.user.email)
