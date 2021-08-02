@@ -5,9 +5,12 @@ from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
 import mock
 import json
 
+
 @modify_settings(
-    MIDDLEWARE = {
-        'remove': ['termsandconditions.middleware.TermsAndConditionsRedirectMiddleware',]
+    MIDDLEWARE={
+        "remove": [
+            "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
+        ]
     }
 )
 @override_settings(

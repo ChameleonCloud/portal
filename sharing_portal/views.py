@@ -134,7 +134,8 @@ def _render_list(request, artifacts, user_projects=None):
         if request.user.is_authenticated:
             mapper = ProjectAllocationMapper(request)
             user_projects = mapper.get_user_projects(
-                request.user.username, fetch_balance=False)
+                request.user.username, fetch_balance=False
+            )
         else:
             user_projects = []
 

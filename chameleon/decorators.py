@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect, QueryDict
 from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
 
+
 def terms_required(terms_slug):
     def decorator(view_func):
         """
@@ -18,7 +19,9 @@ def terms_required(terms_slug):
             """Method to wrap the view passed in"""
 
             terms = TermsAndConditions.objects.filter(slug=terms_slug)[0]
-            if not request.user.is_authenticated or _agreed_to_terms( request.user, terms ):
+            if not request.user.is_authenticated or _agreed_to_terms(
+                request.user, terms
+            ):
                 return view_func(request, *args, **kwargs)
 
             currentPath = request.META['PATH_INFO']
@@ -47,8 +50,7 @@ def anonymous_required(function=None, redirect_url='/'):
     to the specified page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: u.is_anonymous,
-        login_url=redirect_url
+        lambda u: u.is_anonymous, login_url=redirect_url
     )
 
     if function:

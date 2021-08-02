@@ -21,16 +21,15 @@ class Allocation(models.Model):
         ("approved", "approved but not active"),
     )
     project = models.ForeignKey(
-            Project,
-            related_name="allocations",
-            on_delete=models.CASCADE)
+        Project, related_name="allocations", on_delete=models.CASCADE
+    )
     status = models.CharField(max_length=50, blank=False, choices=STATUS)
     justification = models.TextField(null=True)
     requestor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="allocation_requestor",
         null=True,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     date_requested = models.DateTimeField()
     decision_summary = models.TextField(null=True)
@@ -38,7 +37,7 @@ class Allocation(models.Model):
         settings.AUTH_USER_MODEL,
         related_name="allocation_reviewer",
         null=True,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     date_reviewed = models.DateTimeField(null=True)
     expiration_date = models.DateTimeField(null=True)

@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import gettext_lazy as _
 from user_news.models import News, UserNewsPluginModel
 
+
 @plugin_pool.register_plugin
 class UserNewsPlugin(CMSPluginBase):
     model = UserNewsPluginModel

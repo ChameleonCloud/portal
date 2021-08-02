@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 class MailmanSubscription(models.Model):
     user = models.OneToOneField(
-            settings.AUTH_USER_MODEL,
-            related_name='subscriptions',
-            on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, related_name='subscriptions', on_delete=models.CASCADE
+    )
     outage_notifications = models.BooleanField(
-            default=True,
-            help_text=_('Notifications about maintenance downtimes and outages'))
+        default=True,
+        help_text=_('Notifications about maintenance downtimes and outages')
+    )
     users_list = models.BooleanField(
             default=True,
             help_text=_('Mailing list for discussion among Chameleon Users'))

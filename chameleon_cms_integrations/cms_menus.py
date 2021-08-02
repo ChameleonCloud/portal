@@ -30,9 +30,18 @@ class UserMenu(CMSAttachMenu):
         # Dropdown menu
         #
         menu_id += 1
-        greeting = '&nbsp;{0}&nbsp;'.format(request.user.username) if request.user.is_authenticated else ''
+        greeting = (
+            "&nbsp;{0}&nbsp;".format(request.user.username)
+            if request.user.is_authenticated
+            else ""
+        )
         title = '<i class="fa fa-user"></i><span class="hidden-sm">{0}</span>'
-        n = NavigationNode(title.format(greeting), "/user/", menu_id, attr={'visible_for_anonymous': False})
+        n = NavigationNode(
+            title.format(greeting),
+            "/user/",
+            menu_id,
+            attr={"visible_for_anonymous": False}
+        )
         nodes.append(n)
 
         root_id = menu_id

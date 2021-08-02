@@ -63,9 +63,11 @@ def get_appliances(request):
         appliances = Appliance.objects.all()
         # filter out any that need review unless they belong to me
     if request.user.is_authenticated:
-        appliances = appliances.filter(Q(needs_review = False) | Q(created_by = request.user))
+        appliances = appliances.filter(
+            Q(needs_review = False) | Q(created_by = request.user)
+        )
     else:
-        appliances = appliances.exclude(needs_review = True)
+        appliances = appliances.exclude(needs_review=True)
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
@@ -359,8 +361,8 @@ def get_keywords(request, appliance_id=None):
 
 
 def app_template(request, resource):
-    logger.debug('Template requested: %s.html', resource)
-    templateUrl = 'appliance_catalog/%s.html' %resource
+    logger.debug("Template requested: %s.html", resource)
+    templateUrl = "appliance_catalog/%s.html" % resource
     return render(request, templateUrl)
 
 

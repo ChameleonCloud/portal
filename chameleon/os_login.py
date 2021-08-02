@@ -23,7 +23,7 @@ LOG = logging.getLogger(__name__)
 @csrf_protect
 @never_cache
 def custom_login(request, current_app=None, extra_context=None):
-    base_path = reverse('oidc_authentication_init')
+    base_path = reverse("oidc_authentication_init")
     # Preserve the next redirect if it exists
     if "next" in request.GET:
         next_path = request.GET["next"]

@@ -1,7 +1,6 @@
 import logging
 
 from chameleon_mailman import views as chameleon_mailman_views
-from django.urls import re_path
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
 from django.conf.urls import url, include
@@ -145,8 +144,8 @@ urlpatterns = (
         # /share is bound to sharing_portal app via CMS integration
         # /news is bound to user_news app via CMS integration
     ]
-    #+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    #+ router.get_urls()
+    # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # + router.get_urls()
 )
 
 urlpatterns += router.urls
