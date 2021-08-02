@@ -11,11 +11,11 @@ urlpatterns = [
     re_path(r"^(?P<slug>[-_\w]+)/$", views.UserNewsDetailView.as_view(), name="detail"),
     re_path(
         r"^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[-_\w]+)/$",
-        views.UserNewsRedirectView.as_view()
+        views.UserNewsRedirectView.as_view(),
     ),
     re_path(
         r"^outages/(?P<slug>[-_\w]+)/$",
         views.OutageDetailView.as_view(),
-        name="outage_detail"
+        name="outage_detail",
     ),
 ]

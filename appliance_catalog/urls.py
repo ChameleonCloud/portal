@@ -24,17 +24,17 @@ urlpatterns = [
     re_path(
         r"^api/appliances/appliance_id/(?P<appliance_id>[0-9a-f-]+)/$",
         views.get_appliance_by_id,
-        name="get_appliance_by_id"
+        name="get_appliance_by_id",
     ),
     re_path(
         r"^api/appliances/(?P<pk>\d+)/template$",
         views.get_appliance_template,
-        name="get_appliance_template"
+        name="get_appliance_template",
     ),
     re_path(r"^api/keywords/$", views.get_keywords, name="get_keywords"),
     re_path(
         r"^api/keywords/(?P<appliance_id>\d+)/$",
         views.get_keywords,
-        name="get_keywords"
+        name="get_keywords",
     ),
 ]

@@ -99,9 +99,9 @@ class Artifact(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='artifacts',
+        related_name="artifacts",
         null=True,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE

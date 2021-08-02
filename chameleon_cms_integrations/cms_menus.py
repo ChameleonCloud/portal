@@ -40,7 +40,7 @@ class UserMenu(CMSAttachMenu):
             title.format(greeting),
             "/user/",
             menu_id,
-            attr={"visible_for_anonymous": False}
+            attr={"visible_for_anonymous": False},
         )
         nodes.append(n)
 

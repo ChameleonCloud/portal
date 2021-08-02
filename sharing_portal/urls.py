@@ -15,12 +15,12 @@ urlpatterns = [
     re_path(
         r"^(?P<pk>\d+)/version/(?P<version_idx>\d+)$",
         views.artifact,
-        name="detail_version"
+        name="detail_version",
     ),
     re_path(
         r"^(?P<pk>\d+)/version/(?P<version_idx>\d+)/launch$",
         views.launch,
-        name="launch_version"
+        name="launch_version",
     ),
     re_path(r"^(?P<pk>\d+)/edit$", views.edit_artifact, name="edit"),
     re_path(r"^(?P<pk>\d+)/share$", views.share_artifact, name="share"),

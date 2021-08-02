@@ -30,7 +30,7 @@ class Appliance(models.Model):
     ## Indicates if appliance was shared directly from an image in Horizon
     shared_from_horizon = models.BooleanField(default=False)
     ## Indicates which projects (if any) the appliance is shared with, an empty list indicates a public appliance
-    restrict_to_projects = models.CharField(max_length=1000, null=True,blank=True)
+    restrict_to_projects = models.CharField(max_length=1000, null=True, blank=True)
     project_flagged = models.BooleanField(default=False, blank=True)
     keywords = models.ManyToManyField(Keyword, through="ApplianceTagging", blank=True)
     version = models.CharField(max_length=100)
