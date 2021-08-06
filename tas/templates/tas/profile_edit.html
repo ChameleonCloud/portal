@@ -32,9 +32,17 @@
         {% else %}
           <div class="checkbox">
             <label>
-              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility">
+              {% if is_student %}
+              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" disabled onchange="pie_request();">
+              {% else %}
+              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" onchange="pie_request();">
+              {% endif %}
               Request PI Eligibility
             </label>
+          </div>
+          <div id="directorylinkdiv" style="display:none">
+            <label for="directorylink">Please provide the department directory link for review:</label>
+            <input type="url" id="directorylink" name="directorylink">
           </div>
           <p class="help-block">
             Users who intend to create and lead projects on Chameleon must meet the PI Eligibility requirements.
@@ -55,5 +63,29 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript" src="{% static 'tas/js/institution_departments.js' %}"></script>
+<script type="text/javascript">
+function profile_title_update(value) {
+	var request_checkbox = document.getElementById('id_request_pi_eligibility');
+	if (value.toLowerCase().includes("student")) {
+		request_checkbox.disabled = true;
+		request_checkbox.checked = false;
+	} else {
+		request_checkbox.disabled = false;
+	}
+	pie_request();
+}
+
+function pie_request() {
+	  var request_checkbox = document.getElementById("id_request_pi_eligibility");
+	  var inputdiv = document.getElementById("directorylinkdiv");
+	  var directory_input = document.getElementById("directorylink");
+	  if (request_checkbox.checked == true){
+		  inputdiv.style.display = "block";
+		  directory_input.required = true;
+	  } else {
+		  inputdiv.style.display = "none";
+		  directory_input.required = false;
+	  }
+}
+</script>
 {% endblock %}

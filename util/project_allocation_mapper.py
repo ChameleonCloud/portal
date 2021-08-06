@@ -1,9 +1,9 @@
-from itertools import chain
-import logging
-import time
 from datetime import datetime
+from itertools import chain
+import time
 
 import pytz
+
 from allocations.allocations_api import BalanceServiceClient
 from allocations.models import Allocation
 from chameleon.models import PIEligibility
@@ -13,15 +13,16 @@ from django.core.mail import send_mail
 from django.db.models import Max, QuerySet
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
+import logging
 from projects.models import FieldHierarchy
 from projects.models import Project
 from projects.models import Type
 from pytas.http import TASClient
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
-
 from util.consts import allocation, project
 from util.keycloak_client import KeycloakClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -271,12 +272,15 @@ class ProjectAllocationMapper:
         project.type = project_type
         project.save()
 
-    def update_user_profile(self, user, new_profile, is_request_pi_eligibililty):
+    def update_user_profile(
+        self, user, new_profile, is_request_pi_eligibililty, department_directory_link
+    ):
         keycloak_client = KeycloakClient()
 
         if is_request_pi_eligibililty:
             pie_request = PIEligibility()
             pie_request.requestor_id = user.id
+            pie_request.department_directory_link = department_directory_link
             pie_request.save()
             self._create_ticket_for_pi_request(user)
 

@@ -1,9 +1,10 @@
-from django.db import models
 from django.conf import settings
-from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-import logging
+from django.db import models
+from django.db.models import Q
 from django.utils import timezone
+import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class PIEligibility(models.Model):
         settings.AUTH_USER_MODEL, null=True, editable=False, related_name="+"
     )
     review_summary = models.TextField(blank=True, null=True)
+    department_directory_link = models.URLField(max_length=500, blank=True, null=True)
 
     class Meta:
         verbose_name = "PI Eligibility Request"
