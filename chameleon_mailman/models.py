@@ -17,14 +17,14 @@ class MailmanSubscription(models.Model):
     )
     outage_notifications = models.BooleanField(
         default=True,
-        help_text=_("Notifications about maintenance downtimes and outages")
+        help_text=_("Notifications about maintenance downtimes and outages"),
     )
     users_list = models.BooleanField(
         default=True, help_text=_("Mailing list for discussion among Chameleon Users")
     )
 
 
-@receiver(post_save, sender='user_news.Outage')
+@receiver(post_save, sender="user_news.Outage")
 def send_outage_notification(sender, instance, using, **kwargs):
     """
     Sends email notification to the address configured in `settings.OUTAGE_NOTIFICATION_EMAIL`.
