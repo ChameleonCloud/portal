@@ -757,7 +757,7 @@ taggit-helpers = ["django-taggit-helpers"]
 [package.source]
 type = "git"
 url = "https://github.com/ChameleonCloud/djangocms-blog"
-reference = "django3"
+reference = "chameleon/1.2.3"
 resolved_reference = "0c2619d302cd7bff1d34d674f540c7abae35277b"
 
 [[package]]
@@ -2162,7 +2162,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "7173830eee19082b772d2e073ff367d5ba960b8f744cdf0174622076dc47305e"
+content-hash = "6048e27cb881a308f76fd1655a1deda64a7227264bcd04f7d880697ddffe3d1b"
 
 [metadata.files]
 aldryn-apphooks-config = [
