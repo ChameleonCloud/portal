@@ -1,7 +1,9 @@
-from django import forms
-from pytas.http import TASClient
 import re
+
+from django import forms
 import logging
+from pytas.http import TASClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -441,7 +443,10 @@ class UserProfileForm(forms.Form):
     )
     department = forms.CharField(label="Department", required=False)
     title = forms.ChoiceField(
-        label="Position/Title", required=False, choices=USER_PROFILE_TITLES
+        label="Position/Title",
+        required=False,
+        choices=USER_PROFILE_TITLES,
+        widget=forms.Select(attrs={"onchange": "profileTitleUpdate(this.value);"}),
     )
     country = forms.ChoiceField(
         label="Country of residence",
@@ -461,7 +466,14 @@ class UserProfileForm(forms.Form):
     )
 
     disabled_fields = ["firstName", "lastName"]
-    required_for_pi = ["phone", "institution", "country", "citizenship"]
+    required_for_pi = [
+        "phone",
+        "institution",
+        "country",
+        "citizenship",
+        "department",
+        "title",
+    ]
 
     def __init__(self, *args, **kwargs):
         pi_eligibility_requested = kwargs.pop("is_pi_eligible", False)
