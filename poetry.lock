@@ -466,18 +466,17 @@ tests = ["pytest (<4.0)", "pytest-django", "pytest-flakes (==1.0.1)", "pytest-pe
 
 [[package]]
 name = "django-filer"
-version = "1.7.1"
+version = "2.0.2"
 description = "A file management application for django that makes handling of files and images a breeze."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django = ">=1.11,<4.0"
+django = ">=2.2,<4.0"
 django-mptt = ">=0.6,<1.0"
-django_polymorphic = ">=0.7,<2.2"
+django-polymorphic = ">=2,<3.1"
 easy-thumbnails = ">=2,<3.0"
-six = "*"
 Unidecode = ">=0.04,<1.2"
 
 [[package]]
@@ -565,14 +564,14 @@ python-versions = "*"
 
 [[package]]
 name = "django-polymorphic"
-version = "2.1.2"
+version = "3.0.0"
 description = "Seamless polymorphic inheritance for Django models"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-Django = ">=1.11"
+Django = ">=2.1"
 
 [[package]]
 name = "django-recaptcha"
@@ -598,16 +597,15 @@ django = ">=1.11"
 
 [[package]]
 name = "django-sekizai"
-version = "1.1.0"
+version = "2.0.0"
 description = "Django Sekizai"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django = ">=1.11"
-django-classy-tags = ">=0.9.0"
-six = "*"
+django = ">=2.2"
+django-classy-tags = ">=1"
 
 [[package]]
 name = "django-sortedm2m"
@@ -2159,7 +2157,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "31da2a6d6c313ae32e3cbffd2ebac81a869b7921b6f7611da4a25cccdb1946d4"
+content-hash = "4f96a1e9ff7a9de09251174902fdc5303f37e1fb814321630f04ec5344ea2596"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2349,7 +2347,7 @@ django-csp = [
     {file = "django_csp-3.7.tar.gz", hash = "sha256:01eda02ad3f10261c74131cdc0b5a6a62b7c7ad4fd017fbefb7a14776e0a9727"},
 ]
 django-filer = [
-    {file = "django-filer-1.7.1.tar.gz", hash = "sha256:7bf8cda6cbdd02c30198c59dfe2027624ee70a204f2d4f6cc2a0a8563df9b286"},
+    {file = "django-filer-2.0.2.tar.gz", hash = "sha256:97fb205a70615c8c63dbe5beb5ea63078461c98d2b148d81147a796401915a07"},
 ]
 django-formtools = [
     {file = "django-formtools-2.3.tar.gz", hash = "sha256:9663b6eca64777b68d6d4142efad8597fe9a685924673b25aa8a1dcff4db00c3"},
@@ -2381,8 +2379,8 @@ django-pipeline = [
     {file = "django_pipeline-2.0.6-py3-none-any.whl", hash = "sha256:3ec726e2bf9f61f213f41ee4513f4191a02ab2f5df86c9e3751a9a607c814031"},
 ]
 django-polymorphic = [
-    {file = "django-polymorphic-2.1.2.tar.gz", hash = "sha256:6e08a76c91066635ccb7ef3ebbe9a0ad149febae6b30be2579716ec16d3c6461"},
-    {file = "django_polymorphic-2.1.2-py2.py3-none-any.whl", hash = "sha256:0a25058e95e5e99fe0beeabb8f4734effe242d7b5b77dca416fba9fd3062da6a"},
+    {file = "django-polymorphic-3.0.0.tar.gz", hash = "sha256:9d886f19f031d26bb1391c055ed9be06fb226a04a4cec1842b372c58873b3caa"},
+    {file = "django_polymorphic-3.0.0-py2.py3-none-any.whl", hash = "sha256:73b75eb44ea302bd32820f8661e469509d245ce7f7ff09cd2ad149e5c42034ff"},
 ]
 django-recaptcha = [
     {file = "django_recaptcha-2.0.6-py2.py3-none-any.whl", hash = "sha256:567784963fd5400feaf92e8951d8dbbbdb4b4c48a76e225d4baa63a2c9d2cd8c"},
@@ -2392,7 +2390,8 @@ django-reversion = [
     {file = "django_reversion-3.0.7-py3-none-any.whl", hash = "sha256:ecab4703ecc0871dc325c3e100139def84eb153622df3413fbcd9de7d3503c78"},
 ]
 django-sekizai = [
-    {file = "django-sekizai-1.1.0.tar.gz", hash = "sha256:e2f6e666d4dd9d3ecc27284acb85ef709e198014f5d5af8c6d54ed04c2d684d9"},
+    {file = "django-sekizai-2.0.0.tar.gz", hash = "sha256:e829f09b0d6bf01ee5cde05de1fb3faf2fbc5df66dc4dc280fbaac224ca4336f"},
+    {file = "django_sekizai-2.0.0-py3-none-any.whl", hash = "sha256:5c5e16845d37ce822fc655ce79ec02715191b3d03330b550997bcb842cf24fdf"},
 ]
 django-sortedm2m = [
     {file = "django-sortedm2m-3.0.2.tar.gz", hash = "sha256:8acc3638b7a2587533c7776deaa2c6c035220c8f9fff85ed67858a9c6bf51e7c"},
