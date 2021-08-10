@@ -15,6 +15,14 @@ from util.project_allocation_mapper import ProjectAllocationMapper
 LOG = logging.getLogger(__name__)
 
 
+def can_request_pi(title):
+    # TODO: we may want to update the USER_TITLES to somehow
+    # include which ones should have PI eligibility request
+    # disabled if it gets any more complicated.
+    # currently, we only prevent students requesting for PI.
+    return "student" in title.lower()
+
+
 @login_required
 def profile(request):
     context = {}
@@ -69,7 +77,7 @@ def profile_edit(request):
         "form": form,
         "user": user_info,
         "piEligibility": user_info["piEligibility"],
-        "is_student": "student" in user_info.get("title", "").lower(),
+        "canRequestPI": can_request_pi(user_info.get("title", "")),
     }
     return render(request, "tas/profile_edit.html", context)
 

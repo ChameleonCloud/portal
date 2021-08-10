@@ -446,7 +446,7 @@ class UserProfileForm(forms.Form):
         label="Position/Title",
         required=False,
         choices=USER_PROFILE_TITLES,
-        widget=forms.Select(attrs={"onchange": "profile_title_update(this.value);"}),
+        widget=forms.Select(attrs={"onchange": "profileTitleUpdate(this.value);"}),
     )
     country = forms.ChoiceField(
         label="Country of residence",

@@ -32,17 +32,22 @@
         {% else %}
           <div class="checkbox">
             <label>
-              {% if is_student %}
-              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" disabled onchange="pie_request();">
+              {% if canRequestPI %}
+              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" disabled onchange="pieRequest();">
               {% else %}
-              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" onchange="pie_request();">
+              <input type="checkbox" id="id_request_pi_eligibility" name="request_pi_eligibility" onchange="pieRequest();">
               {% endif %}
               Request PI Eligibility
             </label>
           </div>
           <div id="directorylinkdiv" style="display:none">
-            <label for="directorylink">Please provide the department directory link for review:</label>
+            <label for="directorylink">Department directory link:</label>
             <input type="url" id="directorylink" name="directorylink">
+            <p class="help-block">
+              Please provide a link to your institution's department directory or 
+              any other official institution page where information confirming your 
+              current appointment can be found.
+            </p>
           </div>
           <p class="help-block">
             Users who intend to create and lead projects on Chameleon must meet the PI Eligibility requirements.
@@ -64,7 +69,7 @@
 
 {% block scripts %}
 <script type="text/javascript">
-function profile_title_update(value) {
+function profileTitleUpdate(value) {
 	var request_checkbox = document.getElementById('id_request_pi_eligibility');
 	if (value.toLowerCase().includes("student")) {
 		request_checkbox.disabled = true;
@@ -72,10 +77,10 @@ function profile_title_update(value) {
 	} else {
 		request_checkbox.disabled = false;
 	}
-	pie_request();
+	pieRequest();
 }
 
-function pie_request() {
+function pieRequest() {
 	  var request_checkbox = document.getElementById("id_request_pi_eligibility");
 	  var inputdiv = document.getElementById("directorylinkdiv");
 	  var directory_input = document.getElementById("directorylink");
