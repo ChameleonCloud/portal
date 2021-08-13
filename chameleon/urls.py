@@ -3,7 +3,7 @@ import logging
 from chameleon_mailman import views as chameleon_mailman_views
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
-from django.conf.urls import re_path, include
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -11,30 +11,13 @@ from django.contrib.sitemaps.views import sitemap
 from django.http import HttpResponseRedirect
 from django.views import View
 from django.views.generic import RedirectView, TemplateView
-from django.urls import reverse, reverse_lazy
-from dynamic_rest import routers
+from django.urls import reverse, reverse_lazy, re_path, path
 from user_news.views import OutageDetailView, OutageFeed, OutageListView
-from util.dynamic_drf_api import (
-    AllocationViewSet,
-    FieldViewSet,
-    ProjectViewSet,
-    TypeViewSet,
-    UserViewSet,
-)
 
 from chameleon import os_login as chameleon_os_login
 from chameleon import views as chameleon_views
 
 logger = logging.getLogger(__name__)
-
-router = routers.DynamicRouter()
-router.register(r"api/projects", ProjectViewSet)
-router.register(r"api/users", UserViewSet)
-router.register(r"api/allocations", AllocationViewSet)
-router.register(r"api/types", TypeViewSet)
-router.register(r"api/fields", FieldViewSet)
-
-logger.debug(f"Registered the following router urls: {router.urls}")
 
 
 class AdminOIDCLogin(View):
@@ -52,7 +35,7 @@ urlpatterns = (
         # admin urls
         re_path(r"^admin/login/", AdminOIDCLogin.as_view()),
         re_path(r"^admin/", admin.site.urls),
-        re_path(r"^admin/impersonate/", include("impersonate.urls")),
+        path("impersonate/", include("impersonate.urls")),
         re_path(
             r"^admin/allocations/",
             include("allocations.urls", namespace="allocations_admin"),
@@ -145,7 +128,5 @@ urlpatterns = (
         # /news is bound to user_news app via CMS integration
     ]
     # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # + router.get_urls()
 )
 
-urlpatterns += router.urls

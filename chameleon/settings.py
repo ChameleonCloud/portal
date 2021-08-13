@@ -128,7 +128,6 @@ INSTALLED_APPS = (
     "markdown_deux",
     "webpack_loader",
     "rest_framework",
-    "dynamic_rest",
     ##
     # custom
     #
@@ -263,18 +262,9 @@ REST_FRAMEWORK = {
     # if not set explicitly, return json response.
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
-        "dynamic_rest.renderers.DynamicBrowsableAPIRenderer",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
-}
-
-DYNAMIC_REST = {
-    # DEBUG: enable/disable internal debugging
-    "DEBUG": DEBUG,
-    # ENABLE_BROWSABLE_API: enable/disable the browsable API.
-    # It can be useful to disable it in production.
-    "ENABLE_BROWSABLE_API": DEBUG,
 }
 
 # Keycloak OIDC Authentication
@@ -651,7 +641,9 @@ G5K_API_ROOT = "http://referenceapi:8000"
 # Django Impersonate
 #
 #####
-IMPERSONATE_REQUIRE_SUPERUSER = True
+IMPERSONATE = {
+    'REQUIRE_SUPERUSER': True,
+}
 
 
 #####
