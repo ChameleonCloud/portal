@@ -61,7 +61,7 @@ def add_openstack_data(self, **kwargs):
         rt = rtUtil.DjangoRt()
         rt.commentOnTicket(ticket_id, openstack_user_data)
     except Exception as exc:
-        LOG.exception('Failed to complete migration')
+        LOG.exception('Failed to gather data')
         exc_message = getattr(exc, 'message', None)
         if exc_message:
             messages.append(exc_message)
