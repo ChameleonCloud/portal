@@ -20,7 +20,7 @@ def can_request_pi(title):
     # include which ones should have PI eligibility request
     # disabled if it gets any more complicated.
     # currently, we only prevent students requesting for PI.
-    return "student" in title.lower()
+    return title is not None and "student" in title.lower()
 
 
 @login_required
