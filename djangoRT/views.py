@@ -18,6 +18,7 @@ from dateutil import parser
 from chameleon.keystone_auth import admin_session, admin_ks_client
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
+from .tasks import add_openstack_data
 
 logger = logging.getLogger("default")
 
@@ -102,13 +103,6 @@ def _handle_ticket_form(request, form):
         ]
     )
 
-    if request.user.username:
-        region_list = get_region_list(request.user.username)
-        openstack_user_data = render_to_string(
-            "djangoRT/project_details.txt", {"regions": region_list}
-        )
-    else:
-        openstack_user_data = "\n---\n    No openstack data for anonymous user."
 
     ticket_body = f"""{header}
 
@@ -116,9 +110,6 @@ def _handle_ticket_form(request, form):
 
     ---
     {requestor_meta}
-
-
-    {remove_empty_lines(openstack_user_data)}
     """
 
     rt = rtUtil.DjangoRt()
@@ -148,6 +139,13 @@ def _handle_ticket_form(request, form):
         success = rt.replyToTicket(ticket_id, files=files)
         if not success:
             logger.error(f"Error adding attachment to #{ticket_id}")
+
+    add_openstack_data.apply_async(
+        kwargs={
+            "username": request.user.username,
+            "ticket_id": ticket_id,
+        },
+    )
 
     messages.success(
         request,
@@ -291,160 +289,3 @@ def ticketattachment(request, ticket_id, attachment_id):
         response["Content-Disposition"] = content_disposition
         return response
 
-
-def get_region_list(username):
-    keycloak_client = KeycloakClient()
-    projects = keycloak_client.get_full_user_projects_by_username(username)
-
-    region_list = []
-    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
-        try:
-            region_list.append(get_openstack_data(username, region, projects))
-        except Exception as err:
-            logger.error(f"Failed to get OpenStack data for region {region}: {err}")
-    return region_list
-
-
-def get_openstack_data(username, region, projects):
-    admin_client = admin_ks_client(region)
-    admin_sess = admin_session(region)
-
-    current_region = {}
-    current_region["name"] = region
-    current_region["projects"] = []
-
-    # we know there is only going to be one domain
-    domains = list(admin_client.domains.list(name="chameleon"))
-    if not domains:
-        logger.error('Didn\'t find the domain "chameleon", skipping this site')
-        return current_region
-    domain_id = domains[0].id
-
-    ks_users_list = list(admin_client.users.list(name=username, domain=domain_id))
-    if len(ks_users_list) > 1:
-        logger.warning(
-            f"Found {len(ks_users_list)} users for {username}, using the first."
-        )
-    ks_user = ks_users_list[0]
-
-    all_ks_projects = {
-        ks_p.name: ks_p
-        for ks_p in admin_client.projects.list(domain=domain_id)
-    }
-    for project in projects:
-        charge_code = project["name"]
-        # Project doesn't exist for this region
-        if charge_code not in all_ks_projects:
-            continue
-        ks_project_id = all_ks_projects[charge_code].id
-        project_qs = Project.objects.filter(charge_code=charge_code)
-        project_list = list(project_qs)
-        if len(project_list) > 1:
-            raise Exception(f"More than one project found with charge code {charge_code}")
-        project = project_list[0]
-
-        current_project = {}
-        current_project["charge_code"] = project.charge_code
-        current_project["id"] = ks_project_id
-        current_region["projects"].append(current_project)
-
-        try:
-            current_project["leases"] = get_lease_info(admin_sess, ks_user.id, ks_project_id)
-        except Exception as err:
-            current_project["lease_error"] = True
-            logger.error(f"Failed to get leases in {region} for {project.title}: {err}")
-        try:
-            current_project["servers"] = get_server_info(
-                admin_sess, ks_project_id
-            )
-        except Exception as err:
-            current_project["server_error"] = True
-            logger.error(
-                f"Failed to get active servers in {region} for {project.title}: {err}"
-            )
-
-    return current_region
-
-
-def get_lease_info(sess, user_id, project_id):
-    lease_list = []
-    blazar = blazar_client.Client(
-        "1", service_type="reservation", interface="publicURL", session=sess
-    )
-    ironic = ironic_client.Client("1", session=sess)
-    leases = blazar.lease.list()
-    for lease in leases:
-        if lease.get("user_id") != user_id or lease.get("project_id") != project_id:
-            continue
-
-        # Ignore if more than 3 days out of date
-        end_date = parser.parse(lease.get("end_date"))
-        date_diff = datetime.utcnow() - end_date
-        if date_diff.days > 3:
-            continue
-
-        lease_dict = {}
-        lease_dict["name"] = lease.get("name")
-        lease_dict["status"] = lease.get("status")
-        lease_dict["start_date"] = str(parser.parse(lease.get("start_date")))
-        lease_dict["end_date"] = str(end_date)
-        lease_dict["id"] = lease.get("id")
-
-        lease_dict["hosts"] = []
-        resource_map = {r["id"]: r for r in blazar.host.list()}
-        for blazar_host in blazar.host.list_allocations():
-            if any(res["lease_id"] == lease_dict["id"] for res in blazar_host["reservations"]):
-                resource_host = resource_map[blazar_host["resource_id"]]
-                host = {
-                    "node_name": resource_host["node_name"],
-                    "uid": resource_host["uid"],
-                    "node_type": resource_host["node_type"]
-                }
-                node = ironic.node.get(resource_host["uid"])
-                host["provision_state"] = node.provision_state
-                host["instance_uuid"] = node.instance_uuid
-                host["last_error"] = node.last_error
-                lease_dict["hosts"].append(host)
-
-        lease_dict["networks"] = []
-        resource_map = {r["id"]: r for r in blazar.network.list()}
-        for network in blazar.network.list_allocations():
-            if any(res["lease_id"] == lease_dict["id"] for res in network["reservations"]):
-                lease_dict["networks"].append(resource_map[network["resource_id"]])
-        lease_list.append(lease_dict)
-    return lease_list
-
-
-def remove_empty_lines(string):
-    return "\n".join([line for line in string.split("\n") if len(line.strip()) > 0])
-
-
-def get_server_info(sess, project_id):
-    server_list = []
-    nova = nova_client.Client("2", session=sess)
-    glance = glance_client("2", service_type="image", session=sess)
-    servers = nova.servers.list(search_opts={"all_tenants": True})
-    for server in servers:
-        if server.tenant_id != project_id:
-            continue
-        server_dict = {}
-        server_dict["name"] = server.name
-        server_dict["status"] = str(server.status)
-        server_dict["created_date"] = str(parser.parse(server.created))
-        server_dict["id"] = server.id
-        server_dict["networks"] = []
-        for network in server.addresses.keys():
-            network_dict = {"name": network, "addresses": []}
-            for address in server.addresses[network]:
-                network_dict["addresses"].append(
-                    {
-                        "addr": address["addr"],
-                        "type": address["OS-EXT-IPS:type"],
-                    }
-                )
-            server_dict["networks"].append(network_dict)
-        image = glance.images.get(str(server.image["id"]))
-        server_dict["image_name"] = str(image.name)
-        server_dict["image_id"] = str(image.id)
-        server_list.append(server_dict)
-    return server_list
