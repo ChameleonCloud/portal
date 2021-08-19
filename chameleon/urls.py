@@ -17,6 +17,9 @@ from user_news.views import OutageDetailView, OutageFeed, OutageListView
 from chameleon import os_login as chameleon_os_login
 from chameleon import views as chameleon_views
 
+import allocations.urls
+import impersonate.urls
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,12 +37,12 @@ urlpatterns = (
     [
         # admin urls
         re_path(r"^admin/login/", AdminOIDCLogin.as_view()),
-        re_path(r"^admin/", admin.site.urls),
-        path("impersonate/", include("impersonate.urls")),
-        re_path(
-            r"^admin/allocations/",
+        path("admin/impersonate/", include("impersonate.urls")),
+        path(
+            "admin/allocations/",
             include("allocations.urls", namespace="allocations_admin"),
         ),
+        re_path(r"^admin/", admin.site.urls),
         # contrib urls
         re_path(r"^oidc/", include("mozilla_django_oidc.urls")),
         re_path(r"^ckeditor/", include("ckeditor_uploader.urls")),

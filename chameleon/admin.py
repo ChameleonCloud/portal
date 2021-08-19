@@ -7,14 +7,15 @@ import urllib.parse
 from functools import wraps
 
 from chameleon.models import PIEligibility
-from django.contrib.admin import ModelAdmin, site
+from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.html import format_html_join, mark_safe, urlize
+from django.conf.urls import include
 from util.keycloak_client import KeycloakClient
 
 logger = logging.getLogger(__name__)
-
 
 def add_method(cls):
     def decorator(func):
@@ -135,4 +136,4 @@ class PIEligibilityAdmin(ModelAdmin):
         return mark_safe(keycloak_html + orcid_html)
 
 
-site.register(PIEligibility, PIEligibilityAdmin)
+admin.site.register(PIEligibility, PIEligibilityAdmin)
