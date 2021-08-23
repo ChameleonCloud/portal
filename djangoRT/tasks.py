@@ -10,7 +10,7 @@ from glanceclient import Client as glance_client
 from novaclient import client as nova_client
 from ironicclient import client as ironic_client
 from blazarclient import client as blazar_client
-from chameleon.keystone_auth import admin_session, admin_ks_client, get_user, unscoped_user_session, project_scoped_session
+from chameleon.keystone_auth import admin_session, admin_ks_client
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
 from dateutil import parser
@@ -35,9 +35,13 @@ def add_openstack_data(self, **kwargs):
     def write_message(progress_pct, message):
         LOG.info(message)
         messages.append(message)
-        bound_task.update_state(state='PROGRESS', meta={
-            'messages': messages, 'progress_pct': progress_pct,
-        })
+        bound_task.update_state(
+            state='PROGRESS',
+            meta={
+                "messages": messages,
+                "progress_pct": progress_pct,
+            },
+        )
 
     try:
         if username:
@@ -52,24 +56,28 @@ def add_openstack_data(self, **kwargs):
                     write_message(factor * i, f'Processing region "{region}"')
                     region_list.append(get_openstack_data(username, region, projects))
                 except Exception as err:
-                    LOG.error(f"Failed to get OpenStack data for region {region}: {err}")
-            openstack_user_data = remove_empty_lines(render_to_string(
-                "djangoRT/project_details.txt", {"regions": region_list}
-            ))
+                    LOG.error(
+                        f"Failed to get OpenStack data for region {region}: {err}"
+                    )
+            openstack_user_data = remove_empty_lines(
+                render_to_string(
+                    "djangoRT/project_details.txt", {"regions": region_list}
+                )
+            )
         else:
             openstack_user_data = "No openstack data for anonymous user."
         rt = rtUtil.DjangoRt()
         rt.commentOnTicket(ticket_id, openstack_user_data)
     except Exception as exc:
-        LOG.exception('Failed to gather data')
-        exc_message = getattr(exc, 'message', None)
+        LOG.exception("Failed to gather data")
+        exc_message = getattr(exc, "message", None)
         if exc_message:
             messages.append(exc_message)
         raise OpenstackDataError(messages=messages) from exc
     # Return current state as last action
     return {
-        'messages': messages,
-        'progress_pct': 100.0,
+        "messages": messages,
+        "progress_pct": 100.0,
     }
 
 
@@ -96,8 +104,7 @@ def get_openstack_data(username, region, projects):
     ks_user = ks_users_list[0]
 
     all_ks_projects = {
-        ks_p.name: ks_p
-        for ks_p in admin_client.projects.list(domain=domain_id)
+        ks_p.name: ks_p for ks_p in admin_client.projects.list(domain=domain_id)
     }
     for project in projects:
         charge_code = project["name"]
@@ -108,7 +115,9 @@ def get_openstack_data(username, region, projects):
         project_qs = Project.objects.filter(charge_code=charge_code)
         project_list = list(project_qs)
         if len(project_list) > 1:
-            raise Exception(f"More than one project found with charge code {charge_code}")
+            raise Exception(
+                f"More than one project found with charge code {charge_code}"
+            )
         project = project_list[0]
 
         current_project = {}
@@ -117,14 +126,14 @@ def get_openstack_data(username, region, projects):
         current_region["projects"].append(current_project)
 
         try:
-            current_project["leases"] = get_lease_info(admin_sess, ks_user.id, ks_project_id)
+            current_project["leases"] = get_lease_info(
+                admin_sess, ks_user.id, ks_project_id
+            )
         except Exception as err:
             current_project["lease_error"] = True
             LOG.error(f"Failed to get leases in {region} for {project.title}: {err}")
         try:
-            current_project["servers"] = get_server_info(
-                admin_sess, ks_project_id
-            )
+            current_project["servers"] = get_server_info(admin_sess, ks_project_id)
         except Exception as err:
             current_project["server_error"] = True
             LOG.error(
@@ -161,12 +170,15 @@ def get_lease_info(sess, user_id, project_id):
         lease_dict["hosts"] = []
         resource_map = {r["id"]: r for r in blazar.host.list()}
         for blazar_host in blazar.host.list_allocations():
-            if any(res["lease_id"] == lease_dict["id"] for res in blazar_host["reservations"]):
+            if any(
+                res["lease_id"] == lease_dict["id"]
+                for res in blazar_host["reservations"]
+            ):
                 resource_host = resource_map[blazar_host["resource_id"]]
                 host = {
                     "node_name": resource_host["node_name"],
                     "uid": resource_host["uid"],
-                    "node_type": resource_host["node_type"]
+                    "node_type": resource_host["node_type"],
                 }
                 node = ironic.node.get(resource_host["uid"])
                 host["provision_state"] = node.provision_state
@@ -177,7 +189,9 @@ def get_lease_info(sess, user_id, project_id):
         lease_dict["networks"] = []
         resource_map = {r["id"]: r for r in blazar.network.list()}
         for network in blazar.network.list_allocations():
-            if any(res["lease_id"] == lease_dict["id"] for res in network["reservations"]):
+            if any(
+                res["lease_id"] == lease_dict["id"] for res in network["reservations"]
+            ):
                 lease_dict["networks"].append(resource_map[network["resource_id"]])
         lease_list.append(lease_dict)
     return lease_list

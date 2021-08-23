@@ -103,7 +103,6 @@ def _handle_ticket_form(request, form):
         ]
     )
 
-
     ticket_body = f"""{header}
 
     {form.cleaned_data["problem_description"]}
@@ -288,4 +287,3 @@ def ticketattachment(request, ticket_id, attachment_id):
         response = HttpResponse(content, content_type=content_type)
         response["Content-Disposition"] = content_disposition
         return response
-
