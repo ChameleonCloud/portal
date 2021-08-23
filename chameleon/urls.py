@@ -18,7 +18,6 @@ from chameleon import os_login as chameleon_os_login
 from chameleon import views as chameleon_views
 
 import allocations.urls
-import impersonate.urls
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +31,11 @@ class AdminOIDCLogin(View):
             url += f"?{REDIRECT_FIELD_NAME}={request.GET[REDIRECT_FIELD_NAME]}"
         return HttpResponseRedirect(url)
 
-
 urlpatterns = (
     [
         # admin urls
         re_path(r"^admin/login/", AdminOIDCLogin.as_view()),
-        path("admin/impersonate/", include("impersonate.urls")),
+        re_path(r"^admin/impersonate/(?!impersonationlog/)", include("impersonate.urls")),
         path(
             "admin/allocations/",
             include("allocations.urls", namespace="allocations_admin"),
