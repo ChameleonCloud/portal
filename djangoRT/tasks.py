@@ -36,7 +36,7 @@ def add_openstack_data(self, **kwargs):
         LOG.info(message)
         messages.append(message)
         bound_task.update_state(
-            state='PROGRESS',
+            state="PROGRESS",
             meta={
                 "messages": messages,
                 "progress_pct": progress_pct,
