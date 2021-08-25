@@ -5,7 +5,7 @@ from django.utils import timezone
 from projects.models import Invitation, Project
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
-import .util as util
+from .util import get_invitations_beyond_duration
 
 LOG = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def activate_expire_invitations():
 def end_daypasses():
     now = timezone.now()
 
-    beyond_duration_invitations = util.get_invitations_beyond_duration()
+    beyond_duration_invitations = get_invitations_beyond_duration()
     for invitation in beyond_duration_invitations:
         try:
             LOG.info(f"Removing user from project with invite {invitation.id}\n")
