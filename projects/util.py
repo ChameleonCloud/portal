@@ -36,14 +36,16 @@ def get_charge_code(project):
         return project.chargeCode
     raise AttributeError("project has no known charge code attribute")
 
-def get_invitations_past_duration():
+
+def get_invitations_beyond_duration():
     return Invitation.objects.raw(
-        f'SELECT * FROM projects_invitation WHERE status = \'{Invitation.STATUS_ACCEPTED}\' AND DATE_ADD(date_accepted, INTERVAL duration HOUR) < NOW()'
+        f"SELECT * FROM projects_invitation WHERE status = '{Invitation.STATUS_ACCEPTED}' AND DATE_ADD(date_accepted, INTERVAL duration HOUR) < NOW()"
     )
+
 
 def get_daypass_time_left(user_id, project_id):
     rqs = Invitation.objects.raw(
-        f'SELECT id, TIMEDIFF(DATE_ADD(date_accepted, INTERVAL duration HOUR), NOW()) AS timeleft FROM projects_invitation WHERE status = \'{Invitation.STATUS_ACCEPTED}\' AND DATE_ADD(date_accepted, INTERVAL duration HOUR) > NOW() AND user_accepted_id = {user_id} AND project_id = {project_id} LIMIT 1'
+        f"SELECT id, TIMEDIFF(DATE_ADD(date_accepted, INTERVAL duration HOUR), NOW()) AS timeleft FROM projects_invitation WHERE status = '{Invitation.STATUS_ACCEPTED}' AND DATE_ADD(date_accepted, INTERVAL duration HOUR) > NOW() AND user_accepted_id = {user_id} AND project_id = {project_id} LIMIT 1"
     )
     for row in rqs:
         return row.timeleft

@@ -108,8 +108,12 @@ class Invitation(models.Model):
 
     STATUS_ISSUED = "ISSUED"
     STATUS_ACCEPTED = "ACCEPTED"
-    STATUS_PAST_DURATION = "PAST_DURATION"
-    STATUSES = [(STATUS_ISSUED, "Issued"), (STATUS_ACCEPTED, "Accepted"), (STATUS_PAST_DURATION, "Past Duration")]
+    STATUS_BEYOND_DURATION = "BEYOND_DURATION"
+    STATUSES = [
+        (STATUS_ISSUED, "Issued"),
+        (STATUS_ACCEPTED, "Accepted"),
+        (STATUS_BEYOND_DURATION, "Beyond Duration"),
+    ]
 
     @staticmethod
     def default_days_until_expiration():

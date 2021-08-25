@@ -100,6 +100,7 @@ def accept_invite(request, invite_code):
     except Invitation.DoesNotExist:
         raise Http404("That invitation does not exist!")
 
+
 def accept_invite_for_user(user, invitation, mapper):
     if invitation.can_accept():
         invitation.accept(user)
@@ -108,6 +109,7 @@ def accept_invite_for_user(user, invitation, mapper):
         mapper.add_user_to_project(project, user_ref)
         return True
     return False
+
 
 @login_required
 def view_project(request, project_id):
@@ -142,9 +144,11 @@ def view_project(request, project_id):
                                 user_accepted_id=user.id,
                                 project_id=project_id,
                                 status=Invitation.STATUS_ACCEPTED,
-                                duration__isnull=False
+                                duration__isnull=False,
                             )
-                            existing_invite.duration = int(form.cleaned_data["duration_ref"])
+                            existing_invite.duration = int(
+                                form.cleaned_data["duration_ref"]
+                            )
                             existing_invite.save()
                             existing_invite.accept(user)
                         except Invitation.DoesNotExist:
@@ -154,7 +158,7 @@ def view_project(request, project_id):
                                 request.user,
                                 request.get_host(),
                                 int(form.cleaned_data["duration_ref"]),
-                                send_email=False
+                                send_email=False,
                             )
                             accept_invite_for_user(user, invite, mapper)
                     if mapper.add_user_to_project(project, add_username):
@@ -180,7 +184,8 @@ def view_project(request, project_id):
                                 request.user,
                                 request.get_host(),
                                 int(form.cleaned_data["duration_ref"])
-                                if form.cleaned_data["duration_ref"] else None,
+                                if form.cleaned_data["duration_ref"]
+                                else None,
                             )
                             messages.success(request, "Invite sent!")
                     except ValidationError:
@@ -298,7 +303,7 @@ def view_project(request, project_id):
             if timeleft is not None:
                 td = datetime.combine(date.min, timeleft) - datetime.min
                 # Remove the fractional seconds
-                formatted_td = str(td).split('.')[0]
+                formatted_td = str(td).split(".")[0]
                 user["daypass"] = formatted_td
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
@@ -351,10 +356,15 @@ def resend_invitation(invite_id, user_issued, host):
     add_project_invitation(project_id, invitation.email_address, user_issued, host)
 
 
-def add_project_invitation(project_id, email_address, user_issued, host, duration, send_email=True):
+def add_project_invitation(
+    project_id, email_address, user_issued, host, duration, send_email=True
+):
     project = Project.objects.get(pk=project_id)
     invitation = Invitation(
-        project=project, email_address=email_address, user_issued=user_issued, duration=duration
+        project=project,
+        email_address=email_address,
+        user_issued=user_issued,
+        duration=duration,
     )
     invitation.save()
     if send_email:

@@ -34,19 +34,20 @@ def activate_expire_invitations():
         )
     )
 
+
 @task
 def end_daypasses():
     now = timezone.now()
 
-    past_duration_invitations = util.get_invitations_past_duration()
-    for invitation in past_duration_invitations:
+    beyond_duration_invitations = util.get_invitations_beyond_duration()
+    for invitation in beyond_duration_invitations:
         try:
             LOG.info(f"Removing user from project with invite {invitation.id}\n")
             project = Project.objects.get(pk=invitation.project_id)
             user = User.objects.get(pk=invitation.user_accepted_id)
             keycloak_client = KeycloakClient()
             keycloak_client.update_membership(project.charge_code, user.username, "delete")
-            invite.status = Invitation.STATUS_PAST_DURATION
+            invite.status = Invitation.STATUS_BEYOND_DURATION
             invite.save()
         except Exception:
             LOG.error(f"Error ending daypass invite {invitation.id}")
