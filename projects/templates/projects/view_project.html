@@ -144,7 +144,7 @@
         <button type="submit" class="btn btn-xs btn-link" name="del_user"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove user</span></button>
       </form>
     {% endif %}
-    <strong>{{ u.username }}</strong>{% if u.email %}: {{ u.first_name }} {{ u.last_name }} ({{ u.email }}){% endif %}
+    <strong>{{ u.username }}</strong>{% if u.email %}: {{ u.first_name }} {{ u.last_name }} ({{ u.email }}) {% if u.daypass %} Daypass: {{ u.daypass }} hours remain {% endif %} {% endif %}
   </li>
   {% endfor %}
 </ul>
@@ -156,6 +156,7 @@
     {% for i in invitations %}
     <li>
       {{ i.email_address }}
+      {% if i.duration %} ({{ i.duration }} hours) {% endif %}
       <form role="form" method="post" style="display:inline">
         {% csrf_token %}
         <input type="hidden" name="invite_id" value="{{ i.id }}">

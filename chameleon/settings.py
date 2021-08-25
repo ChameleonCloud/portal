@@ -784,9 +784,13 @@ CELERY_BEAT_SCHEDULE = {
     "activate-expire-invitations": {
         "task": "projects.tasks.activate_expire_invitations",
         "schedule": crontab(
-            minute="*/{}".format(int(ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY // 60))
+            minute="*/{}".format(int(ACTIVATE_EXPIRE_INVITATION_FREQUENCY // 60))
         ),
     },
+    "end_daypasses": {
+        "task": "projects.tasks.end_daypasses",
+        "schedule": crontab(minute="*/1"),
+     },
     "warn-user-for-expiring-allocation": {
         "task": "allocations.tasks.warn_user_for_expiring_allocation",
         "schedule": crontab(minute=0, hour=7),

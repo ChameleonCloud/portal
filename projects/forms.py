@@ -205,6 +205,11 @@ class ProjectAddUserForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "Username or email"}),
     )
+    duration_ref = forms.IntegerField(
+        label="Duration (hours)",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Duration"}),
+    )
 
 
 class AddBibtexPublicationForm(forms.Form):

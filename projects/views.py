@@ -1,7 +1,7 @@
 import json
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, date
 
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
@@ -39,7 +39,7 @@ from .forms import (
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_project_members
+from .util import email_exists_on_project, get_project_members, get_daypass_time_left
 
 logger = logging.getLogger("projects")
 
@@ -89,11 +89,7 @@ def accept_invite(request, invite_code):
     try:
         invitation = Invitation.objects.get(email_code=invite_code)
         user = request.user
-        if invitation.can_accept():
-            invitation.accept(user)
-            project = mapper.get_project(invitation.project.id)
-            user_ref = invitation.user_accepted.username
-            mapper.add_user_to_project(project, user_ref)
+        if accept_invite_for_user(user, invitation, mapper):
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
                 reverse("projects:view_project", args=[invitation.project.id])
@@ -104,6 +100,14 @@ def accept_invite(request, invite_code):
     except Invitation.DoesNotExist:
         raise Http404("That invitation does not exist!")
 
+def accept_invite_for_user(user, invitation, mapper):
+    if invitation.can_accept():
+        invitation.accept(user)
+        project = mapper.get_project(invitation.project.id)
+        user_ref = invitation.user_accepted.username
+        mapper.add_user_to_project(project, user_ref)
+        return True
+    return False
 
 @login_required
 def view_project(request, project_id):
@@ -129,6 +133,30 @@ def view_project(request, project_id):
             if form.is_valid():
                 try:
                     add_username = form.cleaned_data["user_ref"]
+                    user = User.objects.get(username=add_username)
+                    # First create an invite if a duration was specified
+                    if form.cleaned_data["duration_ref"]:
+                        # Update an old invite if it exists
+                        try:
+                            existing_invite = Invitation.objects.get(
+                                user_accepted_id=user.id,
+                                project_id=project_id,
+                                status=Invitation.STATUS_ACCEPTED,
+                                duration__isnull=False
+                            )
+                            existing_invite.duration = int(form.cleaned_data["duration_ref"])
+                            existing_invite.save()
+                            existing_invite.accept(user)
+                        except Invitation.DoesNotExist:
+                            invite = add_project_invitation(
+                                project_id,
+                                user.email,
+                                request.user,
+                                request.get_host(),
+                                int(form.cleaned_data["duration_ref"]),
+                                send_email=False
+                            )
+                            accept_invite_for_user(user, invite, mapper)
                     if mapper.add_user_to_project(project, add_username):
                         messages.success(
                             request, f'User "{add_username}" added to project!'
@@ -151,6 +179,8 @@ def view_project(request, project_id):
                                 email_address,
                                 request.user,
                                 request.get_host(),
+                                int(form.cleaned_data["duration_ref"])
+                                if form.cleaned_data["duration_ref"] else None,
                             )
                             messages.success(request, "Invite sent!")
                     except ValidationError:
@@ -263,6 +293,13 @@ def view_project(request, project_id):
             user["email"] = portal_user.email
             user["first_name"] = portal_user.first_name
             user["last_name"] = portal_user.last_name
+            # Add if the user is on a day pass
+            timeleft = get_daypass_time_left(portal_user.id, project_id)
+            if timeleft is not None:
+                td = datetime.combine(date.min, timeleft) - datetime.min
+                # Remove the fractional seconds
+                formatted_td = str(td).split('.')[0]
+                user["daypass"] = formatted_td
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
@@ -276,6 +313,8 @@ def view_project(request, project_id):
         new_item["email_address"] = i.email_address
         new_item["id"] = i.id
         new_item["status"] = i.status
+        if i.duration:
+            new_item["duration"] = i.duration
         clean_invitations.append(new_item)
 
     return render(
@@ -312,13 +351,15 @@ def resend_invitation(invite_id, user_issued, host):
     add_project_invitation(project_id, invitation.email_address, user_issued, host)
 
 
-def add_project_invitation(project_id, email_address, user_issued, host):
+def add_project_invitation(project_id, email_address, user_issued, host, duration, send_email=True):
     project = Project.objects.get(pk=project_id)
     invitation = Invitation(
-        project=project, email_address=email_address, user_issued=user_issued
+        project=project, email_address=email_address, user_issued=user_issued, duration=duration
     )
     invitation.save()
-    send_invitation_email(invitation, host)
+    if send_email:
+        send_invitation_email(invitation, host)
+    return invitation
 
 
 def send_invitation_email(invitation, host):
