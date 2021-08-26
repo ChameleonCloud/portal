@@ -101,6 +101,7 @@ class Outage(News):
             )
         super(Outage, self).save()
 
+
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage)
 
