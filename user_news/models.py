@@ -99,7 +99,7 @@ class Outage(News):
                 self.start_date.strftime("%y-%m-%d"),
                 slugify(self.title),
             )
-        super(Outage,self).save()
+        super(Outage, self).save()
 
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage)
