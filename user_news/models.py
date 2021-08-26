@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import pytz
 import re
 
+
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
 
@@ -84,7 +85,9 @@ class Outage(News):
         ('SEV-2','SEV-2'),
         ('SEV-3','SEV-3'),
     )
-    severity = models.CharField(choices=SEVERITY_LEVEL, blank=False, default='', max_length=50)
+    severity = models.CharField(
+        choices=SEVERITY_LEVEL, blank=False, default="", max_length=50
+    )
 
     def save(self):
         # Do not send a reminder for outages scheduled within 1 day
@@ -92,7 +95,10 @@ class Outage(News):
         if self.start_date < now + timedelta(days=1):
             self.reminder_sent = now
         if not self.slug:
-            self.slug = '%s-%s' % (self.start_date.strftime('%y-%m-%d'), slugify(self.title))
+            self.slug = "%s-%s" % (
+                self.start_date.strftime("%y-%m-%d"),
+                slugify(self.title),
+            )
         super(Outage,self).save()
 
 class OutageUpdate(News):
