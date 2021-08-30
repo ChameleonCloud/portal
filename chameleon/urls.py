@@ -99,10 +99,6 @@ urlpatterns = (
         path("user/projects/", include("projects.urls", namespace="projects")),
         path("user/help/", include("djangoRT.urls", namespace="djangoRT")),
         path(
-            "user/early-user-program/",
-            include("cc_early_user_support.urls", namespace="cc_early_user_support"),
-        ),
-        path(
             "user/webinar/",
             include("webinar_registration.urls", namespace="webinar_registration"),
         ),

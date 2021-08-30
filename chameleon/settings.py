@@ -142,7 +142,6 @@ INSTALLED_APPS = (
     "user_news",
     "djng",
     "g5k_discovery",
-    "cc_early_user_support",
     "allocations",
     "appliance_catalog",
     "sharing_portal",

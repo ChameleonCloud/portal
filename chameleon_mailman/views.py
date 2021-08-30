@@ -16,7 +16,8 @@ logger = logging.getLogger('default')
 def mailman_export_list(request):
     """
     Returns a text file, listing the email addresses, one per line, of all
-    users who joined in the last day.
+    users who joined in the last day. We use this to subscribe users to users@
+    and outages@ mailing lists.
     """
     try:
         # Ignoring complexity of timezones because we just want a fuzzy range
