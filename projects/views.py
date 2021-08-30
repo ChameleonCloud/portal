@@ -138,14 +138,17 @@ def get_day_pass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
     except Invitation.DoesNotExist:
         return None
 
+
 def get_invitations_beyond_duration():
     return Invitation.objects.filter(
         status=Invitation.STATUS_ACCEPTED,
         date_exceeded_duration__lt=datetime.now(),
     )
 
+
 def format_timedelta(timedelta_instance):
     return str(timedelta_instance).split(".")[0]
+
 
 def get_reusable_invitation(project_id):
     try:
@@ -155,13 +158,19 @@ def get_reusable_invitation(project_id):
     except ReusableInvitation.DoesNotExist:
         return None
 
+
 def get_reusable_invitation_url(project_id, host):
     reusable_invite = get_reusable_invitation(project_id)
     if reusable_invite:
-        duration = f"{reusable_invite.duration} days" if reusable_invite.duration else "no duration"
+        duration = (
+            f"{reusable_invite.duration} days"
+            if reusable_invite.duration
+            else "no duration"
+        )
         return get_invite_url(host, reusable_invite.code), duration
     else:
         return None, None
+
 
 def add_reusable_invitation(project_id, user, duration):
     reusable_invitation = ReusableInvitation(
@@ -172,6 +181,7 @@ def add_reusable_invitation(project_id, user, duration):
     reusable_invitation.save()
     return reusable_invitation
 
+
 def try_update_existing_invitation_duration(user, project_id, duration):
     existing_invite = get_day_pass(user_id, project_id)
     if existing_invite:
@@ -181,8 +191,10 @@ def try_update_existing_invitation_duration(user, project_id, duration):
         return True
     return False
 
+
 def get_invite_url(host, code):
     return f"https://{host}/user/projects/join/{code}"
+
 
 @login_required
 def view_project(request, project_id):
@@ -342,15 +354,11 @@ def view_project(request, project_id):
                 invitation_url.delete()
                 messages.success(request, "Invitation URL removed")
             else:
-                messages.error(
-                    request,
-                    "No invitation URL exists for this project"
-                )
+                messages.error(request, "No invitation URL exists for this project")
         elif "add_reusable_invite" in request.POST:
             if get_reusable_invitation(project_id):
                 messages.error(
-                    request,
-                    "Cannot create an invitation URL, one already exists."
+                    request, "Cannot create an invitation URL, one already exists."
                 )
             else:
                 try:
@@ -361,7 +369,7 @@ def view_project(request, project_id):
                             request.user,
                             int(reusable_invite_form.cleaned_data["duration_ref"])
                             if reusable_invite_form.cleaned_data["duration_ref"]
-                            else None
+                            else None,
                         )
                         messages.success(request, "Invitation URL created")
                     else:
@@ -435,7 +443,9 @@ def view_project(request, project_id):
         clean_invitations.append(new_item)
 
     is_on_day_pass = get_day_pass(request.user.id, project_id) is not None
-    invite_url, invite_url_duration = get_reusable_invitation_url(project_id, request.get_host())
+    invite_url, invite_url_duration = get_reusable_invitation_url(
+        project_id, request.get_host()
+    )
 
     return render(
         request,
