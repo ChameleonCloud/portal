@@ -206,7 +206,15 @@ class ProjectAddUserForm(forms.Form):
         widget=forms.TextInput(attrs={"placeholder": "Username or email"}),
     )
     duration_ref = forms.IntegerField(
-        label="Duration (hours)",
+        label="Duration (days)",
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Duration"}),
+    )
+
+
+class ReusableInviteForm(forms.Form):
+    duration_ref = forms.IntegerField(
+        label="Duration (days)",
         required=False,
         widget=forms.TextInput(attrs={"placeholder": "Duration"}),
     )

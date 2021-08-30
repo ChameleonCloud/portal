@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 from operator import attrgetter
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
@@ -144,9 +145,9 @@ class Invitation(models.Model):
     )
     date_issued = models.DateTimeField(auto_now_add=True, editable=False)
     date_expires = models.DateTimeField(default=_generate_expiration, editable=True)
-    email_address = models.EmailField(blank=False)
+    email_address = models.EmailField(null=True)
     email_code = models.CharField(
-        max_length=26, default=_generate_secret, editable=False
+        max_length=26, default=_generate_secret, editable=False, null=True
     )
 
     status = models.CharField(
@@ -163,6 +164,7 @@ class Invitation(models.Model):
     )
     date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
     duration = models.IntegerField(null=True)
+    date_exceeded_duration = models.DateTimeField(null=True)
 
     def __str__(self) -> str:
         return f"{self.email_address}, {self.email_code}, {self.status}, {'EXPIRED' if self._is_expired() else self.date_expires}"
@@ -173,6 +175,8 @@ class Invitation(models.Model):
         self.status = Invitation.STATUS_ACCEPTED
         self.date_accepted = timezone.now()
         self.user_accepted = user
+        if self.duration:
+            self.date_exceeded_duration = self.date_accepted + timedelta(days=self.duration)
         self.save()
 
     def get_cant_accept_reason(self):
@@ -189,6 +193,26 @@ class Invitation(models.Model):
 
     def _is_expired(self):
         return self.date_expires < timezone.now()
+
+
+class ReusableInvitationManager(models.Manager):
+    pass
+
+
+class ReusableInvitation(models.Model):
+    def _generate_secret():
+        nbytes = 26
+        nchars = nbytes
+        return secrets.token_urlsafe(nbytes)[:nchars]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user_issued = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=False
+    )
+    code = models.CharField(
+        max_length=26, default=_generate_secret, editable=False, null=True
+    )
+    duration = models.IntegerField(null=True)
 
 
 class PublicationManager(models.Manager):

@@ -5,7 +5,7 @@ from django.utils import timezone
 from projects.models import Invitation, Project
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
-from .util import get_invitations_beyond_duration
+from .views import get_invitations_beyond_duration
 
 LOG = logging.getLogger(__name__)
 

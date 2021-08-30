@@ -37,9 +37,10 @@ from .forms import (
     EditTypeForm,
     ProjectAddUserForm,
     ProjectCreateForm,
+    ReusableInviteForm,
 )
-from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_project_members, get_daypass_time_left
+from .models import Invitation, ReusableInvitation, Project, ProjectExtras
+from .util import email_exists_on_project, get_project_members
 
 logger = logging.getLogger("projects")
 
@@ -86,19 +87,34 @@ def user_projects(request):
 @login_required
 def accept_invite(request, invite_code):
     mapper = ProjectAllocationMapper(request)
+    invitation = None
     try:
-        invitation = Invitation.objects.get(email_code=invite_code)
-        user = request.user
-        if accept_invite_for_user(user, invitation, mapper):
-            messages.success(request, "Accepted invitation")
-            return HttpResponseRedirect(
-                reverse("projects:view_project", args=[invitation.project.id])
-            )
-        else:
-            messages.error(request, invitation.get_cant_accept_reason())
-            return HttpResponseRedirect(reverse("projects:user_projects"))
-    except Invitation.DoesNotExist:
+        reusable_invite = ReusableInvitation.objects.get(code=invite_code)
+        invitation = add_project_invitation(
+            reusable_invite.project_id,
+            None,
+            reusable_invite.user_issued,
+            None,
+            reusable_invite.duration,
+            send_email=False
+        )
+    except ReusableInvitation.DoesNotExist:
+        try:
+            invitation = Invitation.objects.get(email_code=invite_code)
+        except Invitation.DoesNotExist:
+            pass
+    if not invitation:
         raise Http404("That invitation does not exist!")
+
+    user = request.user
+    if accept_invite_for_user(user, invitation, mapper):
+        messages.success(request, "Accepted invitation")
+        return HttpResponseRedirect(
+            reverse("projects:view_project", args=[invitation.project.id])
+        )
+    else:
+        messages.error(request, invitation.get_cant_accept_reason())
+        return HttpResponseRedirect(reverse("projects:user_projects"))
 
 
 def accept_invite_for_user(user, invitation, mapper):
@@ -110,6 +126,63 @@ def accept_invite_for_user(user, invitation, mapper):
         return True
     return False
 
+
+def get_day_pass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
+    try:
+        return Invitation.objects.get(
+            status=status,
+            user_accepted_id=user_id,
+            project_id=project_id,
+            date_exceeded_duration__isnull=False,
+        )
+    except Invitation.DoesNotExist:
+        return None
+
+def get_invitations_beyond_duration():
+    return Invitation.objects.filter(
+        status=Invitation.STATUS_ACCEPTED,
+        date_exceeded_duration__lt=datetime.now(),
+    )
+
+def format_timedelta(timedelta_instance):
+    return str(timedelta_instance).split(".")[0]
+
+def get_reusable_invitation(project_id):
+    try:
+        return ReusableInvitation.objects.get(
+            project_id=project_id,
+        )
+    except ReusableInvitation.DoesNotExist:
+        return None
+
+def get_reusable_invitation_url(project_id, host):
+    reusable_invite = get_reusable_invitation(project_id)
+    if reusable_invite:
+        duration = f"{reusable_invite.duration} days" if reusable_invite.duration else "no duration"
+        return get_invite_url(host, reusable_invite.code), duration
+    else:
+        return None, None
+
+def add_reusable_invitation(project_id, user, duration):
+    reusable_invitation = ReusableInvitation(
+        project_id=project_id,
+        user_issued=user,
+        duration=duration,
+    )
+    reusable_invitation.save()
+    return reusable_invitation
+
+def try_update_existing_invitation_duration(user, project_id, duration):
+    existing_invite = get_day_pass(user_id, project_id)
+    if existing_invite:
+        existing_invite.duration = duration
+        existing_invite.save()
+        existing_invite.accept(user)
+        return True
+    return False
+
+def get_invite_url(host, code):
+    return f"https://{host}/user/projects/join/{code}"
 
 @login_required
 def view_project(request, project_id):
@@ -127,6 +200,7 @@ def view_project(request, project_id):
     type_form_args = {"request": request}
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
+    reusable_invite_form = ReusableInviteForm()
 
     if request.POST and project_pi_or_admin_or_superuser(request.user, project):
         form = ProjectAddUserForm()
@@ -139,19 +213,11 @@ def view_project(request, project_id):
                     # First create an invite if a duration was specified
                     if form.cleaned_data["duration_ref"]:
                         # Update an old invite if it exists
-                        try:
-                            existing_invite = Invitation.objects.get(
-                                user_accepted_id=user.id,
-                                project_id=project_id,
-                                status=Invitation.STATUS_ACCEPTED,
-                                duration__isnull=False,
-                            )
-                            existing_invite.duration = int(
-                                form.cleaned_data["duration_ref"]
-                            )
-                            existing_invite.save()
-                            existing_invite.accept(user)
-                        except Invitation.DoesNotExist:
+                        if not try_update_existing_invitation_duration(
+                            user,
+                            project_id,
+                            int(form.cleaned_data["duration_ref"]),
+                        ):
                             invite = add_project_invitation(
                                 project_id,
                                 user.email,
@@ -229,6 +295,10 @@ def view_project(request, project_id):
                     messages.success(
                         request, 'User "%s" removed from project' % del_username
                     )
+                user = User.objects.get(username=del_username)
+                day_pass = get_day_pass(user.id, project_id)
+                if day_pass:
+                    day_pass.delete()
             except PermissionDenied as exc:
                 messages.error(request, exc)
             except:
@@ -266,6 +336,49 @@ def view_project(request, project_id):
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
+        elif "del_reusable_invite" in request.POST:
+            invitation_url = get_reusable_invitation(project_id)
+            if invitation_url:
+                invitation_url.delete()
+                messages.success(request, "Invitation URL removed")
+            else:
+                messages.error(
+                    request,
+                    "No invitation URL exists for this project"
+                )
+        elif "add_reusable_invite" in request.POST:
+            if get_reusable_invitation(project_id):
+                messages.error(
+                    request,
+                    "Cannot create an invitation URL, one already exists."
+                )
+            else:
+                try:
+                    reusable_invite_form = ReusableInviteForm(request.POST)
+                    if reusable_invite_form.is_valid():
+                        add_reusable_invitation(
+                            project_id,
+                            request.user,
+                            int(reusable_invite_form.cleaned_data["duration_ref"])
+                            if reusable_invite_form.cleaned_data["duration_ref"]
+                            else None
+                        )
+                        messages.success(request, "Invitation URL created")
+                    else:
+                        messages.error(
+                            request,
+                            (
+                                "There were errors processing your request. "
+                                "Please see below for details."
+                            ),
+                        )
+                except Exception:
+                    logger.exception("Failed create reusable_invite")
+                    messages.error(
+                        request,
+                        "An unexpected error occurred while creating "
+                        "an invitation URL. Please try again",
+                    )
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -299,12 +412,11 @@ def view_project(request, project_id):
             user["first_name"] = portal_user.first_name
             user["last_name"] = portal_user.last_name
             # Add if the user is on a day pass
-            timeleft = get_daypass_time_left(portal_user.id, project_id)
-            if timeleft is not None:
-                td = datetime.combine(date.min, timeleft) - datetime.min
-                # Remove the fractional seconds
-                formatted_td = str(td).split(".")[0]
-                user["daypass"] = formatted_td
+            existing_day_pass = get_day_pass(portal_user.id, project_id)
+            if existing_day_pass:
+                user["day_pass"] = format_timedelta(
+                    existing_day_pass.date_exceeded_duration - timezone.now()
+                )
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
         user_mashup.append(user)
@@ -322,6 +434,9 @@ def view_project(request, project_id):
             new_item["duration"] = i.duration
         clean_invitations.append(new_item)
 
+    is_on_day_pass = get_day_pass(request.user.id, project_id) is not None
+    invite_url, invite_url_duration = get_reusable_invitation_url(project_id, request.get_host())
+
     return render(
         request,
         "projects/view_project.html",
@@ -333,10 +448,14 @@ def view_project(request, project_id):
             "invitations": clean_invitations,
             "is_pi": request.user.username == project.pi.username,
             "is_admin": request.user.is_superuser,
+            "is_on_day_pass": is_on_day_pass,
             "form": form,
             "nickname_form": nickname_form,
             "type_form": type_form,
             "pubs_form": pubs_form,
+            "invite_url": invite_url,
+            "invite_url_duration": invite_url_duration,
+            "reusable_invite_form": reusable_invite_form,
         },
     )
 
@@ -375,7 +494,7 @@ def add_project_invitation(
 def send_invitation_email(invitation, host):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
-    url = f"https://{host}/user/projects/join/{invitation.email_code}"
+    url = get_invite_url(host, invitation.email_code)
     subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""
     <p>
