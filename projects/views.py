@@ -1,7 +1,7 @@
 import json
 import logging
 import sys
-from datetime import datetime, date
+from datetime import datetime
 
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
@@ -96,7 +96,7 @@ def accept_invite(request, invite_code):
             reusable_invite.user_issued,
             None,
             reusable_invite.duration,
-            send_email=False
+            send_email=False,
         )
     except ReusableInvitation.DoesNotExist:
         try:
@@ -183,7 +183,7 @@ def add_reusable_invitation(project_id, user, duration):
 
 
 def try_update_existing_invitation_duration(user, project_id, duration):
-    existing_invite = get_day_pass(user_id, project_id)
+    existing_invite = get_day_pass(user.id, project_id)
     if existing_invite:
         existing_invite.duration = duration
         existing_invite.save()

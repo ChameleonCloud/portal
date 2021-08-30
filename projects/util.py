@@ -1,9 +1,7 @@
 import logging
-from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from util.keycloak_client import KeycloakClient
-from .models import Invitation
 
 logger = logging.getLogger("projects.util")
 

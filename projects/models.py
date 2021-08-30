@@ -176,7 +176,9 @@ class Invitation(models.Model):
         self.date_accepted = timezone.now()
         self.user_accepted = user
         if self.duration:
-            self.date_exceeded_duration = self.date_accepted + timedelta(days=self.duration)
+            self.date_exceeded_duration = self.date_accepted + timedelta(
+                days=self.duration
+            )
         self.save()
 
     def get_cant_accept_reason(self):
