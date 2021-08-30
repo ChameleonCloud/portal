@@ -1,21 +1,21 @@
-from django.urls import re_path
+from django.urls import path
 from . import views
 
 app_name = "django_rt"
 
 urlpatterns = [
-    re_path(r"^$", views.mytickets, name="mytickets"),
-    re_path(r"^ticket/(?P<ticket_id>\d+)/$", views.ticketdetail, name="ticketdetail"),
-    re_path(r"^ticket/new/$", views.ticketcreate, name="ticketcreate"),
-    re_path(
-        r"^ticket/reply/(?P<ticket_id>\d+)/$", views.ticketreply, name="ticketreply"
+    path("/", views.mytickets, name="mytickets"),
+    path("ticket/<int:ticket_id>/", views.ticketdetail, name="ticketdetail"),
+    path("ticket/new/", views.ticketcreate, name="ticketcreate"),
+    path(
+        "ticket/reply/<int:ticket_id>/", views.ticketreply, name="ticketreply"
     ),
-    re_path(r"^ticket/new/guest/$", views.ticketcreateguest, name="ticketcreateguest"),
-    re_path(
-        r"^ticket/close/(?P<ticket_id>\d+)/$", views.ticketclose, name="ticketclose"
+    path("ticket/new/guest/", views.ticketcreateguest, name="ticketcreateguest"),
+    path(
+        "ticket/close/<int:ticket_id>/", views.ticketclose, name="ticketclose"
     ),
-    re_path(
-        r"^ticket/attachment/(?P<ticket_id>\d+)/(?P<attachment_id>\d+)/$",
+    path(
+        "ticket/attachment/<int:ticket_id>/<int:attachment_id>/",
         views.ticketattachment,
         name="ticketattachment",
     ),

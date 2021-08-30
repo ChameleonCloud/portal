@@ -1,13 +1,13 @@
-from django.urls import re_path
+from django.urls import path, re_path
 from . import views
 
 app_name = "cc_early_user_support"
 
 urlpatterns = [
-    re_path(r"^$", views.index, name="index"),
-    re_path(r"^program/(?P<id>\d+)/$", views.view_program, name="program"),
-    re_path(
-        r"^program/(?P<id>\d+)/participate/$",
+    path("/", views.index, name="index"),
+    path("program/<int:id>/", views.view_program, name="program"),
+    path(
+        "program/<int:id>/participate/",
         views.request_to_participate,
         name="participate",
     ),
