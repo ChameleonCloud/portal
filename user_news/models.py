@@ -4,10 +4,7 @@ from ckeditor.fields import RichTextField
 from django.template.defaultfilters import slugify
 from django.contrib import messages
 from cms.models.pluginmodel import CMSPlugin
-from datetime import datetime, timedelta
-import pytz
 import re
-
 
 class NewsTag(models.Model):
     tag = models.TextField(max_length=50)
@@ -90,7 +87,6 @@ class Outage(News):
     )
 
     def save(self):
-        # Do not send a reminder for outages scheduled within 1 day
         if not self.slug:
             self.slug = "%s-%s" % (
                 self.start_date.strftime("%y-%m-%d"),
