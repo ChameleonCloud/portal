@@ -5,7 +5,7 @@ from . import views
 app_name = "allocations"
 
 urlpatterns = [
-    path("/", views.index, name="index"),
+    path("", views.index, name="index"),
     path("view/", views.view, name="view"),
     path("json/", views.return_json, name="return_json"),
     path("approval/", views.approval, name="approval"),

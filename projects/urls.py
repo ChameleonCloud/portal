@@ -5,7 +5,7 @@ from . import pub_views, views
 app_name = "projects"
 
 urlpatterns = [
-    path("/", views.user_projects, name="user_projects"),
+    path("", views.user_projects, name="user_projects"),
     path("new/", views.create_project, name="create_project"),
     path("<int:project_id>/", views.view_project, name="view_project"),
     path("join/<str:invite_code>/", views.accept_invite, name="accept_invite"),

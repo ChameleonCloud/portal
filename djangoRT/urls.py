@@ -4,7 +4,7 @@ from . import views
 app_name = "django_rt"
 
 urlpatterns = [
-    path("/", views.mytickets, name="mytickets"),
+    path("", views.mytickets, name="mytickets"),
     path("ticket/<int:ticket_id>/", views.ticketdetail, name="ticketdetail"),
     path("ticket/new/", views.ticketcreate, name="ticketcreate"),
     path(

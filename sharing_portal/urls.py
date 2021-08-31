@@ -4,7 +4,7 @@ from . import views
 app_name = "sharing_portal"
 
 urlpatterns = [
-    path("/", views.index_all, name="index_all"),
+    path("", views.index_all, name="index_all"),
     path("public", views.index_public, name="index_public"),
     path("my", views.index_mine, name="index_mine"),
     path(

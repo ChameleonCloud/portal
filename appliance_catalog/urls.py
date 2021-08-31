@@ -4,7 +4,7 @@ from . import views
 app_name = "appliance_catalog"
 
 urlpatterns = [
-    path("/", views.app_list, name="app_list"),
+    path("", views.app_list, name="app_list"),
     path("<int:pk>/", views.app_detail, name="app_detail"),
     path("<int:pk>/docs/", views.app_documentation, name="app_documentation"),
     path("<int:pk>/edit/", views.app_edit, name="app_edit"),
