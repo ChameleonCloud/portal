@@ -41,6 +41,7 @@ class Allocation(models.Model):
     )
     date_reviewed = models.DateTimeField(null=True)
     expiration_date = models.DateTimeField(null=True)
+    expiration_warning_issued = models.DateTimeField(null=True)
     su_requested = models.FloatField()
     start_date = models.DateTimeField(null=True)
     su_allocated = models.FloatField(null=True)

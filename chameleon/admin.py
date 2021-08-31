@@ -1,19 +1,20 @@
 """Module to manage PI Eligibility Requests."""
 
 import datetime
-import logging
 import re
-import urllib.parse
-from functools import wraps
 
 from chameleon.models import PIEligibility
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.html import format_html_join, mark_safe, urlize
+from django.utils.html import format_html_join, mark_safe, urlize, format_html
 from django.conf.urls import include
+from functools import wraps
+import logging
+import urllib.parse
 from util.keycloak_client import KeycloakClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class PIEligibilityAdmin(ModelAdmin):
         "requestor",
         "request_date",
         "user_metadata",
+        "directory",
         "reviewer",
         "review_date",
     ]
@@ -55,6 +57,7 @@ class PIEligibilityAdmin(ModelAdmin):
         "requestor",
         "request_date",
         "user_metadata",
+        "directory",
         "status",
         "review_date",
         "reviewer",
@@ -134,6 +137,14 @@ class PIEligibilityAdmin(ModelAdmin):
 
         # return metadata_html
         return mark_safe(keycloak_html + orcid_html)
+
+    def directory(self, obj):
+        """Customize the department directory link."""
+        return format_html(
+            '<a href="{url}" target="_blank">{url}</a>'.format(
+                url=obj.department_directory_link
+            )
+        )
 
 
 admin.site.register(PIEligibility, PIEligibilityAdmin)
