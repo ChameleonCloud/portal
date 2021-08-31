@@ -91,9 +91,6 @@ class Outage(News):
 
     def save(self):
         # Do not send a reminder for outages scheduled within 1 day
-        now = datetime.now(pytz.utc)
-        if self.start_date < now + timedelta(days=1):
-            self.reminder_sent = now
         if not self.slug:
             self.slug = "%s-%s" % (
                 self.start_date.strftime("%y-%m-%d"),

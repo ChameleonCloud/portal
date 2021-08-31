@@ -25,6 +25,12 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
         seconds=(crontab_frequency * 60))
 
     for outage in upcoming_outages.all():
+        # Check for an outage scheduled close to start date
+        if outage.start_date < outage.created + timedelta(days=1):
+            outage.reminder_sent = outage.created
+            outage.save()
+            continue
+
         if send_window_min < outage.start_date < send_window_max:
 
             subject = 'Outage Reminder: {}'.format(outage.title)
