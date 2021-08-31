@@ -9,7 +9,6 @@ from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.html import format_html_join, mark_safe, urlize, format_html
-from django.conf.urls import include
 from functools import wraps
 import logging
 import urllib.parse

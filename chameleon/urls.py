@@ -17,8 +17,6 @@ from user_news.views import OutageDetailView, OutageFeed, OutageListView
 from chameleon import os_login as chameleon_os_login
 from chameleon import views as chameleon_views
 
-import allocations.urls
-
 logger = logging.getLogger(__name__)
 
 
