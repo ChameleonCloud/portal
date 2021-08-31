@@ -7,9 +7,7 @@ urlpatterns = [
     path("", views.index_all, name="index_all"),
     path("public", views.index_public, name="index_public"),
     path("my", views.index_mine, name="index_mine"),
-    path(
-        "project/<str:charge_code>", views.index_project, name="index_project"
-    ),
+    path("project/<str:charge_code>", views.index_project, name="index_project"),
     path("<int:pk>", views.artifact, name="detail"),
     path("<int:pk>/launch", views.launch, name="launch"),
     path(

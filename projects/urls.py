@@ -9,9 +9,15 @@ urlpatterns = [
     path("new/", views.create_project, name="create_project"),
     path("<int:project_id>/", views.view_project, name="view_project"),
     path("join/<str:invite_code>/", views.accept_invite, name="accept_invite"),
-    path("<int:project_id>/allocation/", views.create_allocation, name="create_allocation"),
     path(
-        "<int:project_id>/allocation/<int:allocation_id>", views.create_allocation, name="renew_allocation"
+        "<int:project_id>/allocation/",
+        views.create_allocation,
+        name="create_allocation",
+    ),
+    path(
+        "<int:project_id>/allocation/<int:allocation_id>",
+        views.create_allocation,
+        name="renew_allocation",
     ),
     path("api/extras/", views.get_extras, name="get_extras"),
     path(

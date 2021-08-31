@@ -642,7 +642,7 @@ G5K_API_ROOT = "http://referenceapi:8000"
 #
 #####
 IMPERSONATE = {
-    'REQUIRE_SUPERUSER': True,
+    "REQUIRE_SUPERUSER": True,
 }
 
 

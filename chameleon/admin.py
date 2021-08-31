@@ -18,6 +18,7 @@ from util.keycloak_client import KeycloakClient
 
 logger = logging.getLogger(__name__)
 
+
 def add_method(cls):
     def decorator(func):
         @wraps(func)
