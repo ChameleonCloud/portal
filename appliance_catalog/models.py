@@ -30,12 +30,14 @@ class Appliance(models.Model):
     ## Indicates if appliance was shared directly from an image in Horizon
     shared_from_horizon = models.BooleanField(default=False)
     ## Indicates which projects (if any) the appliance is shared with, an empty list indicates a public appliance
-    restrict_to_projects = models.CharField(max_length=1000, null=True,blank=True)
+    restrict_to_projects = models.CharField(max_length=1000, null=True, blank=True)
     project_flagged = models.BooleanField(default=False, blank=True)
-    keywords = models.ManyToManyField(Keyword, through='ApplianceTagging', blank=True)
+    keywords = models.ManyToManyField(Keyword, through="ApplianceTagging", blank=True)
     version = models.CharField(max_length=100)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='appliances')
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="appliances", on_delete=models.CASCADE
+    )
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
@@ -46,5 +48,5 @@ class Appliance(models.Model):
 
 
 class ApplianceTagging(models.Model):
-    keyword = models.ForeignKey(Keyword)
-    appliance = models.ForeignKey(Appliance)
+    keyword = models.ForeignKey(Keyword, on_delete=models.CASCADE)
+    appliance = models.ForeignKey(Appliance, on_delete=models.CASCADE)

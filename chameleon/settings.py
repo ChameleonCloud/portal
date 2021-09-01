@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import re
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from celery.schedules import crontab
 
@@ -76,6 +76,7 @@ _default_allowed_hosts = [
     "dev.chameleoncloud.org",
     "www.dev.chameleoncloud.org",
     "129.114.97.96",
+    "129.114.97.87",
 ]
 ALLOWED_HOSTS = _default_allowed_hosts
 # ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
@@ -106,18 +107,14 @@ INSTALLED_APPS = (
     # django-cms
     #
     "cms",
-    "aldryn_bootstrap3",
     "menus",
     "sekizai",
     "treebeard",
     "djangocms_style",
     "djangocms_column",
     "djangocms_file",
-    "djangocms_flash",
-    "djangocms_inherit",
     "djangocms_link",
     "djangocms_picture",
-    "djangocms_teaser",
     "djangocms_video",
     "reversion",
     ##
@@ -132,7 +129,6 @@ INSTALLED_APPS = (
     "markdown_deux",
     "webpack_loader",
     "rest_framework",
-    "dynamic_rest",
     ##
     # custom
     #
@@ -146,7 +142,6 @@ INSTALLED_APPS = (
     "user_news",
     "djng",
     "g5k_discovery",
-    "cc_early_user_support",
     "allocations",
     "appliance_catalog",
     "sharing_portal",
@@ -164,7 +159,7 @@ INSTALLED_APPS = (
     "djangocms_blog",
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     "djng.middleware.AngularUrlMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -172,7 +167,6 @@ MIDDLEWARE_CLASSES = (
     "csp.middleware.CSPMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
-    "django.contrib.auth.middleware.SessionAuthenticationMiddleware",
     "user_news.middleware.UserNewsNotificationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -268,18 +262,9 @@ REST_FRAMEWORK = {
     # if not set explicitly, return json response.
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
-        "dynamic_rest.renderers.DynamicBrowsableAPIRenderer",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 100,
-}
-
-DYNAMIC_REST = {
-    # DEBUG: enable/disable internal debugging
-    "DEBUG": DEBUG,
-    # ENABLE_BROWSABLE_API: enable/disable the browsable API.
-    # It can be useful to disable it in production.
-    "ENABLE_BROWSABLE_API": DEBUG,
 }
 
 # Keycloak OIDC Authentication
@@ -656,7 +641,9 @@ G5K_API_ROOT = "http://referenceapi:8000"
 # Django Impersonate
 #
 #####
-IMPERSONATE_REQUIRE_SUPERUSER = True
+IMPERSONATE = {
+    "REQUIRE_SUPERUSER": True,
+}
 
 
 #####
@@ -841,10 +828,6 @@ if DEBUG:
     CSP_CONNECT_SRC = ["'self'", vue_dev_server]
     # Webpack uses eval to provide its Hot Module Replacement capability
     CSP_SCRIPT_SRC.append("'unsafe-eval'")
-
-
-# Federation new login experience
-FORCE_OLD_LOGIN_EXPERIENCE_PARAM = "old_login_experience"
 
 CACHES = {
     "default": {

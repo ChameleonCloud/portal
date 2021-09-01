@@ -4,7 +4,8 @@ import datetime
 import re
 
 from chameleon.models import PIEligibility
-from django.contrib.admin import ModelAdmin, site
+from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.html import format_html_join, mark_safe, urlize, format_html
@@ -146,4 +147,4 @@ class PIEligibilityAdmin(ModelAdmin):
         )
 
 
-site.register(PIEligibility, PIEligibilityAdmin)
+admin.site.register(PIEligibility, PIEligibilityAdmin)

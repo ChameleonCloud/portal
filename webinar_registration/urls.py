@@ -1,9 +1,11 @@
-from django.conf.urls import url
+from django.urls import path
 from . import views
 
+app_name = "webinar_registration"
+
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^webinar/(?P<id>\d+)/$', views.webinar, name='webinar'),
-    url(r'^webinar/(?P<id>\d+)/register/$', views.register, name='register'),
-    url(r'^webinar/(?P<id>\d+)/unregister/$', views.unregister, name='unregister'),
+    path("", views.index, name="index"),
+    path("webinar/<int:id>/", views.webinar, name="webinar"),
+    path("webinar/<int:id>/register/", views.register, name="register"),
+    path("webinar/<int:id>/unregister/", views.unregister, name="unregister"),
 ]

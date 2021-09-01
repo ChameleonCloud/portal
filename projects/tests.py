@@ -1,13 +1,16 @@
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase, modify_settings, override_settings
 from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
 import mock
 import json
 
+
 @modify_settings(
-    MIDDLEWARE_CLASSES={
-        'remove': ['termsandconditions.middleware.TermsAndConditionsRedirectMiddleware',]
+    MIDDLEWARE={
+        "remove": [
+            "termsandconditions.middleware.TermsAndConditionsRedirectMiddleware",
+        ]
     }
 )
 @override_settings(

@@ -1,15 +1,17 @@
-from django.conf.urls import url
+from django.urls import path
 from . import views
 
+app_name = "django_rt"
+
 urlpatterns = [
-    url(r"^$", views.mytickets, name="mytickets"),
-    url(r"^ticket/(?P<ticket_id>\d+)/$", views.ticketdetail, name="ticketdetail"),
-    url(r"^ticket/new/$", views.ticketcreate, name="ticketcreate"),
-    url(r"^ticket/reply/(?P<ticket_id>\d+)/$", views.ticketreply, name="ticketreply"),
-    url(r"^ticket/new/guest/$", views.ticketcreateguest, name="ticketcreateguest"),
-    url(r"^ticket/close/(?P<ticket_id>\d+)/$", views.ticketclose, name="ticketclose"),
-    url(
-        r"^ticket/attachment/(?P<ticket_id>\d+)/(?P<attachment_id>\d+)/$",
+    path("", views.mytickets, name="mytickets"),
+    path("ticket/<int:ticket_id>/", views.ticketdetail, name="ticketdetail"),
+    path("ticket/new/", views.ticketcreate, name="ticketcreate"),
+    path("ticket/reply/<int:ticket_id>/", views.ticketreply, name="ticketreply"),
+    path("ticket/new/guest/", views.ticketcreateguest, name="ticketcreateguest"),
+    path("ticket/close/<int:ticket_id>/", views.ticketclose, name="ticketclose"),
+    path(
+        "ticket/attachment/<int:ticket_id>/<int:attachment_id>/",
         views.ticketattachment,
         name="ticketattachment",
     ),

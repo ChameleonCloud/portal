@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from djangoRT import rtUtil, forms, rtModels
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -159,7 +159,7 @@ def _handle_ticket_form(request, form):
 
 def ticketcreate(request):
     # Don't require login, be nice and take to guest ticket page.
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("djangoRT:ticketcreateguest"))
 
     if request.method == "POST":
@@ -182,7 +182,7 @@ def ticketcreate(request):
 
 
 def ticketcreateguest(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(reverse("djangoRT:ticketcreate"))
 
     if request.method == "POST":

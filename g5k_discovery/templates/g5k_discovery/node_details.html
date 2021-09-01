@@ -1,4 +1,4 @@
-{% extends 'layout/default.html' %} {% load sekizai_tags staticfiles %} {% block title %}Chameleon Resource Browser{% endblock %} {% block styles %}
+{% extends 'layout/default.html' %} {% load sekizai_tags static %} {% block title %}Chameleon Resource Browser{% endblock %} {% block styles %}
 <link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}"> {% endblock %} {% block content %}
 
 <h2>Details for node {{ node.uid }}</h2>

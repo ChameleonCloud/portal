@@ -1,6 +1,6 @@
 from csp.decorators import csp_update
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render
 from django.conf import settings
 from .g5k_discovery_api import G5K_API
 import json
@@ -29,7 +29,7 @@ def g5k_json(request, resource):
 def g5k_html(request, resource):
     logger.info("Template requested: %s.html", resource)
     templateUrl = "g5k_discovery/%s.html" % resource
-    return render_to_response(templateUrl)
+    return render(request, templateUrl)
 
 
 # basically writing two more identical functions because angular is a fucking piece of shit :)

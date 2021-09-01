@@ -4,7 +4,7 @@ from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import F, Q, IntegerField, Count
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -70,7 +70,7 @@ def check_view_permission(func):
         ):
             return all_versions
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.is_staff:
                 return all_versions
             if artifact.created_by == request.user:
@@ -114,7 +114,7 @@ def check_view_permission(func):
 class ArtifactFilter:
     @staticmethod
     def MINE(request):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return Q(created_by=request.user)
         else:
             return Q()
@@ -131,10 +131,11 @@ class ArtifactFilter:
 
 def _render_list(request, artifacts, user_projects=None):
     if not user_projects:
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             mapper = ProjectAllocationMapper(request)
             user_projects = mapper.get_user_projects(
-                request.user.username, fetch_balance=False)
+                request.user.username, fetch_balance=False
+            )
         else:
             user_projects = []
 
@@ -150,7 +151,7 @@ def _render_list(request, artifacts, user_projects=None):
 
 def index_all(request, collection=None):
     user_projects = None
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         mapper = ProjectAllocationMapper(request)
         user_projects = mapper.get_user_projects(
             request.user.username, fetch_balance=False)

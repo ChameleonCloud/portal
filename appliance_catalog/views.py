@@ -1,13 +1,12 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from django.shortcuts import render_to_response
 from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -63,10 +62,12 @@ def get_appliances(request):
     else:
         appliances = Appliance.objects.all()
         # filter out any that need review unless they belong to me
-    if request.user.is_authenticated():
-        appliances = appliances.filter(Q(needs_review = False) | Q(created_by = request.user))
+    if request.user.is_authenticated:
+        appliances = appliances.filter(
+            Q(needs_review=False) | Q(created_by=request.user)
+        )
     else:
-        appliances = appliances.exclude(needs_review = True)
+        appliances = appliances.exclude(needs_review=True)
 
     for appliance in appliances:
         appliance.description = markdown_deux.markdown(appliance.description)
@@ -360,9 +361,9 @@ def get_keywords(request, appliance_id=None):
 
 
 def app_template(request, resource):
-    logger.debug('Template requested: %s.html', resource)
-    templateUrl = 'appliance_catalog/%s.html' %resource
-    return render_to_response(templateUrl)
+    logger.debug("Template requested: %s.html", resource)
+    templateUrl = "appliance_catalog/%s.html" % resource
+    return render(request, templateUrl)
 
 
 @login_required
