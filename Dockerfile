@@ -43,6 +43,8 @@ RUN pip install --upgrade pip && \
 COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN poetry install --no-dev --no-root
+COPY aldryn-bootstrap3 /aldryn-bootstrap3
+RUN pip install /aldryn-bootstrap3
 
 RUN mkdir /var/log/django
 VOLUME ["/media"]
