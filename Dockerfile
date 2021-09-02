@@ -45,6 +45,8 @@ ENV POETRY_VIRTUALENVS_CREATE=false
 RUN poetry install --no-dev --no-root
 COPY aldryn-bootstrap3 /aldryn-bootstrap3
 RUN pip install /aldryn-bootstrap3
+COPY djangocms-teaser /djangocms-teaser
+RUN pip install /djangocms-teaser
 
 RUN mkdir /var/log/django
 VOLUME ["/media"]

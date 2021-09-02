@@ -770,6 +770,23 @@ reference = "chameleon/1.2.3"
 resolved_reference = "0c2619d302cd7bff1d34d674f540c7abae35277b"
 
 [[package]]
+name = "djangocms-bootstrap4"
+version = "2.0.0"
+description = "Adds Bootstrap 4 components as plugins."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+django-cms = ">=3.7"
+django-filer = ">=1.7"
+djangocms-attributes-field = ">=1"
+djangocms-icon = ">=1.4.0"
+djangocms-link = ">=2.5.0"
+djangocms-picture = ">=2.3.0"
+djangocms-text-ckeditor = ">=3.1.0"
+
+[[package]]
 name = "djangocms-column"
 version = "1.11.0"
 description = "Column Plugin for django CMS"
@@ -794,6 +811,18 @@ python-versions = "*"
 django-cms = ">=3.4.5"
 django-filer = ">=1.2.4"
 djangocms-attributes-field = ">=0.4.0"
+
+[[package]]
+name = "djangocms-icon"
+version = "2.0.0"
+description = "Adds icon plugin to django CMS."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+django-cms = ">=3.7"
+djangocms-attributes-field = ">=1"
 
 [[package]]
 name = "djangocms-link"
@@ -2143,7 +2172,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "5ee44a69b1bc86257dd5dad175492dbb892ba2673f4054196f6a8d6c5b36d4d9"
+content-hash = "136f46cfa69dbfc7ecff1d5181eb53a20f6fd060560566496b4e78ee6e4b2333"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2431,12 +2460,20 @@ djangocms-attributes-field = [
     {file = "djangocms-attributes-field-1.2.0.tar.gz", hash = "sha256:33e00b28b2f3cb4d09a1423cb613d1ab467e8df78446a04df77e725ac1db05a4"},
 ]
 djangocms-blog = []
+djangocms-bootstrap4 = [
+    {file = "djangocms-bootstrap4-2.0.0.tar.gz", hash = "sha256:9e08c16f7e04e09e65f1d3eea3c13e41c27b5ea04418eecc41e1a1cea92f3388"},
+    {file = "djangocms_bootstrap4-2.0.0-py3-none-any.whl", hash = "sha256:34848c8e16d4e6c2d9011ef99c7ac3c1e0bbbf3fedca9136d8716f0094ec869f"},
+]
 djangocms-column = [
     {file = "djangocms-column-1.11.0.tar.gz", hash = "sha256:3a763159bc454311aa7e472aca32a2ab2e5070176a3204e17d844e3d548f6c7c"},
     {file = "djangocms_column-1.11.0-py2-none-any.whl", hash = "sha256:1112c787a93474a31dae1cc164b46d282431b8e671514b181d1f216b2d3c1b81"},
 ]
 djangocms-file = [
     {file = "djangocms-file-2.4.0.tar.gz", hash = "sha256:dd5051465d44fa9a3728bac7943c2efc1b806edb316a741b9dbc171a361f27bf"},
+]
+djangocms-icon = [
+    {file = "djangocms-icon-2.0.0.tar.gz", hash = "sha256:47cb98354b1b4ff5115757b3e37c573148c017ec29fcf78721426589cefdfb6d"},
+    {file = "djangocms_icon-2.0.0-py3-none-any.whl", hash = "sha256:c0074762e70d39e0bb4586d54f654c9345ec4387de9f73517e56fd937a5751ae"},
 ]
 djangocms-link = [
     {file = "djangocms-link-2.6.1.tar.gz", hash = "sha256:9a1135c815367e74bbc665eb656e34740fd7f0cb862dd5b7754433b32297f789"},

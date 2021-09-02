@@ -108,6 +108,7 @@ INSTALLED_APPS = (
     #
     "cms",
     "aldryn_bootstrap3",
+    "djangocms_teaser",
     "menus",
     "sekizai",
     "treebeard",
@@ -151,6 +152,7 @@ INSTALLED_APPS = (
     # djangocms-blog
     "filer",
     "easy_thumbnails",
+    "mptt",
     "aldryn_apphooks_config",
     "parler",
     "taggit",
@@ -158,6 +160,23 @@ INSTALLED_APPS = (
     "meta",
     "sortedm2m",
     "djangocms_blog",
+    # djangocms-bootstrap4
+    'djangocms_icon',
+    'djangocms_bootstrap4',
+    'djangocms_bootstrap4.contrib.bootstrap4_alerts',
+    'djangocms_bootstrap4.contrib.bootstrap4_badge',
+    'djangocms_bootstrap4.contrib.bootstrap4_card',
+    'djangocms_bootstrap4.contrib.bootstrap4_carousel',
+    'djangocms_bootstrap4.contrib.bootstrap4_collapse',
+    'djangocms_bootstrap4.contrib.bootstrap4_content',
+    'djangocms_bootstrap4.contrib.bootstrap4_grid',
+    'djangocms_bootstrap4.contrib.bootstrap4_jumbotron',
+    #'djangocms_bootstrap4.contrib.bootstrap4_link',
+    'djangocms_bootstrap4.contrib.bootstrap4_listgroup',
+    'djangocms_bootstrap4.contrib.bootstrap4_media',
+    #'djangocms_bootstrap4.contrib.bootstrap4_picture',
+    'djangocms_bootstrap4.contrib.bootstrap4_tabs',
+    'djangocms_bootstrap4.contrib.bootstrap4_utilities',
 )
 
 MIDDLEWARE = (
