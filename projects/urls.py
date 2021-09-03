@@ -1,19 +1,29 @@
-from django.conf.urls import url
+from django.urls import path
 
 from . import pub_views, views
 
+app_name = "projects"
+
 urlpatterns = [
-    url(r"^$", views.user_projects, name="user_projects"),
-    url(r"^new/$", views.create_project, name="create_project"),
-    url(r"^(\d+)/$", views.view_project, name="view_project"),
-    url(r"^join/([\w_-]+)/", views.accept_invite, name="accept_invite"),
-    url(r"^(\d+)/allocation/$", views.create_allocation, name="create_allocation"),
-    url(r"^(\d+)/allocation/(\d+)$", views.create_allocation, name="renew_allocation"),
-    url(r"^api/extras/$", views.get_extras, name="get_extras"),
-    url(
-        r"^add/publications/(\d+)/$",
+    path("", views.user_projects, name="user_projects"),
+    path("new/", views.create_project, name="create_project"),
+    path("<int:project_id>/", views.view_project, name="view_project"),
+    path("join/<str:invite_code>/", views.accept_invite, name="accept_invite"),
+    path(
+        "<int:project_id>/allocation/",
+        views.create_allocation,
+        name="create_allocation",
+    ),
+    path(
+        "<int:project_id>/allocation/<int:allocation_id>",
+        views.create_allocation,
+        name="renew_allocation",
+    ),
+    path("api/extras/", views.get_extras, name="get_extras"),
+    path(
+        "add/publications/<int:project_id>/",
         pub_views.add_publications,
         name="add_publications",
     ),
-    url(r"^publications/$", pub_views.user_publications, name="publications"),
+    path("publications/", pub_views.user_publications, name="publications"),
 ]

@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Event',
             fields=[
-                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News')),
+                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News', on_delete=models.CASCADE)),
                 ('event_type', models.TextField(choices=[(b'CONFERENCE', b'Conference'), (b'MEETING', b'Meeting'), (b'PAPER', b'Paper'), (b'POSTER', b'Poster'), (b'PRESENTATION', b'Presentation'), (b'TUTORIAL', b'Tutorial'), (b'WORKSHOP', b'Workshop'), (b'OTHER', b'Other')])),
                 ('event_date', models.DateTimeField(verbose_name=b'event date')),
             ],
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Outage',
             fields=[
-                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News')),
+                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News', on_delete=models.CASCADE)),
                 ('start_date', models.DateTimeField(verbose_name=b'start of outage')),
                 ('end_date', models.DateTimeField(verbose_name=b'expected end of outage')),
             ],
@@ -83,8 +83,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OutageUpdate',
             fields=[
-                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News')),
-                ('original_item', models.ForeignKey(to='user_news.Outage')),
+                ('news_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='user_news.News', on_delete=models.CASCADE)),
+                ('original_item', models.ForeignKey(to='user_news.Outage', on_delete=models.CASCADE)),
             ],
             options={
             },
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserNewsPluginModel',
             fields=[
-                ('cmsplugin_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='cms.CMSPlugin')),
+                ('cmsplugin_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='cms.CMSPlugin', on_delete=models.CASCADE)),
                 ('limit', models.IntegerField(default=5)),
             ],
             options={
@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='news',
             name='author',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

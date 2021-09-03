@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required, user_passes_test
 from util.project_allocation_mapper import ProjectAllocationMapper
 
@@ -312,4 +311,4 @@ def contact(request):
 def allocations_template(request, resource):
     logger.debug("Template requested: %s.html", resource)
     template_url = "allocations/%s.html" % resource
-    return render_to_response(template_url)
+    return render(request, template_url)

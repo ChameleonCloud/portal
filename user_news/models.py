@@ -24,7 +24,7 @@ class News(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     summary = RichTextField(max_length=600)
     body = RichTextField()
     tags = models.ManyToManyField(NewsTag, blank=True)
@@ -90,7 +90,8 @@ class Outage(News):
         super(Outage,self).save()
 
 class OutageUpdate(News):
-    original_item = models.ForeignKey(Outage)
+    original_item = models.ForeignKey(Outage, on_delete=models.CASCADE)
+
 
 """
 This class represents a notification which should be displayed to users using
