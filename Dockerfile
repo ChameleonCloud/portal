@@ -43,6 +43,8 @@ RUN pip install --upgrade pip && \
 COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN poetry install --no-dev --no-root
+RUN pip install git+https://github.com/ChameleonCloud/aldryn-bootstrap3.git
+RUN pip install git+https://github.com/ChameleonCloud/djangocms-teaser.git
 
 RUN mkdir /var/log/django
 VOLUME ["/media"]
