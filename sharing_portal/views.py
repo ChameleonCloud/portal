@@ -85,7 +85,7 @@ def check_view_permission(func):
                     for p in mapper.get_user_projects(
                         request.user.username, fetch_balance=False)
                 ]
-                if any(p.charge_code in user_projects for p in project_shares):
+                if any(p.project.charge_code in user_projects for p in project_shares):
                     return all_versions
 
         # NOTE(jason): It is important that this check go last. Visibility b/c
