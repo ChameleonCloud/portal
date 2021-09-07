@@ -60,6 +60,9 @@ def check_edit_permission(func):
 
 def check_view_permission(func):
     def can_view(request, artifact):
+        if artifact.deleted:
+            return []
+
         all_versions = list(artifact.versions)
 
         if artifact.is_public:
@@ -194,6 +197,7 @@ def _fetch_artifacts(filters):
     in some places.
     """
     return (Artifact.objects.prefetch_related('artifact_versions').filter(filters)
+        .filter(deleted=False)
         .annotate(num_versions=Count('artifact_versions')))
 
 
