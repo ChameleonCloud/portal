@@ -2,6 +2,7 @@ from keycloak.realm import KeycloakRealm
 from keycloak.admin.users import User, Users
 from keycloak.admin.groups import Groups
 from keycloak.admin.user.usergroup import UserGroups
+from keycloak.admin.user.usergrouproles import UserGroupRoles
 from keycloak.exceptions import KeycloakClientError
 from django.conf import settings
 import json
@@ -49,6 +50,11 @@ class KeycloakClient:
 
     def _user_projects_admin(self, user_id):
         return UserGroups(
+            realm_name=self.realm_name, user_id=user_id, client=self._get_admin_client()
+        )
+
+    def _user_project_roles_admin(self, user_id):
+        return UserGroupRoles(
             realm_name=self.realm_name, user_id=user_id, client=self._get_admin_client()
         )
 
@@ -146,6 +152,8 @@ class KeycloakClient:
             keycloakusergroups.add(group_id)
         elif action == "delete":
             keycloakusergroups.delete(group_id)
+            for sub_group in group["subGroups"]:
+                keycloakusergroups.delete(sub_group["id"])
         else:
             raise ValueError("Unrecognized keycloak membership action")
 
@@ -268,3 +276,42 @@ class KeycloakClient:
                 raise DuplicateUserError()
             else:
                 raise
+
+    def get_user_roles(self, username):
+        user = self.get_user_by_username(username)
+        if not user:
+            raise ValueError(f"Couldn't find user {username}")
+        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+
+        return keycloakusergrouproles.all()
+
+    def get_user_project_role_scopes(self, username, project_charge_code):
+        user = self.get_user_by_username(username)
+        if not user:
+            raise ValueError(f"Couldn't find user {username}")
+        group = self._lookup_group(project_charge_code)
+        if not group:
+            raise ValueError(f"Couldn't find project {project_charge_code}")
+        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+
+        role_scopes = next(iter(keycloakusergrouproles.by_group_id(group["id"])), None)
+        if role_scopes:
+            return role_scopes["policy"], role_scopes["scopes"]
+
+        return None, None
+
+    def set_user_project_role(self, username, project_charge_code, role):
+        user = self.get_user_by_username(username)
+        if not user:
+            raise ValueError(f"Couldn't find user {username}")
+        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+
+        keycloakusergrouproles.grant(policy=role, group_name=project_charge_code)
+
+    def get_roles_for_all_project_members(self, project_charge_code):
+        group = self._lookup_group(project_charge_code)
+        if not group:
+            raise ValueError(f"Couldn't find project {project_charge_code}")
+        keycloakusergrouproles = self._user_project_roles_admin(None)
+
+        return keycloakusergrouproles.bulk_fetch_group_member_roles(group["id"])
