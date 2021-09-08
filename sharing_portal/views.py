@@ -86,7 +86,8 @@ def check_view_permission(func):
                 user_projects = [
                     p['chargeCode']
                     for p in mapper.get_user_projects(
-                        request.user.username, fetch_balance=False)
+                        request.user.username, fetch_balance=False
+                    )
                 ]
                 if any(p.project.charge_code in user_projects for p in project_shares):
                     return all_versions
@@ -196,9 +197,12 @@ def _fetch_artifacts(filters):
     to act over the artifact versions collection; this is used to render stats
     in some places.
     """
-    return (Artifact.objects.prefetch_related('artifact_versions').filter(filters)
+    return (
+        Artifact.objects.prefetch_related("artifact_versions")
+        .filter(filters)
         .filter(deleted=False)
-        .annotate(num_versions=Count('artifact_versions')))
+        .annotate(num_versions=Count("artifact_versions"))
+    )
 
 
 @check_edit_permission
