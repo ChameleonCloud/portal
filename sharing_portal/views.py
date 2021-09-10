@@ -84,7 +84,7 @@ def check_view_permission(func):
             if project_shares:
                 mapper = ProjectAllocationMapper(request)
                 user_projects = [
-                    p['chargeCode']
+                    p["chargeCode"]
                     for p in mapper.get_user_projects(
                         request.user.username, fetch_balance=False
                     )
