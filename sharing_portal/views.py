@@ -60,6 +60,9 @@ def check_edit_permission(func):
 
 def check_view_permission(func):
     def can_view(request, artifact):
+        if artifact.deleted:
+            return []
+
         all_versions = list(artifact.versions)
 
         if artifact.is_public:
@@ -81,11 +84,12 @@ def check_view_permission(func):
             if project_shares:
                 mapper = ProjectAllocationMapper(request)
                 user_projects = [
-                    p['chargeCode']
+                    p["chargeCode"]
                     for p in mapper.get_user_projects(
-                        request.user.username, fetch_balance=False)
+                        request.user.username, fetch_balance=False
+                    )
                 ]
-                if any(p.charge_code in user_projects for p in project_shares):
+                if any(p.project.charge_code in user_projects for p in project_shares):
                     return all_versions
 
         # NOTE(jason): It is important that this check go last. Visibility b/c
@@ -193,8 +197,12 @@ def _fetch_artifacts(filters):
     to act over the artifact versions collection; this is used to render stats
     in some places.
     """
-    return (Artifact.objects.prefetch_related('artifact_versions').filter(filters)
-        .annotate(num_versions=Count('artifact_versions')))
+    return (
+        Artifact.objects.prefetch_related("artifact_versions")
+        .filter(filters)
+        .filter(deleted=False)
+        .annotate(num_versions=Count("artifact_versions"))
+    )
 
 
 @check_edit_permission
