@@ -108,6 +108,9 @@ class Artifact(models.Model):
     )
     sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
     is_public = models.BooleanField(default=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='belongs_to_project', null=True)
+    is_reproducible = models.BooleanField(default=False)
+    reproduce_hours = models.IntegerField(null=True)
     labels = models.ManyToManyField(Label, related_name='artifacts',
                                     blank=True)
     associated_artifacts = models.ManyToManyField('Artifact',
@@ -225,3 +228,31 @@ class ArtifactVersion(models.Model):
 class ShareTarget(models.Model):
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+
+
+class DayPassRequest(models.Model):
+    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    institution = models.CharField(max_length=200)
+    reason = models.TextField(max_length=5000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="requestor"
+    )
+
+    STATUS_PENDING = "pending"
+    STATUS_REJECTED = "rejected"
+    STATUS_APPROVED = "approved"
+    STATUS = (
+        (STATUS_PENDING, "pending"),
+        (STATUS_REJECTED, "rejected"),
+        (STATUS_APPROVED, "approved"),
+    )
+    status = models.CharField(max_length=50, blank=False, choices=STATUS)
+    decision_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="decision_by",
+        null=True,
+    )
+    decision_at = models.DateTimeField(null=True)

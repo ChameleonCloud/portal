@@ -212,14 +212,6 @@ class ProjectAddUserForm(forms.Form):
     )
 
 
-class ReusableInviteForm(forms.Form):
-    duration_ref = forms.IntegerField(
-        label="Duration (days)",
-        required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Duration"}),
-    )
-
-
 class AddBibtexPublicationForm(forms.Form):
     project_id = forms.CharField(widget=forms.HiddenInput())
     bibtex_string = forms.CharField(

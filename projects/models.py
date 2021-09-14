@@ -187,7 +187,7 @@ class Invitation(models.Model):
         self.user_accepted = user
         if self.duration:
             self.date_exceeded_duration = self.date_accepted + timedelta(
-                days=self.duration
+                hours=self.duration
             )
         self.save()
 
@@ -205,26 +205,6 @@ class Invitation(models.Model):
 
     def _is_expired(self):
         return self.date_expires < timezone.now()
-
-
-class ReusableInvitationManager(models.Manager):
-    pass
-
-
-class ReusableInvitation(models.Model):
-    def _generate_secret():
-        nbytes = 26
-        nchars = nbytes
-        return secrets.token_urlsafe(nbytes)[:nchars]
-
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    user_issued = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, editable=False
-    )
-    code = models.CharField(
-        max_length=26, default=_generate_secret, editable=False, null=True
-    )
-    duration = models.IntegerField(null=True)
 
 
 class PublicationManager(models.Manager):

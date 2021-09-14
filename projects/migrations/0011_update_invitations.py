@@ -5,7 +5,7 @@ from django.conf import settings
 
 import json
 
-from ..models import Invitation, ReusableInvitation
+from ..models import Invitation
 
 class Migration(migrations.Migration):
 
@@ -34,14 +34,14 @@ class Migration(migrations.Migration):
             name='email_code',
             field=models.CharField(default=Invitation._generate_secret, editable=False, max_length=26, null=True),
         ),
-        migrations.CreateModel(
-            name='ReusableInvitation',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(default=ReusableInvitation._generate_secret, editable=False, max_length=26, null=True)),
-                ('project', models.ForeignKey(on_delete=models.deletion.CASCADE, to='projects.Project')),
-                ('user_issued', models.ForeignKey(editable=False, on_delete=models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
-                ('duration', models.IntegerField(null=True)),
-            ],
+        migrations.AlterField(
+            model_name='invitation',
+            name='date_expires',
+            field=models.DateTimeField(default=Invitation._generate_expiration),
+        ),
+        migrations.AlterField(
+            model_name='invitation',
+            name='user_issued',
+            field=models.ForeignKey(editable=False, on_delete=models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL),
         ),
     ]
