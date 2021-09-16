@@ -263,18 +263,22 @@ def share_artifact(request, artifact):
         )
         z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
 
-    if request.method == "POST":
 
         form = ShareArtifactForm(request, request.POST)
+        if form.is_valid():
+            artifact.is_public = form.cleaned_data["is_public"]
+            artifact.is_reproducible = form.cleaned_data["is_reproducible"]
+            artifact.reproduce_hours = form.cleaned_data["reproduce_hours"]
+            artifact.project = Project.objects.get(
+                charge_code=form.cleaned_data["project"]
+            )
+            if artifact.is_reproducible and not artifact.reproducibility_project:
                 supplemental_project = create_supplemental_project(
                     request,
                     artifact
                 )
                 artifact.reproducibility_project = supplemental_project
             artifact.save()
-            artifact.project = Project.objects.get(
-                charge_code=form.cleaned_data["project"]
-            )
             if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
                 messages.add_message(request, messages.SUCCESS,
                     'Successfully updated sharing settings')
@@ -308,14 +312,6 @@ def share_artifact(request, artifact):
 
     template = loader.get_template('sharing_portal/share.html')
     context = {
-        'share_form': form,
-        'z_management_form': z_form.management_form,
-        'z_forms': _artifact_display_versions(z_form.forms),
-        'share_url': share_url,
-        'artifact': artifact,
-        'artifact_json': JSONRenderer().render(ArtifactSerializer(instance=artifact).data),
-    }
-
         "share_form": form,
         "z_management_form": z_form.management_form,
         "z_forms": _artifact_display_versions(z_form.forms),
@@ -324,28 +320,30 @@ def share_artifact(request, artifact):
         "artifact_json": JSONRenderer().render(
             ArtifactSerializer(instance=artifact).data
         ),
-        for allocation in project["allocations"]:
-            if allocation["status"].lower() == "active":
-                return True
+    }
+    return HttpResponse(template.render(context, request))
 
-    return False
-
-def preserve_sharing_key(url, request):
+def has_active_allocations(request):
+    mapper = ProjectAllocationMapper(request)
     user_projects = mapper.get_user_projects(
         request.user.username, to_pytas_model=False
     )
+    for project in user_projects:
+        for allocation in project["allocations"]:
+            if allocation["status"].lower() == "active":
+                return True
+    return False
+
+def preserve_sharing_key(url, request):
+    if SHARING_KEY_PARAM in request.GET:
         return url + '?{}={}'.format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
     return url
 
 @check_view_permission
 def artifact(request, artifact, artifact_versions, version_idx=None):
-
-
     show_launch = request.user is None or has_active_allocations(request)
 
-        return url + "?{}={}".format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
-
-
+    version = _artifact_version(artifact_versions, version_idx)
     if not version:
         error_message = 'This artifact has no version {}'.format(version_idx)
         messages.add_message(request, messages.ERROR, error_message)
@@ -366,12 +364,12 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
             'created_at': None,
         }
 
-    request_day_pass_url = reverse('sharing_portal:request_day_pass', args=[artifact.pk])
-        launch_url = reverse("sharing_portal:launch", args=[artifact.pk])
     # Ensure launch URLs are authenticated if a private link is being used.
-            "doi": artifact.doi,
-            "url": artifact.deposition_url,
-            "created_at": None,
+    request_day_pass_url = preserve_sharing_key(
+        reverse('sharing_portal:request_day_pass', args=[artifact.pk]),
+        request
+    )
+
     template = loader.get_template('sharing_portal/detail.html')
 
     context = {
@@ -380,14 +378,14 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
         'doi_info': doi_info,
         'version': version,
         'launch_url': launch_url,
-    template = loader.get_template("sharing_portal/detail.html")
         'related_artifacts': artifact.related_items,
+        'request_day_pass_url': request_day_pass_url,
         'editable': (
             request.user.is_staff or (
             artifact.created_by == request.user)),
         'show_launch': show_launch,
     }
-
+    template = loader.get_template("sharing_portal/detail.html")
     return HttpResponse(template.render(context, request))
 
 
@@ -405,6 +403,8 @@ def launch(request, artifact, artifact_versions, version_idx=None):
     if artifact.is_reproducible and not has_active_allocations(request):
         day_pass_request_url = preserve_sharing_key(
             reverse('sharing_portal:request_day_pass', args=[artifact.pk]),
+            request
+        )
         raise Http404(
             (
                 "There is no version {} for this artifact, or you do not have access.".format(
@@ -416,13 +416,12 @@ def launch(request, artifact, artifact_versions, version_idx=None):
     version.launch_count = F('launch_count') + 1
     version.save(update_fields=['launch_count'])
     return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
-            reverse("sharing_portal:request_day_pass", args=[artifact.pk]),
 
 @check_view_permission
 @login_required
 def request_day_pass(request, artifact, **kwargs):
-    version.launch_count = F("launch_count") + 1
-    version.save(update_fields=["launch_count"])
+    if not artifact or not artifact.is_reproducible:
+        raise Http404("That artifact either doesn't exist, or can't be reproduced")
 
     if request.method == 'POST':
         form = RequestDayPassForm(
@@ -432,11 +431,11 @@ def request_day_pass(request, artifact, **kwargs):
         if form.is_valid():
             day_pass_request = DayPassRequest.objects.create(
                 artifact=artifact,
-    if request.method == "POST":
+                name=form.cleaned_data["name"],
                 institution=form.cleaned_data["institution"],
                 reason=form.cleaned_data["reason"],
                 created_by=request.user,
-                status=DayPassRequest.STATUS_PENDING
+                status=DayPassRequest.STATUS_PENDING,
             )
             send_request_mail(day_pass_request, request)
 
@@ -444,7 +443,7 @@ def request_day_pass(request, artifact, **kwargs):
             return HttpResponseRedirect(
                 preserve_sharing_key(reverse('sharing_portal:detail', args=[artifact.pk]), request)
             )
-                status=DayPassRequest.STATUS_PENDING,
+        else:
             if form.errors:
                 (messages.add_message(request, messages.ERROR, e) for e in form.errors)
             return HttpResponseRedirect(
@@ -563,6 +562,9 @@ def list_day_pass_requests(request, **kwargs):
 
 def send_request_decision_mail(day_pass_request, request):
     subject = f'Day pass request has been reviewed: {day_pass_request.status}'
+    help_url = request.build_absolute_uri(
+        reverse('djangoRT:mytickets')
+    )
     if day_pass_request.status == DayPassRequest.STATUS_APPROVED:
         invite = add_project_invitation(
             day_pass_request.artifact.reproducibility_project.id,
@@ -575,9 +577,6 @@ def send_request_decision_mail(day_pass_request, request):
         day_pass_request.invitation = invite
         day_pass_request.save()
         url = get_invite_url(request.get_host(), invite.email_code)
-        help_url = request.build_absolute_uri(
-            reverse('djangoRT:mytickets')
-        )
         body = f"""
         <p>
         Your day pass request to reproduce {day_pass_request.artifact.title}
