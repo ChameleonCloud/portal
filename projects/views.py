@@ -93,6 +93,10 @@ def accept_invite(request, invite_code):
         raise Http404("That invitation does not exist!")
 
     user = request.user
+    # Check for existing day pass, use this invite instead
+    day_pass = get_day_pass(user.id, invitation.project.id)
+    if day_pass is not None:
+        day_pass.delete()
     if accept_invite_for_user(user, invitation, mapper):
         messages.success(request, "Accepted invitation")
         return HttpResponseRedirect(

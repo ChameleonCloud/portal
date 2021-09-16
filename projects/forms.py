@@ -206,7 +206,7 @@ class ProjectAddUserForm(forms.Form):
         widget=forms.TextInput(attrs={"placeholder": "Username or email"}),
     )
     duration_ref = forms.IntegerField(
-        label="Duration (days)",
+        label="Duration (hours)",
         required=False,
         widget=forms.TextInput(attrs={"placeholder": "Duration"}),
     )
