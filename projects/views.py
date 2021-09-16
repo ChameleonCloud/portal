@@ -408,6 +408,7 @@ def add_project_invitation(
         send_invitation_email(invitation, host)
     return invitation
 
+
 def send_invitation_email(invitation, host):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code

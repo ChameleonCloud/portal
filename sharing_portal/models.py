@@ -109,16 +109,13 @@ class Artifact(models.Model):
     sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
     is_public = models.BooleanField(default=False)
     project = models.ForeignKey(
-        Project,
-        on_delete=models.CASCADE,
-        related_name='belongs_to_project',
-        null=True
+        Project, on_delete=models.CASCADE, related_name="belongs_to_project", null=True
     )
     reproducibility_project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
-        related_name='reproducibility_project',
-        null=True
+        related_name="reproducibility_project",
+        null=True,
     )
     is_reproducible = models.BooleanField(default=False)
     reproduce_hours = models.IntegerField(null=True)
