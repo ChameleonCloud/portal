@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from projects.models import Project
+from projects.models import Project, Invitation
 from sharing_portal.zenodo import ZenodoClient
 
 
@@ -108,7 +108,18 @@ class Artifact(models.Model):
     )
     sharing_key = models.CharField(max_length=32, null=True, default=gen_sharing_key)
     is_public = models.BooleanField(default=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='belongs_to_project', null=True)
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='belongs_to_project',
+        null=True
+    )
+    reproducibility_project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name='reproducibility_project',
+        null=True
+    )
     is_reproducible = models.BooleanField(default=False)
     reproduce_hours = models.IntegerField(null=True)
     labels = models.ManyToManyField(Label, related_name='artifacts',
@@ -256,3 +267,4 @@ class DayPassRequest(models.Model):
         null=True,
     )
     decision_at = models.DateTimeField(null=True)
+    invitation = models.ForeignKey(Invitation, on_delete=models.CASCADE, null=True)

@@ -1,5 +1,7 @@
 import json
 
+from datetime import timedelta
+
 from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
@@ -14,6 +16,7 @@ from django.template import loader
 from django.utils.html import strip_tags
 from django.utils import timezone
 from projects.models import Project
+from allocations.models import Allocation
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -264,6 +267,12 @@ def share_artifact(request, artifact):
             artifact.is_reproducible = form.cleaned_data["is_reproducible"]
             artifact.reproduce_hours = form.cleaned_data["reproduce_hours"]
             artifact.project = Project.objects.get(charge_code=form.cleaned_data["project"])
+            if artifact.is_reproducible and not artifact.reproducibility_project:
+                supplemental_project = create_supplemental_project(
+                    request,
+                    artifact
+                )
+                artifact.reproducibility_project = supplemental_project
             artifact.save()
 
             if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
@@ -486,10 +495,6 @@ def send_request_mail(day_pass_request, request):
     )
 
 @login_required
-def list_day_pass_requests(request, **kwargs):
-    DayPassRequest.objects.get()
-
-@login_required
 def review_day_pass(request, request_id, **kwargs):
     try:
         day_pass_request = DayPassRequest.objects.get(pk=request_id)
@@ -530,17 +535,34 @@ def review_day_pass(request, request_id, **kwargs):
     }
     return HttpResponse(template.render(context, request))
 
+@login_required
+def list_day_pass_requests(request, **kwargs):
+    LOG.info(request.user)
+    # TODO limit this page to PIs?
+
+    requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user, status=DayPassRequest.STATUS_PENDING)
+    for day_pass_request in requests:
+        day_pass_request.url = reverse('sharing_portal:review_day_pass', args=[day_pass_request.id])
+
+    template = loader.get_template('sharing_portal/list_day_pass_requests.html')
+    context = {
+        "requests": requests,
+    }
+    return HttpResponse(template.render(context, request))
+
 def send_request_decision_mail(day_pass_request, request):
     subject = f'Day pass request has been reviewed: {day_pass_request.status}'
     if day_pass_request.status == DayPassRequest.STATUS_APPROVED:
         invite = add_project_invitation(
-            day_pass_request.artifact.project.id,
+            day_pass_request.artifact.reproducibility_project.id,
             day_pass_request.created_by.email,
             day_pass_request.decision_by,
             request.get_host(),
             day_pass_request.artifact.reproduce_hours,
             False
         )
+        day_pass_request.invitation = invite
+        day_pass_request.save()
         url = get_invite_url(request.get_host(), invite.email_code)
         help_url = request.build_absolute_uri(
             reverse('djangoRT:mytickets')
@@ -786,16 +808,30 @@ def create_supplemental_project(request, artifact):
 
     pi = artifact.project.pi
     supplemental_project = {
-        "nickname": f"supplemental project for: {artifact.project.nickname}",
-        "title": f"supplemental project for: {artifact.project.nickname}",
-        "description": artifact.project.description,
-        "typeId": artifact.project.fieldId,
-        "fieldId": artifact.project.fieldId,
+        "nickname": f"reproducing_{artifact.id}",
+        "title": f"Reproducing '{artifact.title}'",
+        "description": f"This project is for reproducing the artifact '{artifact.title}'",
+        "typeId": artifact.project.type.id,
+        "fieldId": artifact.project.field.id,
+        "piId": artifact.project.pi.id
     }
-    allocation = {
+    allocation_data = {
         "resourceId": 39,
         "requestorId": pi.id,
         "computeRequested": 1000,
+        "status": "approved",
+        "dateReviewed": timezone.now(),
+        "start": timezone.now(),
+        "end": timezone.now() + timedelta(days=6*30),
+        "decisionSummary": "automatically approved for reproducibility",
+        "computeAllocated": 1000,
+        "justification": "Automatic decision",
     }
-    supplemental_project["allocations"] = artifact.project.allocations
+    supplemental_project["allocations"] = [allocation_data]
     supplemental_project["source"] = "Chameleon"
+    created_tas_project = mapper.save_project(supplemental_project, request.get_host())
+    # We can assume only 1 here since this project is new
+    allocation = Allocation.objects.get(project_id=created_tas_project["id"])
+    allocation.status = "approved"
+    allocation.save()
+    return Project.objects.get(id=created_tas_project["id"])

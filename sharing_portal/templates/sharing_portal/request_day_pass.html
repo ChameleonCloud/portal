@@ -21,7 +21,7 @@
   <li class="active">Request Day Pass</li>
 </ol>
 
-<div id="app">
+<div>
 
   <form id="artifactShareForm" method="post">
     {% csrf_token %}
@@ -63,10 +63,5 @@
   </form>
 
 </div>
-
-{# TODO: replace with json_script filter when we're on Django 2.1 #}
-<script id="artifact-data" type="application/json">{{ artifact_json|safe }}</script>
-{% render_bundle 'vendor' %}
-{% render_bundle 'artifact_share' %}
 
 {% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags static pipeline bootstrap3 %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Review Day Pass | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/day_pass.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div id="app">
+  <h1>Pending requests</h1>
+  {% for day_pass_request in requests %}
+    <div class="day-pass-request">
+      <dt>Artifact</dt><dd>{{ day_pass_request.artifact.title }}</dd>
+      <dt>Name</dt><dd>{{ day_pass_request.name }}</dd>
+      <dt>Email</dt><dd>{{ day_pass_request.created_by.email }}</dd>
+      <dt>Institution</dt><dd>{{ day_pass_request.institution }}</dd>
+      <dt>Requested at</dt><dd>{{ day_pass_request.created_at }}</dd>
+      {% if day_pass_request.status == 'pending' %}
+        <a class="btn btn-primary" href="{{ day_pass_request.url }}" target="_blank">Review</a>
+      {% else %}
+        <dt>Status</dt><dd>{{ day_pass_request.institution }}</dd>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+<script id="artifact-data" type="application/json">{{ artifact_json|safe }}</script>
+
+{% endblock %}
