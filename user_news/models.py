@@ -82,12 +82,18 @@ class Outage(News):
         ('SEV-2','SEV-2'),
         ('SEV-3','SEV-3'),
     )
-    severity = models.CharField(choices=SEVERITY_LEVEL, blank=False, default='', max_length=50)
+    severity = models.CharField(
+        choices=SEVERITY_LEVEL, blank=False, default="", max_length=50
+    )
 
     def save(self):
         if not self.slug:
-            self.slug = '%s-%s' % (self.start_date.strftime('%y-%m-%d'), slugify(self.title))
-        super(Outage,self).save()
+            self.slug = "%s-%s" % (
+                self.start_date.strftime("%y-%m-%d"),
+                slugify(self.title),
+            )
+        super(Outage, self).save()
+
 
 class OutageUpdate(News):
     original_item = models.ForeignKey(Outage, on_delete=models.CASCADE)
