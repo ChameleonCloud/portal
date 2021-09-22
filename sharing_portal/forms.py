@@ -109,6 +109,7 @@ class ShareArtifactForm(forms.Form):
     )
 
     # Custom init is required to dynamically fill the projects choice field
+
     def __init__(self, request, *args, **kwargs):
         super(ShareArtifactForm, self).__init__(*args, **kwargs)
         mapper = ProjectAllocationMapper(request)

@@ -238,7 +238,7 @@ def view_project(request, project_id):
                                 request.user,
                                 request.get_host(),
                                 int(form.cleaned_data["duration_ref"])
-                                if form.cleaned_data["duration_ref"]
+                                if form.cleaned_data.get("duration_ref", None)
                                 else None,
                             )
                             messages.success(request, "Invite sent!")
@@ -401,23 +401,6 @@ def view_project(request, project_id):
         clean_invitations.append(new_item)
 
     is_on_day_pass = get_day_pass(request.user.id, project_id) is not None
-    logger.error(
-        {
-            "project": project,
-            "project_nickname": project.nickname,
-            "project_type": project.type,
-            "users": users_mashup,
-            "invitations": clean_invitations,
-            "can_manage_project_membership": can_manage_project_membership,
-            "can_manage_project": can_manage_project,
-            "is_admin": request.user.is_superuser,
-            "is_on_day_pass": is_on_day_pass,
-            "form": form,
-            "nickname_form": nickname_form,
-            "type_form": type_form,
-            "pubs_form": pubs_form,
-            "roles": ROLES,
-        })
 
     return render(
         request,
@@ -842,3 +825,11 @@ def get_extras(request):
         response["message"] = "Does not exist."
         response["result"] = None
     return JsonResponse(response)
+
+def get_project_managers(project):
+    keycloak_client = KeycloakClient()
+    user_roles = keycloak_client.get_roles_for_all_project_members(
+        get_charge_code(project)
+    )
+    managers = []
+    raise Exception(user_roles)

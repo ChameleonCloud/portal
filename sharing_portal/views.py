@@ -331,6 +331,7 @@ def share_artifact(request, artifact):
     }
     return HttpResponse(template.render(context, request))
 
+
 def has_active_allocations(request):
     mapper = ProjectAllocationMapper(request)
     user_projects = mapper.get_user_projects(
@@ -342,10 +343,12 @@ def has_active_allocations(request):
                 return True
     return False
 
+
 def preserve_sharing_key(url, request):
     if SHARING_KEY_PARAM in request.GET:
         return url + '?{}={}'.format(SHARING_KEY_PARAM, request.GET[SHARING_KEY_PARAM])
     return url
+
 
 @check_view_permission
 def artifact(request, artifact, artifact_versions, version_idx=None):
@@ -449,7 +452,9 @@ def request_day_pass(request, artifact, **kwargs):
 
             messages.add_message(request, messages.SUCCESS, 'Request submitted')
             return HttpResponseRedirect(
-                preserve_sharing_key(reverse('sharing_portal:detail', args=[artifact.pk]), request)
+                preserve_sharing_key(
+                    reverse('sharing_portal:detail', args=[artifact.pk]), request
+                )
             )
         else:
             if form.errors:
@@ -480,6 +485,9 @@ def send_request_mail(day_pass_request, request):
     help_url = request.build_absolute_uri(
         reverse('djangoRT:mytickets')
     )
+    list_url = request.build_absolute_uri(
+        reverse('sharing_portal:list_day_pass_requests')
+    )
     subject = f'Day pass request for "{day_pass_request.artifact.title}"'
     body = f"""
     <p>
@@ -495,7 +503,8 @@ def send_request_mail(day_pass_request, request):
     </p>
     <p>
     Review this decision by visiting <a href="{url}">this link</a>,
-    or by going to {url} in your browser.
+    or by going to {url} in your browser. You can view all pending and reviewed
+    requests <a href="{list_url}">here</a> or at {list_url}.
     </p>
     <p><i>This is an automatic email, please <b>DO NOT</b> reply!
     If you have any question or issue, please submit a ticket on our
@@ -559,13 +568,15 @@ def list_day_pass_requests(request, **kwargs):
     LOG.info(request.user)
     # TODO limit this page to PIs?
 
-    requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user, status=DayPassRequest.STATUS_PENDING)
-    for day_pass_request in requests:
+    pending_requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user, status=DayPassRequest.STATUS_PENDING).order_by("-created_at")
+    for day_pass_request in pending_requests:
         day_pass_request.url = reverse('sharing_portal:review_day_pass', args=[day_pass_request.id])
+    reviewed_requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user).exclude(status=DayPassRequest.STATUS_PENDING).order_by("-decision_at")
 
     template = loader.get_template('sharing_portal/list_day_pass_requests.html')
     context = {
-        "requests": requests,
+        "pending_requests": pending_requests,
+        "reviewed_requests": reviewed_requests,
     }
     return HttpResponse(template.render(context, request))
 
@@ -844,23 +855,24 @@ def create_supplemental_project(request, artifact):
         "fieldId": artifact.project.field.id,
         "piId": artifact.project.pi.id
     }
+    # Approval code is commented out during initial preview release.
     allocation_data = {
         "resourceId": 39,
         "requestorId": pi.id,
         "computeRequested": 1000,
         "status": "approved",
-        "dateReviewed": timezone.now(),
-        "start": timezone.now(),
-        "end": timezone.now() + timedelta(days=6*30),
-        "decisionSummary": "automatically approved for reproducibility",
-        "computeAllocated": 1000,
-        "justification": "Automatic decision",
+        #"dateReviewed": timezone.now(),
+        #"start": timezone.now(),
+        #"end": timezone.now() + timedelta(days=6*30),
+        #"decisionSummary": "automatically approved for reproducibility",
+        #"computeAllocated": 1000,
+        #"justification": "Automatic decision",
     }
     supplemental_project["allocations"] = [allocation_data]
     supplemental_project["source"] = "Chameleon"
     created_tas_project = mapper.save_project(supplemental_project, request.get_host())
     # We can assume only 1 here since this project is new
-    allocation = Allocation.objects.get(project_id=created_tas_project["id"])
-    allocation.status = "approved"
-    allocation.save()
+    #allocation = Allocation.objects.get(project_id=created_tas_project["id"])
+    #allocation.status = "approved"
+    #allocation.save()
     return Project.objects.get(id=created_tas_project["id"])

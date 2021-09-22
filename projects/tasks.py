@@ -1,14 +1,17 @@
 import logging
 
+from allocations.models import Allocation
 from celery.decorators import task
+from datetime import datetime
 from django.utils import timezone
 from django.core.mail import send_mail
+from django.conf import settings
+from django.utils.html import strip_tags
 from projects.models import Invitation, Project
 from sharing_portal.models import DayPassRequest
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
 from .views import get_invitations_beyond_duration
-from allocations.models import Allocation
 
 LOG = logging.getLogger(__name__)
 
@@ -61,7 +64,8 @@ def end_daypasses():
             # And there are 10 requests on that same artifact
             approved_requests = DayPassRequest.objects.all().filter(
                 artifact=day_pass_request.artifact,
-                status = DayPassRequest.STATUS_APPROVED
+                status=DayPassRequest.STATUS_APPROVED,
+                invitation__status=Invitation.STATUS_BEYOND_DURATION,
             ).count()
             if approved_requests == 10:
                 # Send an email
@@ -71,24 +75,22 @@ def end_daypasses():
 
 def handle_too_many_day_pass_users(artifact):
     # Make allocation expire
-    allocations = Allocation.objects.filter(status='active', project=artifact.project)
+    allocations = Allocation.objects.filter(status='active', project=artifact.reproducibility_project)
     now = datetime.now(timezone.utc)
     for alloc in allocations:
         alloc.expiration_date=now
         alloc.save()
 
     subject = f'Pause on day pass requests'
-    help_url = request.build_absolute_uri(
-        reverse('djangoRT:mytickets')
-    )
+    help_url = "https://chameleoncloud.org/user/help/"
     body = f"""
     <p>
     Thank you for using our day pass feature for Trovi artifact!
     We have noticied that 10 users have been approved to reproduce
-    '{arifact.title}'. As a status check, we have put a pause on the
+    '{artifact.title}'. As a status check, we have put a pause on the
     allocation in order to request more details. Please submit a ticket to
-    our help desk mentioning the situation so we can discuss this further.
-    <a href="{help_url}">help desk</a>.
+    our <a href="{help_url}">help desk</a> mentioning the situation so we can
+    discuss this further.
     </p>
     <p><i>This is an automatic email, please <b>DO NOT</b> reply!
     If you have any question or issue, please submit a ticket on our
