@@ -515,7 +515,8 @@ def review_day_pass(request, request_id, **kwargs):
         raise PermissionDenied("You do not have permission to view that page")
 
     if day_pass_request.status != DayPassRequest.STATUS_PENDING :
-        raise PermissionDenied("You cannot review a request that has already been reviewed.")
+        messages.add_message(request, messages.SUCCESS, f'This request was already reviewed by: {day_pass_request.decision_by.username}')
+        return HttpResponseRedirect(reverse('sharing_portal:list_day_pass_requests'))
 
     if request.method == 'POST':
         form = ReviewDayPassForm(
@@ -577,12 +578,22 @@ def send_request_decision_mail(day_pass_request, request):
         day_pass_request.invitation = invite
         day_pass_request.save()
         url = get_invite_url(request.get_host(), invite.email_code)
+        artifact_url = request.build_absolute_uri(
+            reverse(
+                'sharing_portal:detail',
+                args=[day_pass_request.artifact.id]
+            )
+        )
         body = f"""
         <p>
         Your day pass request to reproduce {day_pass_request.artifact.title}
         has been approved. Your access will be for {invite.duration} hours,
         and begins when you click <a href="{url}">this link</a>,
         or by going to {url} in your browser.
+        </p>
+        <p>
+        After accepting the invitation, you can navigate back to the artifact
+        at {artifact_url}.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
         If you have any question or issue, please submit a ticket on our
