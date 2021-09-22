@@ -164,6 +164,7 @@ class KeycloakClient:
         keycloakproject.create(charge_code)
 
         self.update_membership(charge_code, pi_username, "add")
+        self.set_user_project_role(pi_username, charge_code, "admin")
 
     def update_project(self, charge_code, **group_attributes):
         group = self._lookup_group(charge_code)
