@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from .forms import AddBibtexPublicationForm
 from django.contrib import messages
-from projects.views import project_pi_or_admin_or_superuser
+from projects.views import is_admin_or_superuser
 from projects.models import Publication
 from util.project_allocation_mapper import ProjectAllocationMapper
 import logging
@@ -11,6 +11,14 @@ import bibtexparser
 import datetime
 
 logger = logging.getLogger("projects")
+
+
+def can_add_publications(user, project):
+    if is_admin_or_superuser(user):
+        return True
+    if user.username == project.pi.username:
+        return True
+    return False
 
 
 @login_required
@@ -58,7 +66,7 @@ def add_publications(request, project_id):
     mapper = ProjectAllocationMapper(request)
     try:
         project = mapper.get_project(project_id)
-        if project.source != "Chameleon" or not project_pi_or_admin_or_superuser(
+        if project.source != "Chameleon" or not can_add_publications(
             request.user, project
         ):
             raise Http404("The requested project does not exist!")

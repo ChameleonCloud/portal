@@ -14,7 +14,7 @@
       <p>
         <i class="fa fa-warning"></i>
         This allocation will expire in {{alloc.renewal_days}} days.
-        {% if is_pi %} Submit {% else %} The project PI can submit {% endif %}
+        {% if can_manage_project %} Submit {% else %} The project PI can submit {% endif %}
         a recharge request to continue this allocation.
       </p>
     </div>
@@ -43,7 +43,7 @@
         </div>
       </div>
       <div class="col-sm-3">
-        {% if is_pi and not project.has_pending_allocations and not project.has_approved_allocations %}
+        {% if can_manage_project and not project.has_pending_allocations and not project.has_approved_allocations %}
           <h5>Actions</h5>
           <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
              title="If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. An accepted request will grant up to an additional 20,000 SUs and extend the end date of the allocation for up to an additional 6 months.">
@@ -69,7 +69,7 @@
         {{ alloc.decisionSummary }}
       </div>
       <div class="col-sm-3">
-      {% if is_pi and not project.has_pending_allocations and not project.has_active_allocations and not project.has_approved_allocations %}
+      {% if can_manage_project and not project.has_pending_allocations and not project.has_active_allocations and not project.has_approved_allocations %}
         <h5>Actions</h5>
         <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
            title="">

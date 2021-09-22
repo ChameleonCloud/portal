@@ -1,6 +1,5 @@
 import json
 import logging
-import sys
 from datetime import datetime
 
 from chameleon.decorators import terms_required
@@ -27,6 +26,7 @@ from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
 from util.project_allocation_mapper import ProjectAllocationMapper
+from util.keycloak_client import KeycloakClient
 
 from projects.serializer import ProjectExtrasJSONSerializer
 
@@ -39,26 +39,28 @@ from .forms import (
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_project_members
+from .util import email_exists_on_project, get_project_members, get_charge_code
 
 logger = logging.getLogger("projects")
 
+ROLES = ["Manager", "Member"]
 
-def project_pi_or_admin_or_superuser(user, project):
+
+def is_admin_or_superuser(user):
     if user.is_superuser:
         return True
 
     if user.groups.filter(name="Allocation Admin").count() == 1:
         return True
 
-    if user.username == project.pi.username:
-        return True
-
     return False
 
 
 def project_member_or_admin_or_superuser(user, project, project_user):
-    if project_pi_or_admin_or_superuser(user, project):
+    if is_admin_or_superuser(user):
+        return True
+
+    if user.username == project.pi.username:
         return True
 
     for pu in project_user:
@@ -66,6 +68,13 @@ def project_member_or_admin_or_superuser(user, project, project_user):
             return True
 
     return False
+
+
+def get_user_project_role_scopes(keycloak_client, user, project):
+    role, scopes = keycloak_client.get_user_project_role_scopes(
+        user.username, project.chargeCode
+    )
+    return role, scopes
 
 
 @login_required
@@ -108,6 +117,8 @@ def accept_invite(request, invite_code):
 @login_required
 def view_project(request, project_id):
     mapper = ProjectAllocationMapper(request)
+    keycloak_client = KeycloakClient()
+
     try:
         project = mapper.get_project(project_id)
         if project.source != "Chameleon":
@@ -122,7 +133,15 @@ def view_project(request, project_id):
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
 
-    if request.POST and project_pi_or_admin_or_superuser(request.user, project):
+    role, scopes = get_user_project_role_scopes(keycloak_client, request.user, project)
+    can_manage_project_membership = "manage-membership" in scopes
+    can_manage_project = "manage" in scopes
+
+    if (
+        request.POST
+        and can_manage_project_membership
+        or is_admin_or_superuser(request.user)
+    ):
         form = ProjectAddUserForm()
         if "add_user" in request.POST:
             form = ProjectAddUserForm(request.POST)
@@ -196,12 +215,26 @@ def view_project(request, project_id):
                     )
             except PermissionDenied as exc:
                 messages.error(request, exc)
-            except:
+            except Exception:
                 logger.exception("Failed removing user")
                 messages.error(
                     request,
                     "An unexpected error occurred while attempting "
                     "to remove this user. Please try again",
+                )
+        elif "change_role" in request.POST:
+            try:
+                role_username = request.POST["user_ref"]
+                role_name = request.POST["user_role"].lower()
+                keycloak_client.set_user_project_role(
+                    role_username, get_charge_code(project), role_name
+                )
+            except Exception:
+                logger.exception("Failed to change user role")
+                messages.error(
+                    request,
+                    "An unexpected error occurred while attempting "
+                    "to change role for this user. Please try again",
                 )
         elif "del_invite" in request.POST:
             try:
@@ -250,13 +283,20 @@ def view_project(request, project_id):
     users = get_project_members(project)
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
-    user_mashup = []
+
+    user_roles = keycloak_client.get_roles_for_all_project_members(
+        get_charge_code(project)
+    )
+    users_mashup = []
 
     for u in users:
-        role = "Standard" if u.username != project.pi.username else "PI"
+        if u.username == project.pi.username:
+            continue
+        u_role = user_roles.get(u.username, "member")
         user = {
+            "id": u.id,
             "username": u.username,
-            "role": role,
+            "role": u_role.title(),
         }
         try:
             portal_user = User.objects.get(username=u.username)
@@ -265,7 +305,7 @@ def view_project(request, project_id):
             user["last_name"] = portal_user.last_name
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
-        user_mashup.append(user)
+        users_mashup.append(user)
 
     invitations = Invitation.objects.filter(project=project_id)
     invitations = [i for i in invitations if i.can_accept()]
@@ -275,7 +315,7 @@ def view_project(request, project_id):
         new_item = {}
         new_item["email_address"] = i.email_address
         new_item["id"] = i.id
-        new_item["status"] = i.status
+        new_item["status"] = i.status.title()
         clean_invitations.append(new_item)
 
     return render(
@@ -285,14 +325,16 @@ def view_project(request, project_id):
             "project": project,
             "project_nickname": project.nickname,
             "project_type": project.type,
-            "users": user_mashup,
+            "users": users_mashup,
             "invitations": clean_invitations,
-            "is_pi": request.user.username == project.pi.username,
+            "can_manage_project_membership": can_manage_project_membership,
+            "can_manage_project": can_manage_project,
             "is_admin": request.user.is_superuser,
             "form": form,
             "nickname_form": nickname_form,
             "type_form": type_form,
             "pubs_form": pubs_form,
+            "roles": ROLES,
         },
     )
 
