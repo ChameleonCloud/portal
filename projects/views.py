@@ -197,7 +197,9 @@ def view_project(request, project_id):
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
 
-    can_manage_project_membership, can_manage_project = get_user_permissions(keycloak_client, request.user.username, project)
+    can_manage_project_membership, can_manage_project = get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
 
     if (
         request.POST
@@ -839,13 +841,11 @@ def get_extras(request):
         response["result"] = None
     return JsonResponse(response)
 
+
 def get_project_membership_managers(project):
     users = get_project_members(project)
-    return [
-        user
-        for user in users
-        if is_membership_manager(project, user.username)
-    ]
+    return [user for user in users if is_membership_manager(project, user.username)]
+
 
 def is_membership_manager(project, username):
     keycloak_client = KeycloakClient()

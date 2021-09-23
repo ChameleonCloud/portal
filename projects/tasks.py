@@ -62,27 +62,34 @@ def end_daypasses():
             # If this invite was on a day pass
             day_pass_request = DayPassRequest.objects.get(invitation=invitation)
             # And there are 10 requests on that same artifact
-            approved_requests = DayPassRequest.objects.all().filter(
-                artifact=day_pass_request.artifact,
-                status=DayPassRequest.STATUS_APPROVED,
-                invitation__status=Invitation.STATUS_BEYOND_DURATION,
-            ).count()
+            approved_requests = (
+                DayPassRequest.objects.all()
+                .filter(
+                    artifact=day_pass_request.artifact,
+                    status=DayPassRequest.STATUS_APPROVED,
+                    invitation__status=Invitation.STATUS_BEYOND_DURATION,
+                )
+                .count()
+            )
             if approved_requests == 10:
                 # Send an email
                 handle_too_many_day_pass_users(day_pass_request.artifact)
         except DayPassRequest.DoesNotExist:
             pass
 
+
 def handle_too_many_day_pass_users(artifact):
     # Make allocation expire
-    allocations = Allocation.objects.filter(status='active', project=artifact.reproducibility_project)
+    allocations = Allocation.objects.filter(
+        status="active", project=artifact.reproducibility_project
+    )
     now = datetime.now(timezone.utc)
     for alloc in allocations:
-        alloc.expiration_date=now
+        alloc.expiration_date = now
         alloc.save()
     managers = [u.email for u in get_project_managers(artifact.project)]
 
-    subject = f'Pause on day pass requests'
+    subject = f"Pause on day pass requests"
     help_url = "https://chameleoncloud.org/user/help/"
     body = f"""
     <p>
@@ -107,5 +114,3 @@ def handle_too_many_day_pass_users(artifact):
         message=strip_tags(body),
         html_message=body,
     )
-
-
