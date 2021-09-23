@@ -244,7 +244,7 @@ def edit_artifact(request, artifact):
             for version in artifact.versions:
                 if not _delete_artifact_version(request, version):
                     messages.add_message(request, messages.ERROR,
-                                         f"Could not delete all artifact versions.")
+                                         "Could not delete all artifact versions.")
                 return HttpResponseRedirect(
                     reverse('sharing_portal:edit', args=[artifact.pk]))
 
