@@ -11,7 +11,7 @@ from projects.models import Invitation, Project
 from sharing_portal.models import DayPassRequest
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
-from .views import get_invitations_beyond_duration
+from .views import get_invitations_beyond_duration, get_project_managers
 
 LOG = logging.getLogger(__name__)
 
@@ -80,6 +80,7 @@ def handle_too_many_day_pass_users(artifact):
     for alloc in allocations:
         alloc.expiration_date=now
         alloc.save()
+    managers = [u.email for u in get_project_managers(artifact.project)]
 
     subject = f'Pause on day pass requests'
     help_url = "https://chameleoncloud.org/user/help/"
@@ -102,7 +103,7 @@ def handle_too_many_day_pass_users(artifact):
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[artifact.project.pi.email],
+        recipient_list=managers,
         message=strip_tags(body),
         html_message=body,
     )

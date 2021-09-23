@@ -70,11 +70,26 @@ def project_member_or_admin_or_superuser(user, project, project_user):
     return False
 
 
-def get_user_project_role_scopes(keycloak_client, user, project):
+def get_user_project_role_scopes(keycloak_client, username, project):
     role, scopes = keycloak_client.get_user_project_role_scopes(
-        user.username, project.chargeCode
+        username, get_charge_code(project)
     )
     return role, scopes
+
+
+def manage_membership_in_scope(scopes):
+    return "manage-membership" in scopes
+
+
+def manage_project_in_scope(scopes):
+    return "manage" in scopes
+
+
+def get_user_permissions(keycloak_client, username, project):
+    role, scopes = get_user_project_role_scopes(keycloak_client, username, project)
+    if not scopes:
+        return False, False
+    return manage_membership_in_scope(scopes), manage_project_in_scope(scopes)
 
 
 @login_required
@@ -182,9 +197,7 @@ def view_project(request, project_id):
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
 
-    role, scopes = get_user_project_role_scopes(keycloak_client, request.user, project)
-    can_manage_project_membership = "manage-membership" in scopes
-    can_manage_project = "manage" in scopes
+    can_manage_project_membership, can_manage_project = get_user_permissions(keycloak_client, request.user.username, project)
 
     if (
         request.POST
@@ -199,7 +212,7 @@ def view_project(request, project_id):
                     add_username = form.cleaned_data["user_ref"]
                     user = User.objects.get(username=add_username)
                     # First create an invite if a duration was specified
-                    if form.cleaned_data["duration_ref"]:
+                    if form.cleaned_data.get("duration_ref", None):
                         # Update an old invite if it exists
                         if not try_update_existing_invitation_duration(
                             user,
@@ -826,10 +839,14 @@ def get_extras(request):
         response["result"] = None
     return JsonResponse(response)
 
-def get_project_managers(project):
+def get_project_membership_managers(project):
+    users = get_project_members(project)
+    return [
+        user
+        for user in users
+        if is_membership_manager(project, user.username)
+    ]
+
+def is_membership_manager(project, username):
     keycloak_client = KeycloakClient()
-    user_roles = keycloak_client.get_roles_for_all_project_members(
-        get_charge_code(project)
-    )
-    managers = []
-    raise Exception(user_roles)
+    return get_user_permissions(keycloak_client, username, project)[0]

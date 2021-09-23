@@ -791,7 +791,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "end_daypasses": {
         "task": "projects.tasks.end_daypasses",
-        "schedule": crontab(minute="*/1"),
+        "schedule": crontab(minute="*/5"),
     },
     "warn-user-for-expiring-allocation": {
         "task": "allocations.tasks.warn_user_for_expiring_allocation",

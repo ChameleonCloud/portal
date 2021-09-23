@@ -20,6 +20,7 @@ from allocations.models import Allocation
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
 from util.project_allocation_mapper import ProjectAllocationMapper
+from util.keycloak_client import KeycloakClient
 
 from .forms import (
     ArtifactForm,
@@ -32,7 +33,7 @@ from .forms import (
 )
 from .models import Artifact, ArtifactVersion, Author, ShareTarget, DayPassRequest
 from .tasks import publish_to_zenodo
-from projects.views import add_project_invitation, get_invite_url
+from projects.views import add_project_invitation, get_invite_url, get_project_membership_managers, is_membership_manager, manage_membership_in_scope
 
 import logging
 
@@ -513,10 +514,11 @@ def send_request_mail(day_pass_request, request):
     <p>Thanks,</p>
     <p>Chameleon Team</p>
     """
+    managers = [u.email for u in get_project_membership_managers(day_pass_request.artifact.project)]
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[day_pass_request.artifact.project.pi.email],
+        recipient_list=managers,
         message=strip_tags(body),
         html_message=body,
     )
@@ -528,7 +530,7 @@ def review_day_pass(request, request_id, **kwargs):
     except DayPassRequest.DoesNotExist:
         raise Http404("That day pass request does not exist")
 
-    if not day_pass_request.artifact.project or request.user != day_pass_request.artifact.project.pi:
+    if not day_pass_request.artifact.project or not is_membership_manager(day_pass_request.artifact.project, request.user.username):
         raise PermissionDenied("You do not have permission to view that page")
 
     if day_pass_request.status != DayPassRequest.STATUS_PENDING :
@@ -565,14 +567,17 @@ def review_day_pass(request, request_id, **kwargs):
 
 @login_required
 def list_day_pass_requests(request, **kwargs):
-    LOG.info(request.user)
-    # TODO limit this page to PIs?
-
-    pending_requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user, status=DayPassRequest.STATUS_PENDING).order_by("-created_at")
+    keycloak_client = KeycloakClient()
+    projects = [
+        project["groupName"]
+        for project in
+        keycloak_client.get_user_roles(request.user.username)
+        if manage_membership_in_scope(project["scopes"])
+    ]
+    pending_requests = DayPassRequest.objects.all().filter(artifact__project__charge_code__in=projects,status=DayPassRequest.STATUS_PENDING).order_by("-created_at")
     for day_pass_request in pending_requests:
         day_pass_request.url = reverse('sharing_portal:review_day_pass', args=[day_pass_request.id])
-    reviewed_requests = DayPassRequest.objects.all().filter(artifact__project__pi=request.user).exclude(status=DayPassRequest.STATUS_PENDING).order_by("-decision_at")
-
+    reviewed_requests = DayPassRequest.objects.all().exclude(status=DayPassRequest.STATUS_PENDING).filter(artifact__project__charge_code__in=projects).order_by("-created_at")
     template = loader.get_template('sharing_portal/list_day_pass_requests.html')
     context = {
         "pending_requests": pending_requests,
