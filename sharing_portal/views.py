@@ -261,9 +261,9 @@ def edit_artifact(request, artifact):
                         messages.ERROR,
                         "Could not delete all artifact versions.",
                     )
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:edit", args=[artifact.pk])
-                )
+                    return HttpResponseRedirect(
+                        reverse("sharing_portal:edit", args=[artifact.pk])
+                    )
 
             try:
                 artifact.delete()
