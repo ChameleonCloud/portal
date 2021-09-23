@@ -89,7 +89,7 @@ def handle_too_many_day_pass_users(artifact):
         alloc.save()
     managers = [u.email for u in get_project_managers(artifact.project)]
 
-    subject = f"Pause on day pass requests"
+    subject = "Pause on day pass requests"
     help_url = "https://chameleoncloud.org/user/help/"
     body = f"""
     <p>

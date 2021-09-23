@@ -1,7 +1,5 @@
 import json
 
-from datetime import timedelta
-
 from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
@@ -419,13 +417,7 @@ def launch(request, artifact, artifact_versions, version_idx=None):
             reverse('sharing_portal:request_day_pass', args=[artifact.pk]),
             request
         )
-        raise Http404(
-            (
-                "There is no version {} for this artifact, or you do not have access.".format(
-                    version_idx or ""
-                )
-            )
-        )
+        return redirect(day_pass_request_url)
 
     version.launch_count = F('launch_count') + 1
     version.save(update_fields=['launch_count'])
@@ -879,7 +871,6 @@ def _request_artifact_dois(artifact, request_forms=[]):
 
 def create_supplemental_project(request, artifact):
     mapper = ProjectAllocationMapper(request)
-    form_args = {"request": request}
 
     pi = artifact.project.pi
     supplemental_project = {
