@@ -313,7 +313,8 @@ def share_artifact(request, artifact):
         z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
 
     share_url = request.build_absolute_uri(
-        reverse('sharing_portal:detail', kwargs={'pk': artifact.pk}))
+        reverse("sharing_portal:detail", kwargs={"pk": artifact.pk})
+    )
     if artifact.sharing_key:
         share_url += "?{key_name}={key_value}".format(
             key_name=SHARING_KEY_PARAM, key_value=artifact.sharing_key
@@ -411,7 +412,7 @@ def launch(request, artifact, artifact_versions, version_idx=None):
     # If no allocation, redirerect to request day pass
     if artifact.is_reproducible and not has_active_allocations(request):
         day_pass_request_url = preserve_sharing_key(
-            reverse('sharing_portal:request_day_pass', args=[artifact.pk]), request
+            reverse("sharing_portal:request_day_pass", args=[artifact.pk]), request
         )
         return redirect(day_pass_request_url)
 
