@@ -315,12 +315,11 @@ def share_artifact(request, artifact):
     share_url = request.build_absolute_uri(
         reverse('sharing_portal:detail', kwargs={'pk': artifact.pk}))
     if artifact.sharing_key:
-        share_url += '?{key_name}={key_value}'.format(
-            key_name=SHARING_KEY_PARAM,
-            key_value=artifact.sharing_key
+        share_url += "?{key_name}={key_value}".format(
+            key_name=SHARING_KEY_PARAM, key_value=artifact.sharing_key
         )
 
-    template = loader.get_template('sharing_portal/share.html')
+    template = loader.get_template("sharing_portal/share.html")
     context = {
         "share_form": form,
         "z_management_form": z_form.management_form,
@@ -392,9 +391,7 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
         "launch_url": launch_url,
         "related_artifacts": artifact.related_items,
         "request_day_pass_url": request_day_pass_url,
-        "editable": (
-            request.user.is_staff or (
-            artifact.created_by == request.user)),
+        "editable": (request.user.is_staff or (artifact.created_by == request.user)),
         "show_launch": show_launch,
     }
     template = loader.get_template("sharing_portal/detail.html")
@@ -414,13 +411,12 @@ def launch(request, artifact, artifact_versions, version_idx=None):
     # If no allocation, redirerect to request day pass
     if artifact.is_reproducible and not has_active_allocations(request):
         day_pass_request_url = preserve_sharing_key(
-            reverse('sharing_portal:request_day_pass', args=[artifact.pk]),
-            request
+            reverse('sharing_portal:request_day_pass', args=[artifact.pk]), request
         )
         return redirect(day_pass_request_url)
 
-    version.launch_count = F('launch_count') + 1
-    version.save(update_fields=['launch_count'])
+    version.launch_count = F("launch_count") + 1
+    version.save(update_fields=["launch_count"])
     return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
 
 
