@@ -210,17 +210,26 @@ def _delete_artifact_version(request, version):
         try:
             version.delete()
         except Exception as e:
-            messages.add_message(request, messages.ERROR,
-                                 f'Error deleting artifact version {version}: {str(e)}')
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Error deleting artifact version {version}: {str(e)}",
+            )
             return False
-        messages.add_message(request, messages.SUCCESS,
-                             f'Successfully deleted artifact version {version}.')
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"Successfully deleted artifact version {version}.",
+        )
         return True
     else:
-        messages.add_message(request, messages.ERROR,
-                             f'Cannot delete versions '
-                             f'already assigned a DOI. ({version})')
+        messages.add_message(
+            request,
+            messages.ERROR,
+            f"Cannot delete versions " f"already assigned a DOI. ({version})",
+        )
         return False
+
 
 @check_edit_permission
 @login_required
@@ -234,34 +243,47 @@ def edit_artifact(request, artifact):
                 version = artifact.versions.get(pk=version_id)
                 _delete_artifact_version(request, version)
             except ArtifactVersion.DoesNotExist:
-                messages.add_message(request, messages.ERROR,
-                    'Artifact version {} does not exist'.format(version_id))
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Artifact version {} does not exist".format(version_id),
+                )
             # Return to edit form
             return HttpResponseRedirect(
-                reverse('sharing_portal:edit', args=[artifact.pk]))
+                reverse("sharing_portal:edit", args=[artifact.pk])
+            )
 
         elif "delete_all" in request.POST:
             for version in artifact.versions:
                 if not _delete_artifact_version(request, version):
-                    messages.add_message(request, messages.ERROR,
-                                         "Could not delete all artifact versions.")
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Could not delete all artifact versions.",
+                    )
                 return HttpResponseRedirect(
-                    reverse('sharing_portal:edit', args=[artifact.pk]))
+                    reverse("sharing_portal:edit", args=[artifact.pk])
+                )
 
             try:
                 artifact.delete()
             except Exception as e:
-                messages.add_message(request, messages.ERROR,
-                                     f"Could not delete artifact: {str(e)}")
+                messages.add_message(
+                    request, messages.ERROR, f"Could not delete artifact: {str(e)}"
+                )
                 # Return to edit form
                 return HttpResponseRedirect(
-                    reverse('sharing_portal:edit', args=[artifact.pk]))
+                    reverse("sharing_portal:edit", args=[artifact.pk])
+                )
 
-            messages.add_message(request, messages.SUCCESS,
-                                 f"Successfully deleted artifact {artifact.title}.")
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"Successfully deleted artifact {artifact.title}.",
+            )
 
             # Return to Trovi home page
-            return HttpResponseRedirect(reverse('sharing_portal:index_all'))
+            return HttpResponseRedirect(reverse("sharing_portal:index_all"))
 
         artifact, errors = _handle_artifact_forms(request, form)
         if errors:
