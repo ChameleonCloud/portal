@@ -320,7 +320,8 @@ def share_artifact(request, artifact):
     if artifact.sharing_key:
         share_url += '?{key_name}={key_value}'.format(
             key_name=SHARING_KEY_PARAM,
-            key_value=artifact.sharing_key)
+            key_value=artifact.sharing_key
+        )
 
     template = loader.get_template('sharing_portal/share.html')
     context = {
@@ -388,17 +389,17 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
     template = loader.get_template('sharing_portal/detail.html')
 
     context = {
-        'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact_versions),
-        'doi_info': doi_info,
-        'version': version,
-        'launch_url': launch_url,
-        'related_artifacts': artifact.related_items,
-        'request_day_pass_url': request_day_pass_url,
-        'editable': (
+        "artifact": artifact,
+        "all_versions": _artifact_display_versions(artifact_versions),
+        "doi_info": doi_info,
+        "version": version,
+        "launch_url": launch_url,
+        "related_artifacts": artifact.related_items,
+        "request_day_pass_url": request_day_pass_url,
+        "editable": (
             request.user.is_staff or (
             artifact.created_by == request.user)),
-        'show_launch': show_launch,
+        "show_launch": show_launch,
     }
     template = loader.get_template("sharing_portal/detail.html")
     return HttpResponse(template.render(context, request))
