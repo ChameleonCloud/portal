@@ -299,7 +299,7 @@ class KeycloakClient:
         if role_scopes:
             return role_scopes["policy"], role_scopes["scopes"]
 
-        return None, None
+        return None, []
 
     def set_user_project_role(self, username, project_charge_code, role):
         user = self.get_user_by_username(username)
