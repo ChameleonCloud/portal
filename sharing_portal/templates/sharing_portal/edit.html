@@ -37,11 +37,16 @@
 
   <div class="layoutGrid__side">
     <div class="artifactVersions">
-      <div style="display: flex">
-        <h4 style="flex: 1"><i class="fa fa-files-o"></i> Versions</h4>
-        <form role="form" method="post" style="display:inline; margin-right: 6%">
+      <div class="artifactVersions__Header">
+        <h4><i class="fa fa-files-o"></i> Versions</h4>
+        <form role="form" method="post">
           {% csrf_token %}
-          <button class="btn btn-danger" type="submit" name="delete_all" >Delete All</button>
+          <button class="btn btn-xs btn-danger" type="submit" name="delete_all"
+            {% if artifact.doi %}disabled title="Cannot delete artifact published with DOI"
+            {% else %}title="Delete the entire Trovi artifact"
+            {% endif %}>
+            Delete All
+          </button>
         </form>
       </div>
       <form method="post">

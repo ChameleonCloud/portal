@@ -209,11 +209,12 @@ def _delete_artifact_version(request, version):
     if not version.doi:
         try:
             version.delete()
-        except Exception as e:
+        except Exception:
+            LOG.exception(f"Failed to delete artifact version {version}")
             messages.add_message(
                 request,
                 messages.ERROR,
-                f"Error deleting artifact version {version}: {str(e)}",
+                f"Internal error deleting artifact version {version}",
             )
             return False
         messages.add_message(
@@ -229,7 +230,6 @@ def _delete_artifact_version(request, version):
             f"Cannot delete versions " f"already assigned a DOI. ({version})",
         )
         return False
-
 
 @check_edit_permission
 @login_required
@@ -254,22 +254,33 @@ def edit_artifact(request, artifact):
             )
 
         elif "delete_all" in request.POST:
-            for version in artifact.versions:
-                if not _delete_artifact_version(request, version):
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        "Could not delete all artifact versions.",
-                    )
-                    return HttpResponseRedirect(
-                        reverse("sharing_portal:edit", args=[artifact.pk])
-                    )
+            if artifact.doi:
+                # This check is here in case the user messes with the developer tools
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Cannot delete artifact published with DOI.",
+                )
+                return HttpResponseRedirect(
+                    reverse("sharing_portal:edit", args=[artifact.pk])
+                )
+
+            if not all(_delete_artifact_version(request, v) for v in artifact.versions):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Could not delete all artifact versions.",
+                )
+                return HttpResponseRedirect(
+                    reverse("sharing_portal:edit", args=[artifact.pk])
+                )
 
             try:
                 artifact.delete()
-            except Exception as e:
+            except Exception:
+                LOG.exception(f"Failed to delete artifact {artifact.title}")
                 messages.add_message(
-                    request, messages.ERROR, f"Could not delete artifact: {str(e)}"
+                    request, messages.ERROR, "Internal error deleting artifact."
                 )
                 # Return to edit form
                 return HttpResponseRedirect(
