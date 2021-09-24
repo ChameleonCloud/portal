@@ -3,6 +3,8 @@ from textwrap import dedent
 
 import bibtexparser
 from django import forms
+from django.forms import BaseFormSet
+from django.forms import formset_factory
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -46,41 +48,6 @@ class ProjectCreateForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "Project Nickname"}),
     )
-    description = forms.CharField(
-        label="Abstract (~200 words)",
-        help_text=(
-            "An application for a project has to include a description of the "
-            "research or education project to be performed using the testbed and "
-            "the type of resources needed. It should address the following "
-            "questions: What are the research challenges or educational objectives "
-            "of the project? How are they relevant to cloud computing research? "
-            "Why are they important? What types of experiments or educational "
-            "activities will be carried out? Please, make sure that the abstract "
-            "is self-contained; eventually it may be published on the Chameleon "
-            "website."
-        ),
-        required=True,
-        widget=forms.Textarea(attrs={"placeholder": "We propose to..."}),
-    )
-    supplemental_details = forms.CharField(
-        label="Resource Justification",
-        help_text=(
-            "Provide supplemental detail on how you intend to use Chameleon to "
-            "accomplish your research goals. This text will not be publicly "
-            "viewable and may include details that you do not wish to publish."
-        ),
-        required=True,
-        widget=forms.Textarea(attrs={"placeholder": "Resource Justification"}),
-    )
-    funding_source = forms.CharField(
-        label="Source(s) of funding",
-        help_text=(
-            "If the proposed research is related to a funded grant or has pending "
-            "support, please include funding agency name(s) and grant name(s)."
-        ),
-        required=False,
-        widget=forms.Textarea(),
-    )
     fieldId = forms.ChoiceField(
         label="Field of Science",
         choices=(),
@@ -92,10 +59,6 @@ class ProjectCreateForm(forms.Form):
         choices=(),
         initial="",
         help_text="Please indicate a project type.",
-    )
-    accept_project_terms = forms.BooleanField(
-        label="I agree to abide by Chameleon Acceptable Use Policies.",
-        help_text=get_accept_project_terms_help_text_lazy(),
     )
 
     def __init__(self, *args, **kwargs):
@@ -155,6 +118,56 @@ class EditTypeForm(forms.Form):
             logger.error("Couldn't get type list.")
 
 
+class FundingForm(forms.Form):
+
+    id = forms.IntegerField(
+        widget=forms.HiddenInput(),
+        required=False,
+    )
+    agency = forms.CharField(
+        label="Agency",
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter Agency"}
+        ),
+        error_messages={"required": "Please enter agency"},
+    )
+    award = forms.CharField(
+        label="Award #",
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter Award Number"}
+        ),
+        required=False,
+    )
+    grant_name = forms.CharField(
+        label="Grant Name",
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter Grant Name"}
+        ),
+        error_messages={"required": "Please enter grant name"},
+    )
+
+
+class FundingFormSet(BaseFormSet):
+    def clean(self):
+        # check if the last form is empty
+        last_form_cleaned_data = self.forms[-1].cleaned_data
+        last_form_cleaned_data = {k: v for k, v in last_form_cleaned_data.items() if v}
+
+        if last_form_cleaned_data:
+            self.forms[-1].add_error(
+                None, "Please use the plus button to add the funding!"
+            )
+        else:
+            self.forms.pop(-1)
+
+        return super(FundingFormSet, self).clean()
+
+
+FundingFormset = formset_factory(FundingForm, formset=FundingFormSet, extra=0)
+
+
 class AllocationCreateForm(forms.Form):
     description = forms.CharField(
         label="Abstract (~200 words)",
@@ -172,11 +185,11 @@ class AllocationCreateForm(forms.Form):
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "We propose to..."}),
     )
-    supplemental_details = forms.CharField(
+    justification = forms.CharField(
         label="Resource Justification",
         help_text=(
             "Please provide an update on the use of your current allocation - any "
-            "success stories, presentations, or just a general update on the "
+            "success stories, or just a general update on the "
             "progress of your research on Chameleon. This is helpful "
             "for us as we communicate with NSF regarding the value Chameleon is "
             "bringing to the research community."
@@ -184,15 +197,18 @@ class AllocationCreateForm(forms.Form):
         required=True,
         widget=forms.Textarea(),
     )
-    funding_source = forms.CharField(
-        label="Source(s) of funding",
+    publication_up_to_date = forms.BooleanField(
+        label="The publications are up-to-date",
         help_text=(
-            "If the proposed research is related to a funded grant or has pending "
-            "support, please include funding agency name(s) and grant name(s)."
+            "Is your publications up-to-date? View your "
+            '<a href="/user/projects/publications/" target="_blank">publication list</a>, '
+            "and make sure it's up-to-update."
         ),
-        required=False,
-        widget=forms.Textarea(),
+        required=True,
     )
+
+
+class ConsentForm(forms.Form):
     accept_project_terms = forms.BooleanField(
         label="I agree to abide by Chameleon Acceptable Use Policies",
         help_text=get_accept_project_terms_help_text_lazy(),

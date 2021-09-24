@@ -166,6 +166,20 @@ class KeycloakClient:
         self.update_membership(charge_code, pi_username, "add")
         self.set_user_project_role(pi_username, charge_code, "admin")
 
+    def delete_project(self, charge_code):
+        group = self._lookup_group(charge_code)
+        if not group:
+            logger.warning("Couldn't find group {} in keycloak".format(charge_code))
+            return
+
+        keycloakproject = self._project_admin()
+        keycloakproject._client.delete(
+            url=keycloakproject._client.get_full_url(
+                keycloakproject.get_path("collection", realm=self.realm_name)
+            )
+            + "/{id}".format(id=group["id"]),
+        )
+
     def update_project(self, charge_code, **group_attributes):
         group = self._lookup_group(charge_code)
         if not group:

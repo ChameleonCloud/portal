@@ -16,12 +16,19 @@
   </p>
 
   {% bootstrap_form form %}
+  
+  {% bootstrap_form allocation_form %}
+  
+  {% include "projects/fundings.html" %}
 
   <div class="form-group">
     <label class="control-label">Project ID</label>
     <input type="text" disabled readonly class="form-control" placeholder="CHI-XXXXXX">
     <p class="help-block">Project ID will be assigned upon creation</p>
   </div>
+  
+    
+  {% bootstrap_form consent_form %}
 
   <div class="form-group">
     <button type="submit" class="btn btn-success">Create Project</button>

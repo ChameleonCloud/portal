@@ -57,6 +57,10 @@
   {% csrf_token %}
 
   {% bootstrap_form form %}
+  
+  {% include "projects/fundings.html" %}   
+  
+  {% bootstrap_form consent_form %}
 
   <div class="form-group">
     <button type="submit" class="btn btn-success">Submit Request</button>
