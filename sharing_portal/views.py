@@ -231,6 +231,7 @@ def _delete_artifact_version(request, version):
         )
         return False
 
+
 @check_edit_permission
 @login_required
 def edit_artifact(request, artifact):
