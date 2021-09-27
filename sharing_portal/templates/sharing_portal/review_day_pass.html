@@ -1,6 +1,5 @@
 {% extends 'layout/default.html' %}
 {% load i18n cms_tags static pipeline bootstrap3 %}
-{% load render_bundle from webpack_loader %}
 
 {% block title %}Review Day Pass | Chameleon Cloud{% endblock %}
 
@@ -30,6 +29,10 @@
               <dt>Reason</dt><dd>{{ day_pass_request.reason }}</dd>
             </dl>
             {% bootstrap_field form.status %}
+            <p>
+            Per the artifact setting, this request is for
+            {{ day_pass_request.artifact.reproduce_hours }} hours.
+            </p>
             <p>
             By approving this request, you are understanding that they are being
             granted access to Chameleon under your responsibility. If you have

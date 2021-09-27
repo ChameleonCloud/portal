@@ -119,16 +119,18 @@ def accept_invite(request, invite_code):
     user = request.user
     # Check for existing day pass, use this invite instead
     day_pass = get_day_pass(user.id, invitation.project.id)
-    if day_pass is not None:
-        day_pass.delete()
-    if accept_invite_for_user(user, invitation, mapper):
-        messages.success(request, "Accepted invitation")
-        return HttpResponseRedirect(
-            reverse("projects:view_project", args=[invitation.project.id])
-        )
-    else:
-        messages.error(request, invitation.get_cant_accept_reason())
-        return HttpResponseRedirect(reverse("projects:user_projects"))
+    try:
+        if accept_invite_for_user(user, invitation, mapper):
+            messages.success(request, "Accepted invitation")
+            return HttpResponseRedirect(
+                reverse("projects:view_project", args=[invitation.project.id])
+            )
+        else:
+            messages.error(request, invitation.get_cant_accept_reason())
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+    finally:
+        if day_pass is not None:
+            day_pass.delete()
 
 
 def accept_invite_for_user(user, invitation, mapper):
@@ -147,35 +149,32 @@ def get_day_pass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
             status=status,
             user_accepted_id=user_id,
             project_id=project_id,
-            date_exceeded_duration__isnull=False,
+            duration__isnull=False,
         )
     except Invitation.DoesNotExist:
         return None
 
 
 def get_invitations_beyond_duration():
-    return Invitation.objects.filter(
-        status=Invitation.STATUS_ACCEPTED,
-        date_exceeded_duration__lt=datetime.now(),
+    duration_limited_invites = Invitation.objects.filter(
+        status=Invitation.STATUS_ACCEPTED, duration__isnull=False
     )
+    return [
+        i for i in duration_limited_invites
+        if i.date_exceeds_duration() < datetime.now()
+    ]
 
 
 def format_timedelta(timedelta_instance):
+    # Formats a timedelta object so it can be displayed with a day pass user.
+    # This implementation removes the fractional seconds portion of the string.
     return str(timedelta_instance).split(".")[0]
 
 
-def try_update_existing_invitation_duration(user, project_id, duration):
-    existing_invite = get_day_pass(user.id, project_id)
-    if existing_invite:
-        existing_invite.duration = duration
-        existing_invite.save()
-        existing_invite.accept(user)
-        return True
-    return False
-
-
-def get_invite_url(host, code):
-    return f"https://{host}/user/projects/join/{code}"
+def get_invite_url(request, code):
+    return request.build_absolute_uri(
+        reverse("projects:accept_invite", kwargs={"invite_code": code})
+    )
 
 
 @login_required
@@ -213,23 +212,6 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data["user_ref"]
                     user = User.objects.get(username=add_username)
-                    # First create an invite if a duration was specified
-                    if form.cleaned_data.get("duration_ref", None):
-                        # Update an old invite if it exists
-                        if not try_update_existing_invitation_duration(
-                            user,
-                            project_id,
-                            int(form.cleaned_data["duration_ref"]),
-                        ):
-                            invite = add_project_invitation(
-                                project_id,
-                                user.email,
-                                request.user,
-                                request.get_host(),
-                                int(form.cleaned_data["duration_ref"]),
-                                send_email=False,
-                            )
-                            accept_invite_for_user(user, invite, mapper)
                     if mapper.add_user_to_project(project, add_username):
                         messages.success(
                             request, f'User "{add_username}" added to project!'
@@ -251,10 +233,8 @@ def view_project(request, project_id):
                                 project_id,
                                 email_address,
                                 request.user,
-                                request.get_host(),
-                                int(form.cleaned_data["duration_ref"])
-                                if form.cleaned_data.get("duration_ref", None)
-                                else None,
+                                request,
+                                None,
                             )
                             messages.success(request, "Invite sent!")
                     except ValidationError:
@@ -340,7 +320,7 @@ def view_project(request, project_id):
         elif "resend_invite" in request.POST:
             try:
                 invite_id = request.POST["invite_id"]
-                resend_invitation(invite_id, request.user, request.get_host())
+                resend_invitation(invite_id, request.user, request)
                 messages.success(request, "Invitation resent")
             except Exception:
                 logger.exception("Failed to resend invitation")
@@ -396,7 +376,7 @@ def view_project(request, project_id):
             existing_day_pass = get_day_pass(portal_user.id, project_id)
             if existing_day_pass:
                 user["day_pass"] = format_timedelta(
-                    existing_day_pass.date_exceeded_duration - timezone.now()
+                    existing_day_pass.date_exceeds_duration() - timezone.now()
                 )
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
@@ -444,18 +424,18 @@ def remove_invitation(invite_id):
     invitation.delete()
 
 
-def resend_invitation(invite_id, user_issued, host):
+def resend_invitation(invite_id, user_issued, request):
     invitation = Invitation.objects.get(pk=invite_id)
     # Make the old invitation expire
     invitation.date_expires = timezone.now()
     invitation.save()
     # Send a new invitation
     project_id = invitation.project.id
-    add_project_invitation(project_id, invitation.email_address, user_issued, host)
+    add_project_invitation(project_id, invitation.email_address, user_issued, request, None)
 
 
 def add_project_invitation(
-    project_id, email_address, user_issued, host, duration, send_email=True
+    project_id, email_address, user_issued, request, duration, send_email=True
 ):
     project = Project.objects.get(pk=project_id)
     invitation = Invitation(
@@ -466,14 +446,14 @@ def add_project_invitation(
     )
     invitation.save()
     if send_email:
-        send_invitation_email(invitation, host)
+        send_invitation_email(invitation, request)
     return invitation
 
 
-def send_invitation_email(invitation, host):
+def send_invitation_email(invitation, request):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
-    url = get_invite_url(host, invitation.email_code)
+    url = get_invite_url(request, invitation.email_code)
     subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""
     <p>

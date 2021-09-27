@@ -1,6 +1,5 @@
 {% extends 'layout/default.html' %}
 {% load i18n cms_tags static pipeline bootstrap3 %}
-{% load render_bundle from webpack_loader %}
 
 {% block title %}Request Day Pass | Chameleon Cloud{% endblock %}
 
@@ -36,10 +35,7 @@
             You are requesting to temporarily have access to Chameleon in
             order to reproduce {{ artifact.title }}. By submitting this form,
             an email will be sent to the PI of the project. If you have any
-            information that will convince them to approve your request, please
-            write it below. You should try your best to explain that you are a
-            real person, that will follow the Chameleon code of conduct
-            agreement.
+            information relevant to your request, please include it below.
             </p>
             <p>
             After the PI reviews your application, you will receive an email

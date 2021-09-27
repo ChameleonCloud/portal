@@ -454,6 +454,7 @@ MIGRATION_MODULES = {
 #
 #####
 PROJECT_EXTRAS_API_TOKEN = os.environ.get("PROJECT_EXTRAS_API_TOKEN", None)
+DAY_PASS_LIMIT = 10
 
 #####
 #

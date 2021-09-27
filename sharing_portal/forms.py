@@ -97,7 +97,7 @@ class ShareArtifactForm(forms.Form):
         widget=widgets.CheckboxInput(attrs={"v-model": "is_public"}),
     )
     is_reproducible = forms.BooleanField(
-        label="Enable reproducability requests",
+        label="Enable reproducibility requests",
         required=False,
         widget=widgets.CheckboxInput(attrs={"v-model": "is_reproducible"}),
     )
@@ -132,11 +132,11 @@ class ShareArtifactForm(forms.Form):
         data = self.cleaned_data
         if data.get("is_reproducible", None) and not data.get("reproduce_hours", None):
             raise forms.ValidationError(
-                "You must include hours when enabling reproducability requests"
+                "You must include hours when enabling reproducibility requests"
             )
         if data.get("is_reproducible", None) and not data.get("project", None):
             raise forms.ValidationError(
-                "You must associate this artifact with a project to enable reproducability requests"
+                "You must associate this artifact with a project to enable reproducibility requests"
             )
         return data
 

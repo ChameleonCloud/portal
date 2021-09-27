@@ -19,29 +19,4 @@ class Migration(migrations.Migration):
             name='duration',
             field=models.IntegerField(null=True),
         ),
-        migrations.AddField(
-            model_name='invitation',
-            name='date_exceeded_duration',
-            field=models.DateTimeField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='invitation',
-            name='email_address',
-            field=models.EmailField(max_length=254, null=True),
-        ),
-        migrations.AlterField(
-            model_name='invitation',
-            name='email_code',
-            field=models.CharField(default=Invitation._generate_secret, editable=False, max_length=26, null=True),
-        ),
-        migrations.AlterField(
-            model_name='invitation',
-            name='date_expires',
-            field=models.DateTimeField(default=Invitation._generate_expiration),
-        ),
-        migrations.AlterField(
-            model_name='invitation',
-            name='user_issued',
-            field=models.ForeignKey(editable=False, on_delete=models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL),
-        ),
     ]

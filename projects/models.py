@@ -174,7 +174,9 @@ class Invitation(models.Model):
     )
     date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
     duration = models.IntegerField(null=True)
-    date_exceeded_duration = models.DateTimeField(null=True)
+
+    def date_exceeds_duration(self):
+        return self.date_accepted + timedelta(hours=self.duration)
 
     def __str__(self) -> str:
         return f"{self.email_address}, {self.email_code}, {self.status}, {'EXPIRED' if self._is_expired() else self.date_expires}"
@@ -185,10 +187,6 @@ class Invitation(models.Model):
         self.status = Invitation.STATUS_ACCEPTED
         self.date_accepted = timezone.now()
         self.user_accepted = user
-        if self.duration:
-            self.date_exceeded_duration = self.date_accepted + timedelta(
-                hours=self.duration
-            )
         self.save()
 
     def get_cant_accept_reason(self):

@@ -281,9 +281,16 @@ def share_artifact(request, artifact):
             artifact.is_public = form.cleaned_data["is_public"]
             artifact.is_reproducible = form.cleaned_data["is_reproducible"]
             artifact.reproduce_hours = form.cleaned_data["reproduce_hours"]
-            artifact.project = Project.objects.get(
-                charge_code=form.cleaned_data["project"]
-            )
+            try:
+                artifact.project = Project.objects.get(
+                    charge_code=form.cleaned_data["project"]
+                )
+            except Project.DoesNotExist:
+                messages.add_message(request, messages.ERROR,
+                    'Project {} does not exist'.format(form.cleaned_data["project"]))
+                return HttpResponseRedirect(
+                    reverse('sharing_portal:share', args=[artifact.pk]))
+
             if artifact.is_reproducible and not artifact.reproducibility_project:
                 supplemental_project = create_supplemental_project(request, artifact)
                 artifact.reproducibility_project = supplemental_project
@@ -381,6 +388,7 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
     request_day_pass_url = preserve_sharing_key(
         reverse("sharing_portal:request_day_pass", args=[artifact.pk]), request
     )
+    launch_url = preserve_sharing_key(launch_url, request)
 
     template = loader.get_template("sharing_portal/detail.html")
 
@@ -487,13 +495,6 @@ def send_request_mail(day_pass_request, request):
     <p>
     A request has been made to reproduce the artifact:
     {day_pass_request.artifact.title}.
-    </p>
-    <p>
-    By approving this day pass, the requesting user will have access to
-    Chameleon under your oversight, with the intention of reproducing your
-    experiment. However, you must trust that the user will not be malicious
-    with these resources. Only accept the request if you believe the user
-    will not abide by Chameleon's terms of service.
     </p>
     <p>
     Review this decision by visiting <a href="{url}">this link</a>,
@@ -621,7 +622,7 @@ def send_request_decision_mail(day_pass_request, request):
         )
         day_pass_request.invitation = invite
         day_pass_request.save()
-        url = get_invite_url(request.get_host(), invite.email_code)
+        url = get_invite_url(request, invite.email_code)
         artifact_url = request.build_absolute_uri(
             reverse("sharing_portal:detail", args=[day_pass_request.artifact.id])
         )
@@ -634,7 +635,9 @@ def send_request_decision_mail(day_pass_request, request):
         </p>
         <p>
         After accepting the invitation, you can navigate back to the artifact
-        at {artifact_url}.
+        at {artifact_url}. Please use the project
+        {day_pass_request.artifact.reproducibility_project.charge_code} when
+        running your experiment.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
         If you have any question or issue, please submit a ticket on our
@@ -646,7 +649,7 @@ def send_request_decision_mail(day_pass_request, request):
     elif day_pass_request.status == DayPassRequest.STATUS_REJECTED:
         body = f"""
         <p>
-        Your day pass request to reproduce {day_pass_request.artifact.title}
+        Your day pass request to reproduce '{day_pass_request.artifact.title}'
         has been rejected.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
@@ -870,10 +873,13 @@ def create_supplemental_project(request, artifact):
     mapper = ProjectAllocationMapper(request)
 
     pi = artifact.project.pi
+    artifact_url = request.build_absolute_uri(
+        reverse("sharing_portal:detail", kwargs={"pk": artifact.pk})
+    )
     supplemental_project = {
         "nickname": f"reproducing_{artifact.id}",
         "title": f"Reproducing '{artifact.title}'",
-        "description": f"This project is for reproducing the artifact '{artifact.title}'",
+        "description": f"This project is for reproducing the artifact '{artifact.title}' {artifact_url}",
         "typeId": artifact.project.type.id,
         "fieldId": artifact.project.field.id,
         "piId": artifact.project.pi.id,
@@ -892,7 +898,7 @@ def create_supplemental_project(request, artifact):
         #"justification": "Automatic decision",
     }
     supplemental_project["allocations"] = [allocation_data]
-    supplemental_project["source"] = "Chameleon"
+    supplemental_project["source"] = "Day pass"
     created_tas_project = mapper.save_project(supplemental_project, request.get_host())
     # We can assume only 1 here since this project is new
     #allocation = Allocation.objects.get(project_id=created_tas_project["id"])

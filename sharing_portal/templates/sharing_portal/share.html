@@ -71,11 +71,13 @@
 
           <p class="help-block">
             A person without an active Chameleon allocation is unable to launch
-            and reproduce your artifact. If you enable reproducability requests,
-            users can send requests, and if granted, they will be given
-            access to a private Chameleon project for the given number of hours.
-            You must assign this artifact to a project in this case, and
-            requests will be directed to the PI of the project.
+            and reproduce your artifact. If you enable reproducibility requests,
+            users can send requests, and if granted, they will be given a small
+            temporary allocation on a seperate project. While usage by
+            reproducing users will not count towards your project's main
+            allocation, the PI is nonetheless accountable for their responsible
+            usage of Chameleon resources. All reproducibilty requests therefore
+            require PI approval.
           </p>
           {% bootstrap_field share_form.project show_label=False %}
           {% bootstrap_field share_form.is_reproducible %}

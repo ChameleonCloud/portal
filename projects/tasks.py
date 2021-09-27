@@ -11,7 +11,7 @@ from projects.models import Invitation, Project
 from sharing_portal.models import DayPassRequest
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
-from .views import get_invitations_beyond_duration, get_project_managers
+from .views import get_invitations_beyond_duration, get_project_membership_managers
 
 LOG = logging.getLogger(__name__)
 
@@ -55,27 +55,25 @@ def end_daypasses():
             )
             invitation.status = Invitation.STATUS_BEYOND_DURATION
             invitation.save()
-        except Exception:
-            LOG.error(f"Error ending daypass invite {invitation.id}")
 
-        try:
-            # If this invite was on a day pass
-            day_pass_request = DayPassRequest.objects.get(invitation=invitation)
-            # And there are 10 requests on that same artifact
-            approved_requests = (
-                DayPassRequest.objects.all()
-                .filter(
-                    artifact=day_pass_request.artifact,
-                    status=DayPassRequest.STATUS_APPROVED,
-                    invitation__status=Invitation.STATUS_BEYOND_DURATION,
+            try:
+                day_pass_request = DayPassRequest.objects.get(invitation=invitation)
+                approved_requests = (
+                    DayPassRequest.objects.all()
+                    .filter(
+                        artifact=day_pass_request.artifact,
+                        status=DayPassRequest.STATUS_APPROVED,
+                        invitation__status=Invitation.STATUS_BEYOND_DURATION,
+                    )
+                    .count()
                 )
-                .count()
-            )
-            if approved_requests == 10:
-                # Send an email
-                handle_too_many_day_pass_users(day_pass_request.artifact)
-        except DayPassRequest.DoesNotExist:
-            pass
+                if approved_requests == settings.DAY_PASS_LIMIT:
+                    # Send an email
+                    handle_too_many_day_pass_users(day_pass_request.artifact)
+            except DayPassRequest.DoesNotExist:
+                pass
+        except Exception as e:
+            LOG.error(f"Error ending daypass invite {invitation.id}: {e}")
 
 
 def handle_too_many_day_pass_users(artifact):
@@ -85,17 +83,23 @@ def handle_too_many_day_pass_users(artifact):
     )
     now = datetime.now(timezone.utc)
     for alloc in allocations:
+        # Prevent this from running multiple times
+        # NOTE: We cannot change status or something of the allocation,
+        # as it needs to still be 'active' for the allocation expiration task
+        # to kick in.
+        if alloc.expiration_date <= now:
+            return
         alloc.expiration_date = now
         alloc.save()
-    managers = [u.email for u in get_project_managers(artifact.project)]
+    managers = [u.email for u in get_project_membership_managers(artifact.project)]
 
     subject = "Pause on day pass requests"
     help_url = "https://chameleoncloud.org/user/help/"
     body = f"""
     <p>
-    Thank you for using our day pass feature for Trovi artifact!
-    We have noticied that 10 users have been approved to reproduce
-    '{artifact.title}'. As a status check, we have put a pause on the
+    Thank you for using our day pass feature for Trovi artifacts!
+    We have noticied that {settings.DAY_PASS_LIMIT} users have been approved to
+    reproduce '{artifact.title}'. As a status check, we have put a pause on the
     allocation in order to request more details. Please submit a ticket to
     our <a href="{help_url}">help desk</a> mentioning the situation so we can
     discuss this further.
