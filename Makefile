@@ -18,7 +18,6 @@ NODE_VER ?= lts
 build: .env
 	docker build --build-arg PY_IMG_TAG=$(PY_IMG_TAG) \
 				 --build-arg NODE_VER=$(NODE_VER) \
-				 --platform=linux/amd64 \
 				 -t $(DOCKER_IMAGE) .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE_LATEST)
 
