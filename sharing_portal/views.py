@@ -286,10 +286,14 @@ def share_artifact(request, artifact):
                     charge_code=form.cleaned_data["project"]
                 )
             except Project.DoesNotExist:
-                messages.add_message(request, messages.ERROR,
-                    'Project {} does not exist'.format(form.cleaned_data["project"]))
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Project {} does not exist".format(form.cleaned_data["project"]),
+                )
                 return HttpResponseRedirect(
-                    reverse('sharing_portal:share', args=[artifact.pk]))
+                    reverse("sharing_portal:share", args=[artifact.pk])
+                )
 
             if artifact.is_reproducible and not artifact.reproducibility_project:
                 supplemental_project = create_supplemental_project(request, artifact)

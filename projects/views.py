@@ -158,7 +158,8 @@ def get_invitations_beyond_duration():
         status=Invitation.STATUS_ACCEPTED, duration__isnull=False
     )
     return [
-        i for i in duration_limited_invites
+        i
+        for i in duration_limited_invites
         if i.date_exceeds_duration() < datetime.now()
     ]
 
@@ -429,7 +430,9 @@ def resend_invitation(invite_id, user_issued, request):
     invitation.save()
     # Send a new invitation
     project_id = invitation.project.id
-    add_project_invitation(project_id, invitation.email_address, user_issued, request, None)
+    add_project_invitation(
+        project_id, invitation.email_address, user_issued, request, None
+    )
 
 
 def add_project_invitation(
