@@ -87,8 +87,6 @@ def manage_project_in_scope(scopes):
 
 def get_user_permissions(keycloak_client, username, project):
     role, scopes = get_user_project_role_scopes(keycloak_client, username, project)
-    if not scopes:
-        return False, False
     return manage_membership_in_scope(scopes), manage_project_in_scope(scopes)
 
 
