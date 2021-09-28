@@ -189,6 +189,14 @@ def view_project(request, project_id):
         logger.error(e)
         raise Http404("The requested project does not exist!")
 
+    try:
+        # lazy assign admin role to the PI
+        keycloak_client.set_user_project_role(
+            project.pi.username, get_charge_code(project), "admin"
+        )
+    except Exception:
+        logger.exception()
+
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
     type_form_args = {"request": request}
