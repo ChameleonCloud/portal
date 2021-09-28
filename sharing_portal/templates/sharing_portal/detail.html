@@ -69,12 +69,30 @@
   </div>
 
   <div class="layoutGrid__side">
-    <a class="artifactLaunchButton btn btn-primary" href="{{ launch_url }}" target="_blank">Launch on Chameleon</a>
-    <p class="artifactLaunchButton_details">
-      Launching this artifact will open it within Chameleon&rsquo;s shared Jupyter
-      experiment environment, which is accessible to all Chameleon users with
-      an active allocation.
-    </p>
+    {% if show_launch %}
+      <a class="artifactLaunchButton btn btn-primary" href="{{ launch_url }}" target="_blank">Launch on Chameleon</a>
+      <p class="artifactLaunchButton_details">
+        Launching this artifact will open it within Chameleon&rsquo;s shared Jupyter
+        experiment environment, which is accessible to all Chameleon users with
+        an active allocation.
+      </p>
+    {% endif %}
+
+    {% if artifact.is_reproducible %}
+      <a class="artifactLaunchButton btn btn-primary" href="{{ request_day_pass_url }}">Request day pass</a>
+      <p class="artifactLaunchButton_details">
+        If you do not have an active Chameleon allocation, or would prefer to not
+        use your allocation, you can request a temporary one from the PI of the
+        project this artifact belongs to.
+      </p>
+    {% endif %}
+
+    {% if not show_launch and not artifact.is_reproducible %}
+      <p class="artifactLaunchButton_details">
+        You cannot launch this artifact, as you do not have an active Chameleon
+        allocation.
+      </p>
+    {% endif %}
 
     <div class="artifactVersions">
       <h4><i class="fa fa-files-o"></i> Versions</h4>

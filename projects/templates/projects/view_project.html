@@ -184,6 +184,7 @@
       </div>
       {% endif %}
     </td>
+    <td>{% if u.day_pass %} Day pass: {{ u.day_pass }} remain {% endif %}</td>
   </tr>
   {% endfor %}
   {% for i in invitations %}
@@ -192,7 +193,10 @@
     <td>--</td>
     <td>--</td>
     <td>{{ i.email_address }}</td>
-    <td>Pending Invitation - {{ i.status }}</td>
+    <td>
+      Pending Invitation - {{ i.status }}
+      {% if i.duration %} ({{ i.duration }} hours) {% endif %}
+    </td>
     <td>
     <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {% if not can_manage_project_membership %}disabled{%endif%}>

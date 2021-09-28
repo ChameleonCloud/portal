@@ -4,8 +4,9 @@ from django import forms
 from django.forms import widgets
 
 from projects.models import Project
+from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Artifact, ArtifactVersion, Author, Label
+from .models import Artifact, ArtifactVersion, Author, Label, DayPassRequest
 
 import logging
 
@@ -95,9 +96,49 @@ class ShareArtifactForm(forms.Form):
         required=False,
         widget=widgets.CheckboxInput(attrs={"v-model": "is_public"}),
     )
+    is_reproducible = forms.BooleanField(
+        label="Enable reproducibility requests",
+        required=False,
+        widget=widgets.CheckboxInput(attrs={"v-model": "is_reproducible"}),
+    )
+    reproduce_hours = forms.IntegerField(
+        label="Hours a user has to reproduce", required=False
+    )
     projects = ProjectChoiceField(
         label="Share with projects", required=False, queryset=Project.objects.all()
     )
+
+    # Custom init is required to dynamically fill the projects choice field
+
+    def __init__(self, request, *args, **kwargs):
+        super(ShareArtifactForm, self).__init__(*args, **kwargs)
+        mapper = ProjectAllocationMapper(request)
+        user_projects = [
+            (
+                project["chargeCode"],
+                project["nickname"] if "nickname" in project else project["chargeCode"],
+            )
+            for project in mapper.get_user_projects(
+                request.user.username, to_pytas_model=False
+            )
+        ]
+        self.fields["project"] = forms.ChoiceField(
+            label="Belongs to project",
+            required=False,
+            choices=[(None, "----")] + user_projects,
+        )
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get("is_reproducible", None) and not data.get("reproduce_hours", None):
+            raise forms.ValidationError(
+                "You must include hours when enabling reproducibility requests"
+            )
+        if data.get("is_reproducible", None) and not data.get("project", None):
+            raise forms.ValidationError(
+                "You must associate this artifact with a project to enable reproducibility requests"
+            )
+        return data
 
 
 class ZenodoPublishForm(forms.Form):
@@ -168,5 +209,24 @@ class BaseZenodoPublishFormset(forms.BaseFormSet):
         return [x for x in super(BaseZenodoPublishFormset, self).cleaned_data if x]
 
 
-ZenodoPublishFormset = forms.formset_factory(ZenodoPublishForm,
-    formset=BaseZenodoPublishFormset, extra=0)
+ZenodoPublishFormset = forms.formset_factory(
+    ZenodoPublishForm, formset=BaseZenodoPublishFormset, extra=0
+)
+
+
+class RequestDayPassForm(forms.Form):
+    name = forms.CharField()
+    email = forms.CharField(disabled=True, required=False)
+    institution = forms.CharField()
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={"placeholder": "Reason for request"}),
+    )
+
+
+class ReviewDayPassForm(forms.Form):
+    status = forms.ChoiceField(required=True, choices=DayPassRequest.STATUS)
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get("status", None) == DayPassRequest.STATUS_PENDING:
+            raise forms.ValidationError("You must set a status")

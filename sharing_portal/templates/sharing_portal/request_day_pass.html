@@ -1,0 +1,63 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags static pipeline bootstrap3 %}
+
+{% block title %}Request Day Pass | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+
+{% block content %}
+{# Experiments / [current_exp_title] subheader #}
+<ol class="breadcrumb">
+  <li>
+    <a href="{% url 'sharing_portal:index_all' %}">All</a>
+  </li>
+  <li>
+    <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
+  </li>
+  <li class="active">Request Day Pass</li>
+</ol>
+
+<div>
+
+  <form id="artifactShareForm" method="post">
+    {% csrf_token %}
+
+    <div class="layoutGrid">
+      <div class="layoutGrid__main">
+        <div class="artifactDetail">
+          <header class="artifactDetail__heading">
+            <h2 class="artifactTitle">Request Day Pass</h2>
+          </header>
+            <p>
+            You are requesting to temporarily have access to Chameleon in
+            order to reproduce {{ artifact.title }}. By submitting this form,
+            an email will be sent to the PI of the project. If you have any
+            information relevant to your request, please include it below.
+            </p>
+            <p>
+            After the PI reviews your application, you will receive an email
+            with the approval decision. If approved, the email will contain
+            a link that starts the day pass. Approved access for this artifact
+            is for {{ artifact.reproduce_hours }} hours.
+            </p>
+            {% bootstrap_field form.name %}
+            {% bootstrap_field form.email %}
+            {% bootstrap_field form.institution %}
+            {% bootstrap_field form.reason %}
+
+            <div class="artifactActions">
+              <button type="submit" class="btn btn-success">Submit</button>
+              <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}

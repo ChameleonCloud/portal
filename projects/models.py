@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 from operator import attrgetter
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
@@ -118,7 +119,12 @@ class Invitation(models.Model):
 
     STATUS_ISSUED = "ISSUED"
     STATUS_ACCEPTED = "ACCEPTED"
-    STATUSES = [(STATUS_ISSUED, "Issued"), (STATUS_ACCEPTED, "Accepted")]
+    STATUS_BEYOND_DURATION = "BEYOND_DURATION"
+    STATUSES = [
+        (STATUS_ISSUED, "Issued"),
+        (STATUS_ACCEPTED, "Accepted"),
+        (STATUS_BEYOND_DURATION, "Beyond Duration"),
+    ]
 
     @staticmethod
     def default_days_until_expiration():
@@ -149,9 +155,9 @@ class Invitation(models.Model):
     )
     date_issued = models.DateTimeField(auto_now_add=True, editable=False)
     date_expires = models.DateTimeField(default=_generate_expiration, editable=True)
-    email_address = models.EmailField(blank=False)
+    email_address = models.EmailField(null=True)
     email_code = models.CharField(
-        max_length=26, default=_generate_secret, editable=False
+        max_length=26, default=_generate_secret, editable=False, null=True
     )
 
     status = models.CharField(
@@ -167,6 +173,10 @@ class Invitation(models.Model):
         null=True,
     )
     date_accepted = models.DateTimeField(auto_now_add=False, editable=False, null=True)
+    duration = models.IntegerField(null=True)
+
+    def date_exceeds_duration(self):
+        return self.date_accepted + timedelta(hours=self.duration)
 
     def __str__(self) -> str:
         return f"{self.email_address}, {self.email_code}, {self.status}, {'EXPIRED' if self._is_expired() else self.date_expires}"

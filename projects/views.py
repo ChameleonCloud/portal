@@ -70,11 +70,24 @@ def project_member_or_admin_or_superuser(user, project, project_user):
     return False
 
 
-def get_user_project_role_scopes(keycloak_client, user, project):
+def get_user_project_role_scopes(keycloak_client, username, project):
     role, scopes = keycloak_client.get_user_project_role_scopes(
-        user.username, project.chargeCode
+        username, get_charge_code(project)
     )
     return role, scopes
+
+
+def manage_membership_in_scope(scopes):
+    return "manage-membership" in scopes
+
+
+def manage_project_in_scope(scopes):
+    return "manage" in scopes
+
+
+def get_user_permissions(keycloak_client, username, project):
+    role, scopes = get_user_project_role_scopes(keycloak_client, username, project)
+    return manage_membership_in_scope(scopes), manage_project_in_scope(scopes)
 
 
 @login_required
@@ -95,14 +108,17 @@ def user_projects(request):
 @login_required
 def accept_invite(request, invite_code):
     mapper = ProjectAllocationMapper(request)
+    invitation = None
     try:
         invitation = Invitation.objects.get(email_code=invite_code)
-        user = request.user
-        if invitation.can_accept():
-            invitation.accept(user)
-            project = mapper.get_project(invitation.project.id)
-            user_ref = invitation.user_accepted.username
-            mapper.add_user_to_project(project, user_ref)
+    except Invitation.DoesNotExist:
+        raise Http404("That invitation does not exist!")
+
+    user = request.user
+    # Check for existing day pass, use this invite instead
+    day_pass = get_day_pass(user.id, invitation.project.id)
+    try:
+        if accept_invite_for_user(user, invitation, mapper):
             messages.success(request, "Accepted invitation")
             return HttpResponseRedirect(
                 reverse("projects:view_project", args=[invitation.project.id])
@@ -110,8 +126,54 @@ def accept_invite(request, invite_code):
         else:
             messages.error(request, invitation.get_cant_accept_reason())
             return HttpResponseRedirect(reverse("projects:user_projects"))
+    finally:
+        if day_pass is not None:
+            day_pass.delete()
+
+
+def accept_invite_for_user(user, invitation, mapper):
+    if invitation.can_accept():
+        invitation.accept(user)
+        project = mapper.get_project(invitation.project.id)
+        user_ref = invitation.user_accepted.username
+        mapper.add_user_to_project(project, user_ref)
+        return True
+    return False
+
+
+def get_day_pass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
+    try:
+        return Invitation.objects.get(
+            status=status,
+            user_accepted_id=user_id,
+            project_id=project_id,
+            duration__isnull=False,
+        )
     except Invitation.DoesNotExist:
-        raise Http404("That invitation does not exist!")
+        return None
+
+
+def get_invitations_beyond_duration():
+    duration_limited_invites = Invitation.objects.filter(
+        status=Invitation.STATUS_ACCEPTED, duration__isnull=False
+    )
+    return [
+        i
+        for i in duration_limited_invites
+        if i.date_exceeds_duration() < datetime.now()
+    ]
+
+
+def format_timedelta(timedelta_instance):
+    # Formats a timedelta object so it can be displayed with a day pass user.
+    # This implementation removes the fractional seconds portion of the string.
+    return str(timedelta_instance).split(".")[0]
+
+
+def get_invite_url(request, code):
+    return request.build_absolute_uri(
+        reverse("projects:accept_invite", kwargs={"invite_code": code})
+    )
 
 
 @login_required
@@ -133,9 +195,9 @@ def view_project(request, project_id):
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
 
-    role, scopes = get_user_project_role_scopes(keycloak_client, request.user, project)
-    can_manage_project_membership = "manage-membership" in scopes
-    can_manage_project = "manage" in scopes
+    can_manage_project_membership, can_manage_project = get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
 
     if (
         request.POST
@@ -148,6 +210,7 @@ def view_project(request, project_id):
             if form.is_valid():
                 try:
                     add_username = form.cleaned_data["user_ref"]
+                    user = User.objects.get(username=add_username)
                     if mapper.add_user_to_project(project, add_username):
                         messages.success(
                             request, f'User "{add_username}" added to project!'
@@ -169,7 +232,8 @@ def view_project(request, project_id):
                                 project_id,
                                 email_address,
                                 request.user,
-                                request.get_host(),
+                                request,
+                                None,
                             )
                             messages.success(request, "Invite sent!")
                     except ValidationError:
@@ -213,6 +277,10 @@ def view_project(request, project_id):
                     messages.success(
                         request, 'User "%s" removed from project' % del_username
                     )
+                user = User.objects.get(username=del_username)
+                day_pass = get_day_pass(user.id, project_id)
+                if day_pass:
+                    day_pass.delete()
             except PermissionDenied as exc:
                 messages.error(request, exc)
             except Exception:
@@ -251,7 +319,7 @@ def view_project(request, project_id):
         elif "resend_invite" in request.POST:
             try:
                 invite_id = request.POST["invite_id"]
-                resend_invitation(invite_id, request.user, request.get_host())
+                resend_invitation(invite_id, request.user, request)
                 messages.success(request, "Invitation resent")
             except Exception:
                 logger.exception("Failed to resend invitation")
@@ -303,6 +371,12 @@ def view_project(request, project_id):
             user["email"] = portal_user.email
             user["first_name"] = portal_user.first_name
             user["last_name"] = portal_user.last_name
+            # Add if the user is on a day pass
+            existing_day_pass = get_day_pass(portal_user.id, project_id)
+            if existing_day_pass:
+                user["day_pass"] = format_timedelta(
+                    existing_day_pass.date_exceeds_duration() - timezone.now()
+                )
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
         users_mashup.append(user)
@@ -316,7 +390,11 @@ def view_project(request, project_id):
         new_item["email_address"] = i.email_address
         new_item["id"] = i.id
         new_item["status"] = i.status.title()
+        if i.duration:
+            new_item["duration"] = i.duration
         clean_invitations.append(new_item)
+
+    is_on_day_pass = get_day_pass(request.user.id, project_id) is not None
 
     return render(
         request,
@@ -330,6 +408,7 @@ def view_project(request, project_id):
             "can_manage_project_membership": can_manage_project_membership,
             "can_manage_project": can_manage_project,
             "is_admin": request.user.is_superuser,
+            "is_on_day_pass": is_on_day_pass,
             "form": form,
             "nickname_form": nickname_form,
             "type_form": type_form,
@@ -344,29 +423,38 @@ def remove_invitation(invite_id):
     invitation.delete()
 
 
-def resend_invitation(invite_id, user_issued, host):
+def resend_invitation(invite_id, user_issued, request):
     invitation = Invitation.objects.get(pk=invite_id)
     # Make the old invitation expire
     invitation.date_expires = timezone.now()
     invitation.save()
     # Send a new invitation
     project_id = invitation.project.id
-    add_project_invitation(project_id, invitation.email_address, user_issued, host)
+    add_project_invitation(
+        project_id, invitation.email_address, user_issued, request, None
+    )
 
 
-def add_project_invitation(project_id, email_address, user_issued, host):
+def add_project_invitation(
+    project_id, email_address, user_issued, request, duration, send_email=True
+):
     project = Project.objects.get(pk=project_id)
     invitation = Invitation(
-        project=project, email_address=email_address, user_issued=user_issued
+        project=project,
+        email_address=email_address,
+        user_issued=user_issued,
+        duration=duration,
     )
     invitation.save()
-    send_invitation_email(invitation, host)
+    if send_email:
+        send_invitation_email(invitation, request)
+    return invitation
 
 
-def send_invitation_email(invitation, host):
+def send_invitation_email(invitation, request):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
-    url = f"https://{host}/user/projects/join/{invitation.email_code}"
+    url = get_invite_url(request, invitation.email_code)
     subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""
     <p>
@@ -733,3 +821,13 @@ def get_extras(request):
         response["message"] = "Does not exist."
         response["result"] = None
     return JsonResponse(response)
+
+
+def get_project_membership_managers(project):
+    users = get_project_members(project)
+    return [user for user in users if is_membership_manager(project, user.username)]
+
+
+def is_membership_manager(project, username):
+    keycloak_client = KeycloakClient()
+    return get_user_permissions(keycloak_client, username, project)[0]

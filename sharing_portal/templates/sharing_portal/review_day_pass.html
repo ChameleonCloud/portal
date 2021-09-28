@@ -1,0 +1,54 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags static pipeline bootstrap3 %}
+
+{% block title %}Review Day Pass | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div>
+
+  <form id="artifactShareForm" method="post">
+    {% csrf_token %}
+
+    <div class="layoutGrid">
+      <div class="layoutGrid__main">
+        <div class="artifactDetail">
+          <header class="artifactDetail__heading">
+            <h2 class="artifactTitle">Review Day Pass Request</h2>
+          </header>
+            <dl>
+              <dt>Artifact</dt><dd>{{ day_pass_request.artifact.title }}</dd>
+              <dt>Name</dt><dd>{{ day_pass_request.name }}</dd>
+              <dt>Email</dt><dd>{{ day_pass_request.created_by.email }}</dd>
+              <dt>Institution</dt><dd>{{ day_pass_request.institution }}</dd>
+              <dt>Reason</dt><dd>{{ day_pass_request.reason }}</dd>
+            </dl>
+            {% bootstrap_field form.status %}
+            <p>
+            Per the artifact setting, this request is for
+            {{ day_pass_request.artifact.reproduce_hours }} hours.
+            </p>
+            <p>
+            By approving this request, you are understanding that they are being
+            granted access to Chameleon under your responsibility. If you have
+            any concern that the user may violate Chameleon's terms of use, do
+            not approve the request.
+            </p>
+            <div class="artifactActions">
+              <button type="submit" class="btn btn-success">Submit</button>
+              <a href="{% url 'sharing_portal:detail' day_pass_request.artifact.id %}" class="btn btn-default">Cancel</a>
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}
