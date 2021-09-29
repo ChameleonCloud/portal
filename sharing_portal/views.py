@@ -498,12 +498,11 @@ def send_request_mail(day_pass_request, request):
     body = f"""
     <p>
     A request has been made to reproduce the artifact:
-    {day_pass_request.artifact.title}.
+    '{day_pass_request.artifact.title}'.
     </p>
     <p>
-    Review this decision by visiting <a href="{url}">this link</a>,
-    or by going to {url} in your browser. You can view all pending and reviewed
-    requests <a href="{list_url}">here</a> or at {list_url}.
+    Review this decision by visiting <a href="{url}">this link</a>. You can
+    view all pending and reviewed requests <a href="{list_url}">here</a>.
     </p>
     <p><i>This is an automatic email, please <b>DO NOT</b> reply!
     If you have any question or issue, please submit a ticket on our
@@ -632,16 +631,27 @@ def send_request_decision_mail(day_pass_request, request):
         )
         body = f"""
         <p>
-        Your day pass request to reproduce {day_pass_request.artifact.title}
-        has been approved. Your access will be for {invite.duration} hours,
-        and begins when you click <a href="{url}">this link</a>,
-        or by going to {url} in your browser.
+        Your day pass request to reproduce '{day_pass_request.artifact.title}'
+        has been approved. Your access is for {invite.duration} hours,
+        and begins when you click <a href="{url}">this link</a>.
         </p>
         <p>
-        After accepting the invitation, you can navigate back to the artifact
-        at {artifact_url}. Please use the project
-        {day_pass_request.artifact.reproducibility_project.charge_code} when
-        running your experiment.
+        After accepting the invitation, first you will be taken to the project
+        overview page for the project you are being added to. Note that its ID,
+        {day_pass_request.artifact.reproducibility_project.charge_code}, may be
+        required when running some artifacts.
+        </p>
+        <p>
+        The artifact you requested to reproduce is located
+        <a href="{artifact_url}">here</a>. You will be able to click "Launch"
+        once the invitation is accepted.
+        </p>
+        <p>
+        You can browse our documentation for using Jupyter
+        <a href="https://chameleoncloud.readthedocs.io/en/latest/technical/jupyter.html">
+        at this link</a>, or our Chameleon getting started guide
+        <a href="https://chameleoncloud.readthedocs.io/en/latest/getting-started/index.html">
+        here</a>.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
         If you have any question or issue, please submit a ticket on our
