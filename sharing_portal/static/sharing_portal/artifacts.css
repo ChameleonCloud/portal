@@ -216,6 +216,17 @@
     border-radius: 0.5rem;
 }
 
+.artifactVersions__Header {
+    display: flex;
+} .artifactVersions__Header > h4 {
+    flex: 1;
+} .artifactVersions__Header > form {
+    display: inline;
+    /* Align delete_all button with trash icon */
+    margin-right: 6%;
+    align-self: center;
+}
+
 .artifactVersion__title {
     display: flex;
     flex: 1;

@@ -37,7 +37,18 @@
 
   <div class="layoutGrid__side">
     <div class="artifactVersions">
-      <h4><i class="fa fa-files-o"></i> Versions</h4>
+      <div class="artifactVersions__Header">
+        <h4><i class="fa fa-files-o"></i> Versions</h4>
+        <form role="form" method="post">
+          {% csrf_token %}
+          <button class="btn btn-xs btn-danger" type="submit" name="delete_all"
+            {% if artifact.doi %}disabled title="Cannot delete artifact published with DOI"
+            {% else %}title="Delete the entire Trovi artifact"
+            {% endif %}>
+            Delete All
+          </button>
+        </form>
+      </div>
       <form method="post">
         {% csrf_token %}
         <ol>
@@ -70,6 +81,20 @@
                 event.preventDefault();
               }
             });
+          })
+          const deleteAllButton = document.querySelector('[name=delete_all]');
+          deleteAllButton.addEventListener('click', (event) => {
+            let warning = "WARNING! You are about to delete your entire Trovi artifact! " +
+              "Are you sure you want to do this? Type the name of the artifact to confirm:";
+            while (true) {
+              let nameInput = prompt(warning);
+              if (nameInput === null) {  // cancel
+                event.preventDefault();
+                break;
+              } else if (nameInput === "{{ artifact.title }}") {
+                break;
+              }
+            }
           });
         });
       })();
