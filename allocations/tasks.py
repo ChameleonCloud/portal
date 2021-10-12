@@ -78,7 +78,7 @@ def _send_expiration_warning_mail(alloc, today):
 
     return mail_sent
 
-
+@task
 def warn_user_for_expiring_allocation():
     """
     Sends an email to users when their allocation is within one month of expiring
