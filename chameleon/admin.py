@@ -4,11 +4,19 @@ import datetime
 import re
 
 from chameleon.models import PIEligibility
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.html import format_html_join, mark_safe, urlize, format_html
+from django.core.mail import send_mail
+from django.utils.html import (
+    format_html_join,
+    mark_safe,
+    urlize,
+    format_html,
+    strip_tags,
+)
 from functools import wraps
 import logging
 import urllib.parse
@@ -69,10 +77,34 @@ class PIEligibilityAdmin(ModelAdmin):
     list_filter = ("status",)
     search_fields = ["requestor__username"]
 
+    def _notify_user(self, pi_request, host):
+        subject = f"Decision of your PI Eligibility request for {pi_request.requestor}"
+        body = f"""
+        <p>Your PI Eligibility status has been updated to {pi_request.status},
+        due to the following reason:</p>
+        <p>{pi_request.review_summary}</p>
+        <br/>
+        <p><i>This is an automatic email, please <b>DO NOT</b> reply!
+        If you have any question or issue, please submit a ticket on our
+        <a href="https://{host}/user/help/">help desk</a>.
+        </i></p>
+        <br/>
+        <p>Thanks,</p>
+        <p>Chameleon Team</p>
+        """
+        send_mail(
+            subject=subject,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[pi_request.requestor.email],
+            message=strip_tags(body),
+            html_message=body,
+        )
+
     def save_model(self, request, obj, form, change):
         obj.reviewer = request.user
         obj.review_date = datetime.datetime.now()
         obj.save()
+        self._notify_user(obj, request.get_host())
 
     def keycloak_metadata(self, obj):
         """User metadata from keycloak backend. Returns a list of strings."""
