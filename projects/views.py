@@ -160,7 +160,7 @@ def get_invitations_beyond_duration():
     return [
         i
         for i in duration_limited_invites
-        if i.date_exceeds_duration() < datetime.now()
+        if i.date_exceeds_duration() < timezone.now()
     ]
 
 
@@ -455,6 +455,7 @@ def send_invitation_email(invitation, request):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
     url = get_invite_url(request, invitation.email_code)
+    help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""
     <p>
@@ -472,7 +473,7 @@ def send_invitation_email(invitation, request):
     </p>
     <p><i>This is an automatic email, please <b>DO NOT</b> reply!
     If you have any question or issue, please submit a ticket on our
-    <a href="https://{host}/user/help/">help desk</a>.
+    <a href="{help_url}">help desk</a>.
     </i></p>
     <p>Thanks,</p>
     <p>Chameleon Team</p>
