@@ -171,8 +171,8 @@ class ProjectViewTests(TestCase):
 
         self.assertContains(
             response,
-            '<textarea class="form-control" cols="40" id="id_supplemental_details" '
-            'name="supplemental_details" placeholder="Resource Justification" '
+            '<textarea class="form-control" cols="40" id="id_justification" '
+            'name="justification" placeholder="Resource Justification" '
             'required="required" rows="10" title="Provide supplemental detail on how you '
             'intend to use Chameleon to accomplish your research goals. This text will '
             'not be publicly viewable and may include details that you do not wish to '
@@ -208,8 +208,8 @@ class ProjectViewTests(TestCase):
 
         self.assertContains(
             response,
-            '<textarea class="form-control" cols="40" id="id_supplemental_details" '
-            'name="supplemental_details" placeholder="Resource Justification" '
+            '<textarea class="form-control" cols="40" id="id_justification" '
+            'name="justification" placeholder="Resource Justification" '
             'required="required" rows="10" title="Please provide an update on the use of '
             'your current allocation - any success stories, publications, presentations, '
             'or just a general update on the progress of your research on Chameleon. '

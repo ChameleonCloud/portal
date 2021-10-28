@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.core.validators import validate_email
@@ -25,6 +26,9 @@ from django.http import (
 from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
+from django.forms.models import model_to_dict
+from django import forms
+from projects.models import Funding
 from util.project_allocation_mapper import ProjectAllocationMapper
 from util.keycloak_client import KeycloakClient
 
@@ -33,8 +37,10 @@ from projects.serializer import ProjectExtrasJSONSerializer
 from .forms import (
     AddBibtexPublicationForm,
     AllocationCreateForm,
+    ConsentForm,
     EditNicknameForm,
     EditTypeForm,
+    FundingFormset,
     ProjectAddUserForm,
     ProjectCreateForm,
 )
@@ -511,6 +517,29 @@ def set_ks_project_nickname(chargeCode, nickname):
         )
 
 
+def _save_fundings(funding_formset, project_id):
+    saved_fundings = []
+    for funding_form in funding_formset:
+        if hasattr(funding_form, "cleaned_data"):
+            funding_dict = funding_form.cleaned_data.copy()
+            funding = Funding(**funding_dict)
+            funding.project_id = project_id
+            funding.is_active = True
+            funding.save()
+            saved_fundings.append(funding_dict)
+    return saved_fundings
+
+
+def _remove_fundings(before_list, after_list):
+    after_id_list = [f["id"] for f in after_list if f.get("id")]
+    for f in before_list:
+        if f["id"] not in after_id_list:
+            f["project_id"] = f.pop("project")
+            funding = Funding(**f)
+            funding.is_active = False
+            funding.save()
+
+
 @login_required
 @terms_required("project-terms")
 def create_allocation(request, project_id, allocation_id=-1):
@@ -536,71 +565,44 @@ def create_allocation(request, project_id, allocation_id=-1):
             if a.id == allocation_id:
                 allocation = a
 
-    # goofiness that we should clean up later; requires data cleansing
     abstract = project.description
-    if "--- Supplemental details ---" in abstract:
-        additional = abstract.split("\n\n--- Supplemental details ---\n\n")
-        abstract = additional[0]
-        additional = additional[1].split("\n\n--- Funding source(s) ---\n\n")
-        justification = additional[0]
-        if len(additional) > 1:
-            funding_source = additional[1]
-        else:
-            funding_source = ""
-    elif allocation:
+    if allocation:
         justification = allocation.justification
-        if "--- Funding source(s) ---" in justification:
-            parts = justification.split("\n\n--- Funding source(s) ---\n\n")
-            justification = parts[0]
-            funding_source = parts[1]
-        else:
-            funding_source = ""
     else:
         justification = ""
-        funding_source = ""
+
+    funding_source = [
+        model_to_dict(f)
+        for f in Funding.objects.filter(project__id=project_id, is_active=True)
+    ]
+    # add extra form
+    funding_source.append({})
 
     if request.POST:
         form = AllocationCreateForm(
             request.POST,
             initial={
                 "description": abstract,
-                "supplemental_details": justification,
-                "funding_source": funding_source,
+                "justification": justification,
             },
         )
-        if form.is_valid():
+        formset = FundingFormset(
+            request.POST,
+            initial=funding_source,
+        )
+        consent_form = ConsentForm(request.POST)
+        if form.is_valid() and formset.is_valid() and consent_form.is_valid():
             allocation = form.cleaned_data.copy()
             allocation["computeRequested"] = 20000
 
-            # Also update the project
+            # Also update the project and fundings
             project.description = allocation.pop("description", None)
-
-            supplemental_details = allocation.pop("supplemental_details", None)
-
-            logger.error(supplemental_details)
-            funding_source = allocation.pop("funding_source", None)
-
-            # if supplemental_details == None:
-            #    raise forms.ValidationError("Justifcation is required")
-            # This is required
-            if not supplemental_details:
-                supplemental_details = "(none)"
-
-            logger.error(supplemental_details)
-
-            if funding_source:
-                allocation[
-                    "justification"
-                ] = "%s\n\n--- Funding source(s) ---\n\n%s" % (
-                    supplemental_details,
-                    funding_source,
-                )
-            else:
-                allocation["justification"] = supplemental_details
+            justification = allocation.pop("justification", None)
 
             allocation["projectId"] = project_id
             allocation["requestorId"] = mapper.get_portal_user_id(request.user.username)
             allocation["resourceId"] = "39"
+            allocation["justification"] = justification
 
             if allocation_id > 0:
                 allocation["id"] = allocation_id
@@ -610,10 +612,13 @@ def create_allocation(request, project_id, allocation_id=-1):
                     "Submitting allocation request for project %s: %s"
                     % (project.id, allocation)
                 )
-                updated_project = mapper.save_project(project.as_dict())
-                mapper.save_allocation(
-                    allocation, project.chargeCode, request.get_host()
-                )
+                with transaction.atomic():
+                    updated_project = mapper.save_project(project.as_dict())
+                    mapper.save_allocation(
+                        allocation, project.chargeCode, request.get_host()
+                    )
+                    new_funding_source = _save_fundings(formset, project_id)
+                    _remove_fundings(funding_source, new_funding_source)
                 messages.success(request, "Your allocation request has been submitted!")
                 return HttpResponseRedirect(
                     reverse("projects:view_project", args=[updated_project["id"]])
@@ -633,12 +638,15 @@ def create_allocation(request, project_id, allocation_id=-1):
         form = AllocationCreateForm(
             initial={
                 "description": abstract,
-                "supplemental_details": justification,
-                "funding_source": funding_source,
+                "justification": justification,
             }
         )
+        formset = FundingFormset(initial=funding_source)
+        consent_form = ConsentForm()
     context = {
         "form": form,
+        "funding_formset": formset,
+        "consent_form": consent_form,
         "project": project,
         "alloc_id": allocation_id,
         "alloc": allocation,
@@ -664,9 +672,21 @@ def create_project(request):
         return HttpResponseRedirect(reverse("projects:user_projects"))
     if request.POST:
         form = ProjectCreateForm(request.POST, **form_args)
-        if form.is_valid():
+        allocation_form = AllocationCreateForm(
+            request.POST, initial={"publication_up_to_date": True}
+        )
+        allocation_form.fields["publication_up_to_date"].widget = forms.HiddenInput()
+        funding_formset = FundingFormset(request.POST, initial=[{}])
+        consent_form = ConsentForm(request.POST)
+        if (
+            form.is_valid()
+            and allocation_form.is_valid()
+            and funding_formset.is_valid()
+            and consent_form.is_valid()
+        ):
             # title, description, typeId, fieldId
             project = form.cleaned_data.copy()
+            allocation_data = allocation_form.cleaned_data.copy()
             # let's check that any provided nickname is unique
             project["nickname"] = project["nickname"].strip()
             nickname_valid = (
@@ -680,8 +700,6 @@ def create_project(request):
                 form.add_error("__all__", "Project nickname unavailable")
                 return render(request, "projects/create_project.html", {"form": form})
 
-            project.pop("accept_project_terms", None)
-
             # pi
             pi_user_id = mapper.get_portal_user_id(request.user.username)
             project["piId"] = pi_user_id
@@ -691,38 +709,28 @@ def create_project(request):
                 "resourceId": 39,
                 "requestorId": pi_user_id,
                 "computeRequested": 20000,
+                "justification": allocation_data.pop("justification", None),
             }
-
-            supplemental_details = project.pop("supplemental_details", None)
-            funding_source = project.pop("funding_source", None)
-
-            # if supplemental_details == None:
-            #    raise forms.ValidationError("Justifcation is required")
-            if not supplemental_details:
-                supplemental_details = "(none)"
-
-            if funding_source:
-                allocation[
-                    "justification"
-                ] = "%s\n\n--- Funding source(s) ---\n\n%s" % (
-                    supplemental_details,
-                    funding_source,
-                )
-            else:
-                allocation["justification"] = supplemental_details
 
             project["allocations"] = [allocation]
 
             # source
             project["source"] = "Chameleon"
+            created_project = None
             try:
-                created_project = mapper.save_project(project, request.get_host())
+                with transaction.atomic():
+                    created_project = mapper.save_project(project, request.get_host())
+                    _save_fundings(funding_formset, created_project["id"])
                 logger.info("newly created project: " + json.dumps(created_project))
                 messages.success(request, "Your project has been created!")
                 return HttpResponseRedirect(
                     reverse("projects:view_project", args=[created_project["id"]])
                 )
             except:
+                # delete project from keycloak
+                if created_project:
+                    keycloak_client = KeycloakClient()
+                    keycloak_client.delete_project(created_project["chargeCode"])
                 logger.exception("Error creating project")
                 form.add_error(
                     "__all__", "An unexpected error occurred. Please try again"
@@ -735,8 +743,21 @@ def create_project(request):
             )
     else:
         form = ProjectCreateForm(**form_args)
+        allocation_form = AllocationCreateForm(initial={"publication_up_to_date": True})
+        allocation_form.fields["publication_up_to_date"].widget = forms.HiddenInput()
+        funding_formset = FundingFormset(initial=[{}])
+        consent_form = ConsentForm()
 
-    return render(request, "projects/create_project.html", {"form": form})
+    return render(
+        request,
+        "projects/create_project.html",
+        {
+            "form": form,
+            "allocation_form": allocation_form,
+            "funding_formset": funding_formset,
+            "consent_form": consent_form,
+        },
+    )
 
 
 @login_required

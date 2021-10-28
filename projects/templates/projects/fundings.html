@@ -1,0 +1,54 @@
+{% load static %}
+
+{% block content %}
+<label>Funding Sources</label><br>
+<span class="help-block">
+If the proposed research is related to a funded grant or has pending 
+support, please include funding agency name(s) and grant name(s).
+</span>
+<table id="funding-table" width="100%">
+    <tr>
+        <th>Agency<span style="color:red">*</span></th>
+        <th>Award #</th>
+        <th>Grant Name<span style="color:red">*</span></th>
+        <th></th>
+    </tr>
+    {{ funding_formset.management_form }}
+    {% for funding_form in funding_formset %}
+	    <!-- Error messaging -->
+	    {% if funding_form.errors %}
+	    <div id="errors">
+		    <div class="inner">
+			    <p style="color:red">Please correct the following:</p>
+			    <ul style="color:red">
+				    {% for field in funding_form %}
+					    {% if field.errors %}<li>{{ field.errors|striptags }}</li>{% endif %}
+				    {% endfor %}
+				    {% for err in funding_form.non_field_errors %}
+					    <li>{{ err }}</li>
+				    {% endfor %}
+			    </ul>
+		    </div>
+	    </div>
+	    {% endif %}
+	    <!-- /Error messaging -->
+    <tr class="funding-form-row">
+        <td style="display:none;">{{funding_form.id}}</td>
+        <td>{{funding_form.agency}}</td>
+        <td>{{funding_form.award}}</td>
+        <td>{{funding_form.grant_name}}</td>
+        {% if forloop.last %}
+        <td><button type="button" class="btn btn-success add-funding-form-row"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></td>
+        {% else %}
+        <td><button type="button" class="btn btn-danger remove-funding-form-row"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+<br>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'scripts/all.js' %}" type="text/javascript"></script>
+<script src="{% static 'projects/js/fundings.js' %}" type="text/javascript"></script>
+{% endblock %}

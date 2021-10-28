@@ -241,4 +241,20 @@ class Publication(models.Model):
     added_by_username = models.CharField(max_length=100)
     entry_created_date = models.DateField(auto_now_add=True)
 
+    def __str__(self) -> str:
+        return self.title
+
     objects = PublicationManager()
+
+
+class Funding(models.Model):
+    project = models.ForeignKey(
+        Project, related_name="project_funding", null=True, on_delete=models.CASCADE
+    )
+    is_active = models.BooleanField(default=True, null=False)
+    agency = models.CharField(max_length=200, null=False)
+    award = models.CharField(max_length=200, null=True)
+    grant_name = models.CharField(max_length=500, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.agency} {self.award}-{self.grant_name}"
