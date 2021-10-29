@@ -533,7 +533,7 @@ def _save_fundings(funding_formset, project_id):
 def _remove_fundings(before_list, after_list):
     after_id_list = [f["id"] for f in after_list if f.get("id")]
     for f in before_list:
-        if f["id"] not in after_id_list:
+        if f and f["id"] not in after_id_list:
             f["project_id"] = f.pop("project")
             funding = Funding(**f)
             funding.is_active = False
