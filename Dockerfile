@@ -1,14 +1,16 @@
+ARG NODE_IMG=node
 ARG NODE_VER=lts
-ARG PY_IMG_TAG=3.7.9-stretch
+ARG PY_IMG=python
+ARG PY_VER=3.7.9-stretch
 
-FROM node:${NODE_VER} as client
+FROM ${NODE_IMG}:${NODE_VER} as client
 WORKDIR /project
 COPY package.json yarn.lock ./
 RUN yarn install
 COPY . ./
 RUN yarn build --production
 
-FROM python:${PY_IMG_TAG}
+FROM ${PY_IMG}:${PY_VER}
 ARG NODE_VER=lts
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

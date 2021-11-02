@@ -8,7 +8,16 @@ endif
 DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
 DOCKER_IMAGE_LATEST ?= $(DOCKER_REGISTRY)/portal:latest
-PY_IMG_TAG ?= 3.7.9-stretch
+
+ifeq ($(shell arch),arm64)
+	PY_IMG = arm64v8/python
+	NODE_IMG = arm64v8/node
+else
+	PY_IMG = python
+	NODE_IMG = node
+endif
+
+PY_VER ?= 3.7.9-stretch
 NODE_VER ?= lts
 
 .env:
@@ -16,9 +25,10 @@ NODE_VER ?= lts
 
 .PHONY: build
 build: .env
-	docker build --build-arg PY_IMG_TAG=$(PY_IMG_TAG) \
-				 --build-arg NODE_VER=$(NODE_VER) \
-				 -t $(DOCKER_IMAGE) .
+	docker build \
+		--build-arg PY_VER=$(PY_VER) --build-arg PY_IMG=$(PY_IMG) \
+		--build-arg NODE_VER=$(NODE_VER) --build-arg NODE_IMG=$(NODE_IMG) \
+		-t $(DOCKER_IMAGE) .
 	docker tag $(DOCKER_IMAGE) $(DOCKER_IMAGE_LATEST)
 
 .PHONY: publish
