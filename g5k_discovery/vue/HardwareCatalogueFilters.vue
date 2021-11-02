@@ -269,15 +269,6 @@ export default {
       createFilter("FPGA", ".{.nodeType === 'fpga'}", {
         constraint: ["==", "$node_type", "fpga"],
       }),
-      createFilter("Low power Xeon", ".{.nodeType === 'lowpower_xeon'}", {
-        constraint: ["==", "$node_type", "lowpower_xeon"],
-      }),
-      createFilter("Atom", ".{.nodeType === 'atom'}", {
-        constraint: ["==", "$node_type", "atom"],
-      }),
-      createFilter("ARM64", ".{.nodeType === 'arm64'}", {
-        constraint: ["==", "$node_type", "arm64"],
-      }),
     ];
 
     // Needs to be an arrow-function because we need 'this' reference.

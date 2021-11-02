@@ -84,7 +84,9 @@ export const advancedCapabilities = {
       },
       NVMe: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ driver }) => driver === "nvme")
+          return storageDevices.some(({ driver, interface: iface }) =>
+            driver === "nvme" || iface.toLowerCase() === "pcie"
+          )
             ? "Yes"
             : "No";
         },

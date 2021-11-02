@@ -857,3 +857,6 @@ CACHES = {
         "LOCATION": os.environ.get("CACHE_LOCATION", "LOC_MEM_CACHE"),
     }
 }
+
+if DEBUG:
+    SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
