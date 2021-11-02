@@ -74,8 +74,8 @@ export const advancedCapabilities = {
     custom: {
       SSD: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ model }) =>
-            model.toLowerCase().includes("ssd")
+          return storageDevices.some(({ model, mediaType }) =>
+            model.toLowerCase().includes("ssd") || (mediaType || "").toLowerCase() === "ssd"
           )
             ? "Yes"
             : "No";
@@ -85,7 +85,7 @@ export const advancedCapabilities = {
       NVMe: {
         capability({ storageDevices }) {
           return storageDevices.some(({ driver, interface: iface }) =>
-            driver === "nvme" || iface.toLowerCase() === "pcie"
+            driver === "nvme" || (iface || "").toLowerCase() === "pcie"
           )
             ? "Yes"
             : "No";
