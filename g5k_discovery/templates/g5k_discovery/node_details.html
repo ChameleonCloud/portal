@@ -60,7 +60,7 @@
             <h5 class="bg-success"><strong>GPU</strong></h5>
             <div class="row">
                 <div class="col col-sm-3">
-                    <strong>GPU: </strong>{% if node.gpu.gpu %}Yes{% else %}No{% endif%}
+                    <strong>GPU: </strong>{% if node.gpu and node.gpu.gpu %}Yes{% else %}No{% endif%}
                 </div>
             </div>
             <h5 class="bg-success" data-toggle="collapse" data-target="#network"><strong>Network Adapters</strong>

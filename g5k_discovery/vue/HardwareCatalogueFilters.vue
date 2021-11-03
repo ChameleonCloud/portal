@@ -254,7 +254,7 @@ export default {
         constraint: ["==", "$node_type", "compute_haswell_ib"],
       }),
       createFilter("GPU", ".{.nodeType ^= 'gpu_'}", {
-        constraint: ["==", "$gpu.gpu", "True"],
+        constraint: [">=", "$gpu.gpu_count", 1],
       }),
       createFilter("Storage", ".{.nodeType === 'storage'}", {
         constraint: ["==", "$node_type", "storage"],
