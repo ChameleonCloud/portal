@@ -5,6 +5,8 @@ from chameleon.keystone_auth import admin_session
 
 logger = logging.getLogger("allocations")
 
+# TODO: remove after retiring redis
+
 
 class BalanceServiceClient:
     def __init__(self):

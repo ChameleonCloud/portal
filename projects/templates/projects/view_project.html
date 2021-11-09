@@ -95,8 +95,18 @@
         Request Allocation
       </a>
     {% endif %}
-
-  {% else %}
+  {% endif %}
+  
+  <table width=100%>
+    <tr>
+      <th width=10%>Status</th>
+      <th width=15%>Date Requested</th>
+      <th width=15%>Date Reviewed</th>
+      <th width=15%>Start On</th>
+      <th width=15%>End On</th>
+      <th width=25%>Usage</th>
+      <th width=5%></th>
+    </tr>
     {% for alloc in project.active_allocations %}
       {% include 'projects/allocation.html' %}
     {% endfor %}
@@ -106,19 +116,15 @@
     {% for alloc in project.pending_allocations %}
       {% include 'projects/allocation.html' %}
     {% endfor %}
-  {% endif %}
-
-  {% if project.has_active_allocations or project.has_approved_allocations or project.has_pending_allocations %}
-     {% if project.has_rejected_allocations %}
-       {% for alloc in project.rejected_allocations %}
-         {% include 'projects/allocation.html' %}
-       {% endfor %}
-     {% endif %}
-  {% endif %}
-
-  {% for alloc in project.inactive_allocations %}
-    {% include 'projects/allocation.html' %}
-  {% endfor %}
+    {% for alloc in project.rejected_allocations %}
+      {% include 'projects/allocation.html' %}
+    {% endfor %}
+    {% for alloc in project.inactive_allocations %}
+      {% include 'projects/allocation.html' %}
+    {% endfor %}
+  </table>
+  
+  {% include "projects/charge_modal.html" %}
 </div>
 
 <h3>Project Members</h3>

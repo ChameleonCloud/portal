@@ -100,6 +100,7 @@ urlpatterns = (
             "user/webinar/",
             include("webinar_registration.urls", namespace="webinar_registration"),
         ),
+        path("api/balance_service/", include("balance_service.urls")),
         # mailing list resource for mailman autosubscribe
         path(
             "mailman/new_members.txt",

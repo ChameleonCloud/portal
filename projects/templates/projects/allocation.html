@@ -1,82 +1,62 @@
-<div class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
-  <h4>
-    {{ alloc.resource }}
-    <small><span class="label label-default label-{{ alloc.status|lower }}">
-      {% if alloc.status == 'Rejected' %}
-        Not Approved
-      {% else %}
-        {{ alloc.status }}
-      {% endif %}
-    </small>
-  </h4>
+<tr class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
+<td>
+  <small><span class="label label-default label-{{ alloc.status|lower }}">
+    {{ alloc.status }}
+  </small>
   {% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
-    <div class="alert alert-warning">
-      <p>
-        <i class="fa fa-warning"></i>
-        This allocation will expire in {{alloc.renewal_days}} days.
-        {% if can_manage_project %} Submit {% else %} The project PI can submit {% endif %}
-        a recharge request to continue this allocation.
-      </p>
-    </div>
+    <small class="alert alert-warning">
+      <i class="fa fa-warning"></i>
+      This allocation will expire in {{alloc.renewal_days}} days.
+      {% if can_manage_project %} Submit {% else %} The project PI can submit {% endif %}
+      a renewal request to continue this allocation.
+    </small>
   {% endif %}
-
-  {% if alloc.status == 'Pending' %}
-    <p><b>Date requested:</b> {{ alloc.dateRequested|date:"d F, Y" }}</p>
-  {% endif %}
-
-  {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
-    <div class="row">
-      <div class="col-sm-3">
-        <h5>Start date</h5>
-        {{ alloc.start|date:"d F, Y" }}
-      </div>
-      <div class="col-sm-3">
-        <h5>End date</h5>
-        {{ alloc.end|date:"d F, Y" }}
-      </div>
-      <div class="col-sm-3">
-        <h5>Usage</h5>
-        <p>{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</p>
-        <div class="progress">
-          <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%">
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-3">
-        {% if can_manage_project and not project.has_pending_allocations and not project.has_approved_allocations %}
-          <h5>Actions</h5>
-          <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
-             title="If you are running low on SUs or your allocation period is expiring, you can submit a recharge request. An accepted request will grant up to an additional 20,000 SUs and extend the end date of the allocation for up to an additional 6 months.">
-            <i class="fa fa-refresh"></i> Recharge/extend allocation
+</td>
+<td>{{ alloc.dateRequested|date:"d F, Y" }}</td>
+<td>{{ alloc.dateReviewed|date:"d F, Y" }}</td>
+<td>{{ alloc.start|date:"d F, Y" }}</td>
+<td>{{ alloc.end|date:"d F, Y" }}</td>
+{% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
+<td style="padding-right:10px">
+  <small>{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</small>
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%"></div>
+  </div>
+</td>
+{% elif alloc.status == 'Rejected' %}
+<td>{{ alloc.decisionSummary }}</td>
+{% else %}
+<td></td>
+{% endif %}
+<td>
+  <div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {% if not can_manage_project %}disabled{%endif%}>
+      <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Manage Allocation</span>
+    </button>
+    <div class="dropdown-menu dropdown-content" aria-labelledby="dropdownMenuButton">
+      {% if can_manage_project %}
+        {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
+        <button class="btn btn-xs btn-block">
+          <a href="{% url 'projects:renew_allocation' project.id alloc.id %}">
+            Recharge/Extend Allocation
           </a>
+        </button>
+        {% elif alloc.status == 'Rejected' %}
+        <button class="btn btn-xs btn-block">
+          <a href="{% url 'projects:renew_allocation' project.id alloc.id %}">
+            Resubmit Allocation
+          </a>
+        </button>
         {% endif %}
-      </div>
+      {% endif %}
+      <button class="btn btn-xs btn-block" {% if alloc.status != 'Approved' and alloc.status != 'Active' and alloc.status != 'Inactive' %}disabled{%endif%}>
+        {% if alloc.status != 'Approved' and alloc.status != 'Active' and alloc.status != 'Inactive' %}
+        View Charges
+        {% else %}
+        <a class="open-charge" href="{% url 'projects:view_charge' alloc.id %}" data-charge-popup-url="{% url 'projects:view_charge' alloc.id %}">View Charge</a>
+        {% endif %}
+      </button>
     </div>
-  {% endif %}
-
-  {% if alloc.status == 'Rejected' %}
-    <div class="row">
-      <div class="col-sm-3">
-        <h5>Date requested</h5>
-        {{ alloc.dateRequested|date:"d F, Y" }}
-      </div>
-      <div class="col-sm-3">
-        <h5>Date reviewed</h5>
-        {{ alloc.dateReviewed|date:"d F, Y" }}
-      </div>
-      <div class="col-sm-3">
-        <h5>Decision summary</h5>
-        {{ alloc.decisionSummary }}
-      </div>
-      <div class="col-sm-3">
-      {% if can_manage_project and not project.has_pending_allocations and not project.has_active_allocations and not project.has_approved_allocations %}
-        <h5>Actions</h5>
-        <a href="{% url 'projects:renew_allocation' project.id alloc.id %}"
-           title="">
-          <i class="fa fa-refresh"></i> Resubmit allocation
-        </a>
-        {% endif %}
-        </div>
-      </div>
-  {% endif %}
-</div>
+  </div>
+</td>
+</tr>

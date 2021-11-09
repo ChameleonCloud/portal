@@ -188,11 +188,16 @@ class AllocationCreateForm(forms.Form):
     justification = forms.CharField(
         label="Resource Justification",
         help_text=(
-            "Please provide an update on the use of your current allocation - any "
-            "success stories, or just a general update on the "
-            "progress of your research on Chameleon. This is helpful "
-            "for us as we communicate with NSF regarding the value Chameleon is "
-            "bringing to the research community."
+            "If this is the first allocation request for the project, "
+            "please provide supplemental detail on how you intend "
+            "to use Chameleon to accomplish your research goals. For "
+            "extending and recharging, please provide an update on the use "
+            "of your current allocation - any success stories, or just a "
+            "general update on the progress of your research on Chameleon. "
+            "This is helpful for us as we communicate with NSF regarding "
+            "the value Chameleon is bringing to the research community. "
+            "This text will not be publicly viewable and may include details "
+            "that you do not wish to publish."
         ),
         required=True,
         widget=forms.Textarea(),
