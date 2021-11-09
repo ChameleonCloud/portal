@@ -713,6 +713,7 @@ def create_project(request):
             }
 
             project["allocations"] = [allocation]
+            project["description"] = allocation_data.pop("description", None)
 
             # source
             project["source"] = "Chameleon"
