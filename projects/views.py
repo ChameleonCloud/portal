@@ -121,8 +121,8 @@ def accept_invite(request, invite_code):
         raise Http404("That invitation does not exist!")
 
     user = request.user
-    # Check for existing day pass, use this invite instead
-    day_pass = get_day_pass(user.id, invitation.project.id)
+    # Check for existing daypass, use this invite instead
+    daypass = get_daypass(user.id, invitation.project.id)
     try:
         if accept_invite_for_user(user, invitation, mapper):
             messages.success(request, "Accepted invitation")
@@ -133,8 +133,8 @@ def accept_invite(request, invite_code):
             messages.error(request, invitation.get_cant_accept_reason())
             return HttpResponseRedirect(reverse("projects:user_projects"))
     finally:
-        if day_pass is not None:
-            day_pass.delete()
+        if daypass is not None:
+            daypass.delete()
 
 
 def accept_invite_for_user(user, invitation, mapper):
@@ -147,7 +147,7 @@ def accept_invite_for_user(user, invitation, mapper):
     return False
 
 
-def get_day_pass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
+def get_daypass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
     try:
         return Invitation.objects.get(
             status=status,
@@ -171,7 +171,7 @@ def get_invitations_beyond_duration():
 
 
 def format_timedelta(timedelta_instance):
-    # Formats a timedelta object so it can be displayed with a day pass user.
+    # Formats a timedelta object so it can be displayed with a daypass user.
     # This implementation removes the fractional seconds portion of the string.
     return str(timedelta_instance).split(".")[0]
 
@@ -284,9 +284,9 @@ def view_project(request, project_id):
                         request, 'User "%s" removed from project' % del_username
                     )
                 user = User.objects.get(username=del_username)
-                day_pass = get_day_pass(user.id, project_id)
-                if day_pass:
-                    day_pass.delete()
+                daypass = get_daypass(user.id, project_id)
+                if daypass:
+                    daypass.delete()
             except PermissionDenied as exc:
                 messages.error(request, exc)
             except Exception:
@@ -377,11 +377,11 @@ def view_project(request, project_id):
             user["email"] = portal_user.email
             user["first_name"] = portal_user.first_name
             user["last_name"] = portal_user.last_name
-            # Add if the user is on a day pass
-            existing_day_pass = get_day_pass(portal_user.id, project_id)
-            if existing_day_pass:
-                user["day_pass"] = format_timedelta(
-                    existing_day_pass.date_exceeds_duration() - timezone.now()
+            # Add if the user is on a daypass
+            existing_daypass = get_daypass(portal_user.id, project_id)
+            if existing_daypass:
+                user["daypass"] = format_timedelta(
+                    existing_daypass.date_exceeds_duration() - timezone.now()
                 )
         except User.DoesNotExist:
             logger.info("user: " + u.username + " not found")
@@ -400,7 +400,7 @@ def view_project(request, project_id):
             new_item["duration"] = i.duration
         clean_invitations.append(new_item)
 
-    is_on_day_pass = get_day_pass(request.user.id, project_id) is not None
+    is_on_daypass = get_daypass(request.user.id, project_id) is not None
 
     return render(
         request,
@@ -414,7 +414,7 @@ def view_project(request, project_id):
             "can_manage_project_membership": can_manage_project_membership,
             "can_manage_project": can_manage_project,
             "is_admin": request.user.is_superuser,
-            "is_on_day_pass": is_on_day_pass,
+            "is_on_daypass": is_on_daypass,
             "form": form,
             "nickname_form": nickname_form,
             "type_form": type_form,

@@ -238,7 +238,7 @@ class ShareTarget(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
 
 
-class DayPassRequest(models.Model):
+class DaypassRequest(models.Model):
     artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     institution = models.CharField(max_length=200)

@@ -10,9 +10,9 @@ urlpatterns = [
     path("project/<str:charge_code>", views.index_project, name="index_project"),
     path("<int:pk>", views.artifact, name="detail"),
     path("<int:pk>/launch", views.launch, name="launch"),
-    path("<int:pk>/request", views.request_day_pass, name="request_day_pass"),
-    path("requests/", views.list_day_pass_requests, name="list_day_pass_requests"),
-    path("requests/<int:request_id>", views.review_day_pass, name="review_day_pass"),
+    path("<int:pk>/request", views.request_daypass, name="request_daypass"),
+    path("requests/", views.list_daypass_requests, name="list_daypass_requests"),
+    path("requests/<int:request_id>", views.review_daypass, name="review_daypass"),
     path(
         "<int:pk>/version/<int:version_idx>",
         views.artifact,
