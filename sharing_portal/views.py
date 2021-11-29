@@ -26,10 +26,10 @@ from .forms import (
     AuthorFormset,
     ShareArtifactForm,
     ZenodoPublishFormset,
-    RequestDayPassForm,
-    ReviewDayPassForm,
+    RequestDaypassForm,
+    ReviewDaypassForm,
 )
-from .models import Artifact, ArtifactVersion, Author, ShareTarget, DayPassRequest
+from .models import Artifact, ArtifactVersion, Author, ShareTarget, DaypassRequest
 from .tasks import publish_to_zenodo
 from projects.views import (
     add_project_invitation,
@@ -457,8 +457,8 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
         }
 
     # Ensure launch URLs are authenticated if a private link is being used.
-    request_day_pass_url = preserve_sharing_key(
-        reverse("sharing_portal:request_day_pass", args=[artifact.pk]), request
+    request_daypass_url = preserve_sharing_key(
+        reverse("sharing_portal:request_daypass", args=[artifact.pk]), request
     )
     launch_url = preserve_sharing_key(launch_url, request)
 
@@ -471,7 +471,7 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
         "version": version,
         "launch_url": launch_url,
         "related_artifacts": artifact.related_items,
-        "request_day_pass_url": request_day_pass_url,
+        "request_daypass_url": request_daypass_url,
         "editable": (request.user.is_staff or (artifact.created_by == request.user)),
         "show_launch": show_launch,
     }
@@ -489,12 +489,12 @@ def launch(request, artifact, artifact_versions, version_idx=None):
             'There is no version {} for this artifact, or you do not have access.'
             .format(version_idx or '')))
 
-    # If no allocation, redirerect to request day pass
+    # If no allocation, redirerect to request daypass
     if artifact.is_reproducible and not has_active_allocations(request):
-        day_pass_request_url = preserve_sharing_key(
-            reverse("sharing_portal:request_day_pass", args=[artifact.pk]), request
+        daypass_request_url = preserve_sharing_key(
+            reverse("sharing_portal:request_daypass", args=[artifact.pk]), request
         )
-        return redirect(day_pass_request_url)
+        return redirect(daypass_request_url)
 
     version.launch_count = F("launch_count") + 1
     version.save(update_fields=["launch_count"])
@@ -503,25 +503,25 @@ def launch(request, artifact, artifact_versions, version_idx=None):
 
 @check_view_permission
 @login_required
-def request_day_pass(request, artifact, **kwargs):
+def request_daypass(request, artifact, **kwargs):
     if not artifact or not artifact.is_reproducible:
         raise Http404("That artifact either doesn't exist, or can't be reproduced")
 
     if request.method == "POST":
-        form = RequestDayPassForm(
+        form = RequestDaypassForm(
             request.POST,
             request,
         )
         if form.is_valid():
-            day_pass_request = DayPassRequest.objects.create(
+            daypass_request = DaypassRequest.objects.create(
                 artifact=artifact,
                 name=form.cleaned_data["name"],
                 institution=form.cleaned_data["institution"],
                 reason=form.cleaned_data["reason"],
                 created_by=request.user,
-                status=DayPassRequest.STATUS_PENDING,
+                status=DaypassRequest.STATUS_PENDING,
             )
-            send_request_mail(day_pass_request, request)
+            send_request_mail(daypass_request, request)
 
             messages.add_message(request, messages.SUCCESS, "Request submitted")
             return HttpResponseRedirect(
@@ -534,19 +534,19 @@ def request_day_pass(request, artifact, **kwargs):
                 (messages.add_message(request, messages.ERROR, e) for e in form.errors)
             return HttpResponseRedirect(
                 preserve_sharing_key(
-                    reverse("sharing_portal:request_day_pass", args=[artifact.pk]),
+                    reverse("sharing_portal:request_daypass", args=[artifact.pk]),
                     request,
                 )
             )
 
-    form = RequestDayPassForm(
+    form = RequestDaypassForm(
         initial={
             "name": f"{request.user.first_name} {request.user.last_name}",
             "email": request.user.email,
         }
     )
 
-    template = loader.get_template("sharing_portal/request_day_pass.html")
+    template = loader.get_template("sharing_portal/request_daypass.html")
     context = {
         "artifact": artifact,
         "form": form,
@@ -554,19 +554,20 @@ def request_day_pass(request, artifact, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
-def send_request_mail(day_pass_request, request):
+def send_request_mail(daypass_request, request):
+    LOG.info("sending request mail")
     url = request.build_absolute_uri(
-        reverse("sharing_portal:review_day_pass", args=[day_pass_request.id])
+        reverse("sharing_portal:review_daypass", args=[daypass_request.id])
     )
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     list_url = request.build_absolute_uri(
-        reverse("sharing_portal:list_day_pass_requests")
+        reverse("sharing_portal:list_daypass_requests")
     )
-    subject = f'Day pass request for "{day_pass_request.artifact.title}"'
+    subject = f'Daypass request for "{daypass_request.artifact.title}"'
     body = f"""
     <p>
     A request has been made to reproduce the artifact:
-    '{day_pass_request.artifact.title}'.
+    '{daypass_request.artifact.title}'.
     </p>
     <p>
     Review this decision by visiting <a href="{url}">this link</a>. You can
@@ -581,8 +582,9 @@ def send_request_mail(day_pass_request, request):
     """
     managers = [
         u.email
-        for u in get_project_membership_managers(day_pass_request.artifact.project)
+        for u in get_project_membership_managers(daypass_request.artifact.project)
     ]
+    LOG.info("about to sending request mail")
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -590,63 +592,64 @@ def send_request_mail(day_pass_request, request):
         message=strip_tags(body),
         html_message=body,
     )
+    LOG.info("sent mail")
 
 
 @login_required
-def review_day_pass(request, request_id, **kwargs):
+def review_daypass(request, request_id, **kwargs):
     try:
-        day_pass_request = DayPassRequest.objects.get(pk=request_id)
-    except DayPassRequest.DoesNotExist:
-        raise Http404("That day pass request does not exist")
+        daypass_request = DaypassRequest.objects.get(pk=request_id)
+    except DaypassRequest.DoesNotExist:
+        raise Http404("That daypass request does not exist")
 
-    if not day_pass_request.artifact.project or not is_membership_manager(
-        day_pass_request.artifact.project, request.user.username
+    if not daypass_request.artifact.project or not is_membership_manager(
+        daypass_request.artifact.project, request.user.username
     ):
         raise PermissionDenied("You do not have permission to view that page")
 
-    if day_pass_request.status != DayPassRequest.STATUS_PENDING:
+    if daypass_request.status != DaypassRequest.STATUS_PENDING:
         messages.add_message(
             request,
             messages.SUCCESS,
-            f"This request was already reviewed by: {day_pass_request.decision_by.username}",
+            f"This request was already reviewed by: {daypass_request.decision_by.username}",
         )
-        return HttpResponseRedirect(reverse("sharing_portal:list_day_pass_requests"))
+        return HttpResponseRedirect(reverse("sharing_portal:list_daypass_requests"))
 
     if request.method == "POST":
-        form = ReviewDayPassForm(
+        form = ReviewDaypassForm(
             request.POST,
             request,
         )
         if form.is_valid():
             status = form.cleaned_data["status"]
-            day_pass_request.status = status
-            day_pass_request.decision_at = timezone.now()
-            day_pass_request.decision_by = request.user
-            day_pass_request.save()
-            send_request_decision_mail(day_pass_request, request)
+            daypass_request.status = status
+            daypass_request.decision_at = timezone.now()
+            daypass_request.decision_by = request.user
+            daypass_request.save()
+            send_request_decision_mail(daypass_request, request)
             messages.add_message(request, messages.SUCCESS, f"Request status: {status}")
             return HttpResponseRedirect(
-                reverse("sharing_portal:detail", args=[day_pass_request.artifact.pk])
+                reverse("sharing_portal:detail", args=[daypass_request.artifact.pk])
             )
         else:
             if form.errors:
                 (messages.add_message(request, messages.ERROR, e) for e in form.errors)
             return HttpResponseRedirect(
-                reverse("sharing_portal:review_day_pass", args=[request_id])
+                reverse("sharing_portal:review_daypass", args=[request_id])
             )
 
-    form = ReviewDayPassForm()
+    form = ReviewDaypassForm()
 
-    template = loader.get_template("sharing_portal/review_day_pass.html")
+    template = loader.get_template("sharing_portal/review_daypass.html")
     context = {
-        "day_pass_request": day_pass_request,
+        "daypass_request": daypass_request,
         "form": form,
     }
     return HttpResponse(template.render(context, request))
 
 
 @login_required
-def list_day_pass_requests(request, **kwargs):
+def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
     projects = [
         project["groupName"]
@@ -654,24 +657,24 @@ def list_day_pass_requests(request, **kwargs):
         if manage_membership_in_scope(project["scopes"])
     ]
     pending_requests = (
-        DayPassRequest.objects.all()
+        DaypassRequest.objects.all()
         .filter(
             artifact__project__charge_code__in=projects,
-            status=DayPassRequest.STATUS_PENDING,
+            status=DaypassRequest.STATUS_PENDING,
         )
         .order_by("-created_at")
     )
-    for day_pass_request in pending_requests:
-        day_pass_request.url = reverse(
-            "sharing_portal:review_day_pass", args=[day_pass_request.id]
+    for daypass_request in pending_requests:
+        daypass_request.url = reverse(
+            "sharing_portal:review_daypass", args=[daypass_request.id]
         )
     reviewed_requests = (
-        DayPassRequest.objects.all()
-        .exclude(status=DayPassRequest.STATUS_PENDING)
+        DaypassRequest.objects.all()
+        .exclude(status=DaypassRequest.STATUS_PENDING)
         .filter(artifact__project__charge_code__in=projects)
         .order_by("-created_at")
     )
-    template = loader.get_template("sharing_portal/list_day_pass_requests.html")
+    template = loader.get_template("sharing_portal/list_daypass_requests.html")
     context = {
         "pending_requests": pending_requests,
         "reviewed_requests": reviewed_requests,
@@ -679,34 +682,34 @@ def list_day_pass_requests(request, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
-def send_request_decision_mail(day_pass_request, request):
-    subject = f"Day pass request has been reviewed: {day_pass_request.status}"
+def send_request_decision_mail(daypass_request, request):
+    subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
-    if day_pass_request.status == DayPassRequest.STATUS_APPROVED:
+    if daypass_request.status == DaypassRequest.STATUS_APPROVED:
         invite = add_project_invitation(
-            day_pass_request.artifact.reproducibility_project.id,
-            day_pass_request.created_by.email,
-            day_pass_request.decision_by,
+            daypass_request.artifact.reproducibility_project.id,
+            daypass_request.created_by.email,
+            daypass_request.decision_by,
             request.get_host(),
-            day_pass_request.artifact.reproduce_hours,
+            daypass_request.artifact.reproduce_hours,
             False,
         )
-        day_pass_request.invitation = invite
-        day_pass_request.save()
+        daypass_request.invitation = invite
+        daypass_request.save()
         url = get_invite_url(request, invite.email_code)
         artifact_url = request.build_absolute_uri(
-            reverse("sharing_portal:detail", args=[day_pass_request.artifact.id])
+            reverse("sharing_portal:detail", args=[daypass_request.artifact.id])
         )
         body = f"""
         <p>
-        Your day pass request to reproduce '{day_pass_request.artifact.title}'
+        Your daypass request to reproduce '{daypass_request.artifact.title}'
         has been approved. Your access is for {invite.duration} hours,
         and begins when you click <a href="{url}">this link</a>.
         </p>
         <p>
         After accepting the invitation, first you will be taken to the project
         overview page for the project you are being added to. Note that its ID,
-        {day_pass_request.artifact.reproducibility_project.charge_code}, may be
+        {daypass_request.artifact.reproducibility_project.charge_code}, may be
         required when running some artifacts.
         </p>
         <p>
@@ -728,10 +731,10 @@ def send_request_decision_mail(day_pass_request, request):
         <p>Thanks,</p>
         <p>Chameleon Team</p>
         """
-    elif day_pass_request.status == DayPassRequest.STATUS_REJECTED:
+    elif daypass_request.status == DaypassRequest.STATUS_REJECTED:
         body = f"""
         <p>
-        Your day pass request to reproduce '{day_pass_request.artifact.title}'
+        Your daypass request to reproduce '{daypass_request.artifact.title}'
         has been rejected.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
@@ -744,7 +747,7 @@ def send_request_decision_mail(day_pass_request, request):
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[day_pass_request.created_by.email],
+        recipient_list=[daypass_request.created_by.email],
         message=strip_tags(body),
         html_message=body,
     )
@@ -980,7 +983,7 @@ def create_supplemental_project(request, artifact):
         #"justification": "Automatic decision",
     }
     supplemental_project["allocations"] = [allocation_data]
-    supplemental_project["source"] = "Day pass"
+    supplemental_project["source"] = "Daypass"
     created_tas_project = mapper.save_project(supplemental_project, request.get_host())
     # We can assume only 1 here since this project is new
     #allocation = Allocation.objects.get(project_id=created_tas_project["id"])

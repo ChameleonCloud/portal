@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=models.deletion.CASCADE, related_name='reproducibility_project', to='projects.project'),
         ),
         migrations.CreateModel(
-            name='DayPassRequest',
+            name='DaypassRequest',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200)),

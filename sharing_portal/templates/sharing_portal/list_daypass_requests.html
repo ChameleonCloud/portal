@@ -1,0 +1,39 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags static pipeline bootstrap3 %}
+
+{% block title %}Review Daypass | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/daypass.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div id="app">
+  <h1>Pending requests</h1>
+  {% for daypass_request in pending_requests %}
+    <div class="daypass-request">
+      <dt>Artifact</dt><dd>{{ daypass_request.artifact.title }}</dd>
+      <dt>Name</dt><dd>{{ daypass_request.name }}</dd>
+      <dt>Email</dt><dd>{{ daypass_request.created_by.email }}</dd>
+      <dt>Institution</dt><dd>{{ daypass_request.institution }}</dd>
+      <dt>Requested at</dt><dd>{{ daypass_request.created_at }}</dd>
+      <a class="btn btn-primary" href="{{ daypass_request.url }}" target="_blank">Review</a>
+    </div>
+  {% endfor %}
+  <h1>Reviewed requests</h1>
+  {% for daypass_request in reviewed_requests %}
+    <div class="daypass-request">
+      <dt>Artifact</dt><dd>{{ daypass_request.artifact.title }}</dd>
+      <dt>Name</dt><dd>{{ daypass_request.name }}</dd>
+      <dt>Email</dt><dd>{{ daypass_request.created_by.email }}</dd>
+      <dt>Institution</dt><dd>{{ daypass_request.institution }}</dd>
+      <dt>Reviewed by</dt><dd>{{ daypass_request.decision_by }}</dd>
+      <dt>Reviewed at</dt><dd>{{ daypass_request.decision_at }}</dd>
+      <dt>Status</dt><dd>{{ daypass_request.status }}</dd>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

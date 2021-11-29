@@ -6,7 +6,7 @@ from django.forms import widgets
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Artifact, ArtifactVersion, Author, Label, DayPassRequest
+from .models import Artifact, ArtifactVersion, Author, Label, DaypassRequest
 
 import logging
 
@@ -214,7 +214,7 @@ ZenodoPublishFormset = forms.formset_factory(
 )
 
 
-class RequestDayPassForm(forms.Form):
+class RequestDaypassForm(forms.Form):
     name = forms.CharField()
     email = forms.CharField(disabled=True, required=False)
     institution = forms.CharField()
@@ -223,10 +223,10 @@ class RequestDayPassForm(forms.Form):
     )
 
 
-class ReviewDayPassForm(forms.Form):
-    status = forms.ChoiceField(required=True, choices=DayPassRequest.STATUS)
+class ReviewDaypassForm(forms.Form):
+    status = forms.ChoiceField(required=True, choices=DaypassRequest.STATUS)
 
     def clean(self):
         data = self.cleaned_data
-        if data.get("status", None) == DayPassRequest.STATUS_PENDING:
+        if data.get("status", None) == DaypassRequest.STATUS_PENDING:
             raise forms.ValidationError("You must set a status")

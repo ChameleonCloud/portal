@@ -1,7 +1,7 @@
 {% extends 'layout/default.html' %}
 {% load i18n cms_tags static pipeline bootstrap3 %}
 
-{% block title %}Request Day Pass | Chameleon Cloud{% endblock %}
+{% block title %}Request Daypass | Chameleon Cloud{% endblock %}
 
 {% block styles %}
 {{ block.super }}
@@ -17,7 +17,7 @@
   <li>
     <a href="{% url 'sharing_portal:detail' artifact.pk %}">{{ artifact.title }}</a>
   </li>
-  <li class="active">Request Day Pass</li>
+  <li class="active">Request Daypass</li>
 </ol>
 
 <div>
@@ -29,7 +29,7 @@
       <div class="layoutGrid__main">
         <div class="artifactDetail">
           <header class="artifactDetail__heading">
-            <h2 class="artifactTitle">Request Day Pass</h2>
+            <h2 class="artifactTitle">Request Daypass</h2>
           </header>
             <p>
             You are requesting temporarily access to Chameleon in order to
@@ -42,7 +42,7 @@
             <p>
             After the PI reviews your application, you will receive an email
             with the approval decision. If approved, the email will contain
-            a link that starts the day pass. Approved access for this artifact
+            a link that starts the daypass. Approved access for this artifact
             is for {{ artifact.reproduce_hours }} hours.
             </p>
             {% bootstrap_field form.name %}
