@@ -9,11 +9,13 @@ from celery.decorators import task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
 from allocations.allocations_api import BalanceServiceClient
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
+from balance_service.enforcement.usage_enforcement import TMP_RESOURCE_ID_PREFIX
 from util.keycloak_client import KeycloakClient
 
 from . import utils
@@ -277,6 +279,35 @@ def activate_expire_allocations():
     active_approved_allocations(balance_service)
 
 
+def _fill_charge_tmp_resource_ids():
+    charge_by_region = defaultdict(list)
+    for charge in Charge.objects.filter(resource_id__startswith=TMP_RESOURCE_ID_PREFIX):
+        charge_by_region[charge.region_name].append(charge)
+
+    for region in charge_by_region.keys():
+        db = utils.connect_to_region_db(region)
+        for charge in charge_by_region[region]:
+            items = charge.resource_id.split("/")
+            project_id = items[1]
+            user_id = items[2]
+            lease_start_date = items[3]
+            resource_type = charge.resource_type
+            resource_id = utils.get_resource_id(
+                db, project_id, user_id, lease_start_date, resource_type
+            )
+            if resource_id:
+                charge.resource_id = resource_id
+                charge.save()
+            else:
+                charge_dict = model_to_dict(charge)
+                LOG.error(f"Fail to find resource id for charge: {charge_dict}")
+                if charge.allocation.balance_service_version == 1:
+                    LOG.info(
+                        f"The allocation uses v1 balance service, removing charge {charge_dict}"
+                    )
+                    charge.delete()
+
+
 @task
 def check_charge():
     """
@@ -286,6 +317,8 @@ def check_charge():
     # openstack db overwrites records for updated leases, so we
     # only compare the end time and the latest hourly cost of a
     # reservation to alert on potential over-charging.
+
+    _fill_charge_tmp_resource_ids()
 
     compare_content = defaultdict(lambda: defaultdict(dict))
     for alloc in Allocation.objects.filter(status="active"):
@@ -313,7 +346,9 @@ def check_charge():
         for openstack_r in openstack_records:
             resource_id = openstack_r.get("resource_id")
             portal_r = region_resources.get(resource_id)
-            if openstack_r.get("end_time") != portal_r.get("end_time"):
+            if openstack_r.get("end_time") != portal_r.get("end_time").strftime(
+                utils.DATETIME_FORMAT
+            ):
                 LOG.error(f"{resource_id} at {region} has incorrect end time!")
             if float(openstack_r.get("hourly_cost")) != float(
                 portal_r.get("hourly_cost")

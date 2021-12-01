@@ -46,6 +46,7 @@ class Allocation(models.Model):
     start_date = models.DateTimeField(null=True)
     su_allocated = models.FloatField(null=True)
     su_used = models.FloatField(null=True)
+    balance_service_version = models.IntegerField(default=2, null=False)
 
     def as_tas(self):
         return Allocation.to_tas(self)

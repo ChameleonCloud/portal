@@ -52,6 +52,10 @@ def project_balances(project_ids) -> "list[dict]":
             total_sus = sum(
                 [get_total_sus(charge) for charge in active_allocation.charges.all()]
             )
+        else:
+            allocated_sus = 0.0
+            used_sus = 0.0
+            total_sus = 0.0
         project_balances.append(
             {
                 "id": project.id,

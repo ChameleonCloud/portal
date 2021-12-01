@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
                 ('end_time', models.DateTimeField(null=True)),
                 ('hourly_cost', models.FloatField()),
                 ('allocation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='charges', to='allocations.allocation')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='charge_user', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='charges', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.RunPython(init_charge_from_openstack_db),

@@ -1,18 +1,12 @@
-.allocation {
-  border-bottom: 1px solid #eee;
-  margin-top: 22px;
-  margin-bottom: 22px;
-
-  &:last-child {
-    border-bottom: none;
-  }
+.allocation-inactive{
+  visibility:collapse;
 }
 
-.allocation-inactive {
-  display: none;
+.allocation-rejected{
+  visibility:collapse;
 }
 
-.label-pending {
+.label-pending, .label-waiting{
   background-color: #F0AD4E;
 }
 

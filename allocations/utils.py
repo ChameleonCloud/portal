@@ -152,3 +152,29 @@ def get_floatingip_charges_by_ids(db, resource_ids=None):
     )
 
     return parse_db_query(cursor.fetchall())
+
+
+def get_resource_id(db, project_id, user_id, lease_start_date, resource_type):
+    cursor = db.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute(
+        """
+        SELECT r.id AS id
+        FROM blazar.leases AS l
+        JOIN blazar.reservations AS r ON l.id = r.lease_id
+        WHERE project_id = %(project_id)s
+        AND user_id = %(user_id)s
+        AND start_date = %(start_date)s
+        AND resource_type = %(resource_type)s
+        """,
+        {
+            "project_id": project_id,
+            "user_id": user_id,
+            "start_date": lease_start_date,
+            "resource_type": resource_type,
+        },
+    )
+    resource_id = cursor.fetchone()
+    if resource_id:
+        return resource_id.get("id")
+    else:
+        return None

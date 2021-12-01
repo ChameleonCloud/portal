@@ -62,6 +62,21 @@ class BalanceServiceClient:
         if resp.status_code != 200:
             raise RuntimeError("Balance service reset failed!")
 
+    def check_create(self, data):
+        url = self.make_url("v1/check-create")
+        headers = self._make_headers()
+        return requests.post(url, headers=headers, json=data)
+
+    def check_update(self, data):
+        url = self.make_url("v1/check-update")
+        headers = self._make_headers()
+        return requests.post(url, headers=headers, json=data)
+
+    def on_end(self, data):
+        url = self.make_url("v1/on-end")
+        headers = self._make_headers()
+        return requests.post(url, headers=headers, json=data)
+
     def make_url(self, route=None):
         url = settings.ALLOCATIONS_BALANCE_SERVICE_ROOT_URL
         if route:

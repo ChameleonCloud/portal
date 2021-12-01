@@ -6,11 +6,11 @@ from django.db import transaction
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
-    HttpResponseServerError,
     HttpResponse,
 )
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from allocations.allocations_api import BalanceServiceClient
 
 from .enforcement import exceptions as ue_exceptions
 from .enforcement import usage_enforcement
@@ -32,8 +32,8 @@ def authenticate(func):
         except (exceptions.AuthURLException, exceptions.AuthUserException) as e:
             logger.exception(e)
             return HttpResponseForbidden()
-        except Exception:
-            logger.exception("Not Authorized.")
+        except Exception as ex:
+            logger.exception(ex)
             return HttpResponseForbidden()
 
         logger.debug("user {} authorized".format(user_name))
@@ -77,26 +77,69 @@ def make_enforcement_response(check):
     return HttpResponse("", status=204)
 
 
+def _unexpected_error():
+    return ue_exceptions.EnforcementException(message="Unexpected Error", code=500)
+
+
+def _parse_external_balance_service_request(req):
+    check = None
+    if req.status_code == 403:
+        message = req.json().get("message")
+        logger.exception(message)
+        check = ue_exceptions.BillingError(message=message)
+    elif req.status_code != 204:
+        check = _unexpected_error()
+
+    return check
+
+
+def _process(enforcer, request, func_v1, fun_v2):
+    data = json.loads(request.body)
+
+    check = None
+    balance_service_version = int(enforcer.get_balance_service_version(data))
+    logger.debug(f"Using balance service version {balance_service_version}.")
+
+    # balance service v2
+    try:
+        logger.debug("checking with balance service version 2")
+        fun_v2(data)
+    except ue_exceptions.BillingError as e:
+        logger.exception(e)
+        if balance_service_version == 2:
+            check = e
+    except Exception as e:
+        logger.exception(e)
+        if balance_service_version == 2:
+            check = _unexpected_error()
+
+    # balance service v1
+    try:
+        logger.debug("checking with balance service version 1")
+        req = func_v1(data)
+        if balance_service_version == 1:
+            check = _parse_external_balance_service_request(req)
+    except Exception as e:
+        logger.exception(e)
+        if balance_service_version == 1:
+            check = _unexpected_error()
+
+    return make_enforcement_response(check)
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @authenticate
 @transaction.atomic
 def check_create(keystone_api, request):
-    data = json.loads(request.body)
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-
-    check = None
-
-    try:
-        enforcer.check_usage_against_allocation(data)
-    except ue_exceptions.BillingError as e:
-        logger.exception(e)
-        check = e
-    except Exception as e:
-        logger.exception(e)
-        return HttpResponseServerError("Unexpected Error")
-
-    return make_enforcement_response(check)
+    balance_service = BalanceServiceClient()
+    return _process(
+        enforcer,
+        request,
+        balance_service.check_create,
+        enforcer.check_usage_against_allocation,
+    )
 
 
 @csrf_exempt
@@ -104,21 +147,14 @@ def check_create(keystone_api, request):
 @authenticate
 @transaction.atomic
 def check_update(keystone_api, request):
-    data = json.loads(request.body)
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-
-    check = None
-
-    try:
-        enforcer.check_usage_against_allocation_update(data)
-    except ue_exceptions.BillingError as e:
-        logger.exception(e)
-        check = e
-    except Exception as e:
-        logger.exception(e)
-        return HttpResponseServerError("Unexpected Error")
-
-    return make_enforcement_response(check)
+    balance_service = BalanceServiceClient()
+    return _process(
+        enforcer,
+        request,
+        balance_service.check_update,
+        enforcer.check_usage_against_allocation_update,
+    )
 
 
 @csrf_exempt
@@ -126,16 +162,11 @@ def check_update(keystone_api, request):
 @authenticate
 @transaction.atomic
 def on_end(keystone_api, request):
-    data = json.loads(request.body)
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-
-    try:
-        enforcer.stop_charging(data)
-    except ue_exceptions.BillingError as e:
-        logger.exception(e)
-        return make_enforcement_response(e)
-    except Exception as e:
-        logger.exception(e)
-        return HttpResponseServerError("Unexpected Error")
-
-    return make_enforcement_response(None)
+    balance_service = BalanceServiceClient()
+    return _process(
+        enforcer,
+        request,
+        balance_service.on_end,
+        enforcer.stop_charging,
+    )

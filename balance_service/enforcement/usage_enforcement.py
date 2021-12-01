@@ -33,6 +33,9 @@ LeaseEval = collections.namedtuple(
     "LeaseEval", ["project", "user", "region", "duration", "total_su_factor", "amount"]
 )
 
+TMP_RESOURCE_ID_PREFIX = "TMP"
+TMP_RESOURCE_ID = "{prefix}/{project_id}/{user_id}/{start_date}"
+
 
 def dt_hours(dt):
     return dt.total_seconds() / 3600.0
@@ -53,7 +56,7 @@ class UsageEnforcer(object):
         balances = su_calculators.project_balances([project_id])[0]
         remaining = balances["allocated"] - balances["total"]
         LOG.info(
-            "Remaining balance for project{}: {:.2f}".format(project_id, remaining)
+            "Remaining balance for project {}: {:.2f}".format(project_id, remaining)
         )
 
         return remaining
@@ -117,6 +120,17 @@ class UsageEnforcer(object):
             amount,
         )
 
+    def get_balance_service_version(self, data):
+        """Get the balance service version of the project"""
+        keystone_project_id = data["context"]["project_id"]
+        project_charge_code = self._get_project_charge_code(keystone_project_id)
+        proj = self._get_portal_project(project_charge_code)
+        alloc = su_calculators.get_active_allocation(proj)
+        if alloc:
+            return alloc.balance_service_version
+        else:
+            return 2
+
     def check_usage_against_allocation(self, data):
         """Check if we have enough available SUs for this reservation
 
@@ -141,12 +155,18 @@ class UsageEnforcer(object):
             )
 
         # create new charges
+        alloc = su_calculators.get_active_allocation(lease_eval.project)
         for reservation in lease["reservations"]:
             new_charge = Charge(
-                allocation=su_calculators.get_active_allocation(lease_eval.project),
+                allocation=alloc,
                 user=lease_eval.user,
                 region_name=lease_eval.region,
-                resource_id=reservation["id"],
+                resource_id=TMP_RESOURCE_ID.format(
+                    prefix=TMP_RESOURCE_ID_PREFIX,
+                    project_id=lease["project_id"],
+                    user_id=lease["user_id"],
+                    start_date=lease["start_date"],
+                ),
                 resource_type=reservation["resource_type"],
                 start_time=self._convert_to_localtime(
                     self._date_from_string(lease["start_date"])
@@ -191,6 +211,7 @@ class UsageEnforcer(object):
         # create/update charges
         now = timezone.now()
         end_date_changed = old_lease["end_date"] != new_lease["end_date"]
+        alloc = su_calculators.get_active_allocation(new_lease_eval.project)
         for reservation in new_lease["reservations"]:
             new_hourly_cost = self._get_reservation_sus(
                 reservation["resource_type"], reservation["allocations"]
@@ -227,7 +248,7 @@ class UsageEnforcer(object):
                     )
                 )
             new_charge = Charge(
-                allocation=su_calculators.get_active_allocation(new_lease_eval.project),
+                allocation=alloc,
                 user=new_lease_eval.user,
                 region_name=new_lease_eval.region,
                 resource_id=reservation["id"],

@@ -30,7 +30,7 @@
 {% endif %}
 <td>
   <div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {% if not can_manage_project %}disabled{%endif%}>
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Manage Allocation</span>
     </button>
     <div class="dropdown-menu dropdown-content" aria-labelledby="dropdownMenuButton">
@@ -45,6 +45,12 @@
         <button class="btn btn-xs btn-block">
           <a href="{% url 'projects:renew_allocation' project.id alloc.id %}">
             Resubmit Allocation
+          </a>
+        </button>
+        {% elif alloc.status == 'Waiting' %}
+        <button class="btn btn-xs btn-block">
+          <a href="https://{{ host }}/user/help/">
+            Reply
           </a>
         </button>
         {% endif %}

@@ -9,7 +9,7 @@ urlpatterns = [
     path(
         "<int:project_id>/", views.get_project_allocation, name="get_project_allocation"
     ),
-    path("v1/check-create/", views.check_create, name="check_create"),
-    path("v1/check-update/", views.check_update, name="check_update"),
-    path("v1/on-end/", views.on_end, name="on_end"),
+    path("v2/check-create/", views.check_create, name="check_create"),
+    path("v2/check-update/", views.check_update, name="check_update"),
+    path("v2/on-end/", views.on_end, name="on_end"),
 ]
