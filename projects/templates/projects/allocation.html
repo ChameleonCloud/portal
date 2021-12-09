@@ -1,16 +1,20 @@
-<tr class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
-<td>
-  <small><span class="label label-default label-{{ alloc.status|lower }}">
-    {{ alloc.status }}
-  </small>
-  {% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
+{% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
+<tr>
+  <td colspan="7">
     <small class="alert alert-warning">
       <i class="fa fa-warning"></i>
       This allocation will expire in {{alloc.renewal_days}} days.
       {% if can_manage_project %} Submit {% else %} The project PI can submit {% endif %}
       a renewal request to continue this allocation.
     </small>
-  {% endif %}
+  </td>
+</tr>
+{% endif %}
+<tr class="allocation allocation-{{ alloc.status|lower }}" data-allocation-id="{{ alloc.id }}" data-allocation-status="{{ alloc.status|lower }}">
+<td>
+  <small><span class="label label-default label-{{ alloc.status|lower }}">
+    {{ alloc.status }}
+  </small>
 </td>
 <td>{{ alloc.dateRequested|date:"d F, Y" }}</td>
 <td>{{ alloc.dateReviewed|date:"d F, Y" }}</td>
