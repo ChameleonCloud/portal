@@ -86,7 +86,7 @@ def init_charge_from_openstack_db(apps, schema_editor):
                 charge["end_time"] = _str_to_localtime(charge["end_time"])
                 inserts.append(Charge(**charge))
 
-    Charge.objects.bulk_create(inserts)
+    Charge.objects.bulk_create(inserts, batch_size=1000)
 
 
 class Migration(migrations.Migration):
