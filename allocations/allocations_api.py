@@ -13,11 +13,13 @@ class BalanceServiceClient:
         if not settings.ALLOCATIONS_BALANCE_SERVICE_ROOT_URL:
             raise ValueError("Missing ALLOCATIONS_BALANCE_SERVICE_ROOT_URL")
 
-    def _make_headers(self):
+    def _make_headers(self, region=None):
         # It doesn't really matter which region we use when generating the
         # authentication token; all the balance service cares about is that
         # it is valid.
-        sess = admin_session(settings.OPENSTACK_TACC_REGION)
+        if not region:
+            region = settings.OPENSTACK_TACC_REGION
+        sess = admin_session(region)
         headers = sess.session.get_auth_headers()
         headers["Accept"] = "application/json"
         headers["Content-Type"] = "application/json"
@@ -64,17 +66,17 @@ class BalanceServiceClient:
 
     def check_create(self, data):
         url = self.make_url("v1/check-create")
-        headers = self._make_headers()
+        headers = self._make_headers(region=data["context"]["region_name"])
         return requests.post(url, headers=headers, json=data)
 
     def check_update(self, data):
         url = self.make_url("v1/check-update")
-        headers = self._make_headers()
+        headers = self._make_headers(region=data["context"]["region_name"])
         return requests.post(url, headers=headers, json=data)
 
     def on_end(self, data):
         url = self.make_url("v1/on-end")
-        headers = self._make_headers()
+        headers = self._make_headers(region=data["context"]["region_name"])
         return requests.post(url, headers=headers, json=data)
 
     def make_url(self, route=None):
