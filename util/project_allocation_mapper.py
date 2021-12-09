@@ -4,7 +4,6 @@ import time
 
 import pytz
 
-from allocations.allocations_api import BalanceServiceClient
 from allocations.models import Allocation
 from chameleon.models import PIEligibility
 from django.conf import settings
@@ -14,6 +13,8 @@ from django.db.models import Max, QuerySet
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 import logging
+from allocations.allocations_api import BalanceServiceClient
+from balance_service.utils.su_calculators import project_balances
 from projects.models import FieldHierarchy
 from projects.models import Project
 from projects.models import Type
@@ -170,15 +171,32 @@ class ProjectAllocationMapper:
                 if a.status == "active"
             }
             if fetch_balance:
-                charge_codes = all_active_allocations.keys()
-                balance_service = BalanceServiceClient()
                 logger.debug(f"Fetching balances for {len(projects)} projects")
+
+                # get balance for allocations using balance service v1
+                charge_codes = [
+                    k
+                    for k, v in all_active_allocations.items()
+                    if v.balance_service_version == 1
+                ]
+                balance_service = BalanceServiceClient()
                 for b in balance_service.bulk_get_balances(charge_codes):
                     charge_code = b.get("charge_code")
                     if charge_code:
                         all_active_allocations[charge_code].su_used = float(
                             b.get("used") or 0.0
                         ) + float(b.get("encumbered") or 0.0)
+
+                # get balance for allocations using balance service v2
+                project_ids = [
+                    a.project.id
+                    for a in all_active_allocations.values()
+                    if a.balance_service_version == 2
+                ]
+                for b in project_balances(project_ids):
+                    charge_code = b.get("charge_code")
+                    if charge_code:
+                        all_active_allocations[charge_code].su_used = b.get("used")
 
         return projects
 

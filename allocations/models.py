@@ -46,6 +46,7 @@ class Allocation(models.Model):
     start_date = models.DateTimeField(null=True)
     su_allocated = models.FloatField(null=True)
     su_used = models.FloatField(null=True)
+    balance_service_version = models.IntegerField(default=2, null=False)
 
     def as_tas(self):
         return Allocation.to_tas(self)
@@ -79,3 +80,20 @@ class Allocation(models.Model):
             "storageAllocated": 0,
             "storageRequested": 0,
         }
+
+
+class Charge(models.Model):
+    allocation = models.ForeignKey(
+        Allocation, related_name="charges", on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="charges",
+        on_delete=models.CASCADE,
+    )
+    region_name = models.TextField(blank=False)
+    resource_id = models.TextField(blank=False)
+    resource_type = models.TextField(blank=False)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField(null=True)
+    hourly_cost = models.FloatField()

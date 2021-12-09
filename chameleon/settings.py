@@ -36,17 +36,40 @@ OPENSTACK_SERVICE_PROJECT_ID = os.environ.get("OPENSTACK_SERVICE_PROJECT_ID", ""
 OPENSTACK_SERVICE_PROJECT_NAME = os.environ.get(
     "OPENSTACK_SERVICE_PROJECT_NAME", "services"
 )
+OPENSTACK_UC_AUTH_URL = os.environ.get(
+    "OPENSTACK_UC_AUTH_URL", "https://chi.uc.chameleoncloud.org:5000/v3"
+)
+OPENSTACK_TACC_AUTH_URL = os.environ.get(
+    "OPENSTACK_TACC_AUTH_URL", "https://chi.tacc.chameleoncloud.org:5000/v3"
+)
+OPENSTACK_KVM_AUTH_URL = os.environ.get(
+    "OPENSTACK_KVM_AUTH_URL", "https://kvm.tacc.chameleoncloud.org:5000/v3"
+)
 OPENSTACK_AUTH_REGIONS = {
-    OPENSTACK_UC_REGION: os.environ.get(
-        "OPENSTACK_UC_AUTH_URL", "https://chi.uc.chameleoncloud.org:5000/v3"
-    ),
-    OPENSTACK_TACC_REGION: os.environ.get(
-        "OPENSTACK_TACC_AUTH_URL", "https://chi.tacc.chameleoncloud.org:5000/v3"
-    ),
-    OPENSTACK_KVM_REGION: os.environ.get(
-        "OPENSTACK_KVM_AUTH_URL", "https://kvm.tacc.chameleoncloud.org:5000/v3"
-    ),
+    OPENSTACK_UC_REGION: OPENSTACK_UC_AUTH_URL,
+    OPENSTACK_TACC_REGION: OPENSTACK_TACC_AUTH_URL,
+    OPENSTACK_KVM_REGION: OPENSTACK_KVM_AUTH_URL,
 }
+TACC_OPENSTACK_DB_HOST = os.environ.get("TACC_OPENSTACK_DB_HOST")
+TACC_OPENSTACK_DB_USER = os.environ.get("TACC_OPENSTACK_DB_USER")
+TACC_OPENSTACK_DB_PASSWORD = os.environ.get("TACC_OPENSTACK_DB_PASSWORD")
+UC_OPENSTACK_DB_HOST = os.environ.get("UC_OPENSTACK_DB_HOST")
+UC_OPENSTACK_DB_USER = os.environ.get("UC_OPENSTACK_DB_USER")
+UC_OPENSTACK_DB_PASSWORD = os.environ.get("UC_OPENSTACK_DB_PASSWORD")
+
+REGION_OPENSTACK_DB_CONNECT = {
+    OPENSTACK_TACC_REGION: {
+        "host": TACC_OPENSTACK_DB_HOST,
+        "user": TACC_OPENSTACK_DB_USER,
+        "passwd": TACC_OPENSTACK_DB_PASSWORD,
+    },
+    OPENSTACK_UC_REGION: {
+        "host": UC_OPENSTACK_DB_HOST,
+        "user": UC_OPENSTACK_DB_USER,
+        "passwd": UC_OPENSTACK_DB_PASSWORD,
+    },
+}
+
 # Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get("SSO_CALLBACK_PROTOCOL", "https")
 SSO_CALLBACK_VALID_HOSTS = os.environ.get("SSO_CALLBACK_VALID_HOSTS", [])
@@ -132,6 +155,7 @@ INSTALLED_APPS = (
     ##
     # custom
     #
+    "balance_service",
     "chameleon",
     "chameleon_mailman",
     "chameleon_token",
@@ -406,6 +430,7 @@ LOGGING = {
         "allocations": {"handlers": ["console"], "level": "INFO"},
         "chameleon_mailman": {"handlers": ["console"], "level": "INFO"},
         "util": {"handlers": ["console"], "level": "INFO"},
+        "balance_service": {"handlers": ["console"], "level": "INFO"},
     },
 }
 
@@ -758,6 +783,7 @@ PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get(
 )
 ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY = 60 * 5
 ACTIVATE_EXPIRE_INVITATION_FREQUENCY = 60 * 5
+ALLOCATION_CHECK_CHARGE_FREQUENCY = 60 * 5
 
 ########
 # Tasks
@@ -797,6 +823,12 @@ CELERY_BEAT_SCHEDULE = {
     "warn-user-for-expiring-allocation": {
         "task": "allocations.tasks.warn_user_for_expiring_allocation",
         "schedule": crontab(minute=0, hour=7),
+    },
+    "check_charge": {
+        "task": "allocations.tasks.check_charge",
+        "schedule": crontab(
+            minute="*/{}".format(int(ALLOCATION_CHECK_CHARGE_FREQUENCY // 60))
+        ),
     },
 }
 
@@ -859,4 +891,12 @@ CACHES = {
 }
 
 if DEBUG:
-    SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+    SILENCED_SYSTEM_CHECKS = ["captcha.recaptcha_test_key_error"]
+
+
+########
+# Balance Service
+########
+ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
+    "ALLOWED_OPENSTACK_SERVICE_USERS", ["blazar", "portal"]
+)

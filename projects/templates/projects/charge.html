@@ -1,0 +1,30 @@
+{% if balance_service_version == 1 %}
+<p style="color:red">
+The following is a preview of the new allocation service.
+The sum of the used SUs from the table may not equal to the total SUs shown in the dashboard.
+</p>
+{% endif %}
+<table width="100%">
+  <tr>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Region</th>
+    <th>Resource ID</th>
+    <th>Resource Type</th>
+    <th>Start On</th>
+    <th>End On</th>
+    <th>Used SUs</th>
+  </tr>
+  {% for charge in charges %}
+  <tr>
+    <td>{{ charge.user }}</td>
+    <td>{{ charge.user_email }}</td>
+    <td>{{ charge.region_name }}</td>
+    <td>{{ charge.resource_id }}</td>
+    <td>{{ charge.resource_type }}</td>
+    <td>{{ charge.start_time }}</td>
+    <td>{{ charge.end_time }}</td>
+    <td>{{ charge.used_sus }}</td>
+  </tr>
+  {% endfor %}
+</table>

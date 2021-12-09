@@ -26,4 +26,5 @@ urlpatterns = [
         name="add_publications",
     ),
     path("publications/", pub_views.user_publications, name="publications"),
+    path("charge/<int:allocation_id>/", views.view_charge, name="view_charge"),
 ]

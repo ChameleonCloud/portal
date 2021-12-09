@@ -2,7 +2,20 @@
 (function( window, $, undefined ) {
     $('button[name="allocation-display-toggle"]').on('click', function(e) {
       e.preventDefault();
-      $('.allocation').toggleClass('show');
+      if($('.allocation-inactive, .allocation-rejected').css('visibility') == 'collapse') {
+        $('.allocation-inactive, .allocation-rejected').css('visibility', 'visible');
+      } else {
+        $('.allocation-inactive, .allocation-rejected').css('visibility', 'collapse');
+      }
+    });
+    
+    $(document).on("click", ".open-charge", function (e) {
+      e.preventDefault();
+      var $popup = $("#popup");
+      var popup_url = $(this).data("charge-popup-url");
+      $(".modal-body", $popup).load(popup_url, function () {
+        $popup.modal("show");
+      });
     });
 
     $('#icon_show_edit,#btn_cancel').on('click', function(e) {
@@ -16,10 +29,6 @@
         $('#icon_show_type_edit').toggleClass('hidden');
         $('#project_type_edit_form').toggleClass('hidden');
       });
-
-    if ($('.allocation-active').length != 0 || $('.allocation-pending').length != 0) {
-            $('.allocation-rejected').toggleClass('hide');
-    }
 
        var start =  $('#usageChart').attr('start');
        var end = $('#usageChart').attr('end');

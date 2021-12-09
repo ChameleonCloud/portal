@@ -46,6 +46,8 @@ from .forms import (
 )
 from .models import Invitation, Project, ProjectExtras
 from .util import email_exists_on_project, get_project_members, get_charge_code
+from allocations.models import Allocation, Charge
+from balance_service.utils import su_calculators
 
 logger = logging.getLogger("projects")
 
@@ -420,6 +422,7 @@ def view_project(request, project_id):
             "type_form": type_form,
             "pubs_form": pubs_form,
             "roles": ROLES,
+            "host": request.get_host(),
         },
     )
 
@@ -854,3 +857,22 @@ def get_project_membership_managers(project):
 def is_membership_manager(project, username):
     keycloak_client = KeycloakClient()
     return get_user_permissions(keycloak_client, username, project)[0]
+
+
+@login_required
+def view_charge(request, allocation_id):
+    charges = []
+    alloc = Allocation.objects.get(pk=allocation_id)
+    for charge in Charge.objects.filter(allocation__pk=allocation_id):
+        used_sus = su_calculators.get_used_sus(charge)
+        charge = model_to_dict(charge)
+        portal_user = User.objects.get(pk=charge["user"])
+        charge["user"] = f"{portal_user.first_name} {portal_user.last_name}"
+        charge["user_email"] = portal_user.email
+        charge["used_sus"] = used_sus
+        charges.append(charge)
+    return render(
+        request,
+        "projects/charge.html",
+        {"charges": charges, "balance_service_version": alloc.balance_service_version},
+    )
