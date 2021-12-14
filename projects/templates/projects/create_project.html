@@ -19,6 +19,42 @@
   
   {% bootstrap_form allocation_form %}
   
+  <p>
+  <b>Are you from an international research institution?</b>
+  <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#internationalModal">
+  	Yes
+  </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="internationalModal" role="dialog" aria-labelledby="internationalModalLabel" aria-hidden="true" style="padding-top:10%;">
+    <div class="modal-dialog" role="document" style="width: 70%;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="internationalModalLabel">Thank you for your interest in Chameleon!</h4>
+        </div>
+        <div class="modal-body">
+        <p>
+        While we would like to serve as many international collaborators as possible, the intent of the system is to serve 
+        the primarily US community of researchers and their collaborators. Our capability to support international PIs is 
+        thus limited and for this reason, we are vetting project requests from international collaborators more closely. 
+        </p>
+        <p>
+        Could you tell us more in the Resource Justification section about what types of resources you are likely to need 
+        (in particular, our KVM cloud or other resources), and what contributions you are planning to make to the Chameleon 
+        community (e.g., provide electronic packaging of experiments, class materials, etc.)? If you are working with US 
+        collaborators or a project that already uses Chameleon, please make sure to provide the details as they will be 
+        instrumental in our decision.
+        </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </p>
+  
   {% include "projects/fundings.html" %}
 
   <div class="form-group">

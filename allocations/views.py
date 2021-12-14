@@ -5,6 +5,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
+from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 import logging
@@ -55,9 +56,18 @@ def get_all_alloc(request):
         json: dumps all data as serialized json.
     """
     try:
+        keycloak_client = KeycloakClient()
+        user_attributes = keycloak_client.get_all_users_attributes()
         mapper = ProjectAllocationMapper(request)
         resp = mapper.get_all_projects()
         logger.debug("Total projects: %s", len(resp))
+        for r in resp:
+            pi_attributes = user_attributes.get(r["pi"]["username"])
+            if pi_attributes:
+                institution = pi_attributes.get("affiliationInstitution")
+                country = pi_attributes.get("country")
+                r["pi"]["institution"] = next(iter(institution), None)
+                r["pi"]["country"] = next(iter(country), None)
     except Exception as e:
         logger.exception("Error loading chameleon projects")
         messages.error(request, e)
