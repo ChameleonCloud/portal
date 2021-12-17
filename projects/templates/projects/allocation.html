@@ -1,5 +1,5 @@
 {% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
-<tr>
+<tr class="allocation allocation-{{ alloc.status|lower }}">
   <td colspan="7">
     <small class="alert alert-warning">
       <i class="fa fa-warning"></i>

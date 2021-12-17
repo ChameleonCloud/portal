@@ -105,6 +105,15 @@ class KeycloakClient:
         else:
             return None
 
+    def get_all_users_attributes(self):
+        keycloakusers = self._users_admin()
+
+        result = {}
+        for user in keycloakusers.all(max_results=-1):
+            result[user["username"]] = user.get("attributes")
+
+        return result
+
     def get_user_projects_by_username(self, username):
         user = self.get_user_by_username(username)
         if not user:
