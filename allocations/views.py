@@ -62,10 +62,10 @@ def get_all_alloc(request):
         resp = mapper.get_all_projects()
         logger.debug("Total projects: %s", len(resp))
         for r in resp:
-            pi_attributes = user_attributes.get(r["pi"]["username"])
+            pi_attributes = user_attributes.get(r["pi"]["username"], {})
             if pi_attributes:
-                institution = pi_attributes.get("affiliationInstitution")
-                country = pi_attributes.get("country")
+                institution = pi_attributes.get("affiliationInstitution", [])
+                country = pi_attributes.get("country", [])
                 r["pi"]["institution"] = next(iter(institution), None)
                 r["pi"]["country"] = next(iter(country), None)
     except Exception as e:
