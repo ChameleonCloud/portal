@@ -32,11 +32,11 @@ export const simpleCapabilities = {
   },
   "# Threads": {
     capability: ".architecture.smtSize",
-    tagPrefix: "Threads: "
+    tagPrefix: "Threads: ",
   },
   "RAM Size": {
     capability: ".mainMemory.humanizedRamSize",
-    tagPrefix: "RAM: "
+    tagPrefix: "RAM: ",
   },
   "Total Storage": {
     capability(node) {
@@ -53,8 +53,8 @@ export const simpleCapabilities = {
       }
       return "Unknown";
     },
-    tagPrefix: "Storage: "
-  }
+    tagPrefix: "Storage: ",
+  },
 };
 
 export const advancedCapabilities = {
@@ -69,15 +69,17 @@ export const advancedCapabilities = {
           return networkAdapters.filter(({ enabled }) => enabled).length;
         },
         tagPrefix: "Networks: ",
-      }
-    }
+      },
+    },
   },
   "Storage Devices": {
     custom: {
       SSD: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ model, mediaType }) =>
-            model.toLowerCase().includes("ssd") || (mediaType || "").toLowerCase() === "ssd"
+          return storageDevices.some(
+            ({ model, mediaType }) =>
+              model.toLowerCase().includes("ssd") ||
+              (mediaType || "").toLowerCase() === "ssd"
           )
             ? "Yes"
             : "No";
@@ -86,8 +88,9 @@ export const advancedCapabilities = {
       },
       NVMe: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ driver, interface: iface }) =>
-            driver === "nvme" || (iface || "").toLowerCase() === "pcie"
+          return storageDevices.some(
+            ({ driver, interface: iface }) =>
+              driver === "nvme" || (iface || "").toLowerCase() === "pcie"
           )
             ? "Yes"
             : "No";
