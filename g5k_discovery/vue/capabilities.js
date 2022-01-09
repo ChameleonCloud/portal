@@ -59,6 +59,7 @@ export const simpleCapabilities = {
 export const advancedCapabilities = {
   Processor: { discover: { prefix: ".processor" } },
   Placement: { discover: { prefix: ".placement", ignore: ["node"] } },
+  GPU: { discover: { prefix: ".gpu" } },
   FPGA: { discover: { prefix: ".fpga" } },
   "Network Devices": {
     custom: {
