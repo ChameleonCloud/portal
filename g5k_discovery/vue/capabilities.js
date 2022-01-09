@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+const GPUDIRECT_MODELS = ["v100", "p100", "m40", "k80", "rtx 6000"];
 const GB_FACTOR = 1024 * 1024 * 1024;
 const storageSizeBuckets = {
   "< 200GB": [0, 200 * GB_FACTOR],
@@ -94,5 +95,37 @@ export const advancedCapabilities = {
         tagPrefix: "NVMe: ",
       },
     },
-  }
+  },
+  RDMA: {
+    custom: {
+      InfiniBand: {
+        capability({ infiniband }) {
+          return infiniband ? "Yes" : "No";
+        },
+      },
+      GPUDirect: {
+        capability({ infiniband, gpu }) {
+          let ib_present = infiniband;
+          let gpu_present = false;
+          if (gpu) {
+            if (gpu.gpuModel) {
+              gpu_present = gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS;
+              console.log(gpu);
+            }
+          }
+          return ib_present && gpu_present ? "Yes" : "No";
+        },
+      },
+      NVMEoF: {
+        capability({ infiniband, storageDevices }) {
+          let ib_present = infiniband;
+          let nvme_present = storageDevices.some(
+            ({ driver, interface: iface }) =>
+              driver === "nvme" || (iface || "").toLowerCase() === "pcie"
+          );
+          return ib_present && nvme_present ? "Yes" : "No";
+        },
+      },
+    },
+  },
 };
