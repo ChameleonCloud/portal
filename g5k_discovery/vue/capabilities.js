@@ -108,25 +108,25 @@ export const advancedCapabilities = {
       },
       GPUDirect: {
         capability({ infiniband, gpu }) {
-          let ib_present = infiniband;
-          let gpu_present = false;
+          let ibPresent = infiniband;
+          let gpuPresent = false;
           if (gpu) {
             if (gpu.gpuModel) {
-              gpu_present = gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS;
+              gpuPresent = gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS;
               console.log(gpu);
             }
           }
-          return ib_present && gpu_present ? "Yes" : "No";
+          return ibPresent && gpuPresent ? "Yes" : "No";
         },
       },
       NVMEoF: {
         capability({ infiniband, storageDevices }) {
-          let ib_present = infiniband;
-          let nvme_present = storageDevices.some(
+          let ibPresent = infiniband;
+          let nvmePresent = storageDevices.some(
             ({ driver, interface: iface }) =>
               driver === "nvme" || (iface || "").toLowerCase() === "pcie"
           );
-          return ib_present && nvme_present ? "Yes" : "No";
+          return ibPresent && nvmePresent ? "Yes" : "No";
         },
       },
     },
