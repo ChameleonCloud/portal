@@ -108,15 +108,12 @@ export const advancedCapabilities = {
       },
       GPUDirect: {
         capability({ infiniband, gpu }) {
-          let ibPresent = infiniband;
-          let gpuPresent = false;
-          if (gpu) {
-            if (gpu.gpuModel) {
-              gpuPresent = gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS;
-              console.log(gpu);
-            }
-          }
-          return ibPresent && gpuPresent ? "Yes" : "No";
+          return infiniband &&
+            gpu &&
+            gpu.gpuModel &&
+            gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS
+            ? "Yes"
+            : "No";
         },
       },
       NVMEoF: {
