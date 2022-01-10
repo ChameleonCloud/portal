@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+const GPUDIRECT_MODELS = ["v100", "p100", "m40", "k80", "rtx 6000"];
 const GB_FACTOR = 1024 * 1024 * 1024;
 const storageSizeBuckets = {
   "< 200GB": [0, 200 * GB_FACTOR],
@@ -31,11 +32,11 @@ export const simpleCapabilities = {
   },
   "# Threads": {
     capability: ".architecture.smtSize",
-    tagPrefix: "Threads: "
+    tagPrefix: "Threads: ",
   },
   "RAM Size": {
     capability: ".mainMemory.humanizedRamSize",
-    tagPrefix: "RAM: "
+    tagPrefix: "RAM: ",
   },
   "Total Storage": {
     capability(node) {
@@ -52,13 +53,14 @@ export const simpleCapabilities = {
       }
       return "Unknown";
     },
-    tagPrefix: "Storage: "
-  }
+    tagPrefix: "Storage: ",
+  },
 };
 
 export const advancedCapabilities = {
   Processor: { discover: { prefix: ".processor" } },
   Placement: { discover: { prefix: ".placement", ignore: ["node"] } },
+  GPU: { discover: { prefix: ".gpu" } },
   FPGA: { discover: { prefix: ".fpga" } },
   "Network Devices": {
     custom: {
@@ -67,15 +69,17 @@ export const advancedCapabilities = {
           return networkAdapters.filter(({ enabled }) => enabled).length;
         },
         tagPrefix: "Networks: ",
-      }
-    }
+      },
+    },
   },
   "Storage Devices": {
     custom: {
       SSD: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ model, mediaType }) =>
-            model.toLowerCase().includes("ssd") || (mediaType || "").toLowerCase() === "ssd"
+          return storageDevices.some(
+            ({ model, mediaType }) =>
+              model.toLowerCase().includes("ssd") ||
+              (mediaType || "").toLowerCase() === "ssd"
           )
             ? "Yes"
             : "No";
@@ -84,8 +88,9 @@ export const advancedCapabilities = {
       },
       NVMe: {
         capability({ storageDevices }) {
-          return storageDevices.some(({ driver, interface: iface }) =>
-            driver === "nvme" || (iface || "").toLowerCase() === "pcie"
+          return storageDevices.some(
+            ({ driver, interface: iface }) =>
+              driver === "nvme" || (iface || "").toLowerCase() === "pcie"
           )
             ? "Yes"
             : "No";
@@ -93,5 +98,34 @@ export const advancedCapabilities = {
         tagPrefix: "NVMe: ",
       },
     },
-  }
+  },
+  RDMA: {
+    custom: {
+      InfiniBand: {
+        capability({ infiniband }) {
+          return infiniband ? "Yes" : "No";
+        },
+      },
+      GPUDirect: {
+        capability({ infiniband, gpu }) {
+          return infiniband &&
+            gpu &&
+            gpu.gpuModel &&
+            gpu.gpuModel.toLowerCase() in GPUDIRECT_MODELS
+            ? "Yes"
+            : "No";
+        },
+      },
+      NVMEoF: {
+        capability({ infiniband, storageDevices }) {
+          let ibPresent = infiniband;
+          let nvmePresent = storageDevices.some(
+            ({ driver, interface: iface }) =>
+              driver === "nvme" || (iface || "").toLowerCase() === "pcie"
+          );
+          return ibPresent && nvmePresent ? "Yes" : "No";
+        },
+      },
+    },
+  },
 };
