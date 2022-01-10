@@ -34,7 +34,7 @@ LeaseEval = collections.namedtuple(
 )
 
 TMP_RESOURCE_ID_PREFIX = "TMP"
-TMP_RESOURCE_ID = "{prefix}/{project_id}/{user_id}/{start_date}"
+TMP_RESOURCE_ID = "{prefix}/{project_id}/{user_id}/{start_date}/{name}"
 
 
 def dt_hours(dt):
@@ -166,6 +166,7 @@ class UsageEnforcer(object):
                     project_id=lease["project_id"],
                     user_id=lease["user_id"],
                     start_date=lease["start_date"],
+                    name=lease["name"],
                 ),
                 resource_type=reservation["resource_type"],
                 start_time=self._convert_to_localtime(

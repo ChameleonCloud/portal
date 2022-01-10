@@ -287,13 +287,14 @@ def _fill_charge_tmp_resource_ids():
     for region in charge_by_region.keys():
         db = utils.connect_to_region_db(region)
         for charge in charge_by_region[region]:
-            items = charge.resource_id.split("/")
+            items = charge.resource_id.split("/", maxsplit=4)
             project_id = items[1]
             user_id = items[2]
             lease_start_date = items[3]
+            name = items[4]
             resource_type = charge.resource_type
             resource_id = utils.get_resource_id(
-                db, project_id, user_id, lease_start_date, resource_type
+                db, project_id, user_id, lease_start_date, resource_type, name
             )
             if resource_id:
                 charge.resource_id = resource_id
