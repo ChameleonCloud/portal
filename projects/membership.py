@@ -1,26 +1,59 @@
+from datetime import datetime
 from django.contrib.auth import get_user_model
-from util.keycloak_client import KeycloakClient
+from util.keycloak_client import KeycloakClient, UserAttributes
 
 
-def _update_user_membership(tas_project, user_ref, action=None):
-    if action not in ["add", "delete"]:
-        raise ValueError("Invalid membership action {}".format(action))
+def get_user(user_ref):
+    """Look up a user given a username OR an email address.
 
+    Args:
+        user_ref (str): the username or email address to look up.
+
+    Returns: the UserModel instance corresponding to the user.
+
+    Raises:
+        UserModel.DoesNotExist: if the user cannot be found.
+    """
     UserModel = get_user_model()
     try:
-        user = UserModel.objects.get(username=user_ref)
+        return UserModel.objects.get(username=user_ref)
     except UserModel.DoesNotExist:
-        user = UserModel.objects.get(email=user_ref)
-
-    charge_code = tas_project.chargeCode
-    keycloak_client = KeycloakClient()
-    keycloak_client.update_membership(charge_code, user.username, action)
-    return True
+        return UserModel.objects.get(email=user_ref)
 
 
 def add_user_to_project(tas_project, user_ref):
-    return _update_user_membership(tas_project, user_ref, action="add")
+    """Add a user to a Keycloak group representing a Chameleon project.
+
+    If this is the first time the user has been added to any project, also set an
+    attribute with the current date indicating when the user joined their first project.
+
+    Args:
+        tas_project (pytas.Project): the TAS project representation.
+        user_ref (str): the username or email address of the user.
+    """
+    keycloak_client = KeycloakClient()
+    user = get_user(user_ref)
+    keycloak_client.update_membership(tas_project.chargeCode, user.username, "add")
+
+    # Check if this is the first time joining an allocation
+    kc_user = keycloak_client.get_user_by_username(user.username)
+    if not kc_user["attributes"].get(UserAttributes.LIFECYCLE_ALLOCATION_JOINED):
+        keycloak_client.update_user(
+            user.username, lifecycle_allocation_joined=datetime.now()
+        )
+
+    return True
 
 
 def remove_user_from_project(tas_project, user_ref):
-    return _update_user_membership(tas_project, user_ref, action="delete")
+    """Remove a user from a Keycloak group representing a Chameleon project.
+
+    Args:
+        tas_project (pytas.Project): the TAS project representation.
+        user_ref (str): the username or email address of the user.
+    """
+    keycloak_client = KeycloakClient()
+    user = get_user(user_ref)
+    keycloak_client.update_membership(tas_project.chargeCode, user.username, "delete")
+
+    return True

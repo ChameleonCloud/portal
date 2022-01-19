@@ -1,14 +1,22 @@
-from keycloak.realm import KeycloakRealm
-from keycloak.admin.users import User, Users
+import json
+import logging
+from datetime import datetime, timezone
+
+from django.conf import settings
 from keycloak.admin.groups import Groups
 from keycloak.admin.user.usergroup import UserGroups
 from keycloak.admin.user.usergrouproles import UserGroupRoles
+from keycloak.admin.users import User, Users
 from keycloak.exceptions import KeycloakClientError
-from django.conf import settings
-import json
-import logging
+from keycloak.realm import KeycloakRealm
 
 logger = logging.getLogger(__name__)
+
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+class UserAttributes:
+    LIFECYCLE_ALLOCATION_JOINED = "lifecycleAllocationJoined"
 
 
 class DuplicateUserError(Exception):
@@ -268,6 +276,7 @@ class KeycloakClient:
         country=None,
         citizenship=None,
         phone=None,
+        lifecycle_allocation_joined: "datetime" = None,
     ):
         user = self.get_user_by_username(username)
         if not user:
@@ -287,6 +296,11 @@ class KeycloakClient:
             update_attrs["citizenship"] = citizenship
         if phone is not None:
             update_attrs["phone"] = phone
+        if lifecycle_allocation_joined is not None:
+            dt = lifecycle_allocation_joined.astimezone(timezone.utc)
+            update_attrs[UserAttributes.LIFECYCLE_ALLOCATION_JOINED] = dt.strftime(
+                DATETIME_FORMAT
+            )
 
         update_kwargs = {"attributes": update_attrs}
         if email is not None:
