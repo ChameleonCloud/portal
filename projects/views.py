@@ -16,10 +16,7 @@ from django.utils import timezone
 from django.core.validators import validate_email
 from django.http import (
     Http404,
-    HttpResponse,
-    HttpResponseBadRequest,
     HttpResponseForbidden,
-    HttpResponseNotAllowed,
     HttpResponseRedirect,
     JsonResponse,
 )
@@ -33,6 +30,7 @@ from util.project_allocation_mapper import ProjectAllocationMapper
 from util.keycloak_client import KeycloakClient
 
 from projects.serializer import ProjectExtrasJSONSerializer
+from . import membership
 
 from .forms import (
     AddBibtexPublicationForm,
@@ -144,7 +142,7 @@ def accept_invite_for_user(user, invitation, mapper):
         invitation.accept(user)
         project = mapper.get_project(invitation.project.id)
         user_ref = invitation.user_accepted.username
-        mapper.add_user_to_project(project, user_ref)
+        membership.add_user_to_project(project, user_ref)
         return True
     return False
 
@@ -191,8 +189,6 @@ def view_project(request, project_id):
 
     try:
         project = mapper.get_project(project_id)
-        if project.source != "Chameleon":
-            raise Http404("The requested project does not exist!")
     except Exception as e:
         logger.error(e)
         raise Http404("The requested project does not exist!")
@@ -219,7 +215,7 @@ def view_project(request, project_id):
                 try:
                     add_username = form.cleaned_data["user_ref"]
                     user = User.objects.get(username=add_username)
-                    if mapper.add_user_to_project(project, add_username):
+                    if membership.add_user_to_project(project, add_username):
                         messages.success(
                             request, f'User "{add_username}" added to project!'
                         )
@@ -261,10 +257,7 @@ def view_project(request, project_id):
                         )
                 except Exception:
                     logger.exception("Failed adding user")
-                    messages.error(
-                        request,
-                        "Unable to add user. Please try again."
-                    )
+                    messages.error(request, "Unable to add user. Please try again.")
             else:
                 messages.error(
                     request,
@@ -281,7 +274,7 @@ def view_project(request, project_id):
                     raise PermissionDenied(
                         "Removing the PI from the project is not allowed."
                     )
-                if mapper.remove_user_from_project(project, del_username):
+                if membership.remove_user_from_project(project, del_username):
                     messages.success(
                         request, 'User "%s" removed from project' % del_username
                     )
@@ -334,7 +327,7 @@ def view_project(request, project_id):
                 messages.error(
                     request,
                     "An unexpected error occurred while attempting "
-                    "to resend this invitation. Please try again"
+                    "to resend this invitation. Please try again",
                 )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
@@ -774,7 +767,13 @@ def edit_project(request):
 def edit_nickname(request, project_id):
     mapper = ProjectAllocationMapper(request)
     project = mapper.get_project(project_id)
-    if not project_pi_or_admin_or_superuser(request.user, project):
+
+    keycloak_client = KeycloakClient()
+    _, can_manage_project = get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
+
+    if not (can_manage_project or is_admin_or_superuser(request.user)):
         messages.error(request, "Only the project PI can update nickname.")
         return EditNicknameForm()
 
