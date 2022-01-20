@@ -535,7 +535,7 @@ PIPELINE = {
     "COMPILERS": ("pipeline.compilers.sass.SASSCompiler",),
     "SASS_ARGUMENTS": "--compass --style compressed",
     "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
-    "JS_COMPRESSOR": "pipeline.compressors.slimit.SlimItCompressor",
+    "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
     "STYLESHEETS": {
         "main": {
             "source_filenames": (

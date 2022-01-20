@@ -33,8 +33,11 @@ WORKDIR /setup
 
 # BUG: this is not being carried over from the builder somehow
 COPY package.json yarn.lock ./
+# uglify-js: for JS compression
+# yuglify: for CSS compression
 RUN npm install -g \
-yuglify
+  uglify-js \
+  yuglify
 
 # Use pip to install poetry. We don't use virtualenvs in the build context.
 # Therefore, the vendored install provides no additional isolation.

@@ -6,7 +6,7 @@ line-length = 88
 exclude = "/*migrations*/"
 
 [tool.poetry]
-authors = ["Michael Sherman <shermanm@uchicago.edu>"]
+authors = ["Chameleon Cloud <contact@chameleoncloud.org>"]
 description = ""
 name = "portal"
 version = "0.1.0"
@@ -66,7 +66,6 @@ redis = "^3.5.3"
 requests = "^2.25.1"
 rt = "^2.0.1"
 six = "^1.15.0"
-slimit = "^0.8.1"
 sqlparse = "^0.4.1"
 django-recaptcha = "^2.0.6"
 uWSGI = "^2.0.19"
