@@ -519,7 +519,7 @@ Django = ">=2.2"
 
 [[package]]
 name = "django-impersonate"
-version = "1.6"
+version = "1.7.3"
 description = "Django app to allow superusers to impersonate other users."
 category = "main"
 optional = false
@@ -2227,7 +2227,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "46cccd05beb0be7aefd225002d6d8350892761104578895a8f1153366ce69a25"
+content-hash = "6686c69d6c4aa65596bfbfb5f8675234221ad8ecfc9a45a14a728e7ea264ff08"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2450,7 +2450,7 @@ django-formtools = [
     {file = "django_formtools-2.3-py3-none-any.whl", hash = "sha256:4699937e19ee041d803943714fe0c1c7ad4cab802600eb64bbf4cdd0a1bfe7d9"},
 ]
 django-impersonate = [
-    {file = "django-impersonate-1.6.tar.gz", hash = "sha256:4cf2ee84b7b1956e8d74e6da2d94bcb1c38bd9856693fb78f135cfad912a7424"},
+    {file = "django-impersonate-1.7.3.tar.gz", hash = "sha256:282003957577c7143fe31e5861f8fffdf6fe0c25557aedb28fcf8b11474eaa23"},
 ]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},
