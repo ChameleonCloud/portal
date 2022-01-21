@@ -18,8 +18,22 @@
       <tr>
         <th>PI</th>
         <td>
+        {% if is_admin %}
           {{ project.pi.firstName }} {{ project.pi.lastName }} <a href="mailto:{{ project.pi.email }}">&lt;{{ project.pi.email }}&gt;</a>
           {% if project.pi.institution %}{{ project.pi.institution}}{% endif %}
+          <span id='icon_show_pi_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
+          <span id='project_pi_edit_form' class='hidden'>
+          <form method="POST" id='project_pi_edit_form' name='frm_edit_pi'>
+          {% csrf_token %}
+          {% bootstrap_form pi_form %}
+          <button type="submit" class="btn btn-xs" id="btn_update_project_pi">Update</button>
+          <button type="button" class="btn btn-xs" id="btn_pi_cancel">Cancel</button>
+          </form>
+          </span>
+        {% else %}
+          {{ project.pi.firstName }} {{ project.pi.lastName }} <a href="mailto:{{ project.pi.email }}">&lt;{{ project.pi.email }}&gt;</a>
+          {% if project.pi.institution %}{{ project.pi.institution}}{% endif %}
+        {% endif %}
         </td>
       </tr>
       <tr>

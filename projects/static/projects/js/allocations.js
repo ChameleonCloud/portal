@@ -29,6 +29,12 @@
         $('#icon_show_type_edit').toggleClass('hidden');
         $('#project_type_edit_form').toggleClass('hidden');
       });
+      
+    $('#icon_show_pi_edit,#btn_pi_cancel').on('click', function(e) {
+        $('#project_pi').toggleClass('hidden');
+        $('#icon_show_pi_edit').toggleClass('hidden');
+        $('#project_pi_edit_form').toggleClass('hidden');
+      });
 
        var start =  $('#usageChart').attr('start');
        var end = $('#usageChart').attr('end');

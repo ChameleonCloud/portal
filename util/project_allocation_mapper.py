@@ -290,6 +290,24 @@ class ProjectAllocationMapper:
         project.type = project_type
         project.save()
 
+    @staticmethod
+    def update_project_pi(project_id, project_pi_username):
+        project = Project.objects.get(pk=project_id)
+
+        # update keycloak
+        keycloak_client = KeycloakClient()
+        keycloak_client.set_user_project_role(
+            project_pi_username, project.charge_code, "admin"
+        )
+        keycloak_client.set_user_project_role(
+            project.pi.username, project.charge_code, "member"
+        )
+
+        # update portal
+        UserModel = get_user_model()
+        project.pi = UserModel.objects.get(username=project_pi_username)
+        project.save()
+
     def update_user_profile(
         self, user, new_profile, is_request_pi_eligibililty, department_directory_link
     ):

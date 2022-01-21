@@ -37,6 +37,7 @@ from .forms import (
     AllocationCreateForm,
     ConsentForm,
     EditNicknameForm,
+    EditPIForm,
     EditTypeForm,
     FundingFormset,
     ProjectAddUserForm,
@@ -50,6 +51,10 @@ from balance_service.utils import su_calculators
 logger = logging.getLogger("projects")
 
 ROLES = ["Manager", "Member"]
+
+
+class UserNotPIEligible(Exception):
+    pass
 
 
 def is_admin_or_superuser(user):
@@ -94,6 +99,10 @@ def manage_project_in_scope(scopes):
 def get_user_permissions(keycloak_client, username, project):
     role, scopes = get_user_project_role_scopes(keycloak_client, username, project)
     return manage_membership_in_scope(scopes), manage_project_in_scope(scopes)
+
+
+def is_pi_eligible(user):
+    return user.pi_eligibility().lower() == "eligible"
 
 
 @login_required
@@ -198,6 +207,7 @@ def view_project(request, project_id):
     type_form_args = {"request": request}
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
+    pi_form = EditPIForm()
 
     can_manage_project_membership, can_manage_project = get_user_permissions(
         keycloak_client, request.user.username, project
@@ -333,6 +343,8 @@ def view_project(request, project_id):
             nickname_form = edit_nickname(request, project_id)
         elif "typeId" in request.POST:
             type_form = edit_type(request, project_id)
+        elif "pi_username" in request.POST:
+            pi_form = edit_pi(request, project_id)
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -413,6 +425,7 @@ def view_project(request, project_id):
             "form": form,
             "nickname_form": nickname_form,
             "type_form": type_form,
+            "pi_form": pi_form,
             "pubs_form": pubs_form,
             "roles": ROLES,
             "host": request.get_host(),
@@ -815,15 +828,57 @@ def edit_type(request, project_id):
             form = EditTypeForm(**form_args)
             messages.success(
                 request,
-                "Update successful! Click <a href='{}'>here</a> to reload".format(
-                    request.path
-                ),
+                "Update successful! Please refresh the page.",
             )
         except Exception:
             logger.exception("Failed to update project type")
             messages.error(request, "Failed to update project type")
     else:
         messages.error(request, "Failed to update project type")
+
+    return form
+
+
+@require_POST
+def edit_pi(request, project_id):
+    if not request.user.is_superuser:
+        messages.error(request, "Only the admin users can update project PI.")
+        return EditPIForm(request.POST)
+
+    form = EditPIForm(request.POST)
+    if form.is_valid():
+        project_pi_username = form.cleaned_data["pi_username"]
+        # try to update PI
+        try:
+            new_pi = User.objects.get(username=project_pi_username)
+            if not is_pi_eligible(new_pi):
+                raise UserNotPIEligible()
+            ProjectAllocationMapper.update_project_pi(project_id, project_pi_username)
+            form = EditPIForm(request.POST)
+            messages.success(
+                request,
+                "Update successful! Please refresh the page.",
+            )
+        except User.DoesNotExist:
+            messages.error(
+                request,
+                f"Failed to update project PI. The user {project_pi_username} does not exist.",
+            )
+        except User.MultipleObjectsReturned:
+            messages.error(
+                request,
+                f"Failed to update project PI. Multiple {project_pi_username} were found.",
+            )
+        except UserNotPIEligible:
+            messages.error(
+                request,
+                f"Failed to update project PI. The user {project_pi_username} is not PI Eligible.",
+            )
+        except Exception:
+            logger.exception("Failed to update project PI.")
+            messages.error(request, "Failed to update project PI.")
+    else:
+        messages.error(request, "Failed to update project PI.")
 
     return form
 
