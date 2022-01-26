@@ -118,6 +118,16 @@ class EditTypeForm(forms.Form):
             logger.error("Couldn't get type list.")
 
 
+class EditPIForm(forms.Form):
+    pi_username = forms.CharField(
+        label="",
+        max_length="500",
+        help_text="",
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "PI username"}),
+    )
+
+
 class FundingForm(forms.Form):
 
     id = forms.IntegerField(
