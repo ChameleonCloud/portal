@@ -2,14 +2,20 @@ import hashlib
 import hmac
 import os
 import requests
+import pprint
 from time import time
 
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
-from sharing_portal.models import ArtifactVersion
+from sharing_portal.models import ArtifactVersion, Artifact, Label
+from sharing_portal import trovi
 from sharing_portal.zenodo import DepositionMetadata, ZenodoClient
+
+from keycloak.realm import KeycloakRealm
+from util.keycloak_client import KeycloakClient
+from collections import namedtuple
 
 LOG = get_task_logger(__name__)
 
@@ -74,3 +80,149 @@ def _temp_url(deposition_id):
     ).hexdigest()
     return ('{origin}{path}?temp_url_sig={sig}&temp_url_expires={expires}'
         .format(origin=origin, path=path, sig=sig, expires=expires))
+
+
+@task
+def sync_to_trovi(artifact_id):
+    token = _get_trovi_token()
+    print("Syncing global tags")
+    trovi_tags = [t["tag"] for t in trovi.list_tags(token)]
+    for tag in Label.objects.all():
+        if tag.label not in trovi_tags:
+            trovi.create_tag(token, tag.label)
+            print(f"Created new tag {tag.label}")
+
+    existing_trovi_uuid = trovi.get_trovi_uuid(artifact_id)
+    if existing_trovi_uuid:
+        print(f"Artifact already created on trovi {existing_trovi_uuid}, checking for updates")
+        artifact_in_trovi = trovi.get_artifact(token, artifact_id)
+        artifact_in_portal = trovi.portal_artifact_to_trovi(
+            Artifact.objects.get(pk=artifact_id),
+            prompt_input=False,
+        )
+        patches = []
+        # Simple metadata to compare
+        simple_metadata_keys = [
+            "title",
+            "long_description",
+            "title",
+            "short_description",
+            "owner_urn",
+            "visibility",
+            "tags",
+        ]
+        for key in simple_metadata_keys:
+            if artifact_in_trovi[key] != artifact_in_portal[key]:
+                patches.append({
+                    "op": "replace",
+                    "path": f"/{key}",
+                    "value": artifact_in_portal[key],
+                })
+
+        # Check authorship changes
+        trovi_author_count = len(artifact_in_trovi["authors"])
+        portal_author_count = len(artifact_in_portal["authors"])
+        for i in range(min(trovi_author_count, portal_author_count)):
+            # Since portal only stores name, it is all we can check for differences
+            if artifact_in_trovi["authors"][i]["full_name"] \
+                    != artifact_in_portal["authors"][i]["full_name"]:
+                continue
+                patches.append(_author_patch("replace", artifact_in_portal["authors"][i], i))
+        if trovi_author_count < portal_author_count:
+            # Add new authors
+            for i in range(trovi_author_count, portal_author_count):
+                patches.append(_author_patch("add", artifact_in_portal["authors"][i], i))
+        elif trovi_author_count > portal_author_count:
+            for i in range(portal_author_count, trovi_author_count):
+                print(f"Removing author '{i}'")
+                patches.append({
+                    "op": "remove",
+                    "path": f"/authors/{i}",
+                })
+
+        # Check reproducibiltity changes
+        reproducibility_keys = ["access_hours", "enable_requests"]
+        for key in reproducibility_keys:
+            if artifact_in_trovi["reproducibility"][key] != artifact_in_portal["reproducibility"][key]:
+                patches.append({
+                    "op": "replace",
+                    "path": f"/reproducibility/{key}",
+                    "value": artifact_in_portal["reproducibiltity"][key],
+                })
+
+        if patches:
+            trovi.patch_artifact(token, existing_trovi_uuid, patches)
+    else:
+        artifact_in_trovi = trovi.create_artifact(token, artifact_id)
+        print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
+        artifact_in_portal = trovi.portal_artifact_to_trovi(
+            Artifact.objects.get(pk=artifact_id),
+            prompt_input=False,
+        )
+
+    # Check for new portal versions
+    trovi_version_contents_urns = [
+        version["contents"]["urn"]
+        for version in artifact_in_trovi["versions"]
+    ]
+    for version in artifact_in_portal["versions"]:
+        if version["contents"]["urn"] not in trovi_version_contents_urns:
+            trovi.create_version(
+                token, artifact_in_trovi["uuid"],
+                version["contents"]["urn"], version["links"]
+            )
+            print(f"Created new version {version['contents']['urn']}")
+
+    # Check for deleted portal versions
+    portal_version_contents_urns = [
+        version["contents"]["urn"]
+        for version in artifact_in_portal["versions"]
+    ]
+    for version in artifact_in_trovi["versions"]:
+        if version["contents"]["urn"] not in portal_version_contents_urns:
+            trovi.delete_version(
+                token, artifact_in_portal["uuid"], version["slug"])
+            print(f"Deleted trovi version {version['contents']['urn']}")
+
+
+def _author_patch(op, json_author, index):
+    # Named tuple since get_author expects an object
+    AuthorTuple = namedtuple('Author', 'name affiliation ')
+    author_tuple = AuthorTuple(
+        name=json_author["full_name"],
+        affiliation=json_author["affiliation"],
+    )
+    new_json_author = trovi.get_author(author_tuple)
+    print(f"Applied '{op}' to author at index '{index}'"
+          f"with {new_json_author['full_name']}")
+    return {
+        "op": op,
+        "path": f"/authors/{index}",
+        "value": new_json_author,
+    }
+
+
+@task
+def list_trovi_artifacts():
+    token = _get_trovi_token()
+    pprint.PrettyPrinter().pprint(trovi.list_artifacts(token))
+
+
+def _get_trovi_token():
+    keycloak_client = KeycloakClient()
+    realm = KeycloakRealm(
+        server_url=keycloak_client.server_url,
+        realm_name="chameleon"
+    )
+    openid = realm.open_id_connect(
+        client_id=keycloak_client.client_id,
+        client_secret=keycloak_client.client_secret
+    )
+    username = os.getenv("CHAMELEON_USER")
+    password = os.getenv("CHAMELEON_PASS")
+    if not username:
+        username = input("Chameleon username: ")
+    if not password:
+        password = input("Chameleon password: ")
+    creds = openid.password_credentials(username, password)
+    return trovi.get_token(creds["access_token"])["access_token"]
