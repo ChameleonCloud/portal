@@ -27,10 +27,11 @@ def url_with_token(path, token):
 
 def check_status(response, code):
     if response.status_code != code:
+        print(response.text)
         try:
             response_json = response.json()
             detail = response_json.get(
-                "detail", response_json.get("error_description", ""))
+                "detail", response_json.get("error_description", response.text))
         except requests.exceptions.JSONDecodeError:
             if response.status_code == 500:
                 detail = ""
@@ -40,7 +41,6 @@ def check_status(response, code):
         request_path = urlparse(request.url).path
         message = f"{request.method} {request_path} {response.status_code} "\
                   f"returned, expected {code}: {detail}"
-        LOG.error(message)
         raise TroviException(message)
 
 
@@ -62,8 +62,6 @@ def get_token(token, is_admin=False):
     scope = "artifacts:read artifacts:write"
     if is_admin:
         scope += " trovi:admin"
-    LOG.info(scope)
-    LOG.info(token)
     res = requests.post(
         urljoin(os.getenv("TROVI_API_BASE_URL"), "/token/"),
         json={
@@ -112,7 +110,7 @@ def get_author(author, prompt_input=True):
             .filter(full_name=author.name.replace(" ", "")).all())
     if not matching_users:
         if prompt_input:
-            email = input(f"Email for {author.name} at {author.affiliation}")
+            email = input(f"Email for {author.name} at {author.affiliation}: ")
         else:
             email = None
     else:
@@ -131,6 +129,7 @@ def get_author(author, prompt_input=True):
 
 
 def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
+    print(portal_artifact.title)
     trovi_artifact = {
         "tags": [label.label for label in portal_artifact.labels.all()],
         "authors": [
@@ -142,7 +141,7 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
             "access_hours": portal_artifact.reproduce_hours,
         },
         "title": portal_artifact.title,
-        "short_description": portal_artifact.short_description,
+        "short_description": portal_artifact.short_description or portal_artifact.title,
         "long_description": portal_artifact.description,
         "owner_urn": f"urn:trovi:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.created_by.username}",
         "visibility": "public" if portal_artifact.is_public else "private",
@@ -193,6 +192,10 @@ def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
 def create_artifact(token, artifact_id):
     artifact = Artifact.objects.get(pk=artifact_id)
     json_data = portal_artifact_to_trovi(artifact)
+    while len(json_data["title"]) > 70:
+        print(f"This title is {len(json_data['title'])} chars (max 70)")
+        print(json_data["title"])
+        json_data["title"] = input("New title: ")
     res = requests.post(url_with_token("/artifacts/", token), json=json_data)
     check_status(res, requests.codes.created)
     trovi_artifact = res.json()

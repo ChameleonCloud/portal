@@ -2,7 +2,6 @@ import hashlib
 import hmac
 import os
 import requests
-import pprint
 from time import time
 
 from celery.decorators import task
@@ -85,11 +84,16 @@ def _temp_url(deposition_id):
 @task
 def sync_all_to_trovi():
     for artifact in Artifact.objects.all():
-        sync_to_trovi(artifact.pk)
+        try:
+            sync_to_trovi(artifact.pk)
+        except trovi.TroviException:
+            if input("skip? (y/n)") != "y":
+                raise
+
 
 @task
 def sync_to_trovi(artifact_id):
-    token = _get_trovi_token()
+    token = _get_trovi_token(client_credentials=False)
     print("Syncing global tags")
     trovi_tags = [t["tag"] for t in trovi.list_tags(token)]
     for tag in Label.objects.all():
@@ -155,6 +159,8 @@ def sync_to_trovi(artifact_id):
                     "value": artifact_in_portal["reproducibiltity"][key],
                 })
 
+        # TODO check metrics on versions
+
         if patches:
             trovi.patch_artifact(token, existing_trovi_uuid, patches)
     else:
@@ -211,15 +217,17 @@ def _get_trovi_token(client_credentials=False):
     keycloak_client = KeycloakClient()
     realm = KeycloakRealm(
         server_url=keycloak_client.server_url,
-        realm_name="master" if client_credentials else "chameleon"
+        realm_name="chameleon"
     )
     if client_credentials:
+        LOG.info("Using client credentials")
         openid = realm.open_id_connect(
             client_id=keycloak_client.client_id,
             client_secret=keycloak_client.client_secret
         )
         creds = openid.client_credentials()
     else:
+        LOG.info("Using password credentials")
         openid = realm.open_id_connect(
             client_id=settings.OIDC_RP_CLIENT_ID,
             client_secret=settings.OIDC_RP_CLIENT_SECRET,
