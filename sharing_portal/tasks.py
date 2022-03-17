@@ -74,8 +74,7 @@ def _temp_url(deposition_id):
     expires = int(time() + duration_in_seconds)
     hmac_body = 'GET\n{}\n{}'.format(expires, path)
     sig = hmac.new(
-        key.encode('utf-8'), hmac_body.encode('utf-8'),
-        hashlib.sha1
+        key.encode("utf-8"), hmac_body.encode("utf-8"), hashlib.sha1
     ).hexdigest()
     return "{origin}{path}?temp_url_sig={sig}&temp_url_expires={expires}".format(
         origin=origin, path=path, sig=sig, expires=expires

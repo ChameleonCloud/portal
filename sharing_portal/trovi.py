@@ -225,8 +225,7 @@ def create_version(token, trovi_artifact_uuid, contents_urn, links=[]):
 
 def delete_version(token, trovi_artifact_uuid, slug):
     res = requests.delete(
-        url_with_token(
-            f"/artifacts/{trovi_artifact_uuid}/versions/{slug}/", token),
+        url_with_token(f"/artifacts/{trovi_artifact_uuid}/versions/{slug}/", token),
     )
     check_status(res, requests.codes.no_content)
 
@@ -234,16 +233,16 @@ def delete_version(token, trovi_artifact_uuid, slug):
 def increment_metric_count(token, artifact_id, version_slug, metric="access_count"):
     res = requests.put(
         url_with_token(
-            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?{metric}", token)
+            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?{metric}", token
+        )
     )
     check_status(res, requests.codes.no_content)
 
 
 def get_linked_project(artifact):
-    chameleon_project = next([
-        lp for lp in artifact["linked_projects"]
-        if lp.split(":", 3)[2] == "chameleon"
-    ])
+    chameleon_project = next(
+        [lp for lp in artifact["linked_projects"] if lp.split(":", 3)[2] == "chameleon"]
+    )
     if not chameleon_project:
         return []
     charge_code = chameleon_project["linked_projects"].split(":", 3)[3]
@@ -255,7 +254,8 @@ def set_linked_project(artifact, charge_code):
     # on a trovi artifact
     new_urn = f"trovi:project:chameleon:{charge_code}"
     project_indices = [
-        i for i, project in enumerate(artifact.linked_projects)
+        i
+        for i, project in enumerate(artifact.linked_projects)
         if project.split(":", 3)[2] == "chameleon"
     ]
     patches = []
@@ -265,10 +265,9 @@ def set_linked_project(artifact, charge_code):
             {
                 "op": "replace",
                 "path": f"/linked_projects/{project_indices[0]}",
-                "value": new_urn
+                "value": new_urn,
             }
         )
     else:
-        patches.append(
-            {"op": "add", "path": "/linked_projects/-", "value": new_urn})
+        patches.append({"op": "add", "path": "/linked_projects/-", "value": new_urn})
     patch_artifact(get_client_admin_token(), artifact["uuid"], patches)
