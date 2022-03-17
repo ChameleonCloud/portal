@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Concat
 from keycloak.realm import KeycloakRealm
 from util.keycloak_client import KeycloakClient
+from projects.models import Project
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def get_client_admin_token():
     keycloak_client = KeycloakClient()
     realm = KeycloakRealm(
         server_url=keycloak_client.server_url,
-        realm_name="chameleon"
+        realm_name="master"
     )
     openid = realm.open_id_connect(
         client_id=keycloak_client.client_id,
@@ -61,6 +62,8 @@ def get_token(token, is_admin=False):
     scope = "artifacts:read artifacts:write"
     if is_admin:
         scope += " trovi:admin"
+    LOG.info(scope)
+    LOG.info(token)
     res = requests.post(
         urljoin(os.getenv("TROVI_API_BASE_URL"), "/token/"),
         json={
@@ -168,21 +171,21 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
     return trovi_artifact
 
 
-def get_artifact(token, artifact_id, secret_key=None):
+def get_artifact(token, artifact_id):
     artifact = Artifact.objects.get(pk=artifact_id)
     url = url_with_token(f"/artifacts/{artifact.trovi_uuid}/", token)
-    if sharing_key:
-        req = requests.PreparedRequest()
-        req.prepare_url(url, dict(sharing_key=sharing_key))
-        url = req.url
     res = requests.get(url)
     check_status(res, requests.codes.ok)
     return res.json()
 
 
-def get_artifact_by_trovi_uuid(token, artifact_id):
-    res = requests.get(
-        url_with_token(f"/artifacts/{artifact_id}/", token))
+def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
+    url = url_with_token(f"/artifacts/{artifact_id}/", token)
+    if sharing_key:
+        req = requests.PreparedRequest()
+        req.prepare_url(url, dict(sharing_key=sharing_key))
+        url = req.url
+    res = requests.get(url)
     check_status(res, requests.codes.ok)
     return res.json()
 
@@ -224,3 +227,46 @@ def delete_version(token, trovi_artifact_uuid, slug):
             f"/artifacts/{trovi_artifact_uuid}/versions/{slug}/", token),
     )
     check_status(res, requests.codes.no_content)
+
+
+def increment_metric_count(token, artifact_id, version_slug, metric="access_count"):
+    res = requests.put(
+        url_with_token(
+            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?{metric}", token)
+    )
+    check_status(res, requests.codes.no_content)
+
+
+def get_linked_project(artifact):
+    chameleon_project = next([
+        lp for lp in artifact["linked_projects"]
+        if lp.split(":", 3)[2] == "chameleon"
+    ])
+    if not chameleon_project:
+        return []
+    charge_code = chameleon_project["linked_projects"].split(":", 3)[3]
+    return Project.objects.get(charge_code=charge_code)
+
+
+def set_linked_project(artifact, charge_code):
+    # Note this operation is `set` since we only allow one `chameleon` project
+    # on a trovi artifact
+    new_urn = f"trovi:project:chameleon:{charge_code}"
+    project_indices = [
+        i for i, project in enumerate(artifact.linked_projects)
+        if project.split(":", 3)[2] == "chameleon"
+    ]
+    patches = []
+    # Replace index if it exists
+    if project_indices:
+        patches.append(
+            {
+                "op": "replace",
+                "path": f"/linked_projects/{project_indices[0]}",
+                "value": new_urn
+            }
+        )
+    else:
+        patches.append(
+            {"op": "add", "path": "/linked_projects/-", "value": new_urn})
+    patch_artifact(get_client_admin_token(), artifact["uuid"], patches)

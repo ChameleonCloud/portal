@@ -83,6 +83,11 @@ def _temp_url(deposition_id):
 
 
 @task
+def sync_all_to_trovi():
+    for artifact in Artifact.objects.all():
+        sync_to_trovi(artifact.pk)
+
+@task
 def sync_to_trovi(artifact_id):
     token = _get_trovi_token()
     print("Syncing global tags")
@@ -202,27 +207,28 @@ def _author_patch(op, json_author, index):
     }
 
 
-@task
-def list_trovi_artifacts():
-    token = _get_trovi_token()
-    pprint.PrettyPrinter().pprint(trovi.list_artifacts(token))
-
-
-def _get_trovi_token():
+def _get_trovi_token(client_credentials=False):
     keycloak_client = KeycloakClient()
     realm = KeycloakRealm(
         server_url=keycloak_client.server_url,
-        realm_name="chameleon"
+        realm_name="master" if client_credentials else "chameleon"
     )
-    openid = realm.open_id_connect(
-        client_id=keycloak_client.client_id,
-        client_secret=keycloak_client.client_secret
-    )
-    username = os.getenv("CHAMELEON_USER")
-    password = os.getenv("CHAMELEON_PASS")
-    if not username:
-        username = input("Chameleon username: ")
-    if not password:
-        password = input("Chameleon password: ")
-    creds = openid.password_credentials(username, password)
-    return trovi.get_token(creds["access_token"])["access_token"]
+    if client_credentials:
+        openid = realm.open_id_connect(
+            client_id=keycloak_client.client_id,
+            client_secret=keycloak_client.client_secret
+        )
+        creds = openid.client_credentials()
+    else:
+        openid = realm.open_id_connect(
+            client_id=settings.OIDC_RP_CLIENT_ID,
+            client_secret=settings.OIDC_RP_CLIENT_SECRET,
+        )
+        username = os.getenv("CHAMELEON_USER")
+        password = os.getenv("CHAMELEON_PASS")
+        if not username:
+            username = input("Chameleon username: ")
+        if not password:
+            password = input("Chameleon password: ")
+        creds = openid.password_credentials(username, password)
+    return trovi.get_token(creds["access_token"], is_admin=True)["access_token"]
