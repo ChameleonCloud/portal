@@ -10,6 +10,7 @@ from util.keycloak_client import KeycloakClient
 from projects.models import Project
 
 import logging
+
 LOG = logging.getLogger(__name__)
 
 
@@ -20,8 +21,8 @@ class TroviException(Exception):
 def url_with_token(path, token):
     req = requests.PreparedRequest()
     req.prepare_url(
-        urljoin(os.getenv("TROVI_API_BASE_URL"), path),
-        dict(access_token=token))
+        urljoin(os.getenv("TROVI_API_BASE_URL"), path), dict(access_token=token)
+    )
     return req.url
 
 
@@ -31,7 +32,8 @@ def check_status(response, code):
         try:
             response_json = response.json()
             detail = response_json.get(
-                "detail", response_json.get("error_description", response.text))
+                "detail", response_json.get("error_description", response.text)
+            )
         except requests.exceptions.JSONDecodeError:
             if response.status_code == 500:
                 detail = ""
@@ -39,20 +41,18 @@ def check_status(response, code):
                 detail = response.text
         request = response.request
         request_path = urlparse(request.url).path
-        message = f"{request.method} {request_path} {response.status_code} "\
-                  f"returned, expected {code}: {detail}"
+        message = (
+            f"{request.method} {request_path} {response.status_code} "
+            f"returned, expected {code}: {detail}"
+        )
         raise TroviException(message)
 
 
 def get_client_admin_token():
     keycloak_client = KeycloakClient()
-    realm = KeycloakRealm(
-        server_url=keycloak_client.server_url,
-        realm_name="master"
-    )
+    realm = KeycloakRealm(server_url=keycloak_client.server_url, realm_name="master")
     openid = realm.open_id_connect(
-        client_id=keycloak_client.client_id,
-        client_secret=keycloak_client.client_secret
+        client_id=keycloak_client.client_id, client_secret=keycloak_client.client_secret
     )
     creds = openid.client_credentials()
     return get_token(creds["access_token"], is_admin=True)["access_token"]
@@ -77,9 +77,7 @@ def get_token(token, is_admin=False):
 
 def list_artifacts(token, sort_by="updated_at"):
     req = requests.PreparedRequest()
-    req.prepare_url(
-        url_with_token("/artifacts/", token),
-        dict(sort_by=sort_by))
+    req.prepare_url(url_with_token("/artifacts/", token), dict(sort_by=sort_by))
     res = requests.get(req.url)
     check_status(res, requests.codes.ok)
     LOG.info(res.json())
@@ -105,9 +103,11 @@ def get_trovi_uuid(artifact_id):
 
 
 def get_author(author, prompt_input=True):
-    matching_users = list(User.objects.annotate(
-        full_name=Concat("first_name", "last_name"))
-            .filter(full_name=author.name.replace(" ", "")).all())
+    matching_users = list(
+        User.objects.annotate(full_name=Concat("first_name", "last_name"))
+        .filter(full_name=author.name.replace(" ", ""))
+        .all()
+    )
     if not matching_users:
         if prompt_input:
             email = input(f"Email for {author.name} at {author.affiliation}: ")
@@ -154,7 +154,7 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
                 "contents": {
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
-                'metrics': {'access_count': version.launch_count},
+                "metrics": {"access_count": version.launch_count},
                 "links": [],
             }
             for version in portal_artifact.versions.all()
@@ -165,7 +165,7 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
             "contents": {
                 "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
             },
-            "links": []
+            "links": [],
         }
     return trovi_artifact
 
@@ -205,12 +205,11 @@ def create_artifact(token, artifact_id):
 
 
 def patch_artifact(token, artifact_uuid, patches):
-    json_data = {
-      "patch": patches
-    }
+    json_data = {"patch": patches}
     print(json_data)
     res = requests.patch(
-        url_with_token(f"/artifacts/{artifact_uuid}/", token), json=json_data)
+        url_with_token(f"/artifacts/{artifact_uuid}/", token), json=json_data
+    )
     check_status(res, requests.codes.ok)
 
 
@@ -218,7 +217,7 @@ def create_version(token, trovi_artifact_uuid, contents_urn, links=[]):
     json_data = {"contents": {"urn": contents_urn}, "links": links}
     res = requests.post(
         url_with_token(f"/artifacts/{trovi_artifact_uuid}/versions/", token),
-        json=json_data
+        json=json_data,
     )
     check_status(res, requests.codes.created)
     return res.json()

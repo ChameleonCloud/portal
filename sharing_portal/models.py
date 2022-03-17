@@ -128,7 +128,7 @@ class Artifact(models.Model):
     trovi_uuid = models.CharField(max_length=36, null=True)
 
     class Meta:
-        ordering = ('title', )
+        ordering = ("title",)
 
     def __str__(self):
         return self.title
