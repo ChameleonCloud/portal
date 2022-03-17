@@ -72,7 +72,7 @@ def _temp_url(deposition_id):
     key = os.environ['ARTIFACT_SHARING_SWIFT_TEMP_URL_KEY']
     duration_in_seconds = 60
     expires = int(time() + duration_in_seconds)
-    hmac_body = 'GET\n{}\n{}'.format(expires, path)
+    hmac_body = "GET\n{}\n{}".format(expires, path)
     sig = hmac.new(
         key.encode("utf-8"), hmac_body.encode("utf-8"), hashlib.sha1
     ).hexdigest()
