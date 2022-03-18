@@ -72,7 +72,8 @@ def get_token(token, is_admin=False):
 
 def list_artifacts(token, sort_by="updated_at"):
     res = requests.get(
-        url_with_token("/artifacts/", token, query=dict(sort_by=sort_by)))
+        url_with_token("/artifacts/", token, query=dict(sort_by=sort_by))
+    )
     check_status(res, requests.codes.ok)
     return res.json()["artifacts"]
 
@@ -173,7 +174,8 @@ def get_artifact(token, artifact_id):
 def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
     if sharing_key:
         url = url_with_token(
-            f"/artifacts/{artifact_id}/", token, query=dict(sharing_key=sharing_key))
+            f"/artifacts/{artifact_id}/", token, query=dict(sharing_key=sharing_key)
+        )
     else:
         url = url_with_token(f"/artifacts/{artifact_id}/", token)
     res = requests.get(url)

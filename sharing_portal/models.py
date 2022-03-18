@@ -269,8 +269,9 @@ class DaypassRequest(models.Model):
 
 
 class DaypassProject(models.Model):
-    '''
+    """
     Stores the project where the user is added to when a daypass starts
-    '''
+    """
+
     artifact_uuid = models.CharField(max_length=36, primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

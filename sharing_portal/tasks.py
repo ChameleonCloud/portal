@@ -136,8 +136,7 @@ def sync_to_trovi(artifact_id, token=None):
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
     else:
-        artifact_in_trovi = trovi.create_artifact(
-            token, artifact_id, prompt_input=True)
+        artifact_in_trovi = trovi.create_artifact(token, artifact_id, prompt_input=True)
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
         artifact_in_portal = trovi.portal_artifact_to_trovi(
             Artifact.objects.get(pk=artifact_id),

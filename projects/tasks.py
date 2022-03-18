@@ -79,7 +79,9 @@ def end_daypasses():
 
 def handle_too_many_daypass_users(artifact_uuid):
     # Make allocation expire
-    reproducibility_project = DaypassProject.objects.get(artifact_uuid=artifact_uuid).project
+    reproducibility_project = DaypassProject.objects.get(
+        artifact_uuid=artifact_uuid
+    ).project
     allocations = Allocation.objects.filter(
         status="active", project=reproducibility_project
     )

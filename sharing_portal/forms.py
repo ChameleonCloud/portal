@@ -15,7 +15,9 @@ LOG = logging.getLogger(__name__)
 class ArtifactForm(forms.Form):
     title = forms.CharField(label="Title")
     short_description = forms.CharField(label="Short Description")
-    long_description = forms.CharField(label="Long Description", widget=forms.Textarea())
+    long_description = forms.CharField(
+        label="Long Description", widget=forms.Textarea()
+    )
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request")
@@ -23,10 +25,12 @@ class ArtifactForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         available_labels = [
-            (t["tag"], t["tag"]) for t in trovi.list_tags(
-                request.session.get("trovi_token"))
+            (t["tag"], t["tag"])
+            for t in trovi.list_tags(request.session.get("trovi_token"))
         ]
-        self.fields["tags"] = forms.MultipleChoiceField(choices=available_labels, required=False)
+        self.fields["tags"] = forms.MultipleChoiceField(
+            choices=available_labels, required=False
+        )
         self.fields["title"].initial = artifact["title"]
         self.fields["long_description"].initial = artifact["long_description"]
         self.fields["short_description"].initial = artifact["short_description"]
@@ -48,7 +52,8 @@ class AuthorForm(forms.Form):
 
 
 AuthorFormset = forms.formset_factory(
-    form=AuthorForm, can_delete=True, extra=2, min_num=1)
+    form=AuthorForm, can_delete=True, extra=2, min_num=1
+)
 
 
 class ShareArtifactForm(forms.Form):
@@ -123,9 +128,9 @@ class ZenodoPublishForm(forms.Form):
             doi_field.label = label
 
     def get_initial_for_field(self, field, field_name):
-        if field_name == 'artifact_version_id':
+        if field_name == "artifact_version_id":
             return self.model["slug"]
-        elif field_name == 'request_doi':
+        elif field_name == "request_doi":
             return self._has_doi()
         return None
 
@@ -146,18 +151,19 @@ class ZenodoPublishForm(forms.Form):
 def _version_is_zenodo(version):
     return version["contents"]["urn"].split(":", 2)[1] == "zenodo"
 
+
 class BaseZenodoPublishFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
         artifact_versions = kwargs.pop('artifact_versions')
         if not artifact_versions:
-            raise ValueError('artifact_versions must provided')
+            raise ValueError("artifact_versions must provided")
         self.artifact_versions = artifact_versions
         self.latest_published_version = -1
         for i, version in enumerate(artifact_versions):
             if _version_is_zenodo(version):
                 self.latest_published_version = i
 
-        kwargs['initial'] = [{} for _ in artifact_versions]
+        kwargs["initial"] = [{} for _ in artifact_versions]
         super(BaseZenodoPublishFormset, self).__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index):
