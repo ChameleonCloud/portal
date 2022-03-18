@@ -1,10 +1,11 @@
 import requests
 import os
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlencode
 from sharing_portal.models import Artifact
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.functions import Concat
+from django.db.models import Value
 from keycloak.realm import KeycloakRealm
 from util.keycloak_client import KeycloakClient
 from projects.models import Project
@@ -14,12 +15,11 @@ class TroviException(Exception):
     pass
 
 
-def url_with_token(path, token):
-    req = requests.PreparedRequest()
-    req.prepare_url(
-        urljoin(os.getenv("TROVI_API_BASE_URL"), path), dict(access_token=token)
-    )
-    return req.url
+def url_with_token(path, token, query=None):
+    if not query:
+        query = {}
+    query["access_token"] = token
+    return urljoin(os.getenv("TROVI_API_BASE_URL"), f"{path}?{urlencode(query)}")
 
 
 def check_status(response, code):
@@ -71,9 +71,8 @@ def get_token(token, is_admin=False):
 
 
 def list_artifacts(token, sort_by="updated_at"):
-    req = requests.PreparedRequest()
-    req.prepare_url(url_with_token("/artifacts/", token), dict(sort_by=sort_by))
-    res = requests.get(req.url)
+    res = requests.get(
+        url_with_token("/artifacts/", token, query=dict(sort_by=sort_by)))
     check_status(res, requests.codes.ok)
     return res.json()["artifacts"]
 
@@ -91,10 +90,10 @@ def create_tag(token, tag):
     return res.json()["tag"]
 
 
-def get_author(author, prompt_input=True):
+def get_author(author, prompt_input=False):
     matching_users = list(
-        User.objects.annotate(full_name=Concat("first_name", "last_name"))
-        .filter(full_name=author.name.replace(" ", ""))
+        User.objects.annotate(full_name=Concat("first_name", Value(" "), "last_name"))
+        .filter(full_name=author.name.strip())
         .all()
     )
     if not matching_users:
@@ -111,19 +110,23 @@ def get_author(author, prompt_input=True):
             selected_user = matching_users[int(input("index: "))]
         email = selected_user.email
     return {
-        "full_name": author.name,
+        "full_name": author.name.strip(),
         "affiliation": author.affiliation,
         "email": email,
     }
 
 
-def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
+def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
     trovi_artifact = {
         "tags": [label.label for label in portal_artifact.labels.all()],
         "authors": [
             get_author(author, prompt_input) for author in portal_artifact.authors.all()
         ],
-        "linked_projects": [] if not portal_artifact.project else [f"urn:trovi:project:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.project.charge_code}"],
+        "linked_projects": []
+        if not portal_artifact.project
+        else [
+            f"urn:trovi:project:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.project.charge_code}"
+        ],
         "reproducibility": {
             "enable_requests": portal_artifact.is_reproducible,
             "access_hours": portal_artifact.reproduce_hours,
@@ -142,7 +145,8 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
                 "contents": {
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
-                "metrics": {"access_count": version.launch_count},
+                # TODO include metrics later
+                #"metrics": {"access_count": version.launch_count},
                 "links": [],
             }
             for version in portal_artifact.versions.all()
@@ -167,19 +171,19 @@ def get_artifact(token, artifact_id):
 
 
 def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
-    url = url_with_token(f"/artifacts/{artifact_id}/", token)
     if sharing_key:
-        req = requests.PreparedRequest()
-        req.prepare_url(url, dict(sharing_key=sharing_key))
-        url = req.url
+        url = url_with_token(
+            f"/artifacts/{artifact_id}/", token, query=dict(sharing_key=sharing_key))
+    else:
+        url = url_with_token(f"/artifacts/{artifact_id}/", token)
     res = requests.get(url)
     check_status(res, requests.codes.ok)
     return res.json()
 
 
-def create_artifact(token, artifact_id):
+def create_artifact(token, artifact_id, prompt_input=False):
     artifact = Artifact.objects.get(pk=artifact_id)
-    json_data = portal_artifact_to_trovi(artifact)
+    json_data = portal_artifact_to_trovi(artifact, prompt_input=prompt_input)
     while len(json_data["title"]) > 70:
         print(f"This title is {len(json_data['title'])} chars (max 70)")
         print(json_data["title"])
@@ -202,8 +206,10 @@ def patch_artifact(token, artifact_uuid, patches):
     return res.json()
 
 
-def create_version(token, trovi_artifact_uuid, contents_urn, links=[]):
-    json_data = {"contents": {"urn": contents_urn}, "links": links}
+def create_version(token, trovi_artifact_uuid, contents_urn, links=None):
+    json_data = {"contents": {"urn": contents_urn}}
+    if links:
+        json_data["links"] = links
     res = requests.post(
         url_with_token(f"/artifacts/{trovi_artifact_uuid}/versions/", token),
         json=json_data,
@@ -243,7 +249,8 @@ def set_linked_project(artifact, charge_code, token=None):
     # on a trovi artifact
     new_urn = f"urn:trovi:project:chameleon:{charge_code}"
     project_indices = [
-        i for i, project in enumerate(artifact["linked_projects"])
+        i
+        for i, project in enumerate(artifact["linked_projects"])
         if project.split(":", 4)[3] == "chameleon"
     ]
     patches = []

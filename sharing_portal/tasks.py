@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 import requests
+import jsonpatch
 from time import time
 
 from celery.decorators import task
@@ -81,18 +82,19 @@ def _temp_url(deposition_id):
     )
 
 
-@task
+# Run this via import in the django shell!
 def sync_all_to_trovi():
     token = _get_trovi_token(client_credentials=False)
     for artifact in Artifact.objects.all():
         try:
             sync_to_trovi(artifact.pk, token=token)
-        except trovi.TroviException:
+        except trovi.TroviException as e:
+            print(e)
             if input("skip? (y/n)") != "y":
                 raise
 
 
-@task
+# Run this via import in the django shell!
 def sync_to_trovi(artifact_id, token=None):
     if not token:
         token = _get_trovi_token(client_credentials=False)
@@ -103,87 +105,39 @@ def sync_to_trovi(artifact_id, token=None):
             print(f"Created new tag {tag.label}")
 
     artifact_model = Artifact.objects.get(pk=artifact_id)
-    print("Syncing {artifact.title}.")
+    print(f"Syncing {artifact_model.title}.")
     if artifact_model.trovi_uuid:
         print(
             f"Artifact already created on trovi {artifact_model.trovi_uuid}, checking for updates"
         )
         artifact_in_trovi = trovi.get_artifact(token, artifact_id)
+        # Delete fields that cannot be patched
+        readonly_fields = ["updated_at", "created_at"]
+        for field in readonly_fields:
+            del artifact_in_trovi[field]
+        readonly_version_fields = ["created_at", "slug", "metrics"]
+        for version in artifact_in_trovi["versions"]:
+            for field in readonly_version_fields:
+                del version[field]
+        del artifact_in_trovi["reproducibility"]["requests"]
+        # email is deleted since it only lives in trovi
+        for author in artifact_in_trovi["authors"]:
+            del author["email"]
+
         artifact_in_portal = trovi.portal_artifact_to_trovi(
-            artifact_model, prompt_input=False,
+            artifact_model,
+            prompt_input=False,
         )
-        patches = []
-        # Simple metadata to compare
-        simple_metadata_keys = [
-            "title",
-            "long_description",
-            "title",
-            "short_description",
-            "owner_urn",
-            "visibility",
-            "tags",
-            "linked_projects",
-        ]
-        for key in simple_metadata_keys:
-            if artifact_in_trovi[key] != artifact_in_portal[key]:
-                patches.append(
-                    {
-                        "op": "replace",
-                        "path": f"/{key}",
-                        "value": artifact_in_portal[key],
-                    }
-                )
-
-        # Check authorship changes
-        trovi_author_count = len(artifact_in_trovi["authors"])
-        portal_author_count = len(artifact_in_portal["authors"])
-        for i in range(min(trovi_author_count, portal_author_count)):
-            # Since portal only stores name, it is all we can check for differences
-            if (
-                artifact_in_trovi["authors"][i]["full_name"]
-                != artifact_in_portal["authors"][i]["full_name"]
-            ):
-                continue
-                patches.append(
-                    _author_patch("replace", artifact_in_portal["authors"][i], i)
-                )
-        if trovi_author_count < portal_author_count:
-            # Add new authors
-            for i in range(trovi_author_count, portal_author_count):
-                patches.append(
-                    _author_patch("add", artifact_in_portal["authors"][i], i)
-                )
-        elif trovi_author_count > portal_author_count:
-            for i in range(portal_author_count, trovi_author_count):
-                print(f"Removing author '{i}'")
-                patches.append(
-                    {
-                        "op": "remove",
-                        "path": f"/authors/{i}",
-                    }
-                )
-
-        # Check reproducibiltity changes
-        reproducibility_keys = ["access_hours", "enable_requests"]
-        for key in reproducibility_keys:
-            if (
-                artifact_in_trovi["reproducibility"][key]
-                != artifact_in_portal["reproducibility"][key]
-            ):
-                patches.append(
-                    {
-                        "op": "replace",
-                        "path": f"/reproducibility/{key}",
-                        "value": artifact_in_portal["reproducibility"][key],
-                    }
-                )
+        for author in artifact_in_portal["authors"]:
+            del author["email"]
 
         # TODO check metrics on versions
-
+        patches = jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal)
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
     else:
-        artifact_in_trovi = trovi.create_artifact(token, artifact_id)
+        artifact_in_trovi = trovi.create_artifact(
+            token, artifact_id, prompt_input=True)
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
         artifact_in_portal = trovi.portal_artifact_to_trovi(
             Artifact.objects.get(pk=artifact_id),
@@ -221,7 +175,7 @@ def _author_patch(op, json_author, index):
         name=json_author["full_name"],
         affiliation=json_author["affiliation"],
     )
-    new_json_author = trovi.get_author(author_tuple)
+    new_json_author = trovi.get_author(author_tuple, prompt_input=True)
     print(
         f"Applied '{op}' to author at index '{index}'"
         f"with {new_json_author['full_name']}"
