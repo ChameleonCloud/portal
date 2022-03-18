@@ -154,7 +154,7 @@ def _version_is_zenodo(version):
 
 class BaseZenodoPublishFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
-        artifact_versions = kwargs.pop('artifact_versions')
+        artifact_versions = kwargs.pop("artifact_versions")
         if not artifact_versions:
             raise ValueError("artifact_versions must provided")
         self.artifact_versions = artifact_versions
