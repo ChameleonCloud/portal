@@ -83,33 +83,34 @@ def _temp_url(deposition_id):
 
 @task
 def sync_all_to_trovi():
+    token = _get_trovi_token(client_credentials=False)
     for artifact in Artifact.objects.all():
         try:
-            sync_to_trovi(artifact.pk)
+            sync_to_trovi(artifact.pk, token=token)
         except trovi.TroviException:
             if input("skip? (y/n)") != "y":
                 raise
 
 
 @task
-def sync_to_trovi(artifact_id):
-    token = _get_trovi_token(client_credentials=False)
-    print("Syncing global tags")
+def sync_to_trovi(artifact_id, token=None):
+    if not token:
+        token = _get_trovi_token(client_credentials=False)
     trovi_tags = [t["tag"] for t in trovi.list_tags(token)]
     for tag in Label.objects.all():
         if tag.label not in trovi_tags:
             trovi.create_tag(token, tag.label)
             print(f"Created new tag {tag.label}")
 
-    existing_trovi_uuid = trovi.get_trovi_uuid(artifact_id)
-    if existing_trovi_uuid:
+    artifact_model = Artifact.objects.get(pk=artifact_id)
+    print("Syncing {artifact.title}.")
+    if artifact_model.trovi_uuid:
         print(
-            f"Artifact already created on trovi {existing_trovi_uuid}, checking for updates"
+            f"Artifact already created on trovi {artifact_model.trovi_uuid}, checking for updates"
         )
         artifact_in_trovi = trovi.get_artifact(token, artifact_id)
         artifact_in_portal = trovi.portal_artifact_to_trovi(
-            Artifact.objects.get(pk=artifact_id),
-            prompt_input=False,
+            artifact_model, prompt_input=False,
         )
         patches = []
         # Simple metadata to compare
@@ -121,6 +122,7 @@ def sync_to_trovi(artifact_id):
             "owner_urn",
             "visibility",
             "tags",
+            "linked_projects",
         ]
         for key in simple_metadata_keys:
             if artifact_in_trovi[key] != artifact_in_portal[key]:
@@ -172,14 +174,14 @@ def sync_to_trovi(artifact_id):
                     {
                         "op": "replace",
                         "path": f"/reproducibility/{key}",
-                        "value": artifact_in_portal["reproducibiltity"][key],
+                        "value": artifact_in_portal["reproducibility"][key],
                     }
                 )
 
         # TODO check metrics on versions
 
         if patches:
-            trovi.patch_artifact(token, existing_trovi_uuid, patches)
+            trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
     else:
         artifact_in_trovi = trovi.create_artifact(token, artifact_id)
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
@@ -235,14 +237,14 @@ def _get_trovi_token(client_credentials=False):
     keycloak_client = KeycloakClient()
     realm = KeycloakRealm(server_url=keycloak_client.server_url, realm_name="chameleon")
     if client_credentials:
-        LOG.info("Using client credentials")
+        print("Using client credentials")
         openid = realm.open_id_connect(
             client_id=keycloak_client.client_id,
             client_secret=keycloak_client.client_secret,
         )
         creds = openid.client_credentials()
     else:
-        LOG.info("Using password credentials")
+        print("Using password credentials")
         openid = realm.open_id_connect(
             client_id=settings.OIDC_RP_CLIENT_ID,
             client_secret=settings.OIDC_RP_CLIENT_SECRET,

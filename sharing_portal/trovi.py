@@ -9,10 +9,6 @@ from keycloak.realm import KeycloakRealm
 from util.keycloak_client import KeycloakClient
 from projects.models import Project
 
-import logging
-
-LOG = logging.getLogger(__name__)
-
 
 class TroviException(Exception):
     pass
@@ -28,7 +24,6 @@ def url_with_token(path, token):
 
 def check_status(response, code):
     if response.status_code != code:
-        print(response.text)
         try:
             response_json = response.json()
             detail = response_json.get(
@@ -59,16 +54,16 @@ def get_client_admin_token():
 
 
 def get_token(token, is_admin=False):
-    scope = "artifacts:read artifacts:write"
+    scopes = ["artifacts:read", "artifacts:write"]
     if is_admin:
-        scope += " trovi:admin"
+        scopes.append("trovi:admin")
     res = requests.post(
         urljoin(os.getenv("TROVI_API_BASE_URL"), "/token/"),
         json={
             "grant_type": "token_exchange",
             "subject_token": token,
             "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
-            "scope": scope,
+            "scope": " ".join(scopes),
         },
     )
     check_status(res, requests.codes.created)
@@ -80,7 +75,6 @@ def list_artifacts(token, sort_by="updated_at"):
     req.prepare_url(url_with_token("/artifacts/", token), dict(sort_by=sort_by))
     res = requests.get(req.url)
     check_status(res, requests.codes.ok)
-    LOG.info(res.json())
     return res.json()["artifacts"]
 
 
@@ -95,11 +89,6 @@ def create_tag(token, tag):
     res = requests.post(url_with_token("/meta/tags/", token), json=json_data)
     check_status(res, requests.codes.created)
     return res.json()["tag"]
-
-
-def get_trovi_uuid(artifact_id):
-    artifact = Artifact.objects.get(pk=artifact_id)
-    return artifact.trovi_uuid
 
 
 def get_author(author, prompt_input=True):
@@ -129,13 +118,12 @@ def get_author(author, prompt_input=True):
 
 
 def portal_artifact_to_trovi(portal_artifact, prompt_input=True):
-    print(portal_artifact.title)
     trovi_artifact = {
         "tags": [label.label for label in portal_artifact.labels.all()],
         "authors": [
             get_author(author, prompt_input) for author in portal_artifact.authors.all()
         ],
-        "linked_projects": [],
+        "linked_projects": [] if not portal_artifact.project else [f"urn:trovi:project:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.project.charge_code}"],
         "reproducibility": {
             "enable_requests": portal_artifact.is_reproducible,
             "access_hours": portal_artifact.reproduce_hours,
@@ -211,6 +199,7 @@ def patch_artifact(token, artifact_uuid, patches):
         url_with_token(f"/artifacts/{artifact_uuid}/", token), json=json_data
     )
     check_status(res, requests.codes.ok)
+    return res.json()
 
 
 def create_version(token, trovi_artifact_uuid, contents_urn, links=[]):
@@ -240,23 +229,22 @@ def increment_metric_count(token, artifact_id, version_slug, metric="access_coun
 
 
 def get_linked_project(artifact):
-    chameleon_project = next(
-        [lp for lp in artifact["linked_projects"] if lp.split(":", 3)[2] == "chameleon"]
-    )
-    if not chameleon_project:
-        return []
-    charge_code = chameleon_project["linked_projects"].split(":", 3)[3]
+    chameleon_projects = [
+        lp for lp in artifact["linked_projects"] if lp.split(":", 4)[3] == "chameleon"
+    ]
+    if not chameleon_projects:
+        return None
+    charge_code = chameleon_projects[0].split(":", 4)[4]
     return Project.objects.get(charge_code=charge_code)
 
 
-def set_linked_project(artifact, charge_code):
+def set_linked_project(artifact, charge_code, token=None):
     # Note this operation is `set` since we only allow one `chameleon` project
     # on a trovi artifact
-    new_urn = f"trovi:project:chameleon:{charge_code}"
+    new_urn = f"urn:trovi:project:chameleon:{charge_code}"
     project_indices = [
-        i
-        for i, project in enumerate(artifact.linked_projects)
-        if project.split(":", 3)[2] == "chameleon"
+        i for i, project in enumerate(artifact["linked_projects"])
+        if project.split(":", 4)[3] == "chameleon"
     ]
     patches = []
     # Replace index if it exists
@@ -270,4 +258,7 @@ def set_linked_project(artifact, charge_code):
         )
     else:
         patches.append({"op": "add", "path": "/linked_projects/-", "value": new_urn})
-    patch_artifact(get_client_admin_token(), artifact["uuid"], patches)
+    if token:
+        patch_artifact(token, artifact["uuid"], patches)
+    else:
+        patch_artifact(get_client_admin_token(), artifact["uuid"], patches)
