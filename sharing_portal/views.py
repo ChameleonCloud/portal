@@ -42,14 +42,14 @@ LOG = logging.getLogger(__name__)
 SHARING_KEY_PARAM = "s"
 
 
-def ensure_trovi_token(view_func):
+def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if (
             request.session.get("trovi_token_expiration")
-            and datetime.now().timestamp() > request.session["trovi_token_expiration"]
+            and datetime.utcnow().timestamp() > request.session["trovi_token_expiration"]
         ):
-            del request.session["trovi_token_expiration"]
-            del request.session["trovi_token"]
+            request.session.pop("trovi_token_expiration", None)
+            request.session.pop("trovi_token", None)
 
         if not request.session.get("trovi_token"):
             if request.session.get("oidc_access_token"):
@@ -61,7 +61,7 @@ def ensure_trovi_token(view_func):
                     request.session["trovi_token"] = response["access_token"]
                     request.session["trovi_token_expiration"] = min(
                         (
-                            datetime.now() + timedelta(seconds=response["expires_in"])
+                            datetime.utcnow() + timedelta(seconds=response["expires_in"])
                         ).timestamp(),
                         request.session["oidc_token_expiration"],
                     )
@@ -79,15 +79,23 @@ def can_edit(request, artifact):
     return _owns_artifact(request.user, artifact) or request.user.is_staff
 
 
+def handle_get_artifact(request, uuid, sharing_key=None):
+    try:
+        return trovi.get_artifact_by_trovi_uuid(
+            request.session.get("trovi_token"), uuid
+        )
+    except trovi.TroviException as e:
+        if e.code == 404:
+            raise Http404("That artifact does not exist, or is private")
+        if e.code == 403:
+            raise PermissionDenied("You do not have permission to view that page")
+        raise
+
+
 def check_edit_permission(func):
     def wrapper(request, *args, **kwargs):
         pk = kwargs.pop("pk")
-        try:
-            artifact = trovi.get_artifact_by_trovi_uuid(
-                request.session.get("trovi_token"), pk
-            )
-        except trovi.TroviException:
-            raise Http404("That artifact does not exist, or is private")
+        artifact = handle_get_artifact(request, pk)
         if not can_edit(request, artifact):
             messages.add_message(
                 request,
@@ -105,9 +113,7 @@ def get_artifact(func):
     def wrapper(request, *args, **kwargs):
         pk = kwargs.pop("pk")
         sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
-        artifact = trovi.get_artifact_by_trovi_uuid(
-            request.session.get("trovi_token"), pk, sharing_key=sharing_key
-        )
+        artifact = handle_get_artifact(request, pk, sharing_key=sharing_key)
         kwargs.setdefault("artifact", artifact)
         return func(request, *args, **kwargs)
 
@@ -149,13 +155,13 @@ def _trovi_artifacts(request):
     return artifacts
 
 
-@ensure_trovi_token
+@with_trovi_token
 def index_all(request, collection=None):
     return _render_list(request, _trovi_artifacts(request))
 
 
 @login_required
-@ensure_trovi_token
+@with_trovi_token
 def index_mine(request):
     artifacts = [
         artifact
@@ -165,7 +171,7 @@ def index_mine(request):
     return _render_list(request, artifacts)
 
 
-@ensure_trovi_token
+@with_trovi_token
 def index_public(request):
     artifacts = [
         artifact
@@ -284,7 +290,7 @@ def edit_artifact(request, artifact):
 
 @check_edit_permission
 @login_required
-@ensure_trovi_token
+@with_trovi_token
 def share_artifact(request, artifact):
     if request.method == "POST":
 
@@ -482,7 +488,7 @@ def artifact(request, artifact, version_slug=None):
 
 
 @get_artifact
-@ensure_trovi_token
+@with_trovi_token
 @login_required
 def launch(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
@@ -521,7 +527,7 @@ def launch_url(version, can_edit=False):
 
 
 @get_artifact
-@ensure_trovi_token
+@with_trovi_token
 @login_required
 def request_daypass(request, artifact, **kwargs):
     if not artifact or not artifact["reproducibility"]["enable_requests"]:
@@ -613,7 +619,7 @@ def send_request_mail(daypass_request, request, artifact):
     LOG.info("sent mail")
 
 
-@ensure_trovi_token
+@with_trovi_token
 @login_required
 def review_daypass(request, request_id, **kwargs):
     try:

@@ -4,6 +4,16 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def migrate_reproducibility_projects(apps, schema_editor):
+    Artifact = apps.get_model('sharing_portal', 'Artifact')
+    DaypassProject = apps.get_model('sharing_portal', 'DaypassProject')
+    for artifact in Artifact.objects.filter(reproducibility_project__isnull=True):
+        # Project nicknames will not be updated (e.g. will show old portal IDs)
+        daypass_project = DaypassProject(
+            artifact_uuid=artifact.trovi_uuid, project=artifact.reproducibility_project)
+        daypass_project.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -27,4 +37,5 @@ class Migration(migrations.Migration):
                 ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='projects.project')),
             ],
         ),
+        migrations.RunPython(migrate_reproducibility_projects),
     ]

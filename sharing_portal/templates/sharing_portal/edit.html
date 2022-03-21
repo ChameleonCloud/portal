@@ -67,7 +67,7 @@
               <span>{{ v.created_at }}</span>
             </span>
             <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
-              value="{{ v.slug }}" {% if artiafct.versions|length == 1 or v.doi %}disabled{% endif %}
+              value="{{ v.slug }}" {% if artifact.versions|length == 1 or v.doi %}disabled{% endif %}
               {% if v.doi %}title="This version is published with a DOI and cannot be deleted"
               {% elif artifact.versions|length == 1 %}title="Cannot delete only version"
               {% else %}title="Delete this version"

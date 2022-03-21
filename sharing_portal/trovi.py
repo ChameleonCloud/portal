@@ -12,7 +12,10 @@ from projects.models import Project
 
 
 class TroviException(Exception):
-    pass
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+        super().__init__(self.message)
 
 
 def url_with_token(path, token, query=None):
@@ -40,7 +43,7 @@ def check_status(response, code):
             f"{request.method} {request_path} {response.status_code} "
             f"returned, expected {code}: {detail}"
         )
-        raise TroviException(message)
+        raise TroviException(response.status_code, message)
 
 
 def get_client_admin_token():
