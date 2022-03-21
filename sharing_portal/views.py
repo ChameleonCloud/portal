@@ -504,7 +504,8 @@ def launch(request, artifact, version_slug=None):
         )
         return redirect(daypass_request_url)
     trovi.increment_metric_count(
-        request.session.get("trovi_token"), artifact["uuid"], version["slug"])
+        request.session.get("trovi_token"), artifact["uuid"], version["slug"]
+    )
     return redirect(launch_url(version, can_edit=can_edit(request, artifact)))
 
 
