@@ -31,7 +31,7 @@
             {% bootstrap_field form.status %}
             <p>
             Per the artifact setting, this request is for
-            {{ daypass_request.artifact.reproduce_hours }} hours.
+            {{ daypass_request.artifact.reproducibility.access_hours }} hours.
             </p>
             <p>
             By approving this request, you recognize that the requestor will
@@ -41,7 +41,7 @@
             </p>
             <div class="artifactActions">
               <button type="submit" class="btn btn-success">Submit</button>
-              <a href="{% url 'sharing_portal:detail' daypass_request.artifact.id %}" class="btn btn-default">Cancel</a>
+              <a href="{% url 'sharing_portal:detail' daypass_request.artifact.uuid %}" class="btn btn-default">Cancel</a>
             </div>
         </div>
       </div>

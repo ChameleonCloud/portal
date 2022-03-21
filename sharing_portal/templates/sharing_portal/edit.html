@@ -26,11 +26,19 @@
           <h2 class="artifactTitle">Edit artifact</h2>
           <div class="artifactActions">
             <button type="submit" class="btn btn-success">Save Changes</button>
-            <a href="{% url 'sharing_portal:detail' artifact.pk %}" class="btn btn-default">Cancel</a>
+            <a href="{% url 'sharing_portal:detail' artifact.uuid %}" class="btn btn-default">Cancel</a>
           </div>
         </header>
 
         {% bootstrap_form artifact_form %}
+
+        <h4>Authors</h4>
+        {{ authors_formset.management_form }}
+        {% for form in authors_formset.forms %}
+        <fieldset class="form-group form-inline">
+          {% bootstrap_form form show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
       </form>
     </div>
   </div>
@@ -52,16 +60,16 @@
       <form method="post">
         {% csrf_token %}
         <ol>
-          {% for i, v in all_versions %}
+          {% for v in artifact.versions %}
           <li class="artifactVersionDelete">
             <span class="artifactVersion__title">
-              <span>Version {{ i }}</span>
+              <span>Version {{ v.slug }}</span>
               <span>{{ v.created_at }}</span>
             </span>
             <button class="btn btn-link artifactVersionDelete__button" type="submit" name="delete_version"
-              value="{{ v.pk }}" {% if all_versions|length == 1 or v.doi %}disabled{% endif %}
+              value="{{ v.slug }}" {% if artiafct.versions|length == 1 or v.doi %}disabled{% endif %}
               {% if v.doi %}title="This version is published with a DOI and cannot be deleted"
-              {% elif all_versions|length == 1 %}title="Cannot delete only version"
+              {% elif artifact.versions|length == 1 %}title="Cannot delete only version"
               {% else %}title="Delete this version"
               {% endif %}>
               <i class="fa fa-trash-o"></i>

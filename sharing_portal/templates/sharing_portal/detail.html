@@ -23,10 +23,10 @@
         <h2 class="artifactTitle">{{ artifact.title }}</h2>
         <div class="artifactActions">
           {% if editable %}
-          <a class="btn btn-default" href="{% url 'sharing_portal:share' artifact.pk %}">
+          <a class="btn btn-default" href="{% url 'sharing_portal:share' artifact.uuid %}">
             <i class="fa fa-share"></i> Share
           </a>
-          <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.pk %}">
+          <a class="btn btn-warning" href="{% url 'sharing_portal:edit' artifact.uuid %}">
             <i class="fa fa-edit"></i> Edit
           </a>
           {% endif %}
@@ -34,17 +34,20 @@
       </header>
       <div class="artifactBody">
         <section class="artifactBody__description">
-          {{ artifact.description|markdown|safe }}
+          {{ artifact.long_description|markdown|safe }}
         </section>
 
         {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=version %}
 
-        {% if artifact.authors.all %}
+        {% if artifact.authors %}
         <section class="artifactBody__authors">
           <h4>Authors</h4>
           <ul>
-            {% for author in artifact.authors.all %}
-            <li>{{ author }}</li>
+            {% for author in artifact.authors %}
+            <li>
+              {{ author.full_name }}{% if author.affiliation %}, {{ author.affiliation }}{% endif %}
+              <a href="mailto:{{ author.email }}">({{ author.email }})</a>
+            </li>
             {% endfor %}
           </ul>
         </section>
@@ -78,7 +81,7 @@
       </p>
     {% endif %}
 
-    {% if artifact.is_reproducible %}
+    {% if artifact.reproducibility.enable_requests %}
       <a class="artifactLaunchButton btn btn-primary" href="{{ request_daypass_url }}">Request daypass</a>
       <p class="artifactLaunchButton_details">
         If you do not have an active Chameleon allocation, or would prefer to not
@@ -97,10 +100,10 @@
     <div class="artifactVersions">
       <h4><i class="fa fa-files-o"></i> Versions</h4>
       <ol class="sidebarNav">
-        {% for i, v in all_versions %}
-        <li class="sidebarNav__item {% if version == v %}active{% endif %}">
-          <a class="artifactVersion__title" href="{% url 'sharing_portal:detail_version' artifact.pk i %}">
-            <span>Version {{ i }}</span>
+        {% for v in artifact.versions %}
+        <li class="sidebarNav__item {% if version.slug == v.slug %}active{% endif %}">
+          <a class="artifactVersion__title" href="{% url 'sharing_portal:detail_version' artifact.uuid v.slug %}">
+            <span>Version {{ v.slug }}</span>
             <span>{{ v.created_at }}</span>
           </a>
         </li>
