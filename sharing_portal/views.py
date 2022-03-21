@@ -160,8 +160,8 @@ def index_all(request, collection=None):
     return _render_list(request, _trovi_artifacts(request))
 
 
-@login_required
 @with_trovi_token
+@login_required
 def index_mine(request):
     artifacts = [
         artifact
@@ -289,8 +289,8 @@ def edit_artifact(request, artifact):
 
 
 @check_edit_permission
-@login_required
 @with_trovi_token
+@login_required
 def share_artifact(request, artifact):
     if request.method == "POST":
 

@@ -21,7 +21,8 @@ class TroviException(Exception):
 def url_with_token(path, token, query=None):
     if not query:
         query = {}
-    query["access_token"] = token
+    if token:
+        query["access_token"] = token
     return urljoin(os.getenv("TROVI_API_BASE_URL"), f"{path}?{urlencode(query)}")
 
 
