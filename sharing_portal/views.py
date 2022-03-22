@@ -68,7 +68,7 @@ def with_trovi_token(view_func):
                 except trovi.TroviException:
                     LOG.error("Error getting trovi token")
             else:
-                # Set an empty token
+                # Set an empty token, 
                 request.session["trovi_token"] = ""
         return view_func(request, *args, **kwargs)
 
@@ -141,8 +141,8 @@ def _compute_artifact_fields(artifact):
 
 
 def _owns_artifact(user, artifact):
-    _, _, provider, username = artifact["owner_urn"].split(":", 3)
-    return user.username == username and provider == settings.ARTIFACT_OWNER_PROVIDER
+    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])["id"]
+    return owner_urn["id"] == user.username and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
 
 
 def _trovi_artifacts(request):
@@ -379,14 +379,7 @@ def share_artifact(request, artifact):
             )
     else:
         # Use the first linked chameleon project
-        chameleon_projects = [
-            lp
-            for lp in artifact["linked_projects"]
-            if lp.split(":", 4)[3] == "chameleon"
-        ]
-        project = None
-        if chameleon_projects:
-            project = chameleon_projects[0].split(":", 4)[4]
+        project = trovi.get_linked_project(artifact)
 
         form = ShareArtifactForm(
             request,
@@ -435,12 +428,11 @@ def preserve_sharing_key(url, request):
 
 def _parse_doi(artifact):
     if artifact["versions"]:
-        _, _, _, backend, doi = artifact["versions"][-1]["contents"]["urn"].split(
-            ":", 4
-        )
-        if backend == "zenodo":
+        contents = trovi.parse_contents_urn(
+            artifact["versions"][-1]["contents"]["urn"])
+        if contents["provider"] == "zenodo":
             return {
-                "doi": doi,
+                "doi": contents["id"],
                 "url": ZenodoClient.to_record_url(doi),
                 "created_at": artifact["versions"][-1]["created_at"],
             }
@@ -517,10 +509,10 @@ def launch(request, artifact, version_slug=None):
 
 def launch_url(version, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-    _, _, _, backend, identifier = version["contents"]["urn"].split(":", 4)
+    contents = trovi.parse_contents_urn(version["contents"]["urn"])
     query = dict(
-        deposition_repo=backend,
-        deposition_id=identifier,
+        deposition_repo=contents["provider"],
+        deposition_id=contents["id"],
         ownership=("own" if can_edit else "fork"),
     )
     return str(base_url + "?" + urlencode(query))
