@@ -54,7 +54,7 @@ def get_client_admin_token():
 
 
 def get_token(token, is_admin=False):
-    scopes = ["artifacts:read", "artifacts:write"]
+    scopes = ["artifacts:read", "artifacts:write"]#, "artifacts:write_metric"]
     if is_admin:
         scopes.append("trovi:admin")
     res = requests.post(
@@ -227,22 +227,50 @@ def delete_version(token, trovi_artifact_uuid, slug):
     check_status(res, requests.codes.no_content)
 
 
-def increment_metric_count(token, artifact_id, version_slug, metric="access_count"):
+def increment_metric_count(artifact_id, version_slug, token=None, metric="access_count", amount=1):
+    if not token:
+        token = get_client_admin_token()
     res = requests.put(
         url_with_token(
-            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?{metric}", token
+            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?metric={metric}&amount={amount}", token
         )
     )
     check_status(res, requests.codes.no_content)
 
 
+def parse_project_urn(project_urn):
+    provider, project_id = project_urn.split(":", 4)[3:]
+    return {
+        "provider": provider,
+        "id": project_id,
+    }
+
+
+def parse_owner_urn(owner_urn):
+    provider, project_id = owner_urn.split(":", 4)[3:]
+    return {
+        "provider": provider,
+        "id": project_id,
+    }
+
+
+def parse_contents_urn(contents_urn):
+    provider, contents_id = contents_urn.split(":", 4)[3:]
+    return {
+        "provider": provider,
+        "id": contents_id,
+    }
+
+
 def get_linked_project(artifact):
     chameleon_projects = [
-        lp for lp in artifact["linked_projects"] if lp.split(":", 4)[3] == "chameleon"
+        parse_project_urn(lp)
+        for lp in artifact["linked_projects"]
+        if parse_project_urn(lp)["provider"] == "chameleon"
     ]
     if not chameleon_projects:
         return None
-    charge_code = chameleon_projects[0].split(":", 4)[4]
+    charge_code = chameleon_projects[0]["id"]
     return Project.objects.get(charge_code=charge_code)
 
 

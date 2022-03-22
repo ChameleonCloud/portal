@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 import requests
+import json
 import jsonpatch
 from time import time
 
@@ -147,7 +148,8 @@ def sync_to_trovi(artifact_id, token=None):
             del author["email"]
 
         # TODO check metrics on versions
-        patches = jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal)
+        patches = json.loads(str(
+            jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal)))
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
     else:
