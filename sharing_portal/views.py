@@ -488,6 +488,26 @@ def artifact(request, artifact, version_slug=None):
     )
     launch_url = preserve_sharing_key(launch_url, request)
 
+    # We use this download URL instead of the one from trovi so we can
+    # automatically add headers and ensure that the link hasn't expired by
+    # the time the user clicks it.
+    if version_slug:
+        download_url = reverse(
+            "sharing_portal:download_version", args=[artifact["uuid"], version_slug]
+        )
+    else:
+        download_url = reverse("sharing_portal:download", args=[artifact["uuid"]])
+    download_url = preserve_sharing_key(download_url, request)
+    access_methods = trovi.get_contents_url_info(
+        request.session.get("trovi_token"), version["contents"]["urn"]
+    )["access_methods"]
+    git_content = [
+        method for method in access_methods if method["protocol"] == "git"
+    ]
+    http_content = [
+        method for method in access_methods if method["protocol"] == "http"
+    ]
+
     template = loader.get_template("sharing_portal/detail.html")
 
     context = {
@@ -495,9 +515,12 @@ def artifact(request, artifact, version_slug=None):
         "doi_info": _parse_doi(artifact),
         "version": version,
         "launch_url": launch_url,
+        "download_url": download_url,
         "request_daypass_url": request_daypass_url,
         "editable": can_edit(request, artifact),
         "show_launch": show_launch,
+        "git_content": git_content,
+        "http_content": http_content,
     }
     template = loader.get_template("sharing_portal/detail.html")
     return HttpResponse(template.render(context, request))
@@ -1089,3 +1112,21 @@ def create_artifact(request):
         "authors_formset": authors_formset,
     }
     return HttpResponse(template.render(context, request))
+
+
+@get_artifact
+@with_trovi_token
+@login_required
+def download(request, artifact, version_slug=None):
+    version = _artifact_version(artifact, version_slug)
+    access_methods = trovi.get_contents_url_info(
+        request.session.get("trovi_token"), version["contents"]["urn"])
+    for method in access_methods["access_methods"]:
+        LOG.info(method)
+        if method["protocol"] == "http" and method["method"] == "GET":
+            return HttpResponseRedirect(
+                method["url"], headers=method["headers"])
+    messages.add_message(request, messages.ERROR, f"Could not download this artifact")
+    return HttpResponseRedirect(
+        reverse("sharing_portal:detail", args=[artifact["uuid"]])
+    )

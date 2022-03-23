@@ -20,10 +20,14 @@ services:
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
     depends_on:
       - mysql
+    networks:
+      - chameleon-portal
   referenceapi:
     image: docker.chameleoncloud.org/referenceapi:latest
     ports:
       - "127.0.0.1:8891:8000"
+    networks:
+      - chameleon-portal
   mysql:
     image: mariadb:10
     volumes:
@@ -38,6 +42,8 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - chameleon-portal
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
@@ -47,8 +53,12 @@ services:
       - PMA_PORT=3306
     depends_on:
       - mysql
+    networks:
+      - chameleon-portal
   redis:
     image: redis:alpine
+    networks:
+      - chameleon-portal
   celery:
     image: ${DOCKER_IMAGE_LATEST}
     restart: on-failure
@@ -62,6 +72,8 @@ services:
     depends_on:
       - mysql
       - redis
+    networks:
+      - chameleon-portal
   vue:
     image: node:lts
     command: sh -c 'yarn && yarn serve'
@@ -70,11 +82,19 @@ services:
       - .:/project
     ports:
       - "127.0.0.1:9000:9000"
+    networks:
+      - chameleon-portal
   mail:
     image: mailhog/mailhog:latest
     restart: always
     ports:
-    - "127.0.0.1:8025:8025"
+      - "127.0.0.1:8025:8025"
+    networks:
+      - chameleon-portal
+
+networks:
+  chameleon-portal:
+    external: true
 
 volumes:
   static:
