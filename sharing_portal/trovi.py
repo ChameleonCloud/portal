@@ -135,7 +135,7 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
         "title": portal_artifact.title,
         "short_description": portal_artifact.short_description or portal_artifact.title,
         "long_description": portal_artifact.description,
-        "owner_urn": f"urn:trovi:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.created_by.username}",
+        "owner_urn": f"urn:trovi:user:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.created_by.username}",
         "visibility": "public" if portal_artifact.is_public else "private",
     }
     # If existing
