@@ -54,7 +54,7 @@ def get_client_admin_token():
 
 
 def get_token(token, is_admin=False):
-    scopes = ["artifacts:read", "artifacts:write"]#, "artifacts:write_metric"]
+    scopes = ["artifacts:read", "artifacts:write"]
     if is_admin:
         scopes.append("trovi:admin")
     res = requests.post(
@@ -147,7 +147,7 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
                 # TODO include metrics later
-                # "metrics": {"access_count": version.launch_count},
+                "metrics": {"access_count": version.launch_count},
                 "links": [],
             }
             for version in portal_artifact.versions.all()
@@ -227,12 +227,15 @@ def delete_version(token, trovi_artifact_uuid, slug):
     check_status(res, requests.codes.no_content)
 
 
-def increment_metric_count(artifact_id, version_slug, token=None, metric="access_count", amount=1):
+def increment_metric_count(
+        artifact_id, version_slug, token=None, metric="access_count", amount=1
+):
     if not token:
         token = get_client_admin_token()
     res = requests.put(
         url_with_token(
-            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?metric={metric}&amount={amount}", token
+            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?metric={metric}&amount={amount}",
+            token
         )
     )
     check_status(res, requests.codes.no_content)
