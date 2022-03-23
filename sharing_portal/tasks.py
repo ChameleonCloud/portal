@@ -123,6 +123,10 @@ def sync_to_trovi(artifact_id, token=None):
     artifact_model = Artifact.objects.get(pk=artifact_id)
     print(f"Syncing {artifact_model.title}.")
     if artifact_model.trovi_uuid:
+        artifact_in_portal = trovi.portal_artifact_to_trovi(
+           artifact_model, prompt_input=False,
+        )
+
         print(
             f"Artifact already created on trovi {artifact_model.trovi_uuid}, checking for updates"
         )
@@ -133,6 +137,15 @@ def sync_to_trovi(artifact_id, token=None):
             del artifact_in_trovi[field]
         readonly_version_fields = ["created_at", "slug", "metrics"]
         for version in artifact_in_trovi["versions"]:
+            trovi_ac = version["metrics"]["access_count"]
+            portal_ac = [
+                v["metrics"]["access_count"]
+                for v in artifact_in_portal["versions"]
+                if v["contents"]["urn"] == version["contents"]["urn"]
+            ][0]
+            diff = portal_ac - trovi_ac
+            if diff > 0:
+                trovi.increment_metric_count(artifact_in_trovi["uuid"], version["slug"], token=token, amount=diff)
             for field in readonly_version_fields:
                 del version[field]
         del artifact_in_trovi["reproducibility"]["requests"]
@@ -140,16 +153,15 @@ def sync_to_trovi(artifact_id, token=None):
         for author in artifact_in_trovi["authors"]:
             del author["email"]
 
-        artifact_in_portal = trovi.portal_artifact_to_trovi(
-            artifact_model,
-            prompt_input=False,
-        )
         for author in artifact_in_portal["authors"]:
             del author["email"]
+        for version in artifact_in_portal["versions"]:
+            del version["metrics"]
 
         # TODO check metrics on versions
-        patches = json.loads(str(
-            jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal)))
+        patches = json.loads(
+            str(jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal))
+        )
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
     else:
