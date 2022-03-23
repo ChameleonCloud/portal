@@ -68,7 +68,7 @@ def with_trovi_token(view_func):
                 except trovi.TroviException:
                     LOG.error("Error getting trovi token")
             else:
-                # Set an empty token, 
+                # Set an empty token
                 request.session["trovi_token"] = ""
         return view_func(request, *args, **kwargs)
 
@@ -141,7 +141,7 @@ def _compute_artifact_fields(artifact):
 
 
 def _owns_artifact(user, artifact):
-    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])["id"]
+    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
     return owner_urn["id"] == user.username and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
 
 
@@ -433,7 +433,7 @@ def _parse_doi(artifact):
         if contents["provider"] == "zenodo":
             return {
                 "doi": contents["id"],
-                "url": ZenodoClient.to_record_url(doi),
+                "url": ZenodoClient.to_record_url(contents["id"]),
                 "created_at": artifact["versions"][-1]["created_at"],
             }
     return None
