@@ -178,5 +178,15 @@ class PIEligibilityAdmin(ModelAdmin):
             )
         )
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["status"].widget.attrs.update(
+            {"onchange": "getCannedResponsesPIEligibility(this.value)"}
+        )
+        return form
+
+    class Media:
+        js = ("scripts/cannedresponses.js",)
+
 
 admin.site.register(PIEligibility, PIEligibilityAdmin)
