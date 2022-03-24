@@ -1116,7 +1116,6 @@ def create_artifact(request):
 
 @get_artifact
 @with_trovi_token
-@login_required
 def download(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
     access_methods = trovi.get_contents_url_info(
