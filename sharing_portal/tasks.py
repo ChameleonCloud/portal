@@ -108,6 +108,9 @@ def sync_all_to_trovi():
             print(e)
             if input("skip? (y/n)") != "y":
                 raise
+    print("Finished")
+    print(
+        "If any artifacts were created, you must run again to patch created at")
 
 
 # Run this via import in the django shell!
@@ -132,10 +135,11 @@ def sync_to_trovi(artifact_id, token=None):
         )
         artifact_in_trovi = trovi.get_artifact(token, artifact_id)
         # Delete fields that cannot be patched
-        readonly_fields = ["updated_at", "created_at"]
+        readonly_fields = ["updated_at"]
         for field in readonly_fields:
             del artifact_in_trovi[field]
         readonly_version_fields = ["created_at", "slug", "metrics"]
+        #readonly_version_fields = ["slug", "metrics"]
         for version in artifact_in_trovi["versions"]:
             trovi_ac = version["metrics"]["access_count"]
             portal_ac = [
@@ -158,12 +162,12 @@ def sync_to_trovi(artifact_id, token=None):
         for version in artifact_in_portal["versions"]:
             del version["metrics"]
 
-        # TODO check metrics on versions
         patches = json.loads(
             str(jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal))
         )
         if patches:
-            trovi.patch_artifact(token, artifact_model.trovi_uuid, patches)
+            trovi.patch_artifact(
+                token, artifact_model.trovi_uuid, patches, force=True)
     else:
         artifact_in_trovi = trovi.create_artifact(token, artifact_id, prompt_input=True)
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")

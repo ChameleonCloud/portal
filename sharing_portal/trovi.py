@@ -33,6 +33,8 @@ def check_status(response, code):
             detail = response_json.get(
                 "detail", response_json.get("error_description", response.text)
             )
+        except AttributeError:
+            detail = response.text
         except requests.exceptions.JSONDecodeError:
             if response.status_code == 500:
                 detail = ""
@@ -107,12 +109,26 @@ def get_author(author, prompt_input=False):
         else:
             email = None
     else:
-        selected_user = matching_users[0]
-        if len(matching_users) > 1 and prompt_input:
-            print(f"Email for {author.name} at {author.affiliation}")
-            for idx, user in enumerate(matching_users):
-                print(f"[{idx}]", user.first_name, user.last_name, user.email)
-            selected_user = matching_users[int(input("index: "))]
+        # Use .edu address if there is just one
+        edu_user = None
+        for user in matching_users:
+            if user.email.endswith(".edu"):
+                # If multiple matches, break and force manual input
+                if edu_user:
+                    edu_user = None
+                    break
+                edu_user = user
+
+        if edu_user:
+            print("Using only .edu address", edu_user.email)
+            selected_user = edu_user
+        else:
+            selected_user = matching_users[0]
+            if len(matching_users) > 1 and prompt_input:
+                print(f"Email for {author.name} at {author.affiliation}")
+                for idx, user in enumerate(matching_users):
+                    print(f"[{idx}]", user.first_name, user.last_name, user.email)
+                selected_user = matching_users[int(input("index: "))]
         email = selected_user.email
     return {
         "full_name": author.name.strip(),
@@ -150,20 +166,23 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                 "contents": {
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
-                # TODO include metrics later
                 "metrics": {"access_count": version.launch_count},
                 "links": [],
+                #"created_at": version.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT),
             }
             for version in portal_artifact.versions.all()
         ]
+        trovi_artifact["created_at"] = portal_artifact.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT)
     else:
-        version = list(portal_artifact.versions.all())[0]
-        trovi_artifact["version"] = {
-            "contents": {
-                "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
-            },
-            "links": [],
-        }
+        all_versions = list(portal_artifact.versions.all())
+        if all_versions:
+            version = all_versions[0]
+            trovi_artifact["version"] = {
+                "contents": {
+                    "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
+                },
+                "links": [],
+            }
     return trovi_artifact
 
 
@@ -202,11 +221,15 @@ def create_artifact(token, artifact_id, prompt_input=False):
     return trovi_artifact
 
 
-def patch_artifact(token, artifact_uuid, patches):
+def patch_artifact(token, artifact_uuid, patches, force=False):
     json_data = {"patch": patches}
     print(json_data)
+    query = {}
+    if force:
+        query["force"] = True
     res = requests.patch(
-        url_with_token(f"/artifacts/{artifact_uuid}/", token), json=json_data
+        url_with_token(f"/artifacts/{artifact_uuid}/", token, query=query),
+        json=json_data,
     )
     check_status(res, requests.codes.ok)
     return res.json()
@@ -236,10 +259,16 @@ def increment_metric_count(
 ):
     if not token:
         token = get_client_admin_token()
+    query = {
+        "metric": metric,
+        "amount": amount,
+        "origin": token,
+    }
     res = requests.put(
         url_with_token(
-            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics?metric={metric}&amount={amount}",
-            token
+            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics/",
+            token,
+            query=query,
         )
     )
     check_status(res, requests.codes.no_content)
