@@ -149,7 +149,7 @@ class ZenodoPublishForm(forms.Form):
 
 
 def _version_is_zenodo(version):
-    return version["contents"]["urn"].split(":", 2)[1] == "zenodo"
+    return trovi.parse_contents_urn(version["contents"]["urn"])["provider"] == "zenodo"
 
 
 class BaseZenodoPublishFormset(forms.BaseFormSet):

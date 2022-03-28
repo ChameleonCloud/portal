@@ -18,6 +18,7 @@ from .forms import (
     ArtifactForm,
     AuthorFormset,
     ShareArtifactForm,
+    ZenodoPublishFormset,
     RequestDaypassForm,
     ReviewDaypassForm,
 )
@@ -209,6 +210,7 @@ def _delete_artifact_version(request, version):
 
 
 @check_edit_permission
+@with_trovi_token
 @login_required
 def edit_artifact(request, artifact):
     if request.method == "POST":
@@ -295,8 +297,8 @@ def share_artifact(request, artifact):
     if request.method == "POST":
 
         form = ShareArtifactForm(request, request.POST)
+        z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact["versions"])
 
-        form = ShareArtifactForm(request, request.POST)
         if form.is_valid():
             visibility = "public" if form.cleaned_data["is_public"] else "private"
             is_reproducible = form.cleaned_data["is_reproducible"]
@@ -374,6 +376,12 @@ def share_artifact(request, artifact):
                         "Error updating artifact in Trovi, please try again",
                     )
 
+            if (z_form.is_valid() and
+                _request_artifact_dois(request, artifact, request_forms=z_form.cleaned_data)):
+                messages.add_message(request, messages.SUCCESS,
+                    ('Requested DOI(s) for artifact versions. The process '
+                     'of issuing DOIs may take a few minutes.'))
+
             return HttpResponseRedirect(
                 reverse("sharing_portal:detail", args=[artifact["uuid"]])
             )
@@ -390,6 +398,7 @@ def share_artifact(request, artifact):
                 "reproduce_hours": artifact["reproducibility"]["access_hours"],
             },
         )
+        z_form = ZenodoPublishFormset(artifact_versions=artifact["versions"])
 
     share_url = request.build_absolute_uri(
         reverse("sharing_portal:detail", kwargs={"pk": artifact["uuid"]})
@@ -402,6 +411,8 @@ def share_artifact(request, artifact):
     template = loader.get_template("sharing_portal/share.html")
     context = {
         "share_form": form,
+        "z_management_form": z_form.management_form,
+        "z_forms": _artifact_display_versions(z_form.forms),
         "share_url": share_url,
         "artifact": artifact,
     }
@@ -440,6 +451,7 @@ def _parse_doi(artifact):
 
 
 @get_artifact
+@with_trovi_token
 def artifact(request, artifact, version_slug=None):
     show_launch = request.user is None or has_active_allocations(request)
 
@@ -502,7 +514,7 @@ def launch(request, artifact, version_slug=None):
         )
         return redirect(daypass_request_url)
     trovi.increment_metric_count(
-        request.session.get("trovi_token"), artifact["uuid"], version["slug"]
+        artifact["uuid"], version["slug"], token=request.session.get("trovi_token")
     )
     return redirect(launch_url(version, can_edit=can_edit(request, artifact)))
 
@@ -841,6 +853,42 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifac
         errors.extend(artifact_form.errors)
 
     return artifact, errors
+
+
+def _request_artifact_dois(request, artifact, request_forms=[]):
+    """Process Zenodo artifact DOI request forms.
+    Returns:
+        bool: if any DOIs were requested.
+    """
+    try:
+        to_request = [
+            f['artifact_version_id']
+            for f in request_forms if f['request_doi']
+        ]
+        if to_request:
+            for artifact_version_id in to_request:
+                trovi.migrate_to_zenodo(
+                    request.session.get("trovi_token"),
+                    artifact["uuid"],
+                    artifact_version_id
+                )
+            return True
+        return False
+    except Exception:
+        LOG.exception("Failed to request DOI for artifact {}".format(artifact["uuid"]))
+
+
+def _artifact_display_versions(versions):
+    """Return a list of artifact versions for display purposes.
+    This is slightly different than the 'versions' property of the artifact, as
+    it is reverse-sorted (newest at the top) and also enumerated so that while
+    it's reversed, the numbers still indicate chronological order.
+    """
+    versions_list = list(versions)
+    return [
+        (v.model["slug"], v)
+        for (i, v) in enumerate(reversed(versions_list))
+    ]
 
 
 def create_supplemental_project_if_needed(request, artifact, project):

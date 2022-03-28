@@ -5,12 +5,17 @@
     <span><i class="fa fa-repeat"></i>
     {% if version.metrics.access_count %}
       {{ version.metrics.access_count }}
+    {% elif artifact.versions %}
+      {% with artifact.versions|last as version %}
+        {{version.metrics.access_count }}
+      {% endwith %}
     {% else %}
-      0
+      -
     {% endif %}
     </span>
     <span><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
-    <span class="artifactStats__updated">{{ artifact.updated_at }}</span>
+    {% load trovi_filters %}
+    <span class="artifactStats__updated">{{ artifact.updated_at | trovi_date_format }}</span>
   </div>
   <div class="artifactStats__labels">
     {% for label in artifact.tags %}

@@ -100,11 +100,12 @@
     <div class="artifactVersions">
       <h4><i class="fa fa-files-o"></i> Versions</h4>
       <ol class="sidebarNav">
+        {% load trovi_filters %}
         {% for v in artifact.versions %}
         <li class="sidebarNav__item {% if version.slug == v.slug %}active{% endif %}">
           <a class="artifactVersion__title" href="{% url 'sharing_portal:detail_version' artifact.uuid v.slug %}">
             <span>Version {{ v.slug }}</span>
-            <span>{{ v.created_at }}</span>
+            <span>{{ v.created_at | trovi_date_format  }}</span>
           </a>
         </li>
         {% endfor %}
