@@ -86,7 +86,7 @@ pytz = ">=2015.7"
 
 [[package]]
 name = "bibtexparser"
-version = "1.1.0"
+version = "1.2.0"
 description = "Bibtex parser for python 2.7 and 3.3 and newer"
 category = "main"
 optional = false
@@ -2230,7 +2230,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "d9881ea4754626065484303ff995c2114309c07d3fec48dc6651ead4eb9058ff"
+content-hash = "95aa235b03d7b3186ce2f7f0b25bf07ee42fd1b12844879c0c336d5b81e09515"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2266,7 +2266,7 @@ babel = [
     {file = "Babel-2.9.1.tar.gz", hash = "sha256:bc0c176f9f6a994582230df350aa6e05ba2ebe4b3ac317eab29d9be5d2768da0"},
 ]
 bibtexparser = [
-    {file = "bibtexparser-1.1.0.tar.gz", hash = "sha256:df8966ea752db6d74657a69b9d684a61aa33457ad6d9d50e41c50ef7f374907f"},
+    {file = "bibtexparser-1.2.0.tar.gz", hash = "sha256:0f9ab94e3fc36ee2ee6a3713c5dd7320d4b6ee52bd66ecbab03c6b06675ae410"},
 ]
 billiard = [
     {file = "billiard-3.6.4.0-py3-none-any.whl", hash = "sha256:87103ea78fa6ab4d5c751c4909bcff74617d985de7fa8b672cf8618afd5a875b"},
