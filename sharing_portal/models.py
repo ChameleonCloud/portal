@@ -125,9 +125,10 @@ class Artifact(models.Model):
                                                   related_name='associated',
                                                   blank=True)
     shared_to_projects = models.ManyToManyField(Project, through='ShareTarget')
+    trovi_uuid = models.CharField(max_length=36, null=True)
 
     class Meta:
-        ordering = ('title', )
+        ordering = ("title",)
 
     def __str__(self):
         return self.title
