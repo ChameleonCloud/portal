@@ -172,7 +172,9 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
             }
             for version in portal_artifact.versions.all()
         ]
-        trovi_artifact["created_at"] = portal_artifact.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT)
+        trovi_artifact["created_at"] = portal_artifact.created_at.strftime(
+            settings.ARTIFACT_DATETIME_FORMAT
+        )
     else:
         all_versions = list(portal_artifact.versions.all())
         if all_versions:
@@ -255,7 +257,7 @@ def delete_version(token, trovi_artifact_uuid, slug):
 
 
 def increment_metric_count(
-        artifact_id, version_slug, token=None, metric="access_count", amount=1
+    artifact_id, version_slug, token=None, metric="access_count", amount=1
 ):
     if not token:
         token = get_client_admin_token()

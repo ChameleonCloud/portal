@@ -109,8 +109,7 @@ def sync_all_to_trovi():
             if input("skip? (y/n)") != "y":
                 raise
     print("Finished")
-    print(
-        "If any artifacts were created, you must run again to patch created at")
+    print("If any artifacts were created, you must run again to patch created at")
 
 
 # Run this via import in the django shell!
@@ -127,7 +126,8 @@ def sync_to_trovi(artifact_id, token=None):
     print(f"Syncing {artifact_model.title}.")
     if artifact_model.trovi_uuid:
         artifact_in_portal = trovi.portal_artifact_to_trovi(
-           artifact_model, prompt_input=False,
+            artifact_model,
+            prompt_input=False,
         )
 
         print(
@@ -149,7 +149,9 @@ def sync_to_trovi(artifact_id, token=None):
             ][0]
             diff = portal_ac - trovi_ac
             if diff > 0:
-                trovi.increment_metric_count(artifact_in_trovi["uuid"], version["slug"], token=token, amount=diff)
+                trovi.increment_metric_count(
+                    artifact_in_trovi["uuid"], version["slug"], token=token, amount=diff
+                )
             for field in readonly_version_fields:
                 del version[field]
         del artifact_in_trovi["reproducibility"]["requests"]
@@ -166,8 +168,7 @@ def sync_to_trovi(artifact_id, token=None):
             str(jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal))
         )
         if patches:
-            trovi.patch_artifact(
-                token, artifact_model.trovi_uuid, patches, force=True)
+            trovi.patch_artifact(token, artifact_model.trovi_uuid, patches, force=True)
     else:
         artifact_in_trovi = trovi.create_artifact(token, artifact_id, prompt_input=True)
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
