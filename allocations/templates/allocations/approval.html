@@ -100,10 +100,21 @@
                     </div>
                 </td>
             </tr>
+            <tr ng-if="data.type == 'approve'">
+                <td><strong>Type:</strong></td>
+                <td>
+                    <select name="allocationApprovalType" id="allocationApprovalType" onchange="getCannedResponsesAllocation(this.value)">
+                        <option value="default">Not Selected</option>
+                        <option value="new">New</option>
+                        <option value="renewal">Renewal</option>
+                        <option value="recharge">Recharge</option>
+                    </select>
+                </td>
+            </tr>
             <tr>
                 <td><strong>Decision Summary</strong>&nbsp;<sup><i style="color: red;font-size:0.5em;" class="fa fa-asterisk"></i></sup></td>
                 <td>
-                    <textarea ng-model="data.allocation.decisionSummary" name="decisionSummary" rows="4" cols="53" ng-required="true"></textarea>
+                    <textarea ng-model="data.allocation.decisionSummary" id="idDecisionSummary" name="decisionSummary" rows="4" cols="53" ng-required="true"></textarea>
                     <div style="color:red" ng-show="modalForm.decisionSummary.$dirty && modalForm.decisionSummary.$invalid">
                         <div ng-show="modalForm.decisionSummary.$error.required">Decision summary is required.</div>
                     </div>
