@@ -884,15 +884,15 @@ djangocms-attributes-field = ">=0.4.0"
 
 [[package]]
 name = "djangocms-text-ckeditor"
-version = "3.10.0"
+version = "4.0.0"
 description = "Text Plugin for django CMS with CKEditor support"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django-cms = ">=3.4.5"
-html5lib = ">=0.999999999"
+django-cms = ">=3.6"
+html5lib = ">=1"
 Pillow = "*"
 
 [[package]]
@@ -2230,7 +2230,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "d9881ea4754626065484303ff995c2114309c07d3fec48dc6651ead4eb9058ff"
+content-hash = "62488d0c7aff1fb983b886fa232120183d049c0254f52e8b0d9bedbd994834f0"
 
 [metadata.files]
 aldryn-apphooks-config = [
@@ -2561,7 +2561,8 @@ djangocms-style = [
     {file = "djangocms-style-2.3.0.tar.gz", hash = "sha256:8d4a104d94bf0c3637d2675ad15e112fd60e3dba415b3b99e7e1d1f0c23f6b92"},
 ]
 djangocms-text-ckeditor = [
-    {file = "djangocms-text-ckeditor-3.10.0.tar.gz", hash = "sha256:905fa0cfbd244fb3a12657f89b083bfb57554ba35f4358972eebc6d78f8d8c3d"},
+    {file = "djangocms-text-ckeditor-4.0.0.tar.gz", hash = "sha256:fdae918b267baec66811bdd9cd49d961016449d2e6d148823586b99dc595e072"},
+    {file = "djangocms_text_ckeditor-4.0.0-py3-none-any.whl", hash = "sha256:3af9ffecd1ecce3b632bc9121385aaa6183c1afcd9e668439c3990d3bd1e1771"},
 ]
 djangocms-video = [
     {file = "djangocms-video-2.3.0.tar.gz", hash = "sha256:5fe8d0ddbe95f61ad0ab6f98c91193825cb1d47751a1885beeb3f153b8e63a22"},
