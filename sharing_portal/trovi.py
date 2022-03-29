@@ -59,7 +59,6 @@ def get_client_admin_token():
         client_id=settings.OIDC_RP_CLIENT_ID, client_secret=settings.OIDC_RP_CLIENT_SECRET
     )
     creds = openid.client_credentials()
-    LOG.info(creds["access_token"])
     return get_token(creds["access_token"], is_admin=True)["access_token"]
 
 

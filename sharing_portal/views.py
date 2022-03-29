@@ -22,7 +22,7 @@ from .forms import (
     RequestDaypassForm,
     ReviewDaypassForm,
 )
-from .models import DaypassRequest, DaypassProject
+from .models import Artifact, DaypassRequest, DaypassProject
 from . import trovi
 from projects.views import (
     add_project_invitation,
@@ -57,15 +57,12 @@ def with_trovi_token(view_func):
                 try:
                     response = trovi.get_token(
                         request.session.get("oidc_access_token"),
-                        is_admin=request.user.is_staff,
+                        is_admin=False,
                     )
                     request.session["trovi_token"] = response["access_token"]
-                    request.session["trovi_token_expiration"] = min(
-                        (
-                            datetime.utcnow() + timedelta(seconds=response["expires_in"])
-                        ).timestamp(),
-                        request.session["oidc_token_expiration"],
-                    )
+                    request.session["trovi_token_expiration"] = (
+                        datetime.utcnow() + timedelta(seconds=int(response["expires_in"])-10)
+                    ).timestamp()
                 except trovi.TroviException:
                     LOG.error("Error getting trovi token")
             else:
@@ -114,6 +111,20 @@ def get_artifact(func):
     def wrapper(request, *args, **kwargs):
         pk = kwargs.pop("pk")
         sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
+        # If someone supplied an old PK (try to redirect)
+        if len(pk) < 3:
+            try:
+                artifact = Artifact.objects.get(pk=pk)
+                base = reverse("sharing_portal:detail", args=[artifact.trovi_uuid])
+                query = {}
+                if sharing_key:
+                    query[SHARING_KEY_PARAM] = sharing_key
+                return HttpResponseRedirect(
+                    f"{base}?{urlencode(query)}"
+                )
+            except Artifact.DoesNotExist:
+                # will raise 404 in normal handling
+                pass
         artifact = handle_get_artifact(request, pk, sharing_key=sharing_key)
         kwargs.setdefault("artifact", artifact)
         return func(request, *args, **kwargs)
@@ -377,10 +388,10 @@ def share_artifact(request, artifact):
                     )
 
             if (z_form.is_valid() and
-                _request_artifact_dois(request, artifact, request_forms=z_form.cleaned_data)):
-                messages.add_message(request, messages.SUCCESS,
-                    ('Requested DOI(s) for artifact versions. The process '
-                     'of issuing DOIs may take a few minutes.'))
+                    _request_artifact_dois(request, artifact, request_forms=z_form.cleaned_data)):
+                messages.add_message(request, messages.SUCCESS, (
+                    'Requested DOI(s) for artifact versions. The process '
+                    'of issuing DOIs may take a few minutes.'))
 
             return HttpResponseRedirect(
                 reverse("sharing_portal:detail", args=[artifact["uuid"]])
@@ -450,8 +461,8 @@ def _parse_doi(artifact):
     return None
 
 
-@get_artifact
 @with_trovi_token
+@get_artifact
 def artifact(request, artifact, version_slug=None):
     show_launch = request.user is None or has_active_allocations(request)
 
