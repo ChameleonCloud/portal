@@ -7,7 +7,7 @@ import django.db.models.deletion
 def migrate_reproducibility_projects(apps, schema_editor):
     Artifact = apps.get_model('sharing_portal', 'Artifact')
     DaypassProject = apps.get_model('sharing_portal', 'DaypassProject')
-    for artifact in Artifact.objects.filter(reproducibility_project__isnull=True):
+    for artifact in Artifact.objects.filter(reproducibility_project__isnull=False):
         # Project nicknames will not be updated (e.g. will show old portal IDs)
         daypass_project = DaypassProject(
             artifact_uuid=artifact.trovi_uuid, project=artifact.reproducibility_project)
