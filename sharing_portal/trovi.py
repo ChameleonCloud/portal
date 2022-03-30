@@ -165,7 +165,10 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                 },
                 "metrics": {"access_count": version.launch_count},
                 "links": [
-                    {"urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}", "label": "Legacy Chameleon Link"},
+                    {
+                        "urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}",
+                        "label": "Legacy Chameleon Link",
+                    },
                 ],
                 #"created_at": version.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT),
             }
@@ -183,7 +186,10 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
                 "links": [
-                    {"urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}", "label": "Legacy Chameleon Link"},
+                    {
+                        "urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}",
+                        "label": "Legacy Chameleon Link",
+                    },
                 ],
             }
     return trovi_artifact

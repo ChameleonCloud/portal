@@ -166,10 +166,7 @@ def sync_to_trovi(artifact_id, token=None):
         patches = json.loads(
             str(jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal))
         )
-        patches = [
-            p for p in patches
-            if not p["path"].startswith("/versions")
-        ]
+        patches = [p for p in patches if not p["path"].startswith("/versions")]
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches, force=True)
     else:
