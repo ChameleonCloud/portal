@@ -139,7 +139,6 @@ def sync_to_trovi(artifact_id, token=None):
         for field in readonly_fields:
             del artifact_in_trovi[field]
         readonly_version_fields = ["created_at", "slug", "metrics"]
-        #readonly_version_fields = ["slug", "metrics"]
         for version in artifact_in_trovi["versions"]:
             trovi_ac = version["metrics"]["access_count"]
             portal_ac = [
@@ -167,6 +166,10 @@ def sync_to_trovi(artifact_id, token=None):
         patches = json.loads(
             str(jsonpatch.make_patch(artifact_in_trovi, artifact_in_portal))
         )
+        patches = [
+            p for p in patches
+            if not p["path"].startswith("/versions")
+        ]
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches, force=True)
     else:
