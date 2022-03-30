@@ -89,6 +89,7 @@ ZENODO_URL = os.getenv("ZENODO_URL", "https://zenodo.org")
 ZENODO_DEFAULT_ACCESS_TOKEN = os.getenv("ZENODO_DEFAULT_ACCESS_TOKEN")
 ARTIFACT_OWNER_PROVIDER = os.getenv("ARTIFACT_OWNER_PROVIDER", "chameleon")
 ARTIFACT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M%Z"
+TROVI_API_BASE_URL = os.getenv("TROVI_API_BASE_URL", "https://trovi.chameleoncloud.org/")
 
 # TEMPLATE_DEBUG = DEBUG
 

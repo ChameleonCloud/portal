@@ -1,5 +1,4 @@
 import requests
-import os
 from urllib.parse import urljoin, urlparse, urlencode
 from sharing_portal.models import Artifact
 from django.conf import settings
@@ -26,7 +25,7 @@ def url_with_token(path, token, query=None):
         query = {}
     if token:
         query["access_token"] = token
-    return urljoin(os.getenv("TROVI_API_BASE_URL"), f"{path}?{urlencode(query)}")
+    return urljoin(settings.TROVI_API_BASE_URL, f"{path}?{urlencode(query)}")
 
 
 def check_status(response, code):
@@ -67,7 +66,7 @@ def get_token(token, is_admin=False):
     if is_admin:
         scopes.append("trovi:admin")
     res = requests.post(
-        urljoin(os.getenv("TROVI_API_BASE_URL"), "/token/"),
+        urljoin(settings.TROVI_API_BASE_URL, "/token/"),
         json={
             "grant_type": "token_exchange",
             "subject_token": token,
