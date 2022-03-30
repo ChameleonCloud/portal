@@ -1,36 +1,29 @@
-import json
-
-from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.urls import reverse
-from django.db.models import F, Q, IntegerField, Count
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.template import loader
 from django.utils.html import strip_tags
 from django.utils import timezone
 from projects.models import Project
-from allocations.models import Allocation
-from rest_framework.renderers import JSONRenderer
-from rest_framework import serializers
+from projects.util import get_project_members
 from util.project_allocation_mapper import ProjectAllocationMapper
 from util.keycloak_client import KeycloakClient
 
 from .forms import (
     ArtifactForm,
-    ArtifactVersionForm,
     AuthorFormset,
     ShareArtifactForm,
     ZenodoPublishFormset,
     RequestDaypassForm,
     ReviewDaypassForm,
 )
-from .models import Artifact, ArtifactVersion, Author, ShareTarget, DaypassRequest
-from .tasks import publish_to_zenodo
+from .models import Artifact, DaypassRequest, DaypassProject
+from . import trovi
 from projects.views import (
     add_project_invitation,
     get_invite_url,
@@ -38,187 +31,166 @@ from projects.views import (
     is_membership_manager,
     manage_membership_in_scope,
 )
+from .zenodo import ZenodoClient
+
+from urllib.parse import urlencode
 
 import logging
+from datetime import datetime, timedelta
 
 LOG = logging.getLogger(__name__)
 
 SHARING_KEY_PARAM = "s"
 
 
-class ArtifactSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Artifact
-        fields = "__all__"
+def with_trovi_token(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if (
+            request.session.get("trovi_token_expiration")
+            and datetime.utcnow().timestamp() > request.session["trovi_token_expiration"]
+        ):
+            request.session.pop("trovi_token_expiration", None)
+            request.session.pop("trovi_token", None)
+
+        if not request.session.get("trovi_token"):
+            if request.session.get("oidc_access_token"):
+                try:
+                    response = trovi.get_token(
+                        request.session.get("oidc_access_token"),
+                        is_admin=False,
+                    )
+                    request.session["trovi_token"] = response["access_token"]
+                    request.session["trovi_token_expiration"] = (
+                        datetime.utcnow() + timedelta(seconds=int(response["expires_in"])-10)
+                    ).timestamp()
+                except trovi.TroviException:
+                    LOG.error("Error getting trovi token")
+            else:
+                # Set an empty token
+                request.session["trovi_token"] = ""
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
 
 
 def can_edit(request, artifact):
-    if artifact.created_by == request.user:
-        return True
-    if request.user.is_staff:
-        return True
-    return False
+    return _owns_artifact(request.user, artifact) or request.user.is_staff
+
+
+def handle_get_artifact(request, uuid, sharing_key=None):
+    try:
+        return trovi.get_artifact_by_trovi_uuid(
+            request.session.get("trovi_token"), uuid
+        )
+    except trovi.TroviException as e:
+        if e.code == 404:
+            raise Http404("That artifact does not exist, or is private")
+        if e.code == 403:
+            raise PermissionDenied("You do not have permission to view that page")
+        raise
 
 
 def check_edit_permission(func):
     def wrapper(request, *args, **kwargs):
-        pk = kwargs.pop('pk')
-        artifact = get_object_or_404(Artifact, pk=pk)
+        pk = kwargs.pop("pk")
+        artifact = handle_get_artifact(request, pk)
         if not can_edit(request, artifact):
-            messages.add_message(request, messages.ERROR,
-                'You do not have permission to edit this artifact.')
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[pk]))
-        # Replace pk with Artifact instance to avoid another lookup
-        kwargs.setdefault('artifact', artifact)
-        return func(request, *args, **kwargs)
-    return wrapper
-
-
-def check_view_permission(func):
-    def can_view(request, artifact):
-        if artifact.deleted:
-            return []
-
-        all_versions = list(artifact.versions)
-
-        if artifact.is_public:
-            return all_versions
-
-        if artifact.sharing_key and (
-            request.GET.get(SHARING_KEY_PARAM) == artifact.sharing_key
-        ):
-            return all_versions
-
-        if request.user.is_authenticated:
-            if request.user.is_staff:
-                return all_versions
-            if artifact.created_by == request.user:
-                return all_versions
-            project_shares = ShareTarget.objects.filter(
-                artifact=artifact, project__isnull=False)
-            # Avoid the membership lookup if there are no sharing rules in place
-            if project_shares:
-                mapper = ProjectAllocationMapper(request)
-                user_projects = [
-                    p["chargeCode"]
-                    for p in mapper.get_user_projects(
-                        request.user.username, fetch_balance=False
-                    )
-                ]
-                if any(p.project.charge_code in user_projects for p in project_shares):
-                    return all_versions
-
-        # NOTE(jason): It is important that this check go last. Visibility b/c
-        # the artifact has a DOI is the weakest form of visibility; not all
-        # versions are necessarily visible in this case. We return a list of
-        # the versions that are allowed. We check for stronger visibilty rules
-        # first, as they should ensure all versions are seen.
-        if artifact.doi:
-            return [v for v in all_versions if v.doi]
-
-        return []
-
-    def wrapper(request, *args, **kwargs):
-        pk = kwargs.pop('pk')
-        artifact = get_object_or_404(Artifact, pk=pk)
-        artifact_versions = can_view(request, artifact)
-        if not artifact_versions:
-            raise Http404('The requested artifact does not exist, or you do not have permission to view.')
-        # Replace pk with Artifact instance to avoid another lookup
-        kwargs.setdefault('artifact', artifact)
-        kwargs.setdefault('artifact_versions', artifact_versions)
-        return func(request, *args, **kwargs)
-    return wrapper
-
-
-class ArtifactFilter:
-    @staticmethod
-    def MINE(request):
-        if request.user.is_authenticated:
-            return Q(created_by=request.user)
-        else:
-            return Q()
-
-    PUBLIC = Q(is_public=True) | (
-        Q(doi__isnull=False)
-        & Q(artifact_versions__deposition_repo=ArtifactVersion.ZENODO)
-    )
-
-    @staticmethod
-    def PROJECT(projects):
-        return Q(shared_to_projects__in=projects)
-
-
-def _render_list(request, artifacts, user_projects=None):
-    if not user_projects:
-        if request.user.is_authenticated:
-            mapper = ProjectAllocationMapper(request)
-            user_projects = mapper.get_user_projects(
-                request.user.username, fetch_balance=False
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "You do not have permission to edit this artifact.",
             )
-        else:
-            user_projects = []
+            return HttpResponseRedirect(reverse("sharing_portal:detail", args=[pk]))
+        kwargs.setdefault("artifact", artifact)
+        return func(request, *args, **kwargs)
 
-    template = loader.get_template('sharing_portal/index.html')
+    return wrapper
+
+
+def get_artifact(func):
+    def wrapper(request, *args, **kwargs):
+        pk = kwargs.pop("pk")
+        sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
+        # If someone supplied an old PK (try to redirect)
+        if len(pk) < 3:
+            try:
+                artifact = Artifact.objects.get(pk=pk)
+                base = reverse("sharing_portal:detail", args=[artifact.trovi_uuid])
+                query = {}
+                if sharing_key:
+                    query[SHARING_KEY_PARAM] = sharing_key
+                return HttpResponseRedirect(
+                    f"{base}?{urlencode(query)}"
+                )
+            except Artifact.DoesNotExist:
+                # will raise 404 in normal handling
+                pass
+        artifact = handle_get_artifact(request, pk, sharing_key=sharing_key)
+        kwargs.setdefault("artifact", artifact)
+        return func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def _render_list(request, artifacts):
+    template = loader.get_template("sharing_portal/index.html")
     context = {
-        'hub_url': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        'artifacts': artifacts.order_by('-created_at'),
-        'projects': user_projects,
+        "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
+        "artifacts": artifacts,
     }
 
     return HttpResponse(template.render(context, request))
 
 
+def _compute_artifact_fields(artifact):
+    terms = artifact["title"].lower().split()
+    terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
+    artifact["search_terms"] = terms
+    artifact["is_chameleon_supported"] = any(
+        label == "chameleon" for label in artifact["tags"]
+    )
+    return artifact
+
+
+def _owns_artifact(user, artifact):
+    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
+    return owner_urn["id"] == user.username and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
+
+
+def _trovi_artifacts(request):
+    artifacts = [
+        _compute_artifact_fields(a)
+        for a in trovi.list_artifacts(
+            request.session.get("trovi_token"), sort_by="updated_at"
+        )
+    ]
+    return artifacts
+
+
+@with_trovi_token
 def index_all(request, collection=None):
-    user_projects = None
-    if request.user.is_authenticated:
-        mapper = ProjectAllocationMapper(request)
-        user_projects = mapper.get_user_projects(
-            request.user.username, fetch_balance=False)
-        charge_codes = [p['chargeCode'] for p in user_projects]
-        projects = Project.objects.filter(charge_code__in=charge_codes)
-        f = (ArtifactFilter.MINE(request) | ArtifactFilter.PROJECT(projects) | ArtifactFilter.PUBLIC)
-    else:
-        f = ArtifactFilter.PUBLIC
-
-    artifacts = _fetch_artifacts(f)
-    # Pass user_projects to list to avoid a second fetch of this data
-    return _render_list(request, artifacts, user_projects=user_projects)
+    return _render_list(request, _trovi_artifacts(request))
 
 
+@with_trovi_token
 @login_required
 def index_mine(request):
-    artifacts = _fetch_artifacts(ArtifactFilter.MINE(request))
+    artifacts = [
+        artifact
+        for artifact in _trovi_artifacts(request)
+        if _owns_artifact(request.user, artifact)
+    ]
     return _render_list(request, artifacts)
 
 
+@with_trovi_token
 def index_public(request):
-    artifacts = _fetch_artifacts(ArtifactFilter.PUBLIC)
+    artifacts = [
+        artifact
+        for artifact in _trovi_artifacts(request)
+        if artifact["visibility"] == "public"
+    ]
     return _render_list(request, artifacts)
-
-
-def index_project(request, charge_code):
-    projects = Project.objects.filter(charge_code=charge_code)
-    artifacts = _fetch_artifacts(ArtifactFilter.PROJECT(projects))
-    return _render_list(request, artifacts)
-
-
-def _fetch_artifacts(filters):
-    """Fetch all artifacts matching a given set of filters.
-
-    This uses a few advanced Django ORM mechanisms. We use `prefetch_related`
-    to allow us to perform filtering at the artifact version level. We do this
-    so we can hide non-public versions of public artifacts, when viewed w/o
-    any special access permissions. The query also includes a count aggregator
-    to act over the artifact versions collection; this is used to render stats
-    in some places.
-    """
-    return (
-        Artifact.objects.prefetch_related("artifact_versions")
-        .filter(filters)
-        .filter(deleted=False)
-        .annotate(num_versions=Count("artifact_versions"))
-    )
 
 
 def _delete_artifact_version(request, version):
@@ -249,108 +221,123 @@ def _delete_artifact_version(request, version):
 
 
 @check_edit_permission
+@with_trovi_token
 @login_required
 def edit_artifact(request, artifact):
     if request.method == "POST":
-        form = ArtifactForm(request.POST, instance=artifact, request=request)
+        authors_formset = AuthorFormset(request.POST, initial=artifact["authors"])
+
+        form = ArtifactForm(request.POST, artifact=artifact, request=request)
 
         if "delete_version" in request.POST:
-            version_id = request.POST.get("delete_version")
+            version_slug = request.POST.get("delete_version")
             try:
-                version = artifact.versions.get(pk=version_id)
-                _delete_artifact_version(request, version)
-            except ArtifactVersion.DoesNotExist:
+                trovi.delete_version(
+                    request.session.get("trovi_token"), artifact["uuid"], version_slug
+                )
+            except trovi.TroviException:
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "Artifact version {} does not exist".format(version_id),
+                    "Could not delete artifact version {}".format(version_slug),
                 )
             # Return to edit form
             return HttpResponseRedirect(
-                reverse("sharing_portal:edit", args=[artifact.pk])
+                reverse("sharing_portal:edit", args=[artifact["uuid"]])
             )
 
         elif "delete_all" in request.POST:
-            if artifact.doi:
-                # This check is here in case the user messes with the developer tools
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Cannot delete artifact published with DOI.",
-                )
+            deleted_all_successfully = True
+            for version in artifact["versions"]:
+                try:
+                    trovi.delete_version(
+                        request.session.get("trovi_token"),
+                        artifact["uuid"],
+                        version_slug,
+                    )
+                except trovi.TroviException:
+                    deleted_all_successfully = False
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Could not delete artifact version {}".format(version_slug),
+                    )
+            if not deleted_all_successfully:
                 return HttpResponseRedirect(
-                    reverse("sharing_portal:edit", args=[artifact.pk])
-                )
-
-            if not all(_delete_artifact_version(request, v) for v in artifact.versions):
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Could not delete all artifact versions.",
-                )
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:edit", args=[artifact.pk])
-                )
-
-            try:
-                artifact.delete()
-            except Exception:
-                LOG.exception(f"Failed to delete artifact {artifact.title}")
-                messages.add_message(
-                    request, messages.ERROR, "Internal error deleting artifact."
-                )
-                # Return to edit form
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:edit", args=[artifact.pk])
+                    reverse("sharing_portal:edit", args=[artifact["uuid"]])
                 )
 
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                f"Successfully deleted artifact {artifact.title}.",
+                f"Successfully deleted all versions for artifact {artifact['title']}.",
             )
 
             # Return to Trovi home page
             return HttpResponseRedirect(reverse("sharing_portal:index_all"))
 
-        artifact, errors = _handle_artifact_forms(request, form)
+        artifact, errors = _handle_artifact_forms(
+            request, form, artifact=artifact, authors_formset=authors_formset
+        )
         if errors:
             (messages.add_message(request, messages.ERROR, e) for e in errors)
         else:
-            messages.add_message(request, messages.SUCCESS, 'Successfully saved artifact.')
+            messages.add_message(
+                request, messages.SUCCESS, "Successfully saved artifact."
+            )
         return HttpResponseRedirect(
-            reverse("sharing_portal:detail", args=[artifact.pk])
+            reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
 
-    form = ArtifactForm(instance=artifact, request=request)
+    authors_formset = AuthorFormset(initial=artifact["authors"])
+    form = ArtifactForm(artifact=artifact, request=request)
     template = loader.get_template("sharing_portal/edit.html")
     context = {
-        'artifact_form': form,
-        'artifact': artifact,
-        'all_versions': _artifact_display_versions(artifact.versions),
+        "artifact_form": form,
+        "artifact": artifact,
+        "authors_formset": authors_formset,
     }
 
     return HttpResponse(template.render(context, request))
 
 
 @check_edit_permission
+@with_trovi_token
 @login_required
 def share_artifact(request, artifact):
-    if request.method == 'POST':
-
-        form = ShareArtifactForm(
-            request,
-            request.POST
-        )
-        z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact.versions)
+    if request.method == "POST":
 
         form = ShareArtifactForm(request, request.POST)
+        z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact["versions"])
+
         if form.is_valid():
-            artifact.is_public = form.cleaned_data["is_public"]
-            artifact.is_reproducible = form.cleaned_data["is_reproducible"]
-            artifact.reproduce_hours = form.cleaned_data["reproduce_hours"]
+            visibility = "public" if form.cleaned_data["is_public"] else "private"
+            is_reproducible = form.cleaned_data["is_reproducible"]
+            reproduce_hours = form.cleaned_data["reproduce_hours"]
+            patches = []
+            if visibility != artifact["visibility"]:
+                patches.append(
+                    {"op": "replace", "path": "/visibility", "value": visibility}
+                )
+            if is_reproducible != artifact["reproducibility"]["enable_requests"]:
+                patches.append(
+                    {
+                        "op": "replace",
+                        "path": "/reproducibility/enable_requests",
+                        "value": is_reproducible,
+                    }
+                )
+            if reproduce_hours != artifact["reproducibility"]["access_hours"]:
+                patches.append(
+                    {
+                        "op": "replace",
+                        "path": "/reproducibility/access_hours",
+                        "value": reproduce_hours,
+                    }
+                )
+
             try:
-                artifact.project = Project.objects.get(
+                artifact["project"] = Project.objects.get(
                     charge_code=form.cleaned_data["project"]
                 )
             except Project.DoesNotExist:
@@ -360,43 +347,76 @@ def share_artifact(request, artifact):
                     "Project {} does not exist".format(form.cleaned_data["project"]),
                 )
                 return HttpResponseRedirect(
-                    reverse("sharing_portal:share", args=[artifact.pk])
+                    reverse("sharing_portal:share", args=[artifact["uuid"]])
                 )
 
-            if artifact.is_reproducible and not artifact.reproducibility_project:
-                supplemental_project = create_supplemental_project(request, artifact)
-                artifact.reproducibility_project = supplemental_project
-            artifact.save()
-            if (_sync_share_targets(artifact, project_shares=form.cleaned_data['projects'])):
-                messages.add_message(request, messages.SUCCESS,
-                    'Successfully updated sharing settings')
+            portal_project = Project.objects.get(
+                charge_code=form.cleaned_data["project"]
+            )
+            # If the user is a member of this project
+            if any(
+                [
+                    user
+                    for user in get_project_members(portal_project)
+                    if user.username == request.user.username
+                ]
+            ):
+                trovi.set_linked_project(
+                    artifact,
+                    form.cleaned_data["project"],
+                    request.session.get("trovi_token"),
+                )
+
+            if is_reproducible:
+                create_supplemental_project_if_needed(request, artifact, portal_project)
+
+            if patches:
+                try:
+                    trovi.patch_artifact(
+                        request.session.get("trovi_token"), artifact["uuid"], patches
+                    )
+                    messages.add_message(
+                        request,
+                        messages.SUCCESS,
+                        "Successfully updated sharing settings.",
+                    )
+                except trovi.TroviException:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Error updating artifact in Trovi, please try again",
+                    )
 
             if (z_form.is_valid() and
-                _request_artifact_dois(artifact, request_forms=z_form.cleaned_data)):
-                messages.add_message(request, messages.SUCCESS,
-                    ('Requested DOI(s) for artifact versions. The process '
-                     'of issuing DOIs may take a few minutes.'))
+                    _request_artifact_dois(request, artifact, request_forms=z_form.cleaned_data)):
+                messages.add_message(request, messages.SUCCESS, (
+                    'Requested DOI(s) for artifact versions. The process '
+                    'of issuing DOIs may take a few minutes.'))
 
-            return HttpResponseRedirect(reverse('sharing_portal:detail', args=[artifact.pk]))
+            return HttpResponseRedirect(
+                reverse("sharing_portal:detail", args=[artifact["uuid"]])
+            )
     else:
+        # Use the first linked chameleon project
+        project = trovi.get_linked_project(artifact)
+
         form = ShareArtifactForm(
             request,
             initial={
-                "is_public": artifact.is_public,
-                "projects": artifact.shared_to_projects.all(),
-                "is_reproducible": artifact.is_reproducible,
-                "project": artifact.project,
-                "reproduce_hours": artifact.reproduce_hours,
+                "is_public": artifact["visibility"] == "public",
+                "is_reproducible": artifact["reproducibility"]["enable_requests"],
+                "project": project,
+                "reproduce_hours": artifact["reproducibility"]["access_hours"],
             },
         )
-        z_form = ZenodoPublishFormset(artifact_versions=artifact.versions)
+        z_form = ZenodoPublishFormset(artifact_versions=artifact["versions"])
 
     share_url = request.build_absolute_uri(
-        reverse("sharing_portal:detail", kwargs={"pk": artifact.pk})
+        reverse("sharing_portal:detail", kwargs={"pk": artifact["uuid"]})
     )
-    if artifact.sharing_key:
+    if artifact.get("sharing_key"):
         share_url += "?{key_name}={key_value}".format(
-            key_name=SHARING_KEY_PARAM, key_value=artifact.sharing_key
+            key_name=SHARING_KEY_PARAM, key_value=artifact["sharing_key"]
         )
 
     template = loader.get_template("sharing_portal/share.html")
@@ -406,9 +426,6 @@ def share_artifact(request, artifact):
         "z_forms": _artifact_display_versions(z_form.forms),
         "share_url": share_url,
         "artifact": artifact,
-        "artifact_json": JSONRenderer().render(
-            ArtifactSerializer(instance=artifact).data
-        ),
     }
     return HttpResponse(template.render(context, request))
 
@@ -431,34 +448,42 @@ def preserve_sharing_key(url, request):
     return url
 
 
-@check_view_permission
-def artifact(request, artifact, artifact_versions, version_idx=None):
+def _parse_doi(artifact):
+    if artifact["versions"]:
+        contents = trovi.parse_contents_urn(
+            artifact["versions"][-1]["contents"]["urn"])
+        if contents["provider"] == "zenodo":
+            return {
+                "doi": contents["id"],
+                "url": ZenodoClient.to_record_url(contents["id"]),
+                "created_at": artifact["versions"][-1]["created_at"],
+            }
+    return None
+
+
+@with_trovi_token
+@get_artifact
+def artifact(request, artifact, version_slug=None):
     show_launch = request.user is None or has_active_allocations(request)
 
-    version = _artifact_version(artifact_versions, version_idx)
+    version = _artifact_version(artifact, version_slug)
     if not version:
-        error_message = "This artifact has no version {}".format(version_idx)
+        if not version_slug:
+            error_message = "This artifact has no versions"
+        else:
+            error_message = "This artifact has no version {}".format(version_slug)
         messages.add_message(request, messages.ERROR, error_message)
 
-    if version_idx:
-        launch_url = reverse('sharing_portal:launch_version',
-            args=[artifact.pk, version_idx])
-        doi_info = {
-            'doi': version.doi,
-            'url': version.deposition_url,
-            'created_at': version.created_at,
-        }
+    if version_slug:
+        launch_url = reverse(
+            "sharing_portal:launch_version", args=[artifact["uuid"], version_slug]
+        )
     else:
-        launch_url = reverse('sharing_portal:launch', args=[artifact.pk])
-        doi_info = {
-            'doi': artifact.doi,
-            'url': artifact.deposition_url,
-            'created_at': None,
-        }
+        launch_url = reverse("sharing_portal:launch", args=[artifact["uuid"]])
 
     # Ensure launch URLs are authenticated if a private link is being used.
     request_daypass_url = preserve_sharing_key(
-        reverse("sharing_portal:request_daypass", args=[artifact.pk]), request
+        reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
     )
     launch_url = preserve_sharing_key(launch_url, request)
 
@@ -466,45 +491,61 @@ def artifact(request, artifact, artifact_versions, version_idx=None):
 
     context = {
         "artifact": artifact,
-        "all_versions": _artifact_display_versions(artifact_versions),
-        "doi_info": doi_info,
+        "doi_info": _parse_doi(artifact),
         "version": version,
         "launch_url": launch_url,
-        "related_artifacts": artifact.related_items,
         "request_daypass_url": request_daypass_url,
-        "editable": (request.user.is_staff or (artifact.created_by == request.user)),
+        "editable": can_edit(request, artifact),
         "show_launch": show_launch,
     }
     template = loader.get_template("sharing_portal/detail.html")
     return HttpResponse(template.render(context, request))
 
 
-@check_view_permission
+@get_artifact
+@with_trovi_token
 @login_required
-def launch(request, artifact, artifact_versions, version_idx=None):
-    version = _artifact_version(artifact_versions, version_idx)
+def launch(request, artifact, version_slug=None):
+    version = _artifact_version(artifact, version_slug)
 
     if not version:
-        raise Http404((
-            'There is no version {} for this artifact, or you do not have access.'
-            .format(version_idx or '')))
-
+        raise Http404(
+            (
+                "There is no version {} for this artifact, or you do not have access.".format(
+                    version_slug or ""
+                )
+            )
+        )
     # If no allocation, redirerect to request daypass
-    if artifact.is_reproducible and not has_active_allocations(request):
+    if artifact["reproducibility"]["enable_requests"] and not has_active_allocations(
+        request
+    ):
         daypass_request_url = preserve_sharing_key(
-            reverse("sharing_portal:request_daypass", args=[artifact.pk]), request
+            reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
         )
         return redirect(daypass_request_url)
+    trovi.increment_metric_count(
+        artifact["uuid"], version["slug"], token=request.session.get("trovi_token")
+    )
+    return redirect(launch_url(version, can_edit=can_edit(request, artifact)))
 
-    version.launch_count = F("launch_count") + 1
-    version.save(update_fields=["launch_count"])
-    return redirect(version.launch_url(can_edit=can_edit(request, artifact)))
+
+def launch_url(version, can_edit=False):
+    base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
+    contents = trovi.parse_contents_urn(version["contents"]["urn"])
+    query = dict(
+        deposition_repo=contents["provider"],
+        deposition_id=contents["id"],
+        ownership=("own" if can_edit else "fork"),
+    )
+    return str(base_url + "?" + urlencode(query))
 
 
-@check_view_permission
+@get_artifact
+@with_trovi_token
 @login_required
 def request_daypass(request, artifact, **kwargs):
-    if not artifact or not artifact.is_reproducible:
+    if not artifact or not artifact["reproducibility"]["enable_requests"]:
         raise Http404("That artifact either doesn't exist, or can't be reproduced")
 
     if request.method == "POST":
@@ -514,19 +555,19 @@ def request_daypass(request, artifact, **kwargs):
         )
         if form.is_valid():
             daypass_request = DaypassRequest.objects.create(
-                artifact=artifact,
+                artifact_uuid=artifact["uuid"],
                 name=form.cleaned_data["name"],
                 institution=form.cleaned_data["institution"],
                 reason=form.cleaned_data["reason"],
                 created_by=request.user,
                 status=DaypassRequest.STATUS_PENDING,
             )
-            send_request_mail(daypass_request, request)
+            send_request_mail(daypass_request, request, artifact)
 
             messages.add_message(request, messages.SUCCESS, "Request submitted")
             return HttpResponseRedirect(
                 preserve_sharing_key(
-                    reverse("sharing_portal:detail", args=[artifact.pk]), request
+                    reverse("sharing_portal:detail", args=[artifact["uuid"]]), request
                 )
             )
         else:
@@ -534,7 +575,7 @@ def request_daypass(request, artifact, **kwargs):
                 (messages.add_message(request, messages.ERROR, e) for e in form.errors)
             return HttpResponseRedirect(
                 preserve_sharing_key(
-                    reverse("sharing_portal:request_daypass", args=[artifact.pk]),
+                    reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]),
                     request,
                 )
             )
@@ -554,7 +595,7 @@ def request_daypass(request, artifact, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
-def send_request_mail(daypass_request, request):
+def send_request_mail(daypass_request, request, artifact):
     LOG.info("sending request mail")
     url = request.build_absolute_uri(
         reverse("sharing_portal:review_daypass", args=[daypass_request.id])
@@ -563,11 +604,12 @@ def send_request_mail(daypass_request, request):
     list_url = request.build_absolute_uri(
         reverse("sharing_portal:list_daypass_requests")
     )
-    subject = f'Daypass request for "{daypass_request.artifact.title}"'
+    artifact_title = artifact["title"]
+    subject = f'Daypass request for "{artifact_title}"'
     body = f"""
     <p>
     A request has been made to reproduce the artifact:
-    '{daypass_request.artifact.title}'.
+    '{artifact_title}'.
     </p>
     <p>
     Review this decision by visiting <a href="{url}">this link</a>. You can
@@ -580,11 +622,8 @@ def send_request_mail(daypass_request, request):
     <p>Thanks,</p>
     <p>Chameleon Team</p>
     """
-    managers = [
-        u.email
-        for u in get_project_membership_managers(daypass_request.artifact.project)
-    ]
-    LOG.info("about to sending request mail")
+    project = Project.objects.get(charge_code=trovi.get_linked_project(artifact))
+    managers = [u.email for u in get_project_membership_managers(project)]
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -595,6 +634,7 @@ def send_request_mail(daypass_request, request):
     LOG.info("sent mail")
 
 
+@with_trovi_token
 @login_required
 def review_daypass(request, request_id, **kwargs):
     try:
@@ -602,9 +642,15 @@ def review_daypass(request, request_id, **kwargs):
     except DaypassRequest.DoesNotExist:
         raise Http404("That daypass request does not exist")
 
-    if not daypass_request.artifact.project or not is_membership_manager(
-        daypass_request.artifact.project, request.user.username
-    ):
+    daypass_request.artifact = trovi.get_artifact_by_trovi_uuid(
+        request.session.get("trovi_token"), daypass_request.artifact_uuid
+    )
+
+    artifact = trovi.get_artifact_by_trovi_uuid(
+        request.session.get("trovi_token"), daypass_request.artifact_uuid
+    )
+    project = trovi.get_linked_project(artifact)
+    if not project or not is_membership_manager(project, request.user.username):
         raise PermissionDenied("You do not have permission to view that page")
 
     if daypass_request.status != DaypassRequest.STATUS_PENDING:
@@ -629,7 +675,7 @@ def review_daypass(request, request_id, **kwargs):
             send_request_decision_mail(daypass_request, request)
             messages.add_message(request, messages.SUCCESS, f"Request status: {status}")
             return HttpResponseRedirect(
-                reverse("sharing_portal:detail", args=[daypass_request.artifact.pk])
+                reverse("sharing_portal:detail", args=[daypass_request.artifact_uuid])
             )
         else:
             if form.errors:
@@ -656,10 +702,18 @@ def list_daypass_requests(request, **kwargs):
         for project in keycloak_client.get_user_roles(request.user.username)
         if manage_membership_in_scope(project["scopes"])
     ]
+    trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
+    trovi_artifacts_map = {}
+    # Create a map of all artifacts assigned to projects this user has perms on
+    for artifact in trovi_artifacts:
+        linked_project = trovi.get_linked_project(artifact)
+        if linked_project and linked_project.charge_code in projects:
+            trovi_artifacts_map[artifact["uuid"]] = artifact
+
     pending_requests = (
         DaypassRequest.objects.all()
         .filter(
-            artifact__project__charge_code__in=projects,
+            artifact_uuid__in=trovi_artifacts_map.keys(),
             status=DaypassRequest.STATUS_PENDING,
         )
         .order_by("-created_at")
@@ -668,12 +722,15 @@ def list_daypass_requests(request, **kwargs):
         daypass_request.url = reverse(
             "sharing_portal:review_daypass", args=[daypass_request.id]
         )
+        daypass_request.artifact = trovi_artifacts_map[daypass_request.artifact_uuid]
     reviewed_requests = (
         DaypassRequest.objects.all()
         .exclude(status=DaypassRequest.STATUS_PENDING)
-        .filter(artifact__project__charge_code__in=projects)
+        .filter(artifact_uuid__in=trovi_artifacts_map.keys())
         .order_by("-created_at")
     )
+    for daypass_request in reviewed_requests:
+        daypass_request.artifact = trovi_artifacts_map[daypass_request.artifact_uuid]
     template = loader.get_template("sharing_portal/list_daypass_requests.html")
     context = {
         "pending_requests": pending_requests,
@@ -685,32 +742,38 @@ def list_daypass_requests(request, **kwargs):
 def send_request_decision_mail(daypass_request, request):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
+    artifact = trovi.get_artifact_by_trovi_uuid(
+        request.session.get("trovi_token"), daypass_request.artifact_uuid
+    )
+    artifact_title = artifact["title"]
+    daypass_project = DaypassProject.objects.get(artifact_uuid=artifact["uuid"])
+    reproducibility_project = daypass_project.project
     if daypass_request.status == DaypassRequest.STATUS_APPROVED:
         invite = add_project_invitation(
-            daypass_request.artifact.reproducibility_project.id,
+            reproducibility_project.id,
             daypass_request.created_by.email,
             daypass_request.decision_by,
             request.get_host(),
-            daypass_request.artifact.reproduce_hours,
+            artifact["reproducibility"]["access_hours"],
             False,
         )
         daypass_request.invitation = invite
         daypass_request.save()
         url = get_invite_url(request, invite.email_code)
         artifact_url = request.build_absolute_uri(
-            reverse("sharing_portal:detail", args=[daypass_request.artifact.id])
+            reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
         body = f"""
         <p>
-        Your daypass request to reproduce '{daypass_request.artifact.title}'
+        Your daypass request to reproduce '{artifact_title}'
         has been approved. Your access is for {invite.duration} hours,
         and begins when you click <a href="{url}">this link</a>.
         </p>
         <p>
         After accepting the invitation, first you will be taken to the project
         overview page for the project you are being added to. Note that its ID,
-        {daypass_request.artifact.reproducibility_project.charge_code}, may be
-        required when running some artifacts.
+        {reproducibility_project.charge_code}, may be required when running
+        some artifacts.
         </p>
         <p>
         The artifact you requested to reproduce is located
@@ -734,8 +797,7 @@ def send_request_decision_mail(daypass_request, request):
     elif daypass_request.status == DaypassRequest.STATUS_REJECTED:
         body = f"""
         <p>
-        Your daypass request to reproduce '{daypass_request.artifact.title}'
-        has been rejected.
+        Your daypass request to reproduce '{artifact_title}' has been rejected.
         </p>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
         If you have any question or issue, please submit a ticket on our
@@ -753,190 +815,59 @@ def send_request_decision_mail(daypass_request, request):
     )
 
 
-def _artifact_version(artifact_versions, version_idx=None):
-    # A default of 0 means get the most recent artifact version.
-    # Version indices are 1-indexed.
-    version_idx = version_idx or 0
-    try:
-        return artifact_versions[int(version_idx) - 1]
-    except (IndexError, ValueError):
-        return None
+def _artifact_version(artifact, version_slug=None):
+    if artifact["versions"]:
+        return next(
+            version
+            for version in artifact["versions"]
+            if not version_slug or version["slug"] == version_slug
+        )
+    return None
 
 
-@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-@login_required
-def embed_create(request):
-    return _embed_form(request, context={'form_title': 'Create artifact'})
-
-
-@check_edit_permission
-@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-@login_required
-def embed_edit(request, artifact):
-    context = {}
-    if 'new_version' in request.GET:
-        context['form_title'] = 'Create new version of artifact'
-    else:
-        context['form_title'] = 'Edit artifact'
-
-    return _embed_form(request, artifact=artifact, context=context)
-
-
-@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-def embed_cancel(request):
-    return _embed_callback(request, dict(status='cancel'))
-
-
-def _embed_form(request, artifact=None, context={}):
-    new_version = (not artifact) or ("new_version" in request.GET)
-
-    if request.method == "POST":
-        form = ArtifactForm(request.POST, instance=artifact, request=request)
-        authors_formset = AuthorFormset(request.POST)
-        if (not artifact) or new_version:
-            version_form = ArtifactVersionForm(request.POST)
-        else:
-            version_form = None
-
-        artifact, errors = _handle_artifact_forms(request, form,
-            authors_formset=authors_formset, version_form=version_form)
-
-        if not errors:
-            return _embed_callback(request, dict(status='success', id=artifact.pk))
-        else:
-            # Fail through and return to form with errors displayed
-            for err in errors:
-                messages.add_message(request, messages.ERROR, err)
-    else:
-        form = ArtifactForm(instance=artifact, request=request)
-        if artifact:
-            queryset = artifact.authors.all()
-            initial = None
-        else:
-            queryset = Author.objects.none()
-            # Default to logged-in user
-            initial = [{'name': request.user.get_full_name()}]
-        authors_formset = AuthorFormset(queryset=queryset, initial=initial)
-        if new_version:
-            version_form = ArtifactVersionForm(
-                initial={
-                    'deposition_id': request.GET.get('deposition_id'),
-                    'deposition_repo': request.GET.get('deposition_repo')
-                })
-        else:
-            version_form = None
-
-    template = loader.get_template('sharing_portal/embed.html')
-    context.update({
-        'artifact_form': form,
-        'authors_formset': authors_formset,
-        'version_form': version_form,
-    })
-
-    return HttpResponse(template.render(context, request))
-
-def _embed_callback(request, payload):
-    template = loader.get_template('sharing_portal/embed_callback.html')
-    payload_wrapper = dict(
-        message='save_result',
-        body=payload,
-    )
-    context = {
-        'payload_json': json.dumps(payload_wrapper),
-        'jupyterhub_origin': settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-    }
-
-    return HttpResponse(template.render(context, request))
-
-
-def _handle_artifact_forms(request, artifact_form, authors_formset=None,
-                           version_form=None):
-    artifact = None
+def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifact=None):
     errors = []
 
     if artifact_form.is_valid():
-        artifact = artifact_form.save(commit=False)
         authors = None
-        version = None
+
+        patches = []
+        keys = ["title", "short_description", "long_description", "title", "tags"]
+        for key in keys:
+            value = artifact_form.cleaned_data[key]
+            if artifact.get(key) != value:
+                patches.append({"op": "replace", "path": f"/{key}", "value": value})
 
         if authors_formset:
             if authors_formset.is_valid():
-                # Save the list of authors. First we save the new authors items
-                # (users may have added new authors). Then we get the list of
-                # all author models in the formset and replace the 'authors'
-                # m2m list of the artifact. There are probably less ugly ways
-                # of doing this, but this is a weird form.
-                authors_formset.save()
-                authors = [
-                    f.instance for f in authors_formset.forms
-                    if f.instance.pk is not None and
-                    (f.instance not in authors_formset.deleted_objects)
-                ]
+                authors = []
+                for author in authors_formset.cleaned_data:
+                    if author and not author["DELETE"]:
+                        del author["DELETE"]
+                        authors.append(author)
+                if authors and authors != artifact["authors"]:
+                    patches.append(
+                        {"op": "replace", "path": "/authors", "value": authors}
+                    )
             else:
                 errors.extend(authors_formset.errors)
 
-        if version_form:
-            if version_form.is_valid():
-                version = version_form.save(commit=False)
-                # Remove the version form to prevent re-submit
-                version_form = None
-            else:
-                errors.extend(version_form.errors)
-
         if not errors:
-            if not artifact.pk:
-                artifact.created_by = request.user
-            artifact.updated_by = request.user
-            artifact.save()
-            if authors:
-                artifact.authors.set(authors)
-            if version:
-                version.artifact = artifact
-                version.save()
-            # Save the labels
-            artifact_form.save_m2m()
+            if patches:
+                try:
+                    trovi.patch_artifact(
+                        request.session.get("trovi_token"), artifact["uuid"], patches
+                    )
+                except trovi.TroviException as e:
+                    errors.append(str(e))
     else:
         errors.extend(artifact_form.errors)
 
     return artifact, errors
 
 
-def _artifact_display_versions(versions):
-    """Return a list of artifact versions for display purposes.
-
-    This is slightly different than the 'versions' property of the artifact, as
-    it is reverse-sorted (newest at the top) and also enumerated so that while
-    it's reversed, the numbers still indicate chronological order.
-    """
-    versions_list = list(versions)
-    return [
-        (len(versions) - i, v)
-        for (i, v) in enumerate(reversed(versions_list))
-    ]
-
-
-def _sync_share_targets(artifact, project_shares=[]):
-    existing_targets = ShareTarget.objects.filter(artifact=artifact)
-    existing_project_shares = [st.project for st in existing_targets if st.project]
-    incoming_project_shares = project_shares
-    changed = False
-    for p in existing_project_shares:
-        if p not in incoming_project_shares:
-            (ShareTarget.objects.filter(artifact=artifact, project=p)
-                .delete())
-            LOG.info('Un-shared artifact %s to project %s', artifact.pk, p.pk)
-            changed = True
-    for p in incoming_project_shares:
-        if p not in existing_project_shares:
-            ShareTarget.objects.create(artifact=artifact, project=p)
-            LOG.info('Shared artifact %s to project %s', artifact.pk, p.pk)
-            changed = True
-    return changed
-
-
-def _request_artifact_dois(artifact, request_forms=[]):
+def _request_artifact_dois(request, artifact, request_forms=[]):
     """Process Zenodo artifact DOI request forms.
-
     Returns:
         bool: if any DOIs were requested.
     """
@@ -947,46 +878,75 @@ def _request_artifact_dois(artifact, request_forms=[]):
         ]
         if to_request:
             for artifact_version_id in to_request:
-                publish_to_zenodo.apply_async(args=[artifact_version_id])
+                trovi.migrate_to_zenodo(
+                    request.session.get("trovi_token"),
+                    artifact["uuid"],
+                    artifact_version_id
+                )
             return True
         return False
     except Exception:
-        LOG.exception("Failed to request DOI for artifact {}".format(artifact.pk))
+        LOG.exception("Failed to request DOI for artifact {}".format(artifact["uuid"]))
 
 
-def create_supplemental_project(request, artifact):
-    mapper = ProjectAllocationMapper(request)
+def _artifact_display_versions(versions):
+    """Return a list of artifact versions for display purposes.
+    This is slightly different than the 'versions' property of the artifact, as
+    it is reverse-sorted (newest at the top) and also enumerated so that while
+    it's reversed, the numbers still indicate chronological order.
+    """
+    versions_list = list(versions)
+    return [
+        (v.model["slug"], v)
+        for (i, v) in enumerate(reversed(versions_list))
+    ]
 
-    pi = artifact.project.pi
-    artifact_url = request.build_absolute_uri(
-        reverse("sharing_portal:detail", kwargs={"pk": artifact.pk})
-    )
-    supplemental_project = {
-        "nickname": f"reproducing_{artifact.id}",
-        "title": f"Reproducing '{artifact.title}'",
-        "description": f"This project is for reproducing the artifact '{artifact.title}' {artifact_url}",
-        "typeId": artifact.project.type.id,
-        "fieldId": artifact.project.field.id,
-        "piId": artifact.project.pi.id,
-    }
-    # Approval code is commented out during initial preview release.
-    allocation_data = {
-        "resourceId": 39,
-        "requestorId": pi.id,
-        "computeRequested": 1000,
-        "status": "approved",
-        #"dateReviewed": timezone.now(),
-        #"start": timezone.now(),
-        #"end": timezone.now() + timedelta(days=6*30),
-        #"decisionSummary": "automatically approved for reproducibility",
-        #"computeAllocated": 1000,
-        #"justification": "Automatic decision",
-    }
-    supplemental_project["allocations"] = [allocation_data]
-    supplemental_project["source"] = "Daypass"
-    created_tas_project = mapper.save_project(supplemental_project, request.get_host())
-    # We can assume only 1 here since this project is new
-    #allocation = Allocation.objects.get(project_id=created_tas_project["id"])
-    #allocation.status = "approved"
-    #allocation.save()
-    return Project.objects.get(id=created_tas_project["id"])
+
+def create_supplemental_project_if_needed(request, artifact, project):
+    try:
+        DaypassProject.objects.get(artifact_uuid=artifact["uuid"])
+    except DaypassProject.DoesNotExist:
+        mapper = ProjectAllocationMapper(request)
+
+        pi = project.pi
+        artifact_url = request.build_absolute_uri(
+            reverse("sharing_portal:detail", kwargs={"pk": artifact["uuid"]})
+        )
+        supplemental_project = {
+            "nickname": "reproducing_{}".format(artifact["uuid"]),
+            "title": "Reproducing '{}'".format(artifact["title"]),
+            "description": "This project is for reproducing the artifact '{}' {}".format(
+                artifact["title"], artifact_url
+            ),
+            "typeId": project.type.id,
+            "fieldId": project.field.id,
+            "piId": project.pi.id,
+        }
+        # Approval code is commented out during initial preview release.
+        allocation_data = {
+            "resourceId": 39,
+            "requestorId": pi.id,
+            "computeRequested": 1000,
+            "status": "approved",
+            # "dateReviewed": timezone.now(),
+            # "start": timezone.now(),
+            # "end": timezone.now() + timedelta(days=6*30),
+            # "decisionSummary": "automatically approved for reproducibility",
+            # "computeAllocated": 1000,
+            # "justification": "Automatic decision",
+        }
+        supplemental_project["allocations"] = [allocation_data]
+        supplemental_project["source"] = "Daypass"
+        created_tas_project = mapper.save_project(
+            supplemental_project, request.get_host()
+        )
+        # We can assume only 1 here since this project is new
+        # allocation = Allocation.objects.get(project_id=created_tas_project["id"])
+        # allocation.status = "approved"
+        # allocation.save()
+
+        created_project = Project.objects.get(id=created_tas_project["id"])
+        daypass_project = DaypassProject(
+            artifact_uuid=artifact["uuid"], project=created_project
+        )
+        daypass_project.save()

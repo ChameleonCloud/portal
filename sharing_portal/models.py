@@ -240,7 +240,7 @@ class ShareTarget(models.Model):
 
 
 class DaypassRequest(models.Model):
-    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE)
+    artifact_uuid = models.CharField(max_length=36, null=True)
     name = models.CharField(max_length=200)
     institution = models.CharField(max_length=200)
     reason = models.TextField(max_length=5000)
@@ -266,3 +266,12 @@ class DaypassRequest(models.Model):
     )
     decision_at = models.DateTimeField(null=True)
     invitation = models.ForeignKey(Invitation, on_delete=models.CASCADE, null=True)
+
+
+class DaypassProject(models.Model):
+    """
+    Stores the project where the user is added to when a daypass starts
+    """
+
+    artifact_uuid = models.CharField(max_length=36, primary_key=True)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)

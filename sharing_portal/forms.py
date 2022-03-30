@@ -1,89 +1,59 @@
-from django.db.models import Q
-from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import widgets
 
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Artifact, ArtifactVersion, Author, Label, DaypassRequest
+from .models import DaypassRequest
+from . import trovi
 
 import logging
 
 LOG = logging.getLogger(__name__)
 
 
-class ArtifactForm(forms.ModelForm):
-    class Meta:
-        model = Artifact
-        fields = (
-            "title",
-            "short_description",
-            "description",
-            "labels",
-        )
+class ArtifactForm(forms.Form):
+    title = forms.CharField(label="Title")
+    short_description = forms.CharField(label="Short Description")
+    long_description = forms.CharField(
+        label="Long Description", widget=forms.Textarea()
+    )
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request")
+        request = kwargs.pop("request")
+        artifact = kwargs.pop("artifact")
         super().__init__(*args, **kwargs)
 
-        # Only allow staff members to use the special "Chameleon-supported"
-        # label on the artifact.
-        if self.request.user.is_staff:
-            available_labels = Label.objects.all()
-        else:
-            available_labels = Label.objects.filter(~Q(label=Label.CHAMELEON_SUPPORTED))
-
-        self.fields["labels"] = forms.ModelMultipleChoiceField(
-            available_labels, required=False)
-
-    def clean_labels(self):
-        labels = self.cleaned_data["labels"]
-        # Ensure only staff members can save w/ the "chameleon" label.
-        if (
-            any(l.label == Label.CHAMELEON_SUPPORTED for l in labels)
-            and not self.request.user.is_staff
-        ):
-            raise ValidationError("Invalid label")
-        return labels
+        available_labels = [
+            (t["tag"], t["tag"])
+            for t in trovi.list_tags(request.session.get("trovi_token"))
+        ]
+        self.fields["tags"] = forms.MultipleChoiceField(
+            choices=available_labels, required=False
+        )
+        self.fields["title"].initial = artifact["title"]
+        self.fields["long_description"].initial = artifact["long_description"]
+        self.fields["short_description"].initial = artifact["short_description"]
 
 
-class ArtifactVersionForm(forms.ModelForm):
-    readonly_fields = ('deposition_id', 'deposition_repo',)
+class AuthorForm(forms.Form):
+    full_name = forms.CharField(label="Full Name")
+    email = forms.CharField(label="Email")
+    affiliation = forms.CharField(label="Affiliation", required=False)
 
     def __init__(self, *args, **kwargs):
-        super(ArtifactVersionForm, self).__init__(*args, **kwargs)
-        for readonly_field in self.readonly_fields:
-            self.fields[readonly_field].widget.attrs['readonly'] = True
+        author = kwargs.pop("initial", None)
+        super().__init__(*args, **kwargs)
 
-    class Meta:
-        model = ArtifactVersion
-        fields = ('deposition_id', 'deposition_repo',)
-
-
-class AuthorForm(forms.ModelForm):
-    class Meta:
-        model = Author
-        fields = ('name', 'affiliation',)
-
-    def save(self, commit=True):
-        # Perform a lookup to see if this field combo already exists.
-        # If it does, then just return it from the DB. Else, create a new
-        # entry. This allows users to add new authors, but it avoids creating
-        # duplicates.
-        try:
-            self.instance = self.Meta.model.objects.get(
-                name=self.instance.name,
-                affiliation=self.instance.affiliation)
-        except self.Meta.model.DoesNotExist:
-            pass
-
-        return super(AuthorForm, self).save(commit=commit)
+        if author:
+            self.fields["full_name"].initial = author["full_name"]
+            self.fields["email"].initial = author["email"]
+            self.fields["affiliation"].initial = author["affiliation"]
 
 
-AuthorFormset = forms.modelformset_factory(
-    AuthorForm.Meta.model, form=AuthorForm, can_delete=True,
-    extra=2, min_num=1, max_num=3)
+AuthorFormset = forms.formset_factory(
+    form=AuthorForm, can_delete=True, extra=2, min_num=1
+)
 
 
 class ShareArtifactForm(forms.Form):
@@ -158,9 +128,9 @@ class ZenodoPublishForm(forms.Form):
             doi_field.label = label
 
     def get_initial_for_field(self, field, field_name):
-        if field_name == 'artifact_version_id':
-            return self.model.pk
-        elif field_name == 'request_doi':
+        if field_name == "artifact_version_id":
+            return self.model["slug"]
+        elif field_name == "request_doi":
             return self._has_doi()
         return None
 
@@ -175,19 +145,25 @@ class ZenodoPublishForm(forms.Form):
         return super(ZenodoPublishForm, self).clean()
 
     def _has_doi(self):
-        return self.model.doi is not None
+        return _version_is_zenodo(self.model)
+
+
+def _version_is_zenodo(version):
+    return trovi.parse_contents_urn(version["contents"]["urn"])["provider"] == "zenodo"
 
 
 class BaseZenodoPublishFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
-        artifact_versions = kwargs.pop('artifact_versions')
+        artifact_versions = kwargs.pop("artifact_versions")
         if not artifact_versions:
-            raise ValueError('artifact_versions must provided')
+            raise ValueError("artifact_versions must provided")
         self.artifact_versions = artifact_versions
-        self.latest_published_version = max([
-            i for i, v in enumerate(artifact_versions) if v.doi
-        ] or [-1])
-        kwargs['initial'] = [{} for _ in artifact_versions]
+        self.latest_published_version = -1
+        for i, version in enumerate(artifact_versions):
+            if _version_is_zenodo(version):
+                self.latest_published_version = i
+
+        kwargs["initial"] = [{} for _ in artifact_versions]
         super(BaseZenodoPublishFormset, self).__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index):
@@ -199,7 +175,7 @@ class BaseZenodoPublishFormset(forms.BaseFormSet):
             # Prevent publishing versions behind the latest published version
             'force_disable': future_version_published,
             'label': ('(cannot request DOI for past versions)'
-                if future_version_published else None)
+                      if future_version_published else None)
         }
 
     @property

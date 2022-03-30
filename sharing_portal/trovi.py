@@ -10,15 +10,22 @@ from keycloak.realm import KeycloakRealm
 from util.keycloak_client import KeycloakClient
 from projects.models import Project
 
+import logging
+LOG = logging.getLogger(__name__)
+
 
 class TroviException(Exception):
-    pass
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+        super().__init__(self.message)
 
 
 def url_with_token(path, token, query=None):
     if not query:
         query = {}
-    query["access_token"] = token
+    if token:
+        query["access_token"] = token
     return urljoin(os.getenv("TROVI_API_BASE_URL"), f"{path}?{urlencode(query)}")
 
 
@@ -42,14 +49,14 @@ def check_status(response, code):
             f"{request.method} {request_path} {response.status_code} "
             f"returned, expected {code}: {detail}"
         )
-        raise TroviException(message)
+        raise TroviException(response.status_code, message)
 
 
 def get_client_admin_token():
     keycloak_client = KeycloakClient()
-    realm = KeycloakRealm(server_url=keycloak_client.server_url, realm_name="master")
+    realm = KeycloakRealm(server_url=keycloak_client.server_url, realm_name="chameleon")
     openid = realm.open_id_connect(
-        client_id=keycloak_client.client_id, client_secret=keycloak_client.client_secret
+        client_id=settings.OIDC_RP_CLIENT_ID, client_secret=settings.OIDC_RP_CLIENT_SECRET
     )
     creds = openid.client_credentials()
     return get_token(creds["access_token"], is_admin=True)["access_token"]
@@ -266,8 +273,9 @@ def delete_version(token, trovi_artifact_uuid, slug):
 def increment_metric_count(
     artifact_id, version_slug, token=None, metric="access_count", amount=1
 ):
+    admin_token = get_client_admin_token()
     if not token:
-        token = get_client_admin_token()
+        token = admin_token
     query = {
         "metric": metric,
         "amount": amount,
@@ -276,7 +284,7 @@ def increment_metric_count(
     res = requests.put(
         url_with_token(
             f"/artifacts/{artifact_id}/versions/{version_slug}/metrics/",
-            token,
+            admin_token,
             query=query,
         )
     )
@@ -344,3 +352,12 @@ def set_linked_project(artifact, charge_code, token=None):
         patch_artifact(token, artifact["uuid"], patches)
     else:
         patch_artifact(get_client_admin_token(), artifact["uuid"], patches)
+
+
+def migrate_to_zenodo(token, artifact_uuid, slug):
+    res = requests.post(
+        url_with_token(f"/artifacts/{artifact_uuid}/versions/{slug}/migration", token),
+        json={"backend": "zenodo"},
+    )
+    check_status(res, requests.codes.accepted)
+    return res.json()

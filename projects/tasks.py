@@ -7,8 +7,9 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.html import strip_tags
-from projects.models import Invitation, Project
+from projects.models import Invitation, Project, DaypassProject
 from sharing_portal.models import DaypassRequest
+from sharing_portal import trovi
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
 from .views import get_invitations_beyond_duration, get_project_membership_managers
@@ -61,7 +62,7 @@ def end_daypasses():
                 approved_requests = (
                     DaypassRequest.objects.all()
                     .filter(
-                        artifact=daypass_request.artifact,
+                        artifact_uuid=daypass_request.artifact_uuid,
                         status=DaypassRequest.STATUS_APPROVED,
                         invitation__status=Invitation.STATUS_BEYOND_DURATION,
                     )
@@ -69,17 +70,20 @@ def end_daypasses():
                 )
                 if approved_requests == settings.DAYPASS_LIMIT:
                     # Send an email
-                    handle_too_many_daypass_users(daypass_request.artifact)
+                    handle_too_many_daypass_users(daypass_request.artifact_uuid)
             except DaypassRequest.DoesNotExist:
                 pass
         except Exception as e:
             LOG.error(f"Error ending daypass invite {invitation.id}: {e}")
 
 
-def handle_too_many_daypass_users(artifact):
+def handle_too_many_daypass_users(artifact_uuid):
     # Make allocation expire
+    reproducibility_project = DaypassProject.objects.get(
+        artifact_uuid=artifact_uuid
+    ).project
     allocations = Allocation.objects.filter(
-        status="active", project=artifact.reproducibility_project
+        status="active", project=reproducibility_project
     )
     now = datetime.now(timezone.utc)
     for alloc in allocations:
@@ -91,7 +95,12 @@ def handle_too_many_daypass_users(artifact):
             return
         alloc.expiration_date = now
         alloc.save()
-    managers = [u.email for u in get_project_membership_managers(artifact.project)]
+
+    admin_token = trovi.get_client_admin_token()
+    artifact = trovi.get_artifact(admin_token, artifact_uuid)
+    artifact_title = artifact["title"]
+    project = trovi.get_linked_project(artifact)
+    managers = [u.email for u in get_project_membership_managers(project)]
 
     subject = "Pause on daypass requests"
     help_url = "https://chameleoncloud.org/user/help/"
@@ -99,7 +108,7 @@ def handle_too_many_daypass_users(artifact):
     <p>
     Thank you for using our daypass feature for Trovi artifacts!
     We have noticied that {settings.DAYPASS_LIMIT} users have been approved to
-    reproduce '{artifact.title}'. As a status check, we have put a pause on the
+    reproduce '{artifact_title}'. As a status check, we have put a pause on the
     allocation in order to request more details. Please submit a ticket to
     our <a href="{help_url}">help desk</a> mentioning the situation so we can
     discuss this further.
