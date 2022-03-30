@@ -157,13 +157,16 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
     # If existing
     if portal_artifact.trovi_uuid:
         trovi_artifact["uuid"] = portal_artifact.trovi_uuid
+        trovi_artifact["sharing_key"] = portal_artifact.sharing_key
         trovi_artifact["versions"] = [
             {
                 "contents": {
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
                 "metrics": {"access_count": version.launch_count},
-                "links": [],
+                "links": [
+                    {"urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}", "label": "Legacy Chameleon Link"},
+                ],
                 #"created_at": version.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT),
             }
             for version in portal_artifact.versions.all()
@@ -179,7 +182,9 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                 "contents": {
                     "urn": f"urn:trovi:contents:{version.deposition_repo}:{version.deposition_id}"
                 },
-                "links": [],
+                "links": [
+                    {"urn": f"urn:trovi:artifact:chameleon:legacy:{portal_artifact.id}", "label": "Legacy Chameleon Link"},
+                ],
             }
     return trovi_artifact
 
