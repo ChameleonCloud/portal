@@ -10,6 +10,7 @@ from util.keycloak_client import KeycloakClient
 from projects.models import Project
 
 import logging
+
 LOG = logging.getLogger(__name__)
 
 
@@ -55,7 +56,8 @@ def get_client_admin_token():
     keycloak_client = KeycloakClient()
     realm = KeycloakRealm(server_url=keycloak_client.server_url, realm_name="chameleon")
     openid = realm.open_id_connect(
-        client_id=settings.OIDC_RP_CLIENT_ID, client_secret=settings.OIDC_RP_CLIENT_SECRET
+        client_id=settings.OIDC_RP_CLIENT_ID,
+        client_secret=settings.OIDC_RP_CLIENT_SECRET,
     )
     creds = openid.client_credentials()
     return get_token(creds["access_token"], is_admin=True)["access_token"]
@@ -155,15 +157,18 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
             "access_hours": portal_artifact.reproduce_hours,
         },
         "title": portal_artifact.title,
+        "created_at": portal_artifact.created_at.strftime(
+            settings.ARTIFACT_DATETIME_FORMAT
+        ),
         "short_description": portal_artifact.short_description or portal_artifact.title,
         "long_description": portal_artifact.description,
         "owner_urn": f"urn:trovi:user:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.created_by.username}",
         "visibility": "public" if portal_artifact.is_public else "private",
+        "sharing_key": portal_artifact.sharing_key,
     }
     # If existing
     if portal_artifact.trovi_uuid:
         trovi_artifact["uuid"] = portal_artifact.trovi_uuid
-        trovi_artifact["sharing_key"] = portal_artifact.sharing_key
         trovi_artifact["versions"] = [
             {
                 "contents": {
@@ -176,13 +181,12 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                         "label": "Legacy Chameleon Link",
                     },
                 ],
-                #"created_at": version.created_at.strftime(settings.ARTIFACT_DATETIME_FORMAT),
+                "created_at": version.created_at.strftime(
+                    settings.ARTIFACT_DATETIME_FORMAT
+                ),
             }
             for version in portal_artifact.versions.all()
         ]
-        trovi_artifact["created_at"] = portal_artifact.created_at.strftime(
-            settings.ARTIFACT_DATETIME_FORMAT
-        )
     else:
         all_versions = list(portal_artifact.versions.all())
         if all_versions:
@@ -197,6 +201,9 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
                         "label": "Legacy Chameleon Link",
                     },
                 ],
+                "created_at": version.created_at.strftime(
+                    settings.ARTIFACT_DATETIME_FORMAT
+                ),
             }
     return trovi_artifact
 
@@ -221,14 +228,19 @@ def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
     return res.json()
 
 
-def create_artifact(token, artifact_id, prompt_input=False):
+def create_artifact(token, artifact_id, prompt_input=False, force=False):
     artifact = Artifact.objects.get(pk=artifact_id)
     json_data = portal_artifact_to_trovi(artifact, prompt_input=prompt_input)
     while len(json_data["title"]) > 70:
         print(f"This title is {len(json_data['title'])} chars (max 70)")
         print(json_data["title"])
         json_data["title"] = input("New title: ")
-    res = requests.post(url_with_token("/artifacts/", token), json=json_data)
+    query = {}
+    if force:
+        query["force"] = True
+    res = requests.post(
+        url_with_token("/artifacts/", token, query=query), json=json_data
+    )
     check_status(res, requests.codes.created)
     trovi_artifact = res.json()
     artifact.trovi_uuid = trovi_artifact["uuid"]
@@ -250,12 +262,19 @@ def patch_artifact(token, artifact_uuid, patches, force=False):
     return res.json()
 
 
-def create_version(token, trovi_artifact_uuid, contents_urn, links=None):
+def create_version(
+    token, trovi_artifact_uuid, contents_urn, links=None, created_at=None
+):
     json_data = {"contents": {"urn": contents_urn}}
     if links:
         json_data["links"] = links
+    if created_at:
+        json_data["created_at"] = created_at
+        force = "&force"
+    else:
+        force = ""
     res = requests.post(
-        url_with_token(f"/artifacts/{trovi_artifact_uuid}/versions/", token),
+        url_with_token(f"/artifacts/{trovi_artifact_uuid}/versions/", token) + force,
         json=json_data,
     )
     check_status(res, requests.codes.created)
