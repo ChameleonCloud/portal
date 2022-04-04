@@ -138,7 +138,7 @@ def sync_to_trovi(artifact_id, token=None):
         readonly_fields = ["updated_at"]
         for field in readonly_fields:
             del artifact_in_trovi[field]
-        readonly_version_fields = ["created_at", "slug", "metrics"]
+        readonly_version_fields = ["slug", "metrics"]
         for version in artifact_in_trovi["versions"]:
             trovi_ac = version["metrics"]["access_count"]
             portal_ac = [
@@ -170,7 +170,9 @@ def sync_to_trovi(artifact_id, token=None):
         if patches:
             trovi.patch_artifact(token, artifact_model.trovi_uuid, patches, force=True)
     else:
-        artifact_in_trovi = trovi.create_artifact(token, artifact_id, prompt_input=True)
+        artifact_in_trovi = trovi.create_artifact(
+            token, artifact_id, prompt_input=True, force=True
+        )
         print(f"Created trovi artifact {artifact_in_trovi['uuid']}")
         artifact_in_portal = trovi.portal_artifact_to_trovi(
             Artifact.objects.get(pk=artifact_id),
@@ -187,7 +189,8 @@ def sync_to_trovi(artifact_id, token=None):
                 token,
                 artifact_in_trovi["uuid"],
                 version["contents"]["urn"],
-                version["links"],
+                links=version["links"],
+                created_at=version["created_at"],
             )
             print(f"Created new version {version['contents']['urn']}")
 
