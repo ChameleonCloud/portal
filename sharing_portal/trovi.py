@@ -374,7 +374,7 @@ def set_linked_project(artifact, charge_code, token=None):
 
 def migrate_to_zenodo(token, artifact_uuid, slug):
     res = requests.post(
-        url_with_token(f"/artifacts/{artifact_uuid}/versions/{slug}/migration", token),
+        url_with_token(f"/artifacts/{artifact_uuid}/versions/{slug}/migration/", token),
         json={"backend": "zenodo"},
     )
     check_status(res, requests.codes.accepted)
