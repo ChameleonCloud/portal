@@ -74,7 +74,7 @@ def with_trovi_token(view_func):
 
 
 def can_edit(request, artifact):
-    return _owns_artifact(request.user, artifact) or request.user.is_staff
+    return _owns_artifact(request.user, artifact)
 
 
 def handle_get_artifact(request, uuid, sharing_key=None):
@@ -335,40 +335,39 @@ def share_artifact(request, artifact):
                         "value": reproduce_hours,
                     }
                 )
+            if form.cleaned_data["project"]:
+                try:
+                    artifact["project"] = Project.objects.get(
+                        charge_code=form.cleaned_data["project"]
+                    )
+                except Project.DoesNotExist:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Project {} does not exist".format(form.cleaned_data["project"]),
+                    )
+                    return HttpResponseRedirect(
+                        reverse("sharing_portal:share", args=[artifact["uuid"]])
+                    )
 
-            try:
-                artifact["project"] = Project.objects.get(
-                    charge_code=form.cleaned_data["project"]
-                )
-            except Project.DoesNotExist:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Project {} does not exist".format(form.cleaned_data["project"]),
-                )
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:share", args=[artifact["uuid"]])
-                )
+                    portal_project = Project.objects.get(
+                        charge_code=form.cleaned_data["project"]
+                    )
+                    # If the user is a member of this project
+                    if any(
+                        [
+                            user
+                            for user in get_project_members(portal_project)
+                            if user.username == request.user.username
+                        ]
+                    ):
+                        trovi.set_linked_project(
+                            artifact,
+                            form.cleaned_data["project"],
+                        )
 
-            portal_project = Project.objects.get(
-                charge_code=form.cleaned_data["project"]
-            )
-            # If the user is a member of this project
-            if any(
-                [
-                    user
-                    for user in get_project_members(portal_project)
-                    if user.username == request.user.username
-                ]
-            ):
-                trovi.set_linked_project(
-                    artifact,
-                    form.cleaned_data["project"],
-                    request.session.get("trovi_token"),
-                )
-
-            if is_reproducible:
-                create_supplemental_project_if_needed(request, artifact, portal_project)
+                    if is_reproducible:
+                        create_supplemental_project_if_needed(request, artifact, portal_project)
 
             if patches:
                 try:

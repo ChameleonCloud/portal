@@ -123,7 +123,7 @@ class ZenodoPublishForm(forms.Form):
         doi_field = self.fields['request_doi']
         doi_field.disabled = self._has_doi() or force_disable
         if self._has_doi():
-            doi_field.label = 'Published as {}'.format(self.model.doi)
+            doi_field.label = 'Published as {}'.format(trovi.parse_contents_urn(self.model["contents"]["urn"])["id"])
         else:
             doi_field.label = label
 
