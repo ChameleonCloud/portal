@@ -7,8 +7,8 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.html import strip_tags
-from projects.models import Invitation, Project, DaypassProject
-from sharing_portal.models import DaypassRequest
+from projects.models import Invitation, Project
+from sharing_portal.models import DaypassRequest, DaypassProject
 from sharing_portal import trovi
 from django.contrib.auth.models import User
 from util.keycloak_client import KeycloakClient
