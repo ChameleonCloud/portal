@@ -253,14 +253,14 @@ def edit_artifact(request, artifact):
                     trovi.delete_version(
                         request.session.get("trovi_token"),
                         artifact["uuid"],
-                        version_slug,
+                        version["slug"],
                     )
                 except trovi.TroviException:
                     deleted_all_successfully = False
                     messages.add_message(
                         request,
                         messages.ERROR,
-                        "Could not delete artifact version {}".format(version_slug),
+                        "Could not delete artifact version {}".format(version["slug"]),
                     )
             if not deleted_all_successfully:
                 return HttpResponseRedirect(
