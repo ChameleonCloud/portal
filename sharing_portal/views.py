@@ -515,6 +515,9 @@ def launch(request, artifact, version_slug=None):
                 )
             )
         )
+
+    trovi_token = request.session.get("trovi_token")
+
     # If no allocation, redirerect to request daypass
     if artifact["reproducibility"]["enable_requests"] and not has_active_allocations(
         request
@@ -523,18 +526,30 @@ def launch(request, artifact, version_slug=None):
             reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
         )
         return redirect(daypass_request_url)
-    trovi.increment_metric_count(
-        artifact["uuid"], version["slug"], token=request.session.get("trovi_token")
+    trovi.increment_metric_count(artifact["uuid"], version["slug"], token=trovi_token)
+    return redirect(
+        launch_url(
+            version, request, token=trovi_token, can_edit=can_edit(request, artifact)
+        )
     )
-    return redirect(launch_url(version, can_edit=can_edit(request, artifact)))
 
 
-def launch_url(version, can_edit=False):
+def launch_url(version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-    contents = trovi.parse_contents_urn(version["contents"]["urn"])
+    contents_urn = version["contents"]["urn"]
+    contents = trovi.parse_contents_urn(contents_urn)
+    contents_url_info = trovi.get_contents_url_info(token, contents_urn)[
+        "access_methods"
+    ]
+    http_urls = [access for access in contents_url_info if access["protocol"] == "http"]
+    if http_urls:
+        contents_url = http_urls[0]["url"]
+    else:
+        contents_url = contents_url_info[0]["url"]
     query = dict(
         deposition_repo=contents["provider"],
         deposition_id=contents["id"],
+        contents_url=contents_url,
         ownership=("own" if can_edit else "fork"),
     )
     return str(base_url + "?" + urlencode(query))
