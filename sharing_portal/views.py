@@ -538,7 +538,9 @@ def launch_url(version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
     contents_urn = version["contents"]["urn"]
     contents = trovi.parse_contents_urn(contents_urn)
-    contents_url_info = trovi.get_contents_url_info(token, contents_urn)["access_methods"]
+    contents_url_info = trovi.get_contents_url_info(token, contents_urn)[
+        "access_methods"
+    ]
     http_urls = [access for access in contents_url_info if access["protocol"] == "http"]
     if http_urls:
         contents_url = http_urls[0]["url"]
