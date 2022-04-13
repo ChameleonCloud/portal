@@ -1,5 +1,5 @@
 import requests
-from urllib.parse import urljoin, urlparse, urlencode, quote_plus
+from urllib.parse import urljoin, urlparse, urlencode
 from sharing_portal.models import Artifact
 from django.conf import settings
 from django.contrib.auth.models import User
