@@ -60,6 +60,10 @@
       <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_mine' %}active{% endif %}"><a
           href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
     </ul>
+
+    <a href="{% url 'sharing_portal:create_artifact' %}">
+      <button class="btn btn-success">Import Artifact</button>
+    </a>
   </div>
 </div>
 {% endblock %}

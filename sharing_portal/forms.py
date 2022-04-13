@@ -21,7 +21,7 @@ class ArtifactForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request")
-        artifact = kwargs.pop("artifact")
+        artifact = kwargs.pop("artifact", None)
         super().__init__(*args, **kwargs)
 
         available_labels = [
@@ -31,9 +31,10 @@ class ArtifactForm(forms.Form):
         self.fields["tags"] = forms.MultipleChoiceField(
             choices=available_labels, required=False
         )
-        self.fields["title"].initial = artifact["title"]
-        self.fields["long_description"].initial = artifact["long_description"]
-        self.fields["short_description"].initial = artifact["short_description"]
+        if artifact:
+            self.fields["title"].initial = artifact["title"]
+            self.fields["long_description"].initial = artifact["long_description"]
+            self.fields["short_description"].initial = artifact["short_description"]
 
 
 class AuthorForm(forms.Form):
@@ -53,6 +54,10 @@ class AuthorForm(forms.Form):
 
 AuthorFormset = forms.formset_factory(
     form=AuthorForm, can_delete=True, extra=2, min_num=1
+)
+
+AuthorCreateFormset = forms.formset_factory(
+    form=AuthorForm, can_delete=False, extra=2, min_num=1
 )
 
 

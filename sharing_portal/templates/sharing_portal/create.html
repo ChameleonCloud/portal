@@ -1,0 +1,46 @@
+{% extends 'layout/default.html' %}
+{% load i18n cms_tags static pipeline bootstrap3 %}
+{% block title %}Sharing Portal | Chameleon Cloud {% endblock %}
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+{% block content %}
+{# Experiments / [current_exp_title] subheader #}
+<ol class="breadcrumb">
+  <li>
+    <a href="{% url 'sharing_portal:index_all' %}">All</a>
+  </li>
+  <li class="active">
+    {{ artifact.title }}
+  </li>
+</ol>
+
+<div class="layoutGrid">
+  <div class="layoutGrid__main">
+    <div class="artifactDetail">
+      <form method="post">
+        {% csrf_token %}
+
+        <header class="artifactDetail__heading">
+          <h2 class="artifactTitle">Create artifact</h2>
+        </header>
+
+        {% bootstrap_form artifact_form %}
+
+        <h4>Authors</h4>
+        {{ authors_formset.management_form }}
+        {% for form in authors_formset.forms %}
+        <fieldset class="form-group form-inline">
+          {% bootstrap_form form show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
+        <div class="artifactActions">
+          <button type="submit" class="btn btn-success">Import from Git</button>
+          <a href="{% url 'sharing_portal:index_all' %}" class="btn btn-default">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
