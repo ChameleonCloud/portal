@@ -1,5 +1,5 @@
 import requests
-from urllib.parse import urljoin, urlparse, urlencode
+from urllib.parse import urljoin, urlparse, urlencode, quote_plus
 from sharing_portal.models import Artifact
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -331,6 +331,14 @@ def parse_contents_urn(contents_urn):
         "provider": provider,
         "id": contents_id,
     }
+
+
+def get_contents_url_info(token, contents_urn):
+    res = requests.get(
+        url_with_token("/contents/", token, query={"urn": contents_urn})
+    )
+    check_status(res, requests.codes.ok)
+    return res.json()
 
 
 def get_linked_project(artifact):
