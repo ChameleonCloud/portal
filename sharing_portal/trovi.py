@@ -334,9 +334,7 @@ def parse_contents_urn(contents_urn):
 
 
 def get_contents_url_info(token, contents_urn):
-    res = requests.get(
-        url_with_token("/contents/", token, query={"urn": contents_urn})
-    )
+    res = requests.get(url_with_token("/contents/", token, query={"urn": contents_urn}))
     check_status(res, requests.codes.ok)
     return res.json()
 
