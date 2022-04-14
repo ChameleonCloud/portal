@@ -984,14 +984,14 @@ def create_git_version(request, artifact):
             messages.add_message(
                 request,
                 messages.ERROR,
-                "Either invalid git reference specified, or invalid remote URL"
+                "Either invalid git reference specified, or invalid remote URL",
             )
             errors = True
         if not errors:
             trovi.create_version(
                 request.session.get("trovi_token"),
                 artifact["uuid"],
-                f"urn:trovi:contents:git:{remote_url}@{git_ref}"
+                f"urn:trovi:contents:git:{remote_url}@{git_ref}",
             )
             messages.add_message(
                 request,
@@ -1052,16 +1052,17 @@ def create_artifact(request):
                     request, messages.SUCCESS, "Successfully saved artifact."
                 )
                 return HttpResponseRedirect(
-                    reverse("sharing_portal:create_git_version", args=[trovi_artifact["uuid"]])
+                    reverse(
+                        "sharing_portal:create_git_version",
+                        args=[trovi_artifact["uuid"]],
+                    )
                 )
             else:
                 messages.add_message(
                     request, messages.ERROR, "Could not create artifact"
                 )
         else:
-            messages.add_message(
-                request, messages.ERROR, "Could not create artifact"
-            )
+            messages.add_message(request, messages.ERROR, "Could not create artifact")
 
     authors_formset = AuthorCreateFormset(initial=[])
     form = ArtifactForm(request=request)
