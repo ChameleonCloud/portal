@@ -1045,7 +1045,6 @@ def create_artifact(request):
                         if author:
                             authors.append(author)
                 artifact_data["authors"] = authors
-                LOG.info(artifact_data)
                 trovi_artifact = trovi.create_new_artifact(
                     request.session.get("trovi_token"), artifact_data
                 )
