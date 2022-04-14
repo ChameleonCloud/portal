@@ -1,5 +1,5 @@
 (function() {
-  document.addEventListener('DOMContentLoaded', () => {
+  function addGitRemoteEvent() {
     const gitRemoteInput = document.getElementById('gitRemote');
     const gitRefDropdown = document.getElementById('gitRef');
 
@@ -31,5 +31,11 @@
       gitRemoteInput.addEventListener('keyup', onRemoteChange);
     }
 
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addGitRemoteEvent);
+  } else {
+    addGitRemoteEvent();
+  }
 })();

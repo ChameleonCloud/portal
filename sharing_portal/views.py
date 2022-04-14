@@ -547,7 +547,7 @@ def launch_url(version, request, token=None, can_edit=False):
     if http_urls:
         contents_url = http_urls[0]["url"]
     else:
-        contents_url = contents_url_info[0]["url"]
+        contents_url = ""
     query = dict(
         deposition_repo=contents["provider"],
         deposition_id=contents["id"],
@@ -1016,6 +1016,10 @@ def ls_remote(remote_url):
     remote_url = remote_url.strip()
     res = subprocess.run(["git", "ls-remote", remote_url], capture_output=True)
     output = res.stdout.decode("utf-8")
+    error_output = res.stderr.decode("utf-8")
+    if error_output:
+        LOG.warn(f"Error output during ls-remote {remote_url}")
+        LOG.warn(error_output)
     parts = []
     lines = output.strip().split("\n")
     for line in lines:
