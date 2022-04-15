@@ -498,9 +498,13 @@ def artifact(request, artifact, version_slug=None):
     else:
         download_url = reverse("sharing_portal:download", args=[artifact["uuid"]])
     download_url = preserve_sharing_key(download_url, request)
-    access_methods = trovi.get_contents_url_info(
-        request.session.get("trovi_token"), version["contents"]["urn"]
-    )["access_methods"]
+
+    access_methods = []
+    if version:
+        access_methods = trovi.get_contents_url_info(
+            request.session.get("trovi_token"), version["contents"]["urn"]
+        )["access_methods"]
+
     git_content = [
         method for method in access_methods if method["protocol"] == "git"
     ]
@@ -1121,7 +1125,6 @@ def download(request, artifact, version_slug=None):
     access_methods = trovi.get_contents_url_info(
         request.session.get("trovi_token"), version["contents"]["urn"])
     for method in access_methods["access_methods"]:
-        LOG.info(method)
         if method["protocol"] == "http" and method["method"] == "GET":
             return HttpResponseRedirect(
                 method["url"], headers=method["headers"])
