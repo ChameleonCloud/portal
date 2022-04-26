@@ -1025,8 +1025,8 @@ def ls_remote(remote_url):
     output = res.stdout.decode("utf-8")
     error_output = res.stderr.decode("utf-8")
     if error_output:
-        LOG.warn(f"Error output during ls-remote {remote_url}")
-        LOG.warn(error_output)
+        LOG.warning(f"Error output during ls-remote {remote_url}")
+        LOG.warning(error_output)
     parts = []
     lines = output.strip().split("\n")
     for line in lines:

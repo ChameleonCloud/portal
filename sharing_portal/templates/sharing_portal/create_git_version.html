@@ -23,7 +23,7 @@
           <label for="gitRemote">Remote URL</label>
           <input id="gitRemote" name="gitRemote" class="cardFilter" type="text" placeholder="Remote URL" required />
           <small class="form-text text-muted">
-            The URL you would use to clone to the repository
+            The HTTP URL a user can use to clone to the repository
           </small>
         </div>
 
@@ -31,8 +31,8 @@
           <label for="gitRef">Reference</label>
           <select id="gitRef" name="gitRef" class="form-control" required></select>
           <small class="form-text text-muted">
-            The git reference to tie the artifact version to. Leave as HEAD
-            for the latest commit.
+            The git reference on which this version will be based. Lease as HEAD
+            to use the latest commit.
           </small>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
