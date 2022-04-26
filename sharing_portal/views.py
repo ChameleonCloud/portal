@@ -544,14 +544,21 @@ def launch_url(version, request, token=None, can_edit=False):
         "access_methods"
     ]
     http_urls = [access for access in contents_url_info if access["protocol"] == "http"]
+    git_urls = [access for access in contents_url_info if access["protocol"] == "git"]
     if http_urls:
         contents_url = http_urls[0]["url"]
+        proto = "http"
+    elif git_urls:
+        contents_url = f"{git_urls[0]['url']}@{git_urls[0]['ref']}"
+        proto = "git"
     else:
         contents_url = ""
+        proto = ""
     query = dict(
         deposition_repo=contents["provider"],
         deposition_id=contents["id"],
         contents_url=contents_url,
+        contents_proto=proto,
         ownership=("own" if can_edit else "fork"),
     )
     return str(base_url + "?" + urlencode(query))
