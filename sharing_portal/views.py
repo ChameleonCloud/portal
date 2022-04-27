@@ -549,7 +549,7 @@ def launch_url(version, request, token=None, can_edit=False):
         contents_url = http_urls[0]["url"]
         proto = "http"
     elif git_urls:
-        contents_url = f"{git_urls[0]['url']}@{git_urls[0]['ref']}"
+        contents_url = f"{git_urls[0]['remote']}@{git_urls[0]['ref']}"
         proto = "git"
     else:
         contents_url = ""
