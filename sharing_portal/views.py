@@ -995,19 +995,25 @@ def create_git_version(request, artifact):
             )
             errors = True
         if not errors:
-            trovi.create_version(
-                request.session.get("trovi_token"),
-                artifact["uuid"],
-                f"urn:trovi:contents:git:{remote_url}@{git_ref}",
-            )
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                "Successfully created artifact version",
-            )
-            return HttpResponseRedirect(
-                reverse("sharing_portal:detail", args=[artifact["uuid"]])
-            )
+            try:
+                trovi.create_version(
+                    request.session.get("trovi_token"),
+                    artifact["uuid"],
+                    f"urn:trovi:contents:git:{remote_url}@{git_ref}",
+                )
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "Successfully created artifact version",
+                )
+                return HttpResponseRedirect(
+                    reverse("sharing_portal:detail", args=[artifact["uuid"]])
+                )
+            except trovi.TroviException:
+                messages.add_message(
+                    request, messages.ERROR,
+                    "Could not create trovi artifact, are you using an HTTP(S) git remote?"
+                )
     template = loader.get_template("sharing_portal/create_git_version.html")
     return HttpResponse(template.render({}, request))
 
