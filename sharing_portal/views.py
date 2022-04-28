@@ -1124,7 +1124,7 @@ def download(request, artifact, version_slug=None):
     for method in access_methods["access_methods"]:
         if method["protocol"] == "http" and method["method"] == "GET":
             return HttpResponseRedirect(method["url"], headers=method["headers"])
-    messages.add_message(request, messages.ERROR, f"Could not download this artifact")
+    messages.add_message(request, messages.ERROR, "Could not download this artifact")
     return HttpResponseRedirect(
         reverse("sharing_portal:detail", args=[artifact["uuid"]])
     )
