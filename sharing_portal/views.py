@@ -505,12 +505,8 @@ def artifact(request, artifact, version_slug=None):
             request.session.get("trovi_token"), version["contents"]["urn"]
         )["access_methods"]
 
-    git_content = [
-        method for method in access_methods if method["protocol"] == "git"
-    ]
-    http_content = [
-        method for method in access_methods if method["protocol"] == "http"
-    ]
+    git_content = [method for method in access_methods if method["protocol"] == "git"]
+    http_content = [method for method in access_methods if method["protocol"] == "http"]
 
     template = loader.get_template("sharing_portal/detail.html")
 
@@ -1123,11 +1119,11 @@ def create_artifact(request):
 def download(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
     access_methods = trovi.get_contents_url_info(
-        request.session.get("trovi_token"), version["contents"]["urn"])
+        request.session.get("trovi_token"), version["contents"]["urn"]
+    )
     for method in access_methods["access_methods"]:
         if method["protocol"] == "http" and method["method"] == "GET":
-            return HttpResponseRedirect(
-                method["url"], headers=method["headers"])
+            return HttpResponseRedirect(method["url"], headers=method["headers"])
     messages.add_message(request, messages.ERROR, f"Could not download this artifact")
     return HttpResponseRedirect(
         reverse("sharing_portal:detail", args=[artifact["uuid"]])
