@@ -235,17 +235,21 @@ def create_artifact(token, artifact_id, prompt_input=False, force=False):
         print(f"This title is {len(json_data['title'])} chars (max 70)")
         print(json_data["title"])
         json_data["title"] = input("New title: ")
+    trovi_artifact = create_new_artifact(token, json_data, force)
+    artifact.trovi_uuid = trovi_artifact["uuid"]
+    artifact.save()
+    return trovi_artifact
+
+
+def create_new_artifact(token, artifact_data, force=False):
     query = {}
     if force:
         query["force"] = True
     res = requests.post(
-        url_with_token("/artifacts/", token, query=query), json=json_data
+        url_with_token("/artifacts/", token, query=query), json=artifact_data
     )
     check_status(res, requests.codes.created)
-    trovi_artifact = res.json()
-    artifact.trovi_uuid = trovi_artifact["uuid"]
-    artifact.save()
-    return trovi_artifact
+    return res.json()
 
 
 def patch_artifact(token, artifact_uuid, patches, force=False):

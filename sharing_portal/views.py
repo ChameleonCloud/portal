@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.urls import reverse
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.template import loader
@@ -17,6 +17,7 @@ from util.keycloak_client import KeycloakClient
 from .forms import (
     ArtifactForm,
     AuthorFormset,
+    AuthorCreateFormset,
     ShareArtifactForm,
     ZenodoPublishFormset,
     RequestDaypassForm,
@@ -37,6 +38,7 @@ from urllib.parse import urlencode
 
 import logging
 from datetime import datetime, timedelta
+import subprocess
 
 LOG = logging.getLogger(__name__)
 
@@ -542,14 +544,21 @@ def launch_url(version, request, token=None, can_edit=False):
         "access_methods"
     ]
     http_urls = [access for access in contents_url_info if access["protocol"] == "http"]
+    git_urls = [access for access in contents_url_info if access["protocol"] == "git"]
     if http_urls:
         contents_url = http_urls[0]["url"]
+        proto = "http"
+    elif git_urls:
+        contents_url = f"{git_urls[0]['remote']}@{git_urls[0]['ref']}"
+        proto = "git"
     else:
-        contents_url = contents_url_info[0]["url"]
+        contents_url = ""
+        proto = ""
     query = dict(
         deposition_repo=contents["provider"],
         deposition_id=contents["id"],
         contents_url=contents_url,
+        contents_proto=proto,
         ownership=("own" if can_edit else "fork"),
     )
     return str(base_url + "?" + urlencode(query))
@@ -964,3 +973,119 @@ def create_supplemental_project_if_needed(request, artifact, project):
             artifact_uuid=artifact["uuid"], project=created_project
         )
         daypass_project.save()
+
+
+@check_edit_permission
+@with_trovi_token
+@login_required
+def create_git_version(request, artifact):
+    errors = False
+    if request.method == "POST":
+        remote_url = request.POST.get("gitRemote")
+        git_ref = request.POST.get("gitRef")
+        # Validate git ref
+        for item in ls_remote(remote_url):
+            if item[0] == git_ref:
+                break
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "Either invalid git reference specified, or invalid remote URL",
+            )
+            errors = True
+        if not errors:
+            try:
+                trovi.create_version(
+                    request.session.get("trovi_token"),
+                    artifact["uuid"],
+                    f"urn:trovi:contents:git:{remote_url}@{git_ref}",
+                )
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "Successfully created artifact version",
+                )
+                return HttpResponseRedirect(
+                    reverse("sharing_portal:detail", args=[artifact["uuid"]])
+                )
+            except trovi.TroviException:
+                messages.add_message(
+                    request, messages.ERROR,
+                    "Could not create trovi artifact, are you using an HTTP(S) git remote?"
+                )
+    template = loader.get_template("sharing_portal/create_git_version.html")
+    return HttpResponse(template.render({}, request))
+
+
+# Login required to prevent someone potentially abusing this
+@login_required
+def get_remote_data(request):
+    remote_url = request.GET.get("remote_url")
+    return JsonResponse({"result": ls_remote(remote_url)})
+
+
+def ls_remote(remote_url):
+    remote_url = remote_url.strip()
+    res = subprocess.run(["git", "ls-remote", remote_url], capture_output=True)
+    output = res.stdout.decode("utf-8")
+    error_output = res.stderr.decode("utf-8")
+    if error_output:
+        LOG.warning(f"Error output during ls-remote {remote_url}")
+        LOG.warning(error_output)
+    parts = []
+    lines = output.strip().split("\n")
+    for line in lines:
+        if line:
+            parts.append(line.split("\t"))
+    return parts
+
+
+@with_trovi_token
+@login_required
+def create_artifact(request):
+    if request.method == "POST":
+        authors_formset = AuthorCreateFormset(request.POST)
+        form = ArtifactForm(request.POST, request=request)
+
+        if form.is_valid():
+            artifact_data = {
+                "owner_urn": f"urn:trovi:user:{settings.ARTIFACT_OWNER_PROVIDER}:{request.user.username}",
+            }
+            keys = ["title", "short_description", "long_description", "title", "tags"]
+            for key in keys:
+                artifact_data[key] = form.cleaned_data[key]
+            if authors_formset:
+                if authors_formset.is_valid():
+                    authors = []
+                    for author in authors_formset.cleaned_data:
+                        if author:
+                            authors.append(author)
+                artifact_data["authors"] = authors
+                trovi_artifact = trovi.create_new_artifact(
+                    request.session.get("trovi_token"), artifact_data
+                )
+                messages.add_message(
+                    request, messages.SUCCESS, "Successfully saved artifact."
+                )
+                return HttpResponseRedirect(
+                    reverse(
+                        "sharing_portal:create_git_version",
+                        args=[trovi_artifact["uuid"]],
+                    )
+                )
+            else:
+                messages.add_message(
+                    request, messages.ERROR, "Could not create artifact"
+                )
+        else:
+            messages.add_message(request, messages.ERROR, "Could not create artifact")
+
+    authors_formset = AuthorCreateFormset(initial=[])
+    form = ArtifactForm(request=request)
+    template = loader.get_template("sharing_portal/create.html")
+    context = {
+        "artifact_form": form,
+        "authors_formset": authors_formset,
+    }
+    return HttpResponse(template.render(context, request))

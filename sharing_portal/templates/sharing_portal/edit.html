@@ -78,6 +78,9 @@
           {% endfor %}
         </ol>
       </form>
+      <a href="{% url 'sharing_portal:create_git_version' artifact.uuid %}">
+        <button class="btn btn-success">New Version from Git</button>
+      </a>
     </div>
     <script nonce="{{ request.csp_nonce }}">
       (function () {
