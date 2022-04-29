@@ -320,9 +320,12 @@ OIDC_OP_TOKEN_ENDPOINT = os.environ.get("OIDC_OP_TOKEN_ENDPOINT")
 OIDC_OP_USER_ENDPOINT = os.environ.get("OIDC_OP_USER_ENDPOINT")
 OIDC_STORE_ACCESS_TOKEN = True
 OIDC_STORE_REFRESH_TOKEN = True
+# This should match the Access Token Validity for the realm (or override for the portal client in Keycloak)
 OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60 * 5
 OIDC_EXEMPT_URLS = ["logout"]
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL")
+# This should match the value of SSO Session Idle for the portal client in Keycloak
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
 
 # Keycloak Client
 KEYCLOAK_SERVER_URL = os.environ.get("KEYCLOAK_SERVER_URL")
