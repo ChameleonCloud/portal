@@ -20,8 +20,13 @@
   <div class="layoutGrid__main">
     <div class="artifactDetail">
       <header class="artifactDetail__heading">
-        <h2 class="artifactTitle">{{ artifact.title }}</h2>
+        <h2 class="artifactTitle">
+          {{ artifact.title }}
+        </h2>
         <div class="artifactActions">
+          {% if artifact.visibility == "private" and not doi_info.doi %}
+            <i class="fa fa-eye-slash artifactDetailPrivate"></i>
+          {% endif %}
           {% if editable %}
           <a class="btn btn-default" href="{% url 'sharing_portal:share' artifact.uuid %}">
             <i class="fa fa-share"></i> Share

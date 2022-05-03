@@ -21,7 +21,14 @@
     {% for artifact in artifacts %}
     <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
       <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
-        <h5 class="cardItem__title">{{ artifact.title }}</h5>
+        <h5 class="cardItem__title">
+          <span class="cardTitleTitle">{{ artifact.title }}</span>
+          <span class="cardTitlePrivate">
+          {% if artifact.is_private %}
+            <i class="fa fa-eye-slash"></i>
+          {% endif %}
+          </span>
+        </h5>
         <div class="cardItem__body">
           {% if artifact.short_description %}
           <p class="artifactGridItem__description">
