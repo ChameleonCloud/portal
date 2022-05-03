@@ -7,6 +7,11 @@
 <link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
 {% endblock %}
 
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'sharing_portal/tooltip.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 {# Experiments / [current_exp_title] subheader #}
 <ol class="breadcrumb">
@@ -25,7 +30,7 @@
         </h2>
         <div class="artifactActions">
           {% if artifact.visibility == "private" and not doi_info.doi %}
-            <i class="fa fa-eye-slash artifactDetailPrivate"></i>
+            <i class="fa fa-eye-slash artifactDetailPrivate" data-toggle="tooltip" data-placement="top" title="This artifact is only visible for those chosen by the author"></i>
           {% endif %}
           {% if editable %}
           <a class="btn btn-default" href="{% url 'sharing_portal:share' artifact.uuid %}">

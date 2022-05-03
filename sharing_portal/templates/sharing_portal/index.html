@@ -11,6 +11,7 @@
 {% block scripts %}
 {{ block.super }}
 <script src="{% static 'sharing_portal/index.js' %}"></script>
+<script src="{% static 'sharing_portal/tooltip.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -25,7 +26,7 @@
           <span class="cardTitleTitle">{{ artifact.title }}</span>
           <span class="cardTitlePrivate">
           {% if artifact.is_private %}
-            <i class="fa fa-eye-slash"></i>
+            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top" title="This artifact is only visible for those chosen by the author"></i>
           {% endif %}
           </span>
         </h5>
