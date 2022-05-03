@@ -151,8 +151,8 @@ def _compute_artifact_fields(artifact):
     artifact["is_chameleon_supported"] = any(
         label == "chameleon" for label in artifact["tags"]
     )
-    artifact["is_private"] = (
-        artifact["visibility"] == "private" and not _parse_doi(artifact)
+    artifact["is_private"] = artifact["visibility"] == "private" and not _parse_doi(
+        artifact
     )
     return artifact
 
