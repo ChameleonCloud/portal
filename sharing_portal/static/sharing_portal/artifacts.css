@@ -72,6 +72,7 @@
 
 .cardItem__title {
     margin: 0 0 1rem;
+    display: flex;
 }
 
 .cardItem__body {
@@ -247,6 +248,19 @@
 .artifactVersion__doi {
     font-size: 12px;
 }
+
+.cardTitleTitle {
+    flex: 1;
+}
+.cardTitlePrivate {
+    flex: 1;
+    text-align: right;
+}
+.artifactDetailPrivate {
+    font-size: 32px;
+    vertical-align: middle;
+}
+
 pre code {
     font-size: 12px;
     white-space: inherit;
