@@ -260,3 +260,8 @@
     font-size: 32px;
     vertical-align: middle;
 }
+
+pre code {
+    font-size: 12px;
+    white-space: inherit;
+}
