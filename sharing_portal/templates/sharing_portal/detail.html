@@ -97,6 +97,25 @@
       </p>
     {% endif %}
 
+    {% if http_content %}
+    <a class="artifactLaunchButton btn btn-primary" href="{{ download_url }}" target="_blank">Download Archive</a>
+    <p class="artifactLaunchButton_details">
+    Download an archive containing the files of this artifact.
+    </p>
+    {% endif %}
+
+    {% for git_method in git_content %}
+<div>
+  <h4><i class="fa fa-code"></i>Download with git</h4>
+    <p class="artifactLaunchButton_details">
+    Clone the git repository for this artifact, and checkout the version's commit
+    </p>
+    <pre><code>git clone {{git_method.remote}}
+# cd into the created directory
+git checkout {{git_method.ref}}</code></pre>
+</div>
+    {% endfor %}
+
     <div class="artifactVersions">
       <h4><i class="fa fa-files-o"></i> Versions</h4>
       <ol class="sidebarNav">

@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/git/", views.get_remote_data, name="get_remote_git_data"),
     path("<pk>", views.artifact, name="detail"),
     path("<pk>/launch", views.launch, name="launch"),
+    path("<pk>/download", views.download, name="download"),
     path("<pk>/request", views.request_daypass, name="request_daypass"),
     path("requests/", views.list_daypass_requests, name="list_daypass_requests"),
     path("requests/<int:request_id>", views.review_daypass, name="review_daypass"),
@@ -27,4 +28,9 @@ urlpatterns = [
     ),
     path("<pk>/edit", views.edit_artifact, name="edit"),
     path("<pk>/share", views.share_artifact, name="share"),
+    path(
+        "<pk>/version/<version_slug>/download",
+        views.download,
+        name="download_version",
+    ),
 ]
