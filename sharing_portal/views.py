@@ -504,9 +504,13 @@ def artifact(request, artifact, version_slug=None):
 
     access_methods = []
     if version:
-        access_methods = trovi.get_contents_url_info(
-            request.session.get("trovi_token"), version["contents"]["urn"]
-        )["access_methods"]
+        try:
+            access_methods = trovi.get_contents_url_info(
+                request.session.get("trovi_token"), version["contents"]["urn"]
+            )["access_methods"]
+        except trovi.TroviException:
+            LOG.error(
+                f"Could not get contents for {version['contents']['urn']}")
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
