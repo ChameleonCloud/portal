@@ -504,9 +504,12 @@ def artifact(request, artifact, version_slug=None):
 
     access_methods = []
     if version:
+        sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
         try:
             access_methods = trovi.get_contents_url_info(
-                request.session.get("trovi_token"), version["contents"]["urn"]
+                request.session.get("trovi_token"),
+                version["contents"]["urn"],
+                sharing_key=sharing_key,
             )["access_methods"]
         except trovi.TroviException:
             LOG.error(
@@ -570,9 +573,10 @@ def launch_url(version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
     contents_urn = version["contents"]["urn"]
     contents = trovi.parse_contents_urn(contents_urn)
-    contents_url_info = trovi.get_contents_url_info(token, contents_urn)[
-        "access_methods"
-    ]
+    sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
+    contents_url_info = trovi.get_contents_url_info(
+        token, contents_urn, sharing_key=sharing_key
+    )["access_methods"]
     http_urls = [access for access in contents_url_info if access["protocol"] == "http"]
     git_urls = [access for access in contents_url_info if access["protocol"] == "git"]
     if http_urls:
@@ -1125,8 +1129,11 @@ def create_artifact(request):
 @with_trovi_token
 def download(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
+    sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
     access_methods = trovi.get_contents_url_info(
-        request.session.get("trovi_token"), version["contents"]["urn"]
+        request.session.get("trovi_token"),
+        version["contents"]["urn"],
+        sharing_key=sharing_key,
     )
     for method in access_methods["access_methods"]:
         if method["protocol"] == "http" and method["method"] == "GET":

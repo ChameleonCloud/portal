@@ -337,8 +337,11 @@ def parse_contents_urn(contents_urn):
     }
 
 
-def get_contents_url_info(token, contents_urn):
-    res = requests.get(url_with_token("/contents/", token, query={"urn": contents_urn}))
+def get_contents_url_info(token, contents_urn, sharing_key=None):
+    query = {"urn": contents_urn}
+    if sharing_key:
+        query["sharing_key"] = sharing_key
+    res = requests.get(url_with_token("/contents/", token, query=query))
     check_status(res, requests.codes.ok)
     return res.json()
 
