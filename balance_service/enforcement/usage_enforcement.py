@@ -154,8 +154,10 @@ class UsageEnforcer(object):
                 )
             )
 
-        # create new charges
         alloc = su_calculators.get_active_allocation(lease_eval.project)
+        self._check_alloc_expiration_date(lease, alloc)
+
+        # create new charges
         for reservation in lease["reservations"]:
             new_charge = Charge(
                 allocation=alloc,
@@ -213,6 +215,7 @@ class UsageEnforcer(object):
         now = timezone.now()
         end_date_changed = old_lease["end_date"] != new_lease["end_date"]
         alloc = su_calculators.get_active_allocation(new_lease_eval.project)
+        self._check_alloc_expiration_date(new_lease, alloc)
         for reservation in new_lease["reservations"]:
             new_hourly_cost = self._get_reservation_sus(
                 reservation["resource_type"], reservation["allocations"]
@@ -319,3 +322,9 @@ class UsageEnforcer(object):
         utc = utctime.replace(tzinfo=pytz.UTC)
         localtz = utc.astimezone(timezone.get_current_timezone())
         return localtz
+
+    def _check_alloc_expiration_date(self, lease, alloc):
+        lease_end = self._convert_to_localtime(
+                self._date_from_string(lease["end_date"]))
+        if lease_end > alloc.expiration_date:
+            raise exceptions.LeasePastExpirationError()
