@@ -82,7 +82,7 @@ def can_edit(request, artifact):
 def handle_get_artifact(request, uuid, sharing_key=None):
     try:
         return trovi.get_artifact_by_trovi_uuid(
-            request.session.get("trovi_token"), uuid
+            request.session.get("trovi_token"), uuid, sharing_key=sharing_key
         )
     except trovi.TroviException as e:
         if e.code == 404:
