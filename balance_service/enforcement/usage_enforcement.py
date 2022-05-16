@@ -325,6 +325,7 @@ class UsageEnforcer(object):
 
     def _check_alloc_expiration_date(self, lease, alloc):
         lease_end = self._convert_to_localtime(
-                self._date_from_string(lease["end_date"]))
+            self._date_from_string(lease["end_date"])
+        )
         if lease_end > alloc.expiration_date:
             raise exceptions.LeasePastExpirationError()
