@@ -41,6 +41,7 @@ from .forms import (
     EditTypeForm,
     FundingFormset,
     ProjectAddUserForm,
+    ProjectAddBulkUserForm,
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
@@ -208,6 +209,7 @@ def view_project(request, project_id):
     type_form = EditTypeForm(**type_form_args)
     pubs_form = AddBibtexPublicationForm()
     pi_form = EditPIForm()
+    bulk_user_form = ProjectAddBulkUserForm()
 
     can_manage_project_membership, can_manage_project = get_user_permissions(
         keycloak_client, request.user.username, project
@@ -222,52 +224,8 @@ def view_project(request, project_id):
         if "add_user" in request.POST:
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
-                try:
-                    add_username = form.cleaned_data["user_ref"]
-                    user = User.objects.get(username=add_username)
-                    if membership.add_user_to_project(project, add_username):
-                        messages.success(
-                            request, f'User "{add_username}" added to project!'
-                        )
-                        form = ProjectAddUserForm()
-                except User.DoesNotExist:
-                    # Try sending an invite
-                    email_address = form.cleaned_data["user_ref"]
-                    try:
-                        validate_email(email_address)
-                        if email_exists_on_project(project, email_address):
-                            messages.error(
-                                request,
-                                "That email is tied to a user already on the "
-                                "project!",
-                            )
-                        else:
-                            add_project_invitation(
-                                project_id,
-                                email_address,
-                                request.user,
-                                request,
-                                None,
-                            )
-                            messages.success(request, "Invite sent!")
-                    except ValidationError:
-                        messages.error(
-                            request,
-                            (
-                                "Unable to add user. Confirm that the username "
-                                "is correct and corresponds to a current "
-                                "Chameleon user. You can also send an invite "
-                                "to an email address if the user does not yet "
-                                "have an account."
-                            ),
-                        )
-                    except Exception:
-                        messages.error(
-                            request, "Problem sending invite, please try again."
-                        )
-                except Exception:
-                    logger.exception("Failed adding user")
-                    messages.error(request, "Unable to add user. Please try again.")
+                if _add_users_to_project(request, project, project_id, [form.cleaned_data["user_ref"]]):
+                    form = ProjectAddUserForm()
             else:
                 messages.error(
                     request,
@@ -345,6 +303,12 @@ def view_project(request, project_id):
             type_form = edit_type(request, project_id)
         elif "pi_username" in request.POST:
             pi_form = edit_pi(request, project_id)
+        elif "add_bulk_users" in request.POST:
+            bulk_user_form = ProjectAddBulkUserForm(request.POST)
+            if bulk_user_form.is_valid():
+                usernames = bulk_user_form.cleaned_data["username_csv"].split(",")
+                if _add_users_to_project(request, project, project_id, usernames):
+                    bulk_user_form = ProjectAddBulkUserForm()
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -427,10 +391,80 @@ def view_project(request, project_id):
             "type_form": type_form,
             "pi_form": pi_form,
             "pubs_form": pubs_form,
+            "bulk_user_form": bulk_user_form,
             "roles": ROLES,
             "host": request.get_host(),
         },
     )
+
+
+def _add_users_to_project(request, project, project_id, user_refs):
+    '''
+    Adds all users specified either by username or email. Returns True if all
+    users were added with no errors.
+    '''
+    success_messages = []
+    error_messages = []
+    for user_ref in user_refs:
+        user_ref = user_ref.strip()
+        try:
+            add_username = user_ref
+            _ = User.objects.get(username=add_username)
+            if membership.add_user_to_project(project, add_username):
+                success_messages.append(f'User "{add_username}" added to project!')
+        except User.DoesNotExist:
+            # Try sending an invite
+            email_address = user_ref
+            try:
+                validate_email(email_address)
+                if email_exists_on_project(project, email_address):
+                    error_messages.append(
+                        f"The email '{user_ref}' is tied to a user already on "
+                        "this project!",
+                    )
+                else:
+                    add_project_invitation(
+                        project.id,
+                        email_address,
+                        request.user,
+                        request,
+                        None,
+                    )
+                    success_messages.append(f"Invite sent to '{user_ref}'!")
+            except ValidationError:
+                error_messages.append(
+                    (
+                        f"Unable to add user '{user_ref}'. Confirm that the username "
+                        "is correct and corresponds to a current "
+                        "Chameleon user. You can also send an invite "
+                        "to an email address if the user does not yet "
+                        "have an account."
+                    ),
+                )
+            except Exception:
+                logger.exception(f"Failed sending invite to '{user_ref}'")
+                error_messages.append(
+                    f"Problem sending invite to {user_ref}, please try again."
+                )
+        except Exception:
+            logger.exception(f"Failed adding user '{user_ref}'")
+            error_messages.append("Unable to add user '{user_ref}'. Please try again.")
+
+    if not error_messages:
+        # If only successes, then either show the message or merge them together
+        if len(user_refs) == 1:
+            messages.success(request, success_messages[0])
+        else:
+            messages.success(request, "Successfully added/invited all users")
+        return True
+    else:
+        # Else print out errors
+        if success_messages:
+            messages.info(
+                request, f"Successfully added/invited {len(success_messages)} users, but had errors for {len(error_messages)} users. See messages below")
+        for message in error_messages:
+            messages.error(request, message)
+        return False
 
 
 def remove_invitation(invite_id):
