@@ -224,7 +224,9 @@ def view_project(request, project_id):
         if "add_user" in request.POST:
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
-                if _add_users_to_project(request, project, project_id, [form.cleaned_data["user_ref"]]):
+                if _add_users_to_project(
+                        request, project, project_id, [form.cleaned_data["user_ref"]]
+                ):
                     form = ProjectAddUserForm()
             else:
                 messages.error(
@@ -399,10 +401,10 @@ def view_project(request, project_id):
 
 
 def _add_users_to_project(request, project, project_id, user_refs):
-    '''
+    """
     Adds all users specified either by username or email. Returns True if all
     users were added with no errors.
-    '''
+    """
     success_messages = []
     error_messages = []
     for user_ref in user_refs:
@@ -461,7 +463,8 @@ def _add_users_to_project(request, project, project_id, user_refs):
         # Else print out errors
         if success_messages:
             messages.info(
-                request, f"Successfully added/invited {len(success_messages)} users, but had errors for {len(error_messages)} users. See messages below")
+                request,
+                f"Successfully added/invited {len(success_messages)} users, but had errors for {len(error_messages)} users. See messages below")
         for message in error_messages:
             messages.error(request, message)
         return False
