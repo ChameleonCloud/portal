@@ -1,0 +1,25 @@
+{% load bootstrap3 %}
+<div id="bulk_invite_popup" class="modal fade" role="dialog" style="padding-top:5%;">
+  <div class="modal-dialog" style="width: 90%;">
+    <div class="modal-content">
+      <form class="form" role="form" method="post">
+        <div class="modal-body">
+          <p>
+          Please enter usernames below, seperated by commas. For example
+          <pre>user1,user2@uchicago.edu,...</pre>
+          </p>
+            {% csrf_token %}
+            <div>
+            {% bootstrap_field bulk_user_form.username_csv layout='block' %}
+            </div>
+        </div>
+        <div class="modal-footer">
+          <div class="form-group">
+            <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success" name="add_bulk_users">Add multiple users</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
