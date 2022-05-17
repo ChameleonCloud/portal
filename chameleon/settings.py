@@ -57,18 +57,19 @@ UC_OPENSTACK_DB_HOST = os.environ.get("UC_OPENSTACK_DB_HOST")
 UC_OPENSTACK_DB_USER = os.environ.get("UC_OPENSTACK_DB_USER")
 UC_OPENSTACK_DB_PASSWORD = os.environ.get("UC_OPENSTACK_DB_PASSWORD")
 
-REGION_OPENSTACK_DB_CONNECT = {
-    OPENSTACK_TACC_REGION: {
+REGION_OPENSTACK_DB_CONNECT = {}
+if TACC_OPENSTACK_DB_HOST:
+    REGION_OPENSTACK_DB_CONNECT[OPENSTACK_TACC_REGION] = {
         "host": TACC_OPENSTACK_DB_HOST,
         "user": TACC_OPENSTACK_DB_USER,
         "passwd": TACC_OPENSTACK_DB_PASSWORD,
-    },
-    OPENSTACK_UC_REGION: {
+    }
+if UC_OPENSTACK_DB_HOST:
+    REGION_OPENSTACK_DB_CONNECT[OPENSTACK_UC_REGION] = {
         "host": UC_OPENSTACK_DB_HOST,
         "user": UC_OPENSTACK_DB_USER,
         "passwd": UC_OPENSTACK_DB_PASSWORD,
-    },
-}
+    }
 
 # Change to http for local dev only
 SSO_CALLBACK_PROTOCOL = os.environ.get("SSO_CALLBACK_PROTOCOL", "https")
@@ -89,7 +90,9 @@ ZENODO_URL = os.getenv("ZENODO_URL", "https://zenodo.org")
 ZENODO_DEFAULT_ACCESS_TOKEN = os.getenv("ZENODO_DEFAULT_ACCESS_TOKEN")
 ARTIFACT_OWNER_PROVIDER = os.getenv("ARTIFACT_OWNER_PROVIDER", "chameleon")
 ARTIFACT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M%Z"
-TROVI_API_BASE_URL = os.getenv("TROVI_API_BASE_URL", "https://trovi.chameleoncloud.org/")
+TROVI_API_BASE_URL = os.getenv(
+    "TROVI_API_BASE_URL", "https://trovi.chameleoncloud.org/"
+)
 
 # TEMPLATE_DEBUG = DEBUG
 
