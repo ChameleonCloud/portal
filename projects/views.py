@@ -225,7 +225,7 @@ def view_project(request, project_id):
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
                 if _add_users_to_project(
-                        request, project, project_id, [form.cleaned_data["user_ref"]]
+                    request, project, project_id, [form.cleaned_data["user_ref"]]
                 ):
                     form = ProjectAddUserForm()
             else:
@@ -464,7 +464,8 @@ def _add_users_to_project(request, project, project_id, user_refs):
         if success_messages:
             messages.info(
                 request,
-                f"Successfully added/invited {len(success_messages)} users, but had errors for {len(error_messages)} users. See messages below")
+                f"Successfully added/invited {len(success_messages)} users, but had errors for {len(error_messages)} users. See messages below",
+            )
         for message in error_messages:
             messages.error(request, message)
         return False
