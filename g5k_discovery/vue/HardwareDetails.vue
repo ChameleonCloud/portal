@@ -12,6 +12,7 @@
         "
         >{{ hardware.nodeName || hardware.uid }}</a
       >
+      <span class="label label-default node-type">{{ hardware.nodeType }}</span>
     </h4>
     <section>
       <div class="row">
@@ -43,6 +44,10 @@
 .hardware-details {
   margin: 1rem 0;
   padding: 1rem 0;
+}
+
+.node-type {
+  margin-left: 1em;
 }
 </style>
 
