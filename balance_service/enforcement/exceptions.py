@@ -38,3 +38,9 @@ class EnforcementException(Exception):
 class BillingError(EnforcementException):
     msg_fmt = "Not authorized"
     code = 403
+
+
+class LeasePastExpirationError(EnforcementException):
+    msg_fmt = "Not authorized"
+    code = 403
+    message = "Cannot create reservation beyond allocation expiration date"
