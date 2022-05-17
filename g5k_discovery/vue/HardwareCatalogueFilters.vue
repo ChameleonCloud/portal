@@ -240,37 +240,6 @@ export default {
     allNodes: Array,
   },
   data() {
-    // const coarseFilters = [
-    //   createFilter("Cascade Lake", ".{.nodeType ^= 'compute_cascadelake'}", {
-    //     constraint: ["==", "$node_type", "compute_cascadelake"],
-    //   }),
-    //   createFilter("Skylake", ".{.nodeType === 'compute_skylake'}", {
-    //     constraint: ["==", "$node_type", "compute_skylake"],
-    //   }),
-    //   createFilter("Haswell", ".{.nodeType === 'compute_haswell'}", {
-    //     constraint: ["==", "$node_type", "compute_haswell"],
-    //   }),
-    //   createFilter("Infiniband", ".{.nodeType === 'compute_haswell_ib'}", {
-    //     constraint: ["==", "$node_type", "compute_haswell_ib"],
-    //   }),
-    //   createFilter("GPU", ".{.nodeType ^= 'gpu_'}", {
-    //     constraint: [">=", "$gpu.gpu_count", 1],
-    //   }),
-    //   createFilter("Storage", ".{.nodeType === 'storage'}", {
-    //     constraint: ["==", "$node_type", "storage"],
-    //   }),
-    //   createFilter(
-    //     "Storage Hierarchy",
-    //     ".{.nodeType === 'storage_hierarchy'}",
-    //     {
-    //       constraint: ["==", "$node_type", "storage_hierarchy"],
-    //     }
-    //   ),
-    //   createFilter("FPGA", ".{.nodeType === 'fpga'}", {
-    //     constraint: ["==", "$node_type", "fpga"],
-    //   }),
-    // ];
-
     // Needs to be an arrow-function because we need 'this' reference.
     const processCapabilities = (capabilities) => {
       return Object.fromEntries(
