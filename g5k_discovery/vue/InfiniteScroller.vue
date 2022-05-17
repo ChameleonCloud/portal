@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="(item, idx) in visibleItems" :key="visibleItems.length + idx">
+    <div v-for="(item, idx) in visibleItems" :key="idx + item.uid">
       <slot v-bind:item="item"></slot>
     </div>
     <div v-if="numRemaining">
