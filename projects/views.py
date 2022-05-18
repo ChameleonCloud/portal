@@ -225,8 +225,10 @@ def view_project(request, project_id):
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
                 if _add_users_to_project(
-                    request, project, project_id,
-                    [form.cleaned_data["user_ref"].strip()]
+                    request,
+                    project,
+                    project_id,
+                    [form.cleaned_data["user_ref"].strip()],
                 ):
                     form = ProjectAddUserForm()
             else:
@@ -310,8 +312,10 @@ def view_project(request, project_id):
             bulk_user_form = ProjectAddBulkUserForm(request.POST)
             if bulk_user_form.is_valid():
                 usernames = [
-                    username.strip() for username in
-                    bulk_user_form.cleaned_data["username_csv"].splitlines()
+                    username.strip()
+                    for username in bulk_user_form.cleaned_data[
+                        "username_csv"
+                    ].splitlines()
                     if username.strip()
                 ]
                 if _add_users_to_project(request, project, project_id, usernames):
