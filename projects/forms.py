@@ -274,5 +274,5 @@ class AddBibtexPublicationForm(forms.Form):
 class ProjectAddBulkUserForm(forms.Form):
     username_csv = forms.CharField(
         label="Usernames or emails",
-        widget=forms.Textarea(attrs={"placeholder": "Usernames separated by commas"}),
+        widget=forms.Textarea(attrs={"placeholder": "Usernames one per line"}),
     )

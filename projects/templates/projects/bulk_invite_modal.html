@@ -5,8 +5,10 @@
       <form class="form" role="form" method="post">
         <div class="modal-body">
           <p>
-          Please enter usernames below, separated by commas. For example
-          <pre>user1,user2@uchicago.edu,...</pre>
+          Please enter usernames or emails below, one per line. For example
+          <pre>user1
+user2@uchicago.edu
+user3</pre>
           </p>
             {% csrf_token %}
             <div>
