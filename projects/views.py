@@ -225,7 +225,8 @@ def view_project(request, project_id):
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
                 if _add_users_to_project(
-                    request, project, project_id, [form.cleaned_data["user_ref"]]
+                    request, project, project_id,
+                    [form.cleaned_data["user_ref"].strip()]
                 ):
                     form = ProjectAddUserForm()
             else:
@@ -308,7 +309,11 @@ def view_project(request, project_id):
         elif "add_bulk_users" in request.POST:
             bulk_user_form = ProjectAddBulkUserForm(request.POST)
             if bulk_user_form.is_valid():
-                usernames = bulk_user_form.cleaned_data["username_csv"].split(",")
+                usernames = [
+                    username.strip() for username in
+                    bulk_user_form.cleaned_data["username_csv"].splitlines()
+                    if username.strip()
+                ]
                 if _add_users_to_project(request, project, project_id, usernames):
                     bulk_user_form = ProjectAddBulkUserForm()
 
@@ -408,7 +413,6 @@ def _add_users_to_project(request, project, project_id, user_refs):
     success_messages = []
     error_messages = []
     for user_ref in user_refs:
-        user_ref = user_ref.strip()
         try:
             add_username = user_ref
             _ = User.objects.get(username=add_username)
