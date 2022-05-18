@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):
     def to_python(self, value):
-        """ Normalize data to a list of strings. """
+        """Normalize data to a list of strings."""
 
         # Return an empty list if no input was given.
         if not value:
@@ -19,7 +19,7 @@ class MultiEmailField(forms.Field):
         return value.split(",")
 
     def validate(self, value):
-        """ Check if value consists only of valid emails. """
+        """Check if value consists only of valid emails."""
 
         # Use the parent's handling of required fields, etc.
         super(MultiEmailField, self).validate(value)

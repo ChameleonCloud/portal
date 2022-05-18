@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Allocation(models.Model):
     project = models.ForeignKey(Project)
     computeAllocated = models.IntegerField(default=-1)
@@ -24,6 +25,7 @@ class Allocation(models.Model):
     storageAllocated = models.DecimalField(default=-1.00, decimal_places=2)
     storageRequested = models.DecimalField(default=-1.00, decimal_places=2)
 
+
 class Project(models.Model):
     pi = models.ForeignKey(Pi)
     chargeCode = models.CharField(max_length=200)
@@ -36,6 +38,7 @@ class Project(models.Model):
     title = models.CharField(max_length=200)
     type = models.CharField(max_length=200)
     typeId = models.IntegerField(default=-1)
+
 
 class Pi(models.Model):
     citizenship = models.CharField(max_length=200)

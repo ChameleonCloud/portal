@@ -5,6 +5,7 @@ from django.contrib import messages
 from djangocms_blog.models import Post
 from django.utils import html
 
+
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
@@ -15,9 +16,9 @@ def add_comment_to_post(request, pk):
             comment.post = post
             comment.text = comment.text
             comment.save()
-            next = request.POST.get('next', '/')
-            messages.success(request, 'Comment Added Successfully')
+            next = request.POST.get("next", "/")
+            messages.success(request, "Comment Added Successfully")
             return HttpResponseRedirect(next)
     else:
         form = CommentForm()
-    return render(request, 'djangocms_blog/add_comment_to_post.html', {'form': form})
+    return render(request, "djangocms_blog/add_comment_to_post.html", {"form": form})

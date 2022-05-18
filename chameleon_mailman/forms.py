@@ -3,7 +3,6 @@ from .models import MailmanSubscription
 
 
 class MailmanSubscriptionForm(ModelForm):
-
     class Meta:
         model = MailmanSubscription
-        exclude = ['user']
+        exclude = ["user"]

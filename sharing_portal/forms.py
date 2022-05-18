@@ -121,14 +121,16 @@ class ZenodoPublishForm(forms.Form):
     request_doi = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
-        self.model = kwargs.pop('model')
-        label = kwargs.pop('label', 'Request DOI')
-        force_disable = kwargs.pop('force_disable', False)
+        self.model = kwargs.pop("model")
+        label = kwargs.pop("label", "Request DOI")
+        force_disable = kwargs.pop("force_disable", False)
         super(ZenodoPublishForm, self).__init__(*args, **kwargs)
-        doi_field = self.fields['request_doi']
+        doi_field = self.fields["request_doi"]
         doi_field.disabled = self._has_doi() or force_disable
         if self._has_doi():
-            doi_field.label = 'Published as {}'.format(trovi.parse_contents_urn(self.model["contents"]["urn"])["id"])
+            doi_field.label = "Published as {}".format(
+                trovi.parse_contents_urn(self.model["contents"]["urn"])["id"]
+            )
         else:
             doi_field.label = label
 
@@ -172,21 +174,22 @@ class BaseZenodoPublishFormset(forms.BaseFormSet):
         super(BaseZenodoPublishFormset, self).__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index):
-        """Pass the linked artifact version model through to the nested form.
-        """
+        """Pass the linked artifact version model through to the nested form."""
         future_version_published = index < self.latest_published_version
         return {
-            'model': self.artifact_versions[index],
+            "model": self.artifact_versions[index],
             # Prevent publishing versions behind the latest published version
-            'force_disable': future_version_published,
-            'label': ('(cannot request DOI for past versions)'
-                      if future_version_published else None)
+            "force_disable": future_version_published,
+            "label": (
+                "(cannot request DOI for past versions)"
+                if future_version_published
+                else None
+            ),
         }
 
     @property
     def cleaned_data(self):
-        """Override cleaned_data to ignore forms with empty data.
-        """
+        """Override cleaned_data to ignore forms with empty data."""
         return [x for x in super(BaseZenodoPublishFormset, self).cleaned_data if x]
 
 

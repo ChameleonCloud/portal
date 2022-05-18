@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import models
-#from datetime import datetime
+
+# from datetime import datetime
 from django.utils import timezone
 import pytz
+
 
 class Webinar(models.Model):
     name = models.CharField(max_length=255)
@@ -14,7 +16,10 @@ class Webinar(models.Model):
     registration_limit = models.IntegerField(default=0)
 
     def is_registration_open(self):
-        return self.registration_open <= timezone.now() and self.registration_closed >= timezone.now()
+        return (
+            self.registration_open <= timezone.now()
+            and self.registration_closed >= timezone.now()
+        )
 
     def is_registration_closed(self):
         return self.registration_closed <= timezone.now()
@@ -29,8 +34,8 @@ class Webinar(models.Model):
         self.is_registered = is_registered
 
     class Meta:
-        verbose_name = 'Webinar'
-        verbose_name_plural = 'Webinars'
+        verbose_name = "Webinar"
+        verbose_name_plural = "Webinars"
 
 
 class WebinarRegistrant(models.Model):
@@ -44,5 +49,5 @@ class WebinarRegistrant(models.Model):
         return self.user.username
 
     class Meta:
-        verbose_name = 'Webinar Registrant'
-        verbose_name_plural = 'Webinar Registrants'
+        verbose_name = "Webinar Registrant"
+        verbose_name_plural = "Webinar Registrants"

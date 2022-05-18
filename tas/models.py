@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+
 def activate_local_user(username):
     try:
         UserModel = get_user_model()
@@ -10,6 +11,7 @@ def activate_local_user(username):
     except:
         pass
 
+
 def user_is_active(username):
     try:
         UserModel = get_user_model()
@@ -17,4 +19,3 @@ def user_is_active(username):
         return local_user.is_active
     except:
         pass
-

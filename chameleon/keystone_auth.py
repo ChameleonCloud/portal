@@ -7,15 +7,16 @@ from django.conf import settings
 from projects.models import ProjectExtras
 
 import logging
+
 LOG = logging.getLogger(__name__)
 
 SESSION_DEFAULT_KWARGS = {
-    'timeout': 5,
+    "timeout": 5,
 }
 
 # These projects are managed internally by Keystone/the deployment, and
 # should not be touched by any sync processes
-WHITELISTED_PROJECTS = set(['openstack', 'maintenance'])
+WHITELISTED_PROJECTS = set(["openstack", "maintenance"])
 
 
 def auth_url_for_region(region):
@@ -39,7 +40,7 @@ def auth_url_for_region(region):
     """
     auth_url = settings.OPENSTACK_AUTH_REGIONS.get(region)
     if not auth_url:
-        raise ValueError('No auth URL defined for region {}'.format(region))
+        raise ValueError("No auth URL defined for region {}".format(region))
     return auth_url
 
 
@@ -55,13 +56,13 @@ def admin_session(region):
     auth = v3.Password(
         auth_url=auth_url_for_region(region),
         username=settings.OPENSTACK_SERVICE_USERNAME,
-        user_domain_id='default',
+        user_domain_id="default",
         password=settings.OPENSTACK_SERVICE_PASSWORD,
         project_name=settings.OPENSTACK_SERVICE_PROJECT_NAME,
-        project_domain_id='default',
+        project_domain_id="default",
     )
     sess = session.Session(auth=auth, **SESSION_DEFAULT_KWARGS)
-    sess = adapter.Adapter(sess, interface='public', region_name=region)
+    sess = adapter.Adapter(sess, interface="public", region_name=region)
     return sess
 
 
@@ -79,17 +80,21 @@ def project_scoped_session(project_id=None, unscoped_token=None, region=None):
         adapter.Adapter: a session object with the region set as a default.
     """
     if not (project_id and unscoped_token and region):
-        raise ValueError('Not enough information to make auth request')
+        raise ValueError("Not enough information to make auth request")
 
-    auth = v3.Token(auth_url=auth_url_for_region(region), token=unscoped_token,
-                    project_id=project_id)
+    auth = v3.Token(
+        auth_url=auth_url_for_region(region),
+        token=unscoped_token,
+        project_id=project_id,
+    )
     sess = session.Session(auth=auth, **SESSION_DEFAULT_KWARGS)
-    sess = adapter.Adapter(sess, interface='public', region_name=region)
+    sess = adapter.Adapter(sess, interface="public", region_name=region)
     return sess
 
 
-def unscoped_user_session(region, username=None, password=None,
-                          access_token=None, user_domain_id='default'):
+def unscoped_user_session(
+    region, username=None, password=None, access_token=None, user_domain_id="default"
+):
     """Create a Keystone authentication session with no scope.
 
     Such unscoped sessions are useful mostly for storing an unscoped token that
@@ -113,8 +118,8 @@ def unscoped_user_session(region, username=None, password=None,
     if access_token:
         auth = v3.oidc.OidcAccessToken(
             auth_url=auth_url,
-            identity_provider='chameleon',
-            protocol='openid',
+            identity_provider="chameleon",
+            protocol="openid",
             access_token=access_token,
         )
     else:
@@ -145,16 +150,15 @@ def admin_ks_client(region=None, request=None):
         ValueError: if neither a region nor a request are passed as arguments.
     """
     if (not region) and request:
-        region = request.session.get('services_region')
+        region = request.session.get("services_region")
 
     if not region:
-        raise ValueError('Cannot detect services region')
+        raise ValueError("Cannot detect services region")
 
     sess = admin_session(region)
     # We have to set interface/region_name also on the Keystone client, as it
     # does not smartly inherit the value sent in on a KSA Adapter instance.
-    return client.Client(session=sess, interface='public',
-                         region_name=region)
+    return client.Client(session=sess, interface="public", region_name=region)
 
 
 def regenerate_tokens(request, password):
@@ -178,42 +182,48 @@ def regenerate_tokens(request, password):
     for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
         ks_admin = admin_ks_client(region=region)
         try:
-            sess = unscoped_user_session(
-                region, username=username, password=password)
+            sess = unscoped_user_session(region, username=username, password=password)
             try:
                 tokens[region] = sess.get_token()
             except Exception as e:
-                LOG.warning((
-                    'Error retrieving OpenStack token from region {}, '
-                    'retrying after syncing Keystone user').format(region))
+                LOG.warning(
+                    (
+                        "Error retrieving OpenStack token from region {}, "
+                        "retrying after syncing Keystone user"
+                    ).format(region)
+                )
                 # It's possible the user does not yet exist in Keystone or
                 # has updated their password--update the user and retry.
-                sync_user(ks_admin, username=username, email=email,
-                    password=password)
+                sync_user(ks_admin, username=username, email=email, password=password)
                 tokens[region] = sess.get_token()
         except Exception as e:
-            LOG.error((
-                'Error retrieving Openstack Token from region: {}'
-                .format(region + ', ' + e.message) + str(sys.exc_info()[0])))
+            LOG.error(
+                (
+                    "Error retrieving Openstack Token from region: {}".format(
+                        region + ", " + e.message
+                    )
+                    + str(sys.exc_info()[0])
+                )
+            )
 
-    request.session['os_token'] = tokens
+    request.session["os_token"] = tokens
 
 
 def get_token(request, region=None):
     if not region:
-        region = request.session.get('services_region')
+        region = request.session.get("services_region")
 
     if not region:
-        LOG.error('Error getting token from session: no region detected')
+        LOG.error("Error getting token from session: no region detected")
         return None
 
-    return request.session.get('os_token', {}).get(region)
+    return request.session.get("os_token", {}).get(region)
 
 
 def has_valid_token(request, region=None):
     token = get_token(request, region=region)
     if not token:
-        LOG.info('Could not find token for user %s', request.user)
+        LOG.info("Could not find token for user %s", request.user)
         return False
 
     ks_admin = admin_ks_client(region=region, request=request)
@@ -221,7 +231,7 @@ def has_valid_token(request, region=None):
     try:
         ks_admin.tokens.validate(token, include_catalog=False)
     except:
-        LOG.info('Token for user %s has likely expired', request.user)
+        LOG.info("Token for user %s has likely expired", request.user)
         return False
     else:
         return True
@@ -250,22 +260,24 @@ def sync_projects(ks_admin, ks_user, tas_user_projects):
     """
     domain_id = ks_admin.user_domain_id
 
-    member_role = next(iter(
-        ks_admin.roles.list(name='_member_', domain=domain_id)), None)
+    member_role = next(
+        iter(ks_admin.roles.list(name="_member_", domain=domain_id)), None
+    )
 
     if not member_role:
-        LOG.error('Could not fetch member role for domain, unable to sync membership for {}'.format(username))
+        LOG.error(
+            "Could not fetch member role for domain, unable to sync membership for {}".format(
+                username
+            )
+        )
         return []
 
     all_ks_projects = {
         ks_p.charge_code: ks_p
         for ks_p in ks_admin.projects.list(domain=domain_id)
-        if hasattr(ks_p, 'charge_code')
+        if hasattr(ks_p, "charge_code")
     }
-    tas_projects = {
-        tas_p.chargeCode: tas_p
-        for tas_p in tas_user_projects
-    }
+    tas_projects = {tas_p.chargeCode: tas_p for tas_p in tas_user_projects}
 
     tas_granted = set(tas_projects.keys())
 
@@ -273,14 +285,16 @@ def sync_projects(ks_admin, ks_user, tas_user_projects):
     for missing in tas_granted - set(all_ks_projects.keys()):
         ks_p = create_project(ks_admin, tas_projects[missing])
         all_ks_projects[missing] = ks_p
-        LOG.debug('Created missing project %s', ks_p.name)
+        LOG.debug("Created missing project %s", ks_p.name)
 
     # Find list of projects that user is a member of
-    ks_granted = set([
-        ks_p.charge_code
-        for ks_p in ks_admin.projects.list(user=ks_user, domain=domain_id)
-        if hasattr(ks_p, 'charge_code')
-    ])
+    ks_granted = set(
+        [
+            ks_p.charge_code
+            for ks_p in ks_admin.projects.list(user=ks_user, domain=domain_id)
+            if hasattr(ks_p, "charge_code")
+        ]
+    )
 
     to_add = tas_granted - ks_granted - WHITELISTED_PROJECTS
     to_remove = ks_granted - tas_granted - WHITELISTED_PROJECTS
@@ -293,20 +307,21 @@ def sync_projects(ks_admin, ks_user, tas_user_projects):
         ks_p = all_ks_projects[charge_code]
         if not ks_p.enabled:
             ks_admin.projects.update(ks_p, enabled=True)
-            LOG.debug('Re-enabled project %s', ks_p.name)
+            LOG.debug("Re-enabled project %s", ks_p.name)
 
     for charge_code in to_add:
         ks_p = all_ks_projects[charge_code]
         ks_admin.roles.grant(member_role.id, user=ks_user, project=ks_p)
-        LOG.debug('Added %s to project %s', ks_user.name, ks_p.name)
+        LOG.debug("Added %s to project %s", ks_user.name, ks_p.name)
 
     for charge_code in to_remove:
         ks_p = all_ks_projects[charge_code]
         ks_admin.roles.revoke(member_role.id, user=ks_user, project=ks_p)
-        LOG.debug('Removed %s from project %s', ks_user.name, ks_p.name)
+        LOG.debug("Removed %s from project %s", ks_user.name, ks_p.name)
 
     return [
-        ks_p for ks_p in list(all_ks_projects.values())
+        ks_p
+        for ks_p in list(all_ks_projects.values())
         if ks_p.charge_code in tas_granted
     ]
 
@@ -331,10 +346,12 @@ def create_project(ks_admin, tas_project):
     else:
         name = tas_project.chargeCode
 
-    return ks_admin.projects.create(name=name,
+    return ks_admin.projects.create(
+        name=name,
         domain=ks_admin.user_domain_id,
         charge_code=tas_project.chargeCode,
-        description=tas_project.description)
+        description=tas_project.description,
+    )
 
 
 def get_user(ks_admin, username):
@@ -353,8 +370,7 @@ def get_user(ks_admin, username):
         keystone.User: the Keystone user found for the username, or None
     """
     domain_id = ks_admin.user_domain_id
-    return next(iter(
-        ks_admin.users.list(name=username, domain=domain_id)), None)
+    return next(iter(ks_admin.users.list(name=username, domain=domain_id)), None)
 
 
 def sync_user(ks_admin, username, email=None, password=None, enabled=None):
@@ -380,16 +396,20 @@ def sync_user(ks_admin, username, email=None, password=None, enabled=None):
         ks_user = get_user(ks_admin, username)
         kwargs = {}
         if email is not None:
-            kwargs['email'] = email
+            kwargs["email"] = email
         if password is not None:
-            kwargs['password'] = password
+            kwargs["password"] = password
         if enabled is not None:
-            kwargs['enabled'] = enabled
+            kwargs["enabled"] = enabled
 
         if ks_user:
             ks_admin.users.update(user=ks_user, **kwargs)
-            LOG.info('Updated user with username: {0}, email:{1}, domain_id: {2}'.format(username, email, domain_id))
-            if 'password' in kwargs:
+            LOG.info(
+                "Updated user with username: {0}, email:{1}, domain_id: {2}".format(
+                    username, email, domain_id
+                )
+            )
+            if "password" in kwargs:
                 # NOTE(jason): this is a total hack to get around some (likely)
                 # bad code in Keystone. There seems to be a race condition
                 # between updating a user's password and token revocation events
@@ -399,14 +419,22 @@ def sync_user(ks_admin, username, email=None, password=None, enabled=None):
                 # so we just have to pray that one second is enough time.
                 time.sleep(1)
         else:
-            kwargs['domain'] = domain_id
-            kwargs['options'] = {'lock_password':True}
+            kwargs["domain"] = domain_id
+            kwargs["options"] = {"lock_password": True}
             ks_user = ks_admin.users.create(username, **kwargs)
-            LOG.info('Created user with username: {0}, email:{1}, domain_id: {2}'.format(username, email, domain_id))
+            LOG.info(
+                "Created user with username: {0}, email:{1}, domain_id: {2}".format(
+                    username, email, domain_id
+                )
+            )
         return ks_user
 
     except Exception as e:
-        LOG.error('Error creating user with username: {0}, email:{1}, domain_id: {2}'.format(username, email, domain_id))
+        LOG.error(
+            "Error creating user with username: {0}, email:{1}, domain_id: {2}".format(
+                username, email, domain_id
+            )
+        )
         LOG.error(e)
         return None
 

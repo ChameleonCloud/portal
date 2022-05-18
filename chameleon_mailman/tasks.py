@@ -1,5 +1,3 @@
-
-
 from datetime import datetime, timedelta
 import logging
 import pytz
@@ -21,8 +19,7 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
     upcoming_outages = upcoming_outages.filter(reminder_sent__isnull=True)
 
     send_window_max = now + timedelta(seconds=send_outage_reminder_before)
-    send_window_min = send_window_max - timedelta(
-        seconds=(crontab_frequency * 60))
+    send_window_min = send_window_max - timedelta(seconds=(crontab_frequency * 60))
 
     for outage in upcoming_outages.all():
         # Check for an outage scheduled close to start date

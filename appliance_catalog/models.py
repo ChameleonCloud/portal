@@ -14,13 +14,16 @@ class Appliance(models.Model):
     short_description = models.CharField(max_length=140)
     description = models.TextField()
     documentation = models.TextField(null=True, blank=True)
-    appliance_icon = models.ImageField(upload_to='appliance_catalog/icons/', blank=True)
-    chi_tacc_appliance_id = models.CharField(max_length=100, null=True, blank=True,
-                                             unique=True)
-    chi_uc_appliance_id = models.CharField(max_length=100, null=True, blank=True,
-                                           unique=True)
-    kvm_tacc_appliance_id = models.CharField(max_length=100, null=True, blank=True,
-                                             unique=True)
+    appliance_icon = models.ImageField(upload_to="appliance_catalog/icons/", blank=True)
+    chi_tacc_appliance_id = models.CharField(
+        max_length=100, null=True, blank=True, unique=True
+    )
+    chi_uc_appliance_id = models.CharField(
+        max_length=100, null=True, blank=True, unique=True
+    )
+    kvm_tacc_appliance_id = models.CharField(
+        max_length=100, null=True, blank=True, unique=True
+    )
     template = models.TextField(null=True, blank=True)
     author_name = models.CharField(max_length=1000)
     author_url = models.CharField(max_length=500)

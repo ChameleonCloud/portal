@@ -10,7 +10,8 @@ from .models import MailmanSubscription
 from .forms import MailmanSubscriptionForm
 import logging
 
-logger = logging.getLogger('default')
+logger = logging.getLogger("default")
+
 
 @token_required
 def mailman_export_list(request):
@@ -23,16 +24,18 @@ def mailman_export_list(request):
         # Ignoring complexity of timezones because we just want a fuzzy range
         # that is limited to a recent window
         start_of_yesterday = datetime.today() - timedelta(days=1)
-        users = get_user_model().objects.filter(is_active=True,
-                                                date_joined__gte=start_of_yesterday)
+        users = get_user_model().objects.filter(
+            is_active=True, date_joined__gte=start_of_yesterday
+        )
         content = list(u.email for u in users)
-        response = HttpResponse('\n'.join(content), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="new_members.txt"'
+        response = HttpResponse("\n".join(content), content_type="text/plain")
+        response["Content-Disposition"] = 'attachment; filename="new_members.txt"'
     except Exception as e:
-        response = HttpResponse('Error: %s' % e)
+        response = HttpResponse("Error: %s" % e)
         response.status_code = 400
 
     return response
+
 
 @login_required
 def manage_mailman_subscriptions(request):
@@ -41,13 +44,17 @@ def manage_mailman_subscriptions(request):
     except MailmanSubscription.DoesNotExist:
         user_sub = MailmanSubscription(user=request.user)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = MailmanSubscriptionForm(request.POST, instance=user_sub)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Your email subscription preferences have been updated.')
+            messages.success(
+                request, "Your email subscription preferences have been updated."
+            )
     else:
         form = MailmanSubscriptionForm(instance=user_sub)
 
-    context = {'form': form}
-    return render(request, 'chameleon_mailman/manage_mailman_subscriptions.html', context)
+    context = {"form": form}
+    return render(
+        request, "chameleon_mailman/manage_mailman_subscriptions.html", context
+    )

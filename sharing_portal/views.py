@@ -49,7 +49,8 @@ def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if (
             request.session.get("trovi_token_expiration")
-            and datetime.utcnow().timestamp() > request.session["trovi_token_expiration"]
+            and datetime.utcnow().timestamp()
+            > request.session["trovi_token_expiration"]
         ):
             request.session.pop("trovi_token_expiration", None)
             request.session.pop("trovi_token", None)
@@ -63,7 +64,8 @@ def with_trovi_token(view_func):
                     )
                     request.session["trovi_token"] = response["access_token"]
                     request.session["trovi_token_expiration"] = (
-                        datetime.utcnow() + timedelta(seconds=int(response["expires_in"])-10)
+                        datetime.utcnow()
+                        + timedelta(seconds=int(response["expires_in"]) - 10)
                     ).timestamp()
                 except trovi.TroviException:
                     LOG.error("Error getting trovi token")
@@ -121,9 +123,7 @@ def get_artifact(func):
                 query = {}
                 if sharing_key:
                     query[SHARING_KEY_PARAM] = sharing_key
-                return HttpResponseRedirect(
-                    f"{base}?{urlencode(query)}"
-                )
+                return HttpResponseRedirect(f"{base}?{urlencode(query)}")
             except Artifact.DoesNotExist:
                 # will raise 404 in normal handling
                 pass
@@ -159,7 +159,10 @@ def _compute_artifact_fields(artifact):
 
 def _owns_artifact(user, artifact):
     owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
-    return owner_urn["id"] == user.username and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
+    return (
+        owner_urn["id"] == user.username
+        and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
+    )
 
 
 def _trovi_artifacts(request):
@@ -313,7 +316,9 @@ def share_artifact(request, artifact):
     if request.method == "POST":
 
         form = ShareArtifactForm(request, request.POST)
-        z_form = ZenodoPublishFormset(request.POST, artifact_versions=artifact["versions"])
+        z_form = ZenodoPublishFormset(
+            request.POST, artifact_versions=artifact["versions"]
+        )
 
         if form.is_valid():
             visibility = "public" if form.cleaned_data["is_public"] else "private"
@@ -349,7 +354,9 @@ def share_artifact(request, artifact):
                     messages.add_message(
                         request,
                         messages.ERROR,
-                        "Project {} does not exist".format(form.cleaned_data["project"]),
+                        "Project {} does not exist".format(
+                            form.cleaned_data["project"]
+                        ),
                     )
                     return HttpResponseRedirect(
                         reverse("sharing_portal:share", args=[artifact["uuid"]])
@@ -372,7 +379,9 @@ def share_artifact(request, artifact):
                         )
 
                     if is_reproducible:
-                        create_supplemental_project_if_needed(request, artifact, portal_project)
+                        create_supplemental_project_if_needed(
+                            request, artifact, portal_project
+                        )
 
             if patches:
                 try:
@@ -391,11 +400,17 @@ def share_artifact(request, artifact):
                         "Error updating artifact in Trovi, please try again",
                     )
 
-            if (z_form.is_valid() and
-                    _request_artifact_dois(request, artifact, request_forms=z_form.cleaned_data)):
-                messages.add_message(request, messages.SUCCESS, (
-                    'Requested DOI(s) for artifact versions. The process '
-                    'of issuing DOIs may take a few minutes.'))
+            if z_form.is_valid() and _request_artifact_dois(
+                request, artifact, request_forms=z_form.cleaned_data
+            ):
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    (
+                        "Requested DOI(s) for artifact versions. The process "
+                        "of issuing DOIs may take a few minutes."
+                    ),
+                )
 
             return HttpResponseRedirect(
                 reverse("sharing_portal:detail", args=[artifact["uuid"]])
@@ -454,8 +469,7 @@ def preserve_sharing_key(url, request):
 
 def _parse_doi(artifact):
     if artifact["versions"]:
-        contents = trovi.parse_contents_urn(
-            artifact["versions"][-1]["contents"]["urn"])
+        contents = trovi.parse_contents_urn(artifact["versions"][-1]["contents"]["urn"])
         if contents["provider"] == "zenodo":
             return {
                 "doi": contents["id"],
@@ -512,8 +526,7 @@ def artifact(request, artifact, version_slug=None):
                 sharing_key=sharing_key,
             )["access_methods"]
         except trovi.TroviException:
-            LOG.error(
-                f"Could not get contents for {version['contents']['urn']}")
+            LOG.error(f"Could not get contents for {version['contents']['urn']}")
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
@@ -930,15 +943,14 @@ def _request_artifact_dois(request, artifact, request_forms=[]):
     """
     try:
         to_request = [
-            f['artifact_version_id']
-            for f in request_forms if f['request_doi']
+            f["artifact_version_id"] for f in request_forms if f["request_doi"]
         ]
         if to_request:
             for artifact_version_id in to_request:
                 trovi.migrate_to_zenodo(
                     request.session.get("trovi_token"),
                     artifact["uuid"],
-                    artifact_version_id
+                    artifact_version_id,
                 )
             return True
         return False
@@ -953,10 +965,7 @@ def _artifact_display_versions(versions):
     it's reversed, the numbers still indicate chronological order.
     """
     versions_list = list(versions)
-    return [
-        (v.model["slug"], v)
-        for (i, v) in enumerate(reversed(versions_list))
-    ]
+    return [(v.model["slug"], v) for (i, v) in enumerate(reversed(versions_list))]
 
 
 def create_supplemental_project_if_needed(request, artifact, project):
@@ -1045,8 +1054,9 @@ def create_git_version(request, artifact):
                 )
             except trovi.TroviException:
                 messages.add_message(
-                    request, messages.ERROR,
-                    "Could not create trovi artifact, are you using an HTTP(S) git remote?"
+                    request,
+                    messages.ERROR,
+                    "Could not create trovi artifact, are you using an HTTP(S) git remote?",
                 )
     template = loader.get_template("sharing_portal/create_git_version.html")
     return HttpResponse(template.render({}, request))

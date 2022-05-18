@@ -16,7 +16,9 @@ from chameleon.keystone_auth import has_valid_token, regenerate_tokens
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 import logging
+
 LOG = logging.getLogger(__name__)
+
 
 @csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
 @sensitive_post_parameters()
@@ -46,58 +48,67 @@ def custom_logout(request):
 @never_cache
 def confirm_legacy_credentials(request):
     error_message = (
-        'Your legacy credentials were rejected. Click '
+        "Your legacy credentials were rejected. Click "
         f'<a href="{reverse("federation_migrate_account")}?force=1">here</a> '
-        'to skip this step. Some aspects of your old account may not be '
-        'migratable without valid legacy credentials.')
-    if request.method == 'POST':
+        "to skip this step. Some aspects of your old account may not be "
+        "migratable without valid legacy credentials."
+    )
+    if request.method == "POST":
         form = KSAuthForm(request, data=request.POST)
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get("username")
+        password = request.POST.get("password")
         if request.user.username == username and form.is_valid():
             tas = TASClient()
             if tas.authenticate(username, password):
                 regenerate_tokens(request, password)
                 # Check if we were able to generate a token for the region the
                 # user is trying to log in to
-                if has_valid_token(request, region=request.GET.get('region')):
-                    LOG.info((
-                        'User {} retrieved unscoped token successfully via manual '
-                        'form.'.format(username)))
+                if has_valid_token(request, region=request.GET.get("region")):
+                    LOG.info(
+                        (
+                            "User {} retrieved unscoped token successfully via manual "
+                            "form.".format(username)
+                        )
+                    )
                 else:
-                    LOG.info((
-                        'User {} could not retrieve unscoped token via manual '
-                        'form.'.format(username)))
+                    LOG.info(
+                        (
+                            "User {} could not retrieve unscoped token via manual "
+                            "form.".format(username)
+                        )
+                    )
                     # Keystone failed for some reason
                     messages.error(request, error_message)
             else:
                 # Invalid password
                 messages.error(request, error_message)
         else:
-            LOG.error('An error occurred on form validation for user ' + request.user.username)
+            LOG.error(
+                "An error occurred on form validation for user " + request.user.username
+            )
             messages.error(request, error_message)
-        return redirect(request.GET.get('next'))
+        return redirect(request.GET.get("next"))
 
     form = KSAuthForm(request)
 
-    return render(request, 'federation/confirm_legacy_credentials.html', {'form': form})
+    return render(request, "federation/confirm_legacy_credentials.html", {"form": form})
 
 
 class KSAuthForm(AuthenticationForm):
     def __init__(self, request=None, *args, **kwargs):
         if request is not None:
             username = request.user.username
-            initial = kwargs.get('initial', {})
-            initial.setdefault('username', username)
-            kwargs['initial'] = initial
+            initial = kwargs.get("initial", {})
+            initial.setdefault("username", username)
+            kwargs["initial"] = initial
 
         super(KSAuthForm, self).__init__(request, *args, **kwargs)
-        self.fields['username'].widget.attrs['readonly'] = True
+        self.fields["username"].widget.attrs["readonly"] = True
 
     def clean_username(self):
-        instance = getattr(self, 'instance', None)
+        instance = getattr(self, "instance", None)
         if instance:
             if instance.is_disabled:
                 return instance.username
             else:
-                return self.cleaned_data.get('username')
+                return self.cleaned_data.get("username")

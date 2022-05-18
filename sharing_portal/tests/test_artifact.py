@@ -12,9 +12,9 @@ class ArtifactStringTest(TestCase):
     def test_to_string(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
-                    title='Test Case Artifact a',
-                    created_at=now,
-                    updated_at=now,
+            title="Test Case Artifact a",
+            created_at=now,
+            updated_at=now,
         )
         self.assertEqual(str(self.a), self.a.title)
 
@@ -23,19 +23,19 @@ class ArtifactRelatedPapersTest(TestCase):
     def setUp(self):
         now = datetime.now()
         self.a = Artifact.objects.create(
-                    title='Test Case Artifact a',
-                    created_at=now,
-                    updated_at=now,
+            title="Test Case Artifact a",
+            created_at=now,
+            updated_at=now,
         )
         self.b = Artifact.objects.create(
-                    title='Test Case Artifact b',
-                    created_at=now,
-                    updated_at=now,
+            title="Test Case Artifact b",
+            created_at=now,
+            updated_at=now,
         )
         self.c = Artifact.objects.create(
-                    title='Test Case Artifact c',
-                    created_at=now,
-                    updated_at=now,
+            title="Test Case Artifact c",
+            created_at=now,
+            updated_at=now,
         )
         self.label1 = Label.objects.create(label="label1")
         self.label2 = Label.objects.create(label="label2")
@@ -48,8 +48,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.c.labels.set(llist)
         related = self.a.related_papers
         self.assertEqual(len(related), 2)
-        self.assertEqual([a.id for a in related].sort(),
-                         [self.b.id, self.c.id].sort())
+        self.assertEqual([a.id for a in related].sort(), [self.b.id, self.c.id].sort())
 
     def test_different_shared_labels(self):
         llist = [self.label1, self.label2, self.label3]
@@ -58,8 +57,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.c.labels.set([self.label3])
         related = self.a.related_papers
         self.assertEqual(len(related), 2)
-        self.assertEqual([a.id for a in related].sort(),
-                         [self.b.id, self.c.id].sort())
+        self.assertEqual([a.id for a in related].sort(), [self.b.id, self.c.id].sort())
 
     def test_some_not_shared(self):
         llist = [self.label1, self.label2]
@@ -68,8 +66,7 @@ class ArtifactRelatedPapersTest(TestCase):
         self.c.labels.set([self.label3])
         related = self.a.related_papers
         self.assertEqual(len(related), 1)
-        self.assertEqual([a.id for a in related].sort(),
-                         [self.b.id].sort())
+        self.assertEqual([a.id for a in related].sort(), [self.b.id].sort())
 
     def test_no_related(self):
         llist = [self.label1, self.label2]
@@ -82,7 +79,7 @@ class ArtifactRelatedPapersTest(TestCase):
 
 class ArtifactValidateZenodoDoiTest(TestCase):
     def test_good_doi(self):
-        doi = '10.1112/zenodo.22222'
+        doi = "10.1112/zenodo.22222"
         Artifact.validate_zenodo_doi(doi)
 
     def test_none(self):
@@ -91,22 +88,22 @@ class ArtifactValidateZenodoDoiTest(TestCase):
             Artifact.validate_zenodo_doi(doi)
 
     def test_empty(self):
-        doi = ''
+        doi = ""
         with self.assertRaises(ValidationError):
             Artifact.validate_zenodo_doi(doi)
 
     def test_not_a_doi(self):
-        doi = 'somerandomthing'
+        doi = "somerandomthing"
         with self.assertRaises(ValidationError):
             Artifact.validate_zenodo_doi(doi)
 
     def test_not_a_zenodo_doi(self):
-        doi = '12.312/something.278912'
+        doi = "12.312/something.278912"
         with self.assertRaises(ValidationError):
             Artifact.validate_zenodo_doi(doi)
 
     def test_punctuated_non_doi(self):
-        doi = 'aa.aaaa/23423.sghwe'
+        doi = "aa.aaaa/23423.sghwe"
         with self.assertRaises(ValidationError):
             Artifact.validate_zenodo_doi(doi)
 
@@ -121,12 +118,12 @@ class Validate_Zenodo_Doi_Test(TestCase):
 
     def test_empty_repo(self):
         with self.assertRaises(ValidationError):
-            Artifact.validate_git_repo('')
+            Artifact.validate_git_repo("")
 
     def test_spaced_repo(self):
         with self.assertRaises(ValidationError):
-            Artifact.validate_git_repo('this has spaces')
+            Artifact.validate_git_repo("this has spaces")
 
     def test_noslash_repo(self):
         with self.assertRaises(ValidationError):
-            Artifact.validate_git_repo('thishasnoslash')
+            Artifact.validate_git_repo("thishasnoslash")

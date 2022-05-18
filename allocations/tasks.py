@@ -99,7 +99,7 @@ def warn_user_for_expiring_allocation():
     # Find allocations that are expiring between today and 1 month,
     # and have not been warned of their impending doom
     expiring_allocations = Allocation.objects.filter(
-        status='active',
+        status="active",
         expiration_date__lte=target_expiration_date,
         expiration_date__gte=today,
         expiration_warning_issued__isnull=True,
@@ -174,7 +174,7 @@ def expire_allocations(balance_service):
     now = timezone.now()
 
     expired_allocations = Allocation.objects.filter(
-        status='active', expiration_date__lte=now
+        status="active", expiration_date__lte=now
     )
     expired_alloc_count = 0
     for alloc in expired_allocations:
@@ -262,10 +262,14 @@ def active_approved_allocations(balance_service):
 
                 activated_alloc_count = activated_alloc_count + 1
         except Exception:
-            LOG.exception(f'Error activating project {charge_code}')
-        LOG.info(f'Started allocation {alloc.id} for {charge_code}')
+            LOG.exception(f"Error activating project {charge_code}")
+        LOG.info(f"Started allocation {alloc.id} for {charge_code}")
 
-    LOG.debug('need to activated {} allocations, and {} were actually activated'.format(len(approved_allocations), activated_alloc_count))
+    LOG.debug(
+        "need to activated {} allocations, and {} were actually activated".format(
+            len(approved_allocations), activated_alloc_count
+        )
+    )
 
 
 @task

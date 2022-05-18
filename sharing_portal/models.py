@@ -33,7 +33,7 @@ def validate_zenodo_doi(doi):
     Raises:
         ValidationError: if the DOI is malformed
     """
-    if not re.match(r'10\.[0-9]+\/zenodo\.[0-9]+$', str(doi)):
+    if not re.match(r"10\.[0-9]+\/zenodo\.[0-9]+$", str(doi)):
         raise ValidationError("Please enter a valid Zenodo DOI")
 
 
@@ -45,22 +45,24 @@ class Author(models.Model):
     """
     Represents authors of an artifact
     """
+
     affiliation = models.CharField(max_length=200, blank=True, null=True)
     name = models.CharField(max_length=200)
 
     # Order by last name
     class Meta:
-        ordering = ('name',)
+        ordering = ("name",)
 
     def __str__(self):
         display = self.name
         if self.affiliation:
-            display += ' ({})'.format(self.affiliation)
+            display += " ({})".format(self.affiliation)
         return display
 
 
 class LabelField(models.CharField):
-    """ Custom field that is always lowercase """
+    """Custom field that is always lowercase"""
+
     def to_python(self, value):
         return value.lower()
 
@@ -69,6 +71,7 @@ class Label(models.Model):
     """
     Represents artifact tags
     """
+
     label = LabelField(max_length=50)
 
     class Meta:
@@ -85,14 +88,17 @@ class Artifact(models.Model):
     Represents artifacts
     These could be research projects, Zenodo depositions, etc
     """
+
     title = models.CharField(max_length=200)
-    authors = models.ManyToManyField(Author, related_name='artifacts')
+    authors = models.ManyToManyField(Author, related_name="artifacts")
     short_description = models.CharField(max_length=70, blank=True, null=True)
     description = models.TextField(max_length=5000)
-    doi = models.CharField(max_length=50, blank=True, null=True,
-                           validators=[validate_zenodo_doi])
-    git_repo = models.CharField(max_length=200, blank=True,
-                                null=True, validators=[validate_git_repo])
+    doi = models.CharField(
+        max_length=50, blank=True, null=True, validators=[validate_zenodo_doi]
+    )
+    git_repo = models.CharField(
+        max_length=200, blank=True, null=True, validators=[validate_git_repo]
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
@@ -119,12 +125,11 @@ class Artifact(models.Model):
     )
     is_reproducible = models.BooleanField(default=False)
     reproduce_hours = models.IntegerField(null=True)
-    labels = models.ManyToManyField(Label, related_name='artifacts',
-                                    blank=True)
-    associated_artifacts = models.ManyToManyField('Artifact',
-                                                  related_name='associated',
-                                                  blank=True)
-    shared_to_projects = models.ManyToManyField(Project, through='ShareTarget')
+    labels = models.ManyToManyField(Label, related_name="artifacts", blank=True)
+    associated_artifacts = models.ManyToManyField(
+        "Artifact", related_name="associated", blank=True
+    )
+    shared_to_projects = models.ManyToManyField(Project, through="ShareTarget")
     trovi_uuid = models.CharField(max_length=36, null=True)
 
     class Meta:
@@ -184,19 +189,23 @@ class Artifact(models.Model):
 
 
 class ArtifactVersion(models.Model):
-    ZENODO = 'zenodo'
-    CHAMELEON = 'chameleon'
-    GIT = 'git'
+    ZENODO = "zenodo"
+    CHAMELEON = "chameleon"
+    GIT = "git"
     DEPOSITION_REPO_CHOICES = (
-        (ZENODO, 'Zenodo'),
-        (CHAMELEON, 'Chameleon'),
-        (GIT, 'Git'),
+        (ZENODO, "Zenodo"),
+        (CHAMELEON, "Chameleon"),
+        (GIT, "Git"),
     )
 
-    artifact = models.ForeignKey(Artifact, on_delete=models.CASCADE, related_name='artifact_versions')
+    artifact = models.ForeignKey(
+        Artifact, on_delete=models.CASCADE, related_name="artifact_versions"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     deposition_id = models.CharField(max_length=50)
-    deposition_repo = models.CharField(max_length=24, choices=DEPOSITION_REPO_CHOICES, default=CHAMELEON)
+    deposition_repo = models.CharField(
+        max_length=24, choices=DEPOSITION_REPO_CHOICES, default=CHAMELEON
+    )
     launch_count = models.IntegerField(default=0)
 
     def clean(self):
@@ -220,18 +229,17 @@ class ArtifactVersion(models.Model):
             return None
 
     def launch_url(self, can_edit=False):
-        base_url = '{}/hub/import'.format(
-            settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
+        base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
         query = dict(
             deposition_repo=self.deposition_repo,
             deposition_id=self.deposition_id,
             id=self.artifact.id,
-            ownership=('own' if can_edit else 'fork')
+            ownership=("own" if can_edit else "fork"),
         )
-        return str(base_url + '?' + urlencode(query))
+        return str(base_url + "?" + urlencode(query))
 
     def __str__(self):
-        return f'{self.artifact.title} ({self.created_at})'
+        return f"{self.artifact.title} ({self.created_at})"
 
 
 class ShareTarget(models.Model):

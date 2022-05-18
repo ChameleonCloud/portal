@@ -16,9 +16,5 @@ class UserNewsNotificationMiddleware(MiddlewareMixin):
                 display = True
 
             if display:
-                messages.add_message(
-                    request,
-                    notif.level,
-                    notif.display()
-                )
+                messages.add_message(request, notif.level, notif.display())
         return None
