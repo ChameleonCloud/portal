@@ -23,7 +23,7 @@
   function applyQueryFilter(filter) {
     const terms = filter.split(' ').filter(Boolean);
     document.querySelectorAll('.cardItem').forEach((el) => {
-      const matches = terms.some((term) => {
+      const matches = terms.every((term) => {
         return (term.length > 2) && el.dataset.search.includes(term);
       });
       el.classList.toggle('hidden', terms.length > 0 && !matches);
