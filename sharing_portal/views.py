@@ -482,7 +482,10 @@ def _parse_doi(artifact):
 @with_trovi_token
 @get_artifact
 def artifact(request, artifact, version_slug=None):
-    show_launch = request.user is None or has_active_allocations(request)
+    # Show the launch button if the user is logged out, or has active
+    # allocations. If the user is logged out, they will be asked to log in
+    # after clicking launch.
+    show_launch = not request.user.is_authenticated or has_active_allocations(request)
 
     version = _artifact_version(artifact, version_slug)
     if not version:
