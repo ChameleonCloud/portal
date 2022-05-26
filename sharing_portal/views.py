@@ -147,6 +147,8 @@ def _render_list(request, artifacts):
 def _compute_artifact_fields(artifact):
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
+    for name in [author['full_name'] for author in artifact["authors"]]:
+        terms.extend(name.lower().split(" "))
     artifact["search_terms"] = terms
     artifact["is_chameleon_supported"] = any(
         label == "chameleon" for label in artifact["tags"]

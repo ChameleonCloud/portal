@@ -21,10 +21,10 @@
   }
 
   function applyQueryFilter(filter) {
-    const terms = filter.split(' ').filter(Boolean);
+    const terms = filter.split(' ').filter((term) => term.length > 2).map((term) => term.toLowerCase());
     document.querySelectorAll('.cardItem').forEach((el) => {
       const matches = terms.every((term) => {
-        return (term.length > 2) && el.dataset.search.includes(term);
+        return el.dataset.search.includes(term);
       });
       el.classList.toggle('hidden', terms.length > 0 && !matches);
     });
