@@ -59,3 +59,17 @@
 	content: "*";
 	color: red;
 }
+
+details {
+    margin-left: 2em;
+    display: list-item;
+}
+
+summary {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+details p {
+    margin-bottom: 0;
+}

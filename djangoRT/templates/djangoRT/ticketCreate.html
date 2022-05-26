@@ -1,12 +1,37 @@
 {% extends "layout/default.html" %}
-{% load bootstrap3 %}
+{% load bootstrap3 static %}
+
 {% block title %}Create a Ticket{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'djangoRT/js/question_tree.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 {% include "djangoRT/navigation.html" %}
+<h1>Look up issue</h1>
+<div id="tree-container">
+  <p>
+    You can browse common issues here. Select each answer that fits your
+    problem. If nothing seems to fit, please submit a ticket.
+  </p>
+  <div id="expand_all" class="btn btn-sm btn-primary">Expand All</div>
+  <div id="collapse_all" class="btn btn-sm btn-primary">Collapse All</div>
+  <div id="tree"></div>
+</div>
+
 <h1>Submit a new ticket</h1>
-<h4>In order to help us address your issue in a timely manner, please be sure to provide your username,  project name,
-  and the details of your problem, including the UUID of the instance or lease in question if applicable.</h4>
+<h4>
+  In order to help us address your issue in a timely manner, please be sure to provide your username,  project name,
+  the site name, and the details of your problem, including the UUID of the instance or lease in question if applicable.
+  Please do not delete any instance or lease relevant to your question.
+</h4>
+<h4>
+  If you have an error message, please include it in your message, and a screenshot
+  if possible. Please mention which Chameleon interface you are using (e.g.
+  the web GUI, command line, python clients, Jupyter).
+</h4>
 <p><i>Fields marked with <label class="required"></label> are required.</i></p>
 <form method="POST" enctype="multipart/form-data">
   {% csrf_token %}
