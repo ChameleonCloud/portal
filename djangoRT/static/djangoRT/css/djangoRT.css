@@ -60,16 +60,21 @@
 	color: red;
 }
 
-details {
-    margin-left: 2em;
-    display: list-item;
-}
-
 summary {
+    display: list-item;
+    list-style: disclosure-closed;
     cursor: pointer;
     text-decoration: underline;
 }
 
+details {
+    margin-left: 2em;
+}
+
 details p {
     margin-bottom: 0;
+}
+
+details[open] > summary {
+    list-style: disclosure-open;
 }

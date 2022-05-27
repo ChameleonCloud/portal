@@ -1,12 +1,7 @@
 {% extends "layout/default.html" %}
-{% load bootstrap3 static %}
+{% load bootstrap3 %}
 
 {% block title %}Create a Ticket{% endblock %}
-
-{% block scripts %}
-{{ block.super }}
-<script src="{% static 'djangoRT/js/question_tree.js' %}"></script>
-{% endblock %}
 
 {% block content %}
 {% include "djangoRT/navigation.html" %}
@@ -16,9 +11,20 @@
     You can browse common issues here. Select each answer that fits your
     problem. If nothing seems to fit, please submit a ticket.
   </p>
-  <div id="expand_all" class="btn btn-sm btn-primary">Expand All</div>
-  <div id="collapse_all" class="btn btn-sm btn-primary">Collapse All</div>
-  <div id="tree"></div>
+  <div>
+    {% for group in question_groups %}
+    <details>
+    <summary>{{ group.label }}</summary>
+    {% if group.desc %}<p>{{ group.desc | safe }}</p>{% endif %}
+      {% for question in group.questions %}
+      <details>
+          <summary>{{ question.label }}</summary>
+          <p>{{ question.desc }}</p>
+      </details>
+      {% endfor %}
+    </details>
+    {% endfor %}
+  </div>
 </div>
 
 <h1>Submit a new ticket</h1>
