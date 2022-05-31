@@ -41,9 +41,7 @@ class BaseTicketForm(forms.Form):
 
     help_text = (
         "In order to help us address your issue in a timely manner, please "
-        "be sure to provide your project name and the details of your problem, "
-        "including your username and the UUID of the instance or lease in "
-        "question if applicable."
+        "describe the expected behavior, and the actual behavior."
     )
 
     first_name = forms.CharField(
@@ -53,6 +51,22 @@ class BaseTicketForm(forms.Form):
         widget=forms.TextInput(), label="Last name", max_length=100, required=True
     )
     email = forms.EmailField(widget=forms.EmailInput(), label="Email", required=True)
+    project_id = forms.CharField(
+        widget=forms.TextInput(), label="Project ID", max_length=100, required=False,
+        help_text="Which project are you using,  if applicable (e.g. CHI-123456)."
+    )
+    site = forms.CharField(
+        widget=forms.TextInput(), label="Site", max_length=100, required=False,
+        help_text="Which site you are using, if applicable (e.g. CHI@TACC)."
+    )
+    lease_id = forms.CharField(
+        widget=forms.TextInput(), label="Lease ID", max_length=100, required=False,
+        help_text="Your lease ID, if applicable (e.g. 123e4567-e89b-12d3-a456-426614174000)"
+    )
+    instance_id = forms.CharField(
+        widget=forms.TextInput(), label="Instance ID", max_length=100, required=False,
+        help_text="Your instance ID, if applicable (e.g. 123e4567-e89b-12d3-a456-426614174000)"
+    )
     subject = forms.CharField(
         widget=forms.TextInput(), label="Subject", max_length=100, required=True
     )

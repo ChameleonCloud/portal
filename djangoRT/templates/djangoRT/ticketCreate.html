@@ -1,12 +1,43 @@
 {% extends "layout/default.html" %}
 {% load bootstrap3 %}
+
 {% block title %}Create a Ticket{% endblock %}
 
 {% block content %}
 {% include "djangoRT/navigation.html" %}
+<h1>Look up issue</h1>
+<div id="tree-container">
+  <p>
+    You can browse common issues here. Select each answer that fits your
+    problem. If nothing seems to fit, please submit a ticket.
+  </p>
+  <div>
+    {% for group in question_groups %}
+    <details>
+    <summary>{{ group.label }}</summary>
+    {% if group.desc %}<p>{{ group.desc | safe }}</p>{% endif %}
+      {% for question in group.questions %}
+      <details>
+          <summary>{{ question.label }}</summary>
+          <p>{{ question.desc }}</p>
+      </details>
+      {% endfor %}
+    </details>
+    {% endfor %}
+  </div>
+</div>
+
 <h1>Submit a new ticket</h1>
-<h4>In order to help us address your issue in a timely manner, please be sure to provide your username,  project name,
-  and the details of your problem, including the UUID of the instance or lease in question if applicable.</h4>
+<h4>
+  In order to help us address your issue in a timely manner, please be sure to provide your username,  project name,
+  the site name, and the details of your problem, including the UUID of the instance or lease in question if applicable.
+  Please do not delete any instance or lease relevant to your question.
+</h4>
+<h4>
+  If you have an error message, please include it in your message, and a screenshot
+  if possible. Please mention which Chameleon interface you are using (e.g.
+  the web GUI, command line, python clients, Jupyter).
+</h4>
 <p><i>Fields marked with <label class="required"></label> are required.</i></p>
 <form method="POST" enctype="multipart/form-data">
   {% csrf_token %}
