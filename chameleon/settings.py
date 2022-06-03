@@ -867,6 +867,8 @@ CSP_FRAME_SRC = [
 ]
 CSP_IMG_SRC = [
     "'self'",
+    "https://chameleoncloud.org",
+    "https://www.chameleoncloud.org",
     "https://www.google-analytics.com",
     "https://*.googleusercontent.com",
 ]
