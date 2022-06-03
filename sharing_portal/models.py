@@ -228,16 +228,6 @@ class ArtifactVersion(models.Model):
         else:
             return None
 
-    def launch_url(self, can_edit=False):
-        base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
-        query = dict(
-            deposition_repo=self.deposition_repo,
-            deposition_id=self.deposition_id,
-            id=self.artifact.id,
-            ownership=("own" if can_edit else "fork"),
-        )
-        return str(base_url + "?" + urlencode(query))
-
     def __str__(self):
         return f"{self.artifact.title} ({self.created_at})"
 
