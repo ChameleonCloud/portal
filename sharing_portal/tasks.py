@@ -76,14 +76,14 @@ def publish_to_zenodo(artifact_version_id, zenodo_access_token=None):
     artifact_version.save()
 
 
-def _temp_url(deposition_id):
+def _temp_url(contents_id):
     endpoint = os.environ["ARTIFACT_SHARING_SWIFT_ENDPOINT"]
     origin = endpoint[: endpoint.index("/v1/")]
     path = "/".join(
         [
             endpoint[endpoint.index("/v1/") :],
             os.environ["ARTIFACT_SHARING_SWIFT_CONTAINER"],
-            deposition_id,
+            contents_id,
         ]
     )
     key = os.environ["ARTIFACT_SHARING_SWIFT_TEMP_URL_KEY"]

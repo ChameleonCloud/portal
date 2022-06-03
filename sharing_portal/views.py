@@ -607,8 +607,8 @@ def launch_url(version, request, token=None, can_edit=False):
         contents_url = ""
         proto = ""
     query = dict(
-        deposition_repo=contents["provider"],
-        deposition_id=contents["id"],
+        contents_repo=contents["provider"],
+        contents_id=contents["id"],
         contents_url=contents_url,
         contents_proto=proto,
         ownership=("own" if can_edit else "fork"),
