@@ -590,7 +590,6 @@ def launch(request, artifact, version_slug=None):
 def launch_url(version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
     contents_urn = version["contents"]["urn"]
-    contents = trovi.parse_contents_urn(contents_urn)
     sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
     contents_url_info = trovi.get_contents_url_info(
         token, contents_urn, sharing_key=sharing_key
@@ -607,8 +606,7 @@ def launch_url(version, request, token=None, can_edit=False):
         contents_url = ""
         proto = ""
     query = dict(
-        contents_repo=contents["provider"],
-        contents_id=contents["id"],
+        contents_urn=contents_urn,
         contents_url=contents_url,
         contents_proto=proto,
         ownership=("own" if can_edit else "fork"),
