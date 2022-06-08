@@ -1103,8 +1103,8 @@ def create_artifact(request):
             for key in keys:
                 artifact_data[key] = form.cleaned_data[key]
             if authors_formset:
+                authors = []
                 if authors_formset.is_valid():
-                    authors = []
                     for author in authors_formset.cleaned_data:
                         if author:
                             authors.append(author)
