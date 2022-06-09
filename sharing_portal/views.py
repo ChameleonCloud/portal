@@ -192,8 +192,8 @@ def index_all(request, collection=None):
     return _render_list(request, _trovi_artifacts(request))
 
 
-@with_trovi_token
 @login_required
+@with_trovi_token
 def index_mine(request):
     artifacts = [
         artifact
@@ -240,9 +240,9 @@ def _delete_artifact_version(request, version):
         return False
 
 
-@check_edit_permission
-@with_trovi_token
 @login_required
+@with_trovi_token
+@check_edit_permission
 def edit_artifact(request, artifact):
     if request.method == "POST":
         authors_formset = AuthorFormset(request.POST, initial=artifact["authors"])
@@ -491,8 +491,8 @@ def _parse_doi(artifact):
     return None
 
 
-@get_artifact
 @with_trovi_token
+@get_artifact
 def artifact(request, artifact, version_slug=None):
     # Show the launch button if the user is logged out, or has active
     # allocations. If the user is logged out, they will be asked to log in
@@ -564,9 +564,9 @@ def artifact(request, artifact, version_slug=None):
     return HttpResponse(template.render(context, request))
 
 
-@get_artifact
-@with_trovi_token
 @login_required
+@with_trovi_token
+@get_artifact
 def launch(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
 
@@ -624,9 +624,9 @@ def launch_url(version, request, token=None, can_edit=False):
     return str(base_url + "?" + urlencode(query))
 
 
-@get_artifact
-@with_trovi_token
 @login_required
+@with_trovi_token
+@get_artifact
 def request_daypass(request, artifact, **kwargs):
     if not artifact or not artifact["reproducibility"]["enable_requests"]:
         raise Http404("That artifact either doesn't exist, or can't be reproduced")
@@ -717,8 +717,8 @@ def send_request_mail(daypass_request, request, artifact):
     LOG.info("sent mail")
 
 
-@with_trovi_token
 @login_required
+@with_trovi_token
 def review_daypass(request, request_id, **kwargs):
     try:
         daypass_request = DaypassRequest.objects.get(pk=request_id)
@@ -1031,9 +1031,9 @@ def create_supplemental_project_if_needed(request, artifact, project):
         daypass_project.save()
 
 
-@check_edit_permission
-@with_trovi_token
 @login_required
+@with_trovi_token
+@check_edit_permission
 def create_git_version(request, artifact):
     errors = False
     if request.method == "POST":
@@ -1098,8 +1098,8 @@ def ls_remote(remote_url):
     return parts
 
 
-@with_trovi_token
 @login_required
+@with_trovi_token
 def create_artifact(request):
     if request.method == "POST":
         authors_formset = AuthorCreateFormset(request.POST)
@@ -1148,8 +1148,8 @@ def create_artifact(request):
     return HttpResponse(template.render(context, request))
 
 
-@get_artifact
 @with_trovi_token
+@get_artifact
 def download(request, artifact, version_slug=None):
     version = _artifact_version(artifact, version_slug)
     sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
