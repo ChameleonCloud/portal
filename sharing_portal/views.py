@@ -47,6 +47,10 @@ SHARING_KEY_PARAM = "s"
 
 def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            # Logged out users have no session to exchange for a token
+            return view_func(request, *args, **kwargs)
+
         if (
             request.session.get("trovi_token_expiration")
             and datetime.utcnow().timestamp()
@@ -72,6 +76,12 @@ def with_trovi_token(view_func):
             else:
                 # Set an empty token
                 request.session["trovi_token"] = ""
+                LOG.warning(
+                    (
+                        "Could not refresh Trovi token because user's access token is "
+                        "unexpectedly not available in the session."
+                    )
+                )
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
@@ -481,8 +491,8 @@ def _parse_doi(artifact):
     return None
 
 
-@with_trovi_token
 @get_artifact
+@with_trovi_token
 def artifact(request, artifact, version_slug=None):
     # Show the launch button if the user is logged out, or has active
     # allocations. If the user is logged out, they will be asked to log in
