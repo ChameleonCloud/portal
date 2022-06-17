@@ -100,7 +100,10 @@ class UserMenu(CMSAttachMenu):
 
         menu_id += 1
         n = NavigationNode(
-            _("Webinars"), reverse("webinar_registration:index"), menu_id, dashboard_id
+            _("Webinars"),
+            "https://www.chameleoncloud.org/learn/webinars/",
+            menu_id,
+            dashboard_id
         )
         nodes.append(n)
 
