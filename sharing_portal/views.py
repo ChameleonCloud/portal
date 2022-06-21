@@ -359,21 +359,6 @@ def share_artifact(request, artifact):
                 )
             if form.cleaned_data["project"]:
                 try:
-                    artifact["project"] = Project.objects.get(
-                        charge_code=form.cleaned_data["project"]
-                    )
-                except Project.DoesNotExist:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        "Project {} does not exist".format(
-                            form.cleaned_data["project"]
-                        ),
-                    )
-                    return HttpResponseRedirect(
-                        reverse("sharing_portal:share", args=[artifact["uuid"]])
-                    )
-
                     portal_project = Project.objects.get(
                         charge_code=form.cleaned_data["project"]
                     )
@@ -394,6 +379,18 @@ def share_artifact(request, artifact):
                         create_supplemental_project_if_needed(
                             request, artifact, portal_project
                         )
+                except Project.DoesNotExist:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        "Project {} does not exist".format(
+                            form.cleaned_data["project"]
+                        ),
+                    )
+                    return HttpResponseRedirect(
+                        reverse("sharing_portal:share", args=[artifact["uuid"]])
+                    )
+
 
             if patches:
                 try:
