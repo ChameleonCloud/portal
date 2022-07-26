@@ -86,6 +86,7 @@ def with_trovi_token(view_func):
 
     return _wrapped_view
 
+
 def handle_trovi_errors(view_func):
     def _wrapped_view(request, *args, **kwargs):
         try:
@@ -93,6 +94,7 @@ def handle_trovi_errors(view_func):
         except trovi.TroviException as e:
             LOG.exception(e)
             messages.error(request, e.detail)
+
     return _wrapped_view
 
 
@@ -403,7 +405,6 @@ def share_artifact(request, artifact):
                     return HttpResponseRedirect(
                         reverse("sharing_portal:share", args=[artifact["uuid"]])
                     )
-
 
             if patches:
                 trovi.patch_artifact(
