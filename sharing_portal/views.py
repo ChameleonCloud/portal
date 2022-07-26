@@ -311,7 +311,8 @@ def edit_artifact(request, artifact):
             request, form, artifact=artifact, authors_formset=authors_formset
         )
         if errors:
-            (messages.add_message(request, messages.ERROR, e) for e in errors)
+            for e in errors:
+                messages.error(request, e)
         else:
             messages.add_message(
                 request, messages.SUCCESS, "Successfully saved artifact."
@@ -405,22 +406,14 @@ def share_artifact(request, artifact):
 
 
             if patches:
-                try:
-                    trovi.patch_artifact(
-                        request.session.get("trovi_token"), artifact["uuid"], patches
-                    )
-                    messages.add_message(
-                        request,
-                        messages.SUCCESS,
-                        "Successfully updated sharing settings.",
-                    )
-                except trovi.TroviException:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        "Error updating artifact in Trovi, please try again",
-                    )
-
+                trovi.patch_artifact(
+                    request.session.get("trovi_token"), artifact["uuid"], patches
+                )
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "Successfully updated sharing settings.",
+                )
             if z_form.is_valid() and _request_artifact_dois(
                 request, artifact, request_forms=z_form.cleaned_data
             ):
@@ -551,7 +544,9 @@ def artifact(request, artifact, version_slug=None):
                 sharing_key=sharing_key,
             )["access_methods"]
         except trovi.TroviException:
-            LOG.error(f"Could not get contents for {version['contents']['urn']}")
+            message = f"Could not get contents for {version['contents']['urn']}"
+            LOG.error(message)
+            messages.error(request, message)
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
@@ -957,7 +952,7 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifac
                         request.session.get("trovi_token"), artifact["uuid"], patches
                     )
                 except trovi.TroviException as e:
-                    errors.append(str(e))
+                    errors.append(e.detail)
     else:
         errors.extend(artifact_form.errors)
 
