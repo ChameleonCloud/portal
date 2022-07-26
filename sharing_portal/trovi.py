@@ -25,8 +25,10 @@ class TroviException(Exception):
 
     @property
     def message(self):
-        return (f"{self.method} {self.path} {self.actual_code} returned, "
-                f"expected {self.expected_code}: {self.detail}")
+        return (
+            f"{self.method} {self.path} {self.actual_code} returned, "
+            f"expected {self.expected_code}: {self.detail}"
+        )
 
     @property
     def code(self):
