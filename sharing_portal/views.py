@@ -86,6 +86,15 @@ def with_trovi_token(view_func):
 
     return _wrapped_view
 
+def handle_trovi_errors(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        try:
+            return view_func(request, *args, **kwargs)
+        except trovi.TroviException as e:
+            LOG.exception(e)
+            messages.error(request, e.detail)
+    return _wrapped_view
+
 
 def can_edit(request, artifact):
     return _owns_artifact(request.user, artifact)
@@ -177,6 +186,7 @@ def _owns_artifact(user, artifact):
     )
 
 
+@handle_trovi_errors
 def _trovi_artifacts(request):
     artifacts = [
         _compute_artifact_fields(a)
@@ -241,6 +251,7 @@ def _delete_artifact_version(request, version):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @check_edit_permission
 def edit_artifact(request, artifact):
@@ -322,6 +333,7 @@ def edit_artifact(request, artifact):
 
 
 @check_edit_permission
+@handle_trovi_errors
 @with_trovi_token
 @login_required
 def share_artifact(request, artifact):
@@ -488,6 +500,7 @@ def _parse_doi(artifact):
     return None
 
 
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def artifact(request, artifact, version_slug=None):
@@ -562,6 +575,7 @@ def artifact(request, artifact, version_slug=None):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def launch(request, artifact, version_slug=None):
@@ -775,6 +789,8 @@ def review_daypass(request, request_id, **kwargs):
 
 
 @login_required
+@handle_trovi_errors
+@with_trovi_token
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
     projects = [
@@ -819,6 +835,8 @@ def list_daypass_requests(request, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
+@handle_trovi_errors
+@with_trovi_token
 def send_request_decision_mail(daypass_request, request):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
@@ -1029,6 +1047,7 @@ def create_supplemental_project_if_needed(request, artifact, project):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @check_edit_permission
 def create_git_version(request, artifact):
@@ -1096,6 +1115,7 @@ def ls_remote(remote_url):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 def create_artifact(request):
     if request.method == "POST":
@@ -1145,6 +1165,7 @@ def create_artifact(request):
     return HttpResponse(template.render(context, request))
 
 
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def download(request, artifact, version_slug=None):

@@ -15,10 +15,22 @@ LOG = logging.getLogger(__name__)
 
 
 class TroviException(Exception):
-    def __init__(self, code, message):
-        self.code = code
-        self.message = message
+    def __init__(self, method, path, expected_code, actual_code, detail):
+        self.method = method
+        self.path = path
+        self.expected_code = expected_code
+        self.actual_code = actual_code
+        self.detail = detail
         super().__init__(self.message)
+
+    @property
+    def message(self):
+        return (f"{self.method} {self.path} {self.actual_code} returned, "
+                f"expected {self.expected_code}: {self.detail}")
+
+    @property
+    def code(self):
+        return self.actual_code
 
 
 def url_with_token(path, token, query=None):
@@ -45,11 +57,9 @@ def check_status(response, code):
                 detail = response.text
         request = response.request
         request_path = urlparse(request.url).path
-        message = (
-            f"{request.method} {request_path} {response.status_code} "
-            f"returned, expected {code}: {detail}"
+        raise TroviException(
+            request.method, request_path, code, response.status_code, detail
         )
-        raise TroviException(response.status_code, message)
 
 
 def get_client_admin_token():
@@ -295,22 +305,26 @@ def delete_version(token, trovi_artifact_uuid, slug):
 def increment_metric_count(
     artifact_id, version_slug, token=None, metric="access_count", amount=1
 ):
-    admin_token = get_client_admin_token()
-    if not token:
-        token = admin_token
-    query = {
-        "metric": metric,
-        "amount": amount,
-        "origin": token,
-    }
-    res = requests.put(
-        url_with_token(
-            f"/artifacts/{artifact_id}/versions/{version_slug}/metrics/",
-            admin_token,
-            query=query,
+    try:
+        admin_token = get_client_admin_token()
+        if not token:
+            token = admin_token
+        query = {
+            "metric": metric,
+            "amount": amount,
+            "origin": token,
+        }
+        res = requests.put(
+            url_with_token(
+                f"/artifacts/{artifact_id}/versions/{version_slug}/metrics/",
+                admin_token,
+                query=query,
+            )
         )
-    )
-    check_status(res, requests.codes.no_content)
+        check_status(res, requests.codes.no_content)
+    except TroviException as e:
+        # Allow user to launch artifact as to not interrupt, but log error anyway
+        LOG.exception(e)
 
 
 def parse_project_urn(project_urn):
