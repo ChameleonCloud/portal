@@ -95,14 +95,14 @@ def handle_trovi_errors(view_func):
             try:
                 m = json.loads(m)
             except json.JSONDecodeError:
-                return m
+                return str(m)
         new_message = ""
         for key in m:
             value = m[key]
             if isinstance(value, dict):
-                new_message += f"{key}: {format_error(value)}\n"
+                new_message += f"{key}: {format_error(value)} "
             else:
-                new_message += value
+                new_message += f"{key}: {value}"
         return new_message
 
     def _wrapped_view(request, *args, **kwargs):
@@ -111,6 +111,9 @@ def handle_trovi_errors(view_func):
         except trovi.TroviException as e:
             LOG.exception(e)
             messages.error(request, format_error(e.detail))
+            return HttpResponseRedirect(
+                reverse("sharing_portal:edit", args=[kwargs.get("pk")])
+            )
 
     return _wrapped_view
 
@@ -937,11 +940,7 @@ def _artifact_version(artifact, version_slug=None):
 
 
 def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifact=None):
-    errors = []
-
     if artifact_form.is_valid():
-        authors = None
-
         patches = []
         keys = ["title", "short_description", "long_description", "title", "tags"]
         for key in keys:
@@ -961,20 +960,16 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifac
                         {"op": "replace", "path": "/authors", "value": authors}
                     )
             else:
-                errors.extend(authors_formset.errors)
+                for error in authors_formset.errors:
+                    messages.error(request, error)
+                return artifact
 
-        if not errors:
-            if patches:
-                try:
-                    trovi.patch_artifact(
-                        request.session.get("trovi_token"), artifact["uuid"], patches
-                    )
-                except trovi.TroviException as e:
-                    errors.append(e.detail)
-    else:
-        errors.extend(artifact_form.errors)
+        if patches:
+            trovi.patch_artifact(
+                request.session.get("trovi_token"), artifact["uuid"], patches
+            )
 
-    return artifact, errors
+    return artifact
 
 
 def _request_artifact_dois(request, artifact, request_forms=[]):
