@@ -28,6 +28,15 @@ def get_active_allocation(project):
     return next(project.allocations.filter(status="active").iterator(), None)
 
 
+def get_consecutive_approved_allocation(project, alloc):
+    approved_allocs = project.allocations.filter(
+        status="approved",
+        start_date__lte=alloc.expiration_date,
+        expiration_date__gte=alloc.expiration_date,
+    )
+    return next(approved_allocs.iterator(), None)
+
+
 def project_balances(project_ids) -> "list[dict]":
     """Return a list of balance information for each input project.
 
