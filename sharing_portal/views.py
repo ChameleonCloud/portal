@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -88,12 +90,27 @@ def with_trovi_token(view_func):
 
 
 def handle_trovi_errors(view_func):
+    def format_error(m):
+        if not isinstance(m, dict):
+            try:
+                m = json.loads(m)
+            except json.JSONDecodeError:
+                return m
+        new_message = ""
+        for key in m:
+            value = m[key]
+            if isinstance(value, dict):
+                new_message += f"{key}: {format_error(value)}\n"
+            else:
+                new_message += value
+        return new_message
+
     def _wrapped_view(request, *args, **kwargs):
         try:
             return view_func(request, *args, **kwargs)
         except trovi.TroviException as e:
             LOG.exception(e)
-            messages.error(request, e.detail)
+            messages.error(request, format_error(e.detail))
 
     return _wrapped_view
 
