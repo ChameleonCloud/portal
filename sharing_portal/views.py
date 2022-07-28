@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -83,6 +85,35 @@ def with_trovi_token(view_func):
                     )
                 )
         return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+
+def handle_trovi_errors(view_func):
+    def format_error(m):
+        if not isinstance(m, dict):
+            try:
+                m = json.loads(m)
+            except json.JSONDecodeError:
+                return str(m)
+        new_message = ""
+        for key in m:
+            value = m[key]
+            if isinstance(value, dict):
+                new_message += f"{key}: {format_error(value)} "
+            else:
+                new_message += f"{key}: {value}"
+        return new_message
+
+    def _wrapped_view(request, *args, **kwargs):
+        try:
+            return view_func(request, *args, **kwargs)
+        except trovi.TroviException as e:
+            LOG.exception(e)
+            messages.error(request, format_error(e.detail))
+            return HttpResponseRedirect(
+                reverse("sharing_portal:edit", args=[kwargs.get("pk")])
+            )
 
     return _wrapped_view
 
@@ -177,6 +208,7 @@ def _owns_artifact(user, artifact):
     )
 
 
+@handle_trovi_errors
 def _trovi_artifacts(request):
     artifacts = [
         _compute_artifact_fields(a)
@@ -241,6 +273,7 @@ def _delete_artifact_version(request, version):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @check_edit_permission
 def edit_artifact(request, artifact):
@@ -300,7 +333,8 @@ def edit_artifact(request, artifact):
             request, form, artifact=artifact, authors_formset=authors_formset
         )
         if errors:
-            (messages.add_message(request, messages.ERROR, e) for e in errors)
+            for e in errors:
+                messages.error(request, e)
         else:
             messages.add_message(
                 request, messages.SUCCESS, "Successfully saved artifact."
@@ -322,6 +356,7 @@ def edit_artifact(request, artifact):
 
 
 @check_edit_permission
+@handle_trovi_errors
 @with_trovi_token
 @login_required
 def share_artifact(request, artifact):
@@ -392,22 +427,14 @@ def share_artifact(request, artifact):
                     )
 
             if patches:
-                try:
-                    trovi.patch_artifact(
-                        request.session.get("trovi_token"), artifact["uuid"], patches
-                    )
-                    messages.add_message(
-                        request,
-                        messages.SUCCESS,
-                        "Successfully updated sharing settings.",
-                    )
-                except trovi.TroviException:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        "Error updating artifact in Trovi, please try again",
-                    )
-
+                trovi.patch_artifact(
+                    request.session.get("trovi_token"), artifact["uuid"], patches
+                )
+                messages.add_message(
+                    request,
+                    messages.SUCCESS,
+                    "Successfully updated sharing settings.",
+                )
             if z_form.is_valid() and _request_artifact_dois(
                 request, artifact, request_forms=z_form.cleaned_data
             ):
@@ -487,6 +514,7 @@ def _parse_doi(artifact):
     return None
 
 
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def artifact(request, artifact, version_slug=None):
@@ -537,7 +565,9 @@ def artifact(request, artifact, version_slug=None):
                 sharing_key=sharing_key,
             )["access_methods"]
         except trovi.TroviException:
-            LOG.error(f"Could not get contents for {version['contents']['urn']}")
+            message = f"Could not get contents for {version['contents']['urn']}"
+            LOG.error(message)
+            messages.error(request, message)
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
@@ -561,6 +591,7 @@ def artifact(request, artifact, version_slug=None):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def launch(request, artifact, version_slug=None):
@@ -774,6 +805,8 @@ def review_daypass(request, request_id, **kwargs):
 
 
 @login_required
+@handle_trovi_errors
+@with_trovi_token
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
     projects = [
@@ -818,6 +851,8 @@ def list_daypass_requests(request, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
+@handle_trovi_errors
+@with_trovi_token
 def send_request_decision_mail(daypass_request, request):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
@@ -905,11 +940,7 @@ def _artifact_version(artifact, version_slug=None):
 
 
 def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifact=None):
-    errors = []
-
     if artifact_form.is_valid():
-        authors = None
-
         patches = []
         keys = ["title", "short_description", "long_description", "title", "tags"]
         for key in keys:
@@ -929,20 +960,16 @@ def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifac
                         {"op": "replace", "path": "/authors", "value": authors}
                     )
             else:
-                errors.extend(authors_formset.errors)
+                for error in authors_formset.errors:
+                    messages.error(request, error)
+                return artifact
 
-        if not errors:
-            if patches:
-                try:
-                    trovi.patch_artifact(
-                        request.session.get("trovi_token"), artifact["uuid"], patches
-                    )
-                except trovi.TroviException as e:
-                    errors.append(str(e))
-    else:
-        errors.extend(artifact_form.errors)
+        if patches:
+            trovi.patch_artifact(
+                request.session.get("trovi_token"), artifact["uuid"], patches
+            )
 
-    return artifact, errors
+    return artifact
 
 
 def _request_artifact_dois(request, artifact, request_forms=[]):
@@ -1028,6 +1055,7 @@ def create_supplemental_project_if_needed(request, artifact, project):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 @check_edit_permission
 def create_git_version(request, artifact):
@@ -1095,6 +1123,7 @@ def ls_remote(remote_url):
 
 
 @login_required
+@handle_trovi_errors
 @with_trovi_token
 def create_artifact(request):
     if request.method == "POST":
@@ -1144,6 +1173,7 @@ def create_artifact(request):
     return HttpResponse(template.render(context, request))
 
 
+@handle_trovi_errors
 @with_trovi_token
 @get_artifact
 def download(request, artifact, version_slug=None):
