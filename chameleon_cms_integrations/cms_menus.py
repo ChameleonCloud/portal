@@ -103,7 +103,7 @@ class UserMenu(CMSAttachMenu):
             _("Webinars"),
             "https://www.chameleoncloud.org/learn/webinars/",
             menu_id,
-            dashboard_id
+            dashboard_id,
         )
         nodes.append(n)
 

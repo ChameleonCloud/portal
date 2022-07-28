@@ -391,7 +391,6 @@ def share_artifact(request, artifact):
                         reverse("sharing_portal:share", args=[artifact["uuid"]])
                     )
 
-
             if patches:
                 try:
                     trovi.patch_artifact(
