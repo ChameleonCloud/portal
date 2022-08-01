@@ -218,7 +218,10 @@ class UsageEnforcer(object):
         now = timezone.now()
         end_date_changed = old_lease["end_date"] != new_lease["end_date"]
         alloc = su_calculators.get_active_allocation(new_lease_eval.project)
-        self._check_alloc_expiration_date(new_lease, alloc)
+        approved_alloc = su_calculators.get_consecutive_approved_allocation(
+            new_lease_eval.project, alloc
+        )
+        self._check_alloc_expiration_date(new_lease, alloc, approved_alloc)
         for reservation in new_lease["reservations"]:
             new_hourly_cost = self._get_reservation_sus(
                 reservation["resource_type"], reservation["allocations"]
