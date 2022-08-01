@@ -682,7 +682,8 @@ def request_daypass(request, artifact, **kwargs):
             )
         else:
             if form.errors:
-                (messages.add_message(request, messages.ERROR, e) for e in form.errors)
+                for e in form.errors:
+                    messages.add_message(request, messages.ERROR, e)
             return HttpResponseRedirect(
                 preserve_sharing_key(
                     reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]),
@@ -752,12 +753,12 @@ def review_daypass(request, request_id, **kwargs):
     except DaypassRequest.DoesNotExist:
         raise Http404("That daypass request does not exist")
 
-    daypass_request.artifact = trovi.get_artifact_by_trovi_uuid(
-        request.session.get("trovi_token"), daypass_request.artifact_uuid
-    )
-
     artifact = trovi.get_artifact_by_trovi_uuid(
-        request.session.get("trovi_token"), daypass_request.artifact_uuid
+        # We use the admin token for this, because the PI is approving a Chameleon
+        # allocation for an artifact that they may not own. Therefore, they won't be
+        # able to view it. We should not expose any details about this artifact
+        # to the PI at any point because of this.
+        trovi.get_client_admin_token(), daypass_request.artifact_uuid
     )
     project = trovi.get_linked_project(artifact)
     if not project or not is_membership_manager(project, request.user.username):
@@ -789,7 +790,8 @@ def review_daypass(request, request_id, **kwargs):
             )
         else:
             if form.errors:
-                (messages.add_message(request, messages.ERROR, e) for e in form.errors)
+                for e in form.errors:
+                    messages.add_message(request, messages.ERROR, e)
             return HttpResponseRedirect(
                 reverse("sharing_portal:review_daypass", args=[request_id])
             )
@@ -857,7 +859,7 @@ def send_request_decision_mail(daypass_request, request):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     artifact = trovi.get_artifact_by_trovi_uuid(
-        request.session.get("trovi_token"), daypass_request.artifact_uuid
+        trovi.get_client_admin_token(), daypass_request.artifact_uuid
     )
     artifact_title = artifact["title"]
     daypass_project = DaypassProject.objects.get(artifact_uuid=artifact["uuid"])
