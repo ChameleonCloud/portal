@@ -67,13 +67,21 @@
           <p class="help-block">
             A person without an active Chameleon allocation is unable to launch
             and reproduce your artifact. If you enable reproducibility requests,
-            users can send requests, and if granted, they will be given a small
+            users can send requests for a daypass, and if granted, they will be given a small
             temporary allocation on a separate project. While usage by
             reproducing users will not count towards your project's main
             allocation, the PI is nonetheless accountable for their responsible
             usage of Chameleon resources. All reproducibilty requests therefore
             require PI approval.
           </p>
+          {% if artifact.visibility == "private"%}
+            <div class="alert alert-info">
+              Your artifact is marked as private! If you enable reproducibility requests,
+              some information, such as the title, may be leaked to public users who request
+              a daypass for your artifact. Nobody will be able to download the artifact contents
+              without the private link above.
+            </div>
+          {% endif %}
           {% bootstrap_field share_form.project show_label=False %}
           {% bootstrap_field share_form.is_reproducible %}
           {% bootstrap_field share_form.reproduce_hours %}
