@@ -758,7 +758,8 @@ def review_daypass(request, request_id, **kwargs):
         # allocation for an artifact that they may not own. Therefore, they won't be
         # able to view it. We should not expose any details about this artifact
         # to the PI at any point because of this.
-        trovi.get_client_admin_token(), daypass_request.artifact_uuid
+        trovi.get_client_admin_token(),
+        daypass_request.artifact_uuid,
     )
     project = trovi.get_linked_project(artifact)
     if not project or not is_membership_manager(project, request.user.username):

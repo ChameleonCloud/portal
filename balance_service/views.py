@@ -10,7 +10,6 @@ from django.http import (
 )
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from allocations.allocations_api import BalanceServiceClient
 
 from .enforcement import exceptions as ue_exceptions
 from .enforcement import usage_enforcement
@@ -93,36 +92,23 @@ def _parse_external_balance_service_request(req):
     return check
 
 
-def _process(enforcer, request, func_v1, fun_v2):
+def _process(enforcer, request, fun_v2):
     data = json.loads(request.body)
 
     check = None
     balance_service_version = int(enforcer.get_balance_service_version(data))
-    logger.debug(f"Using balance service version {balance_service_version}.")
+    if balance_service_version == 1:
+        raise ValueError("Balance service version 1 is not supported")
 
     # balance service v2
     try:
-        logger.debug("checking with balance service version 2")
         fun_v2(data)
     except ue_exceptions.BillingError as e:
         logger.exception(e)
-        if balance_service_version == 2:
-            check = e
+        check = e
     except Exception as e:
         logger.exception(e)
-        if balance_service_version == 2:
-            check = _unexpected_error()
-
-    # balance service v1
-    try:
-        logger.debug("checking with balance service version 1")
-        req = func_v1(data)
-        if balance_service_version == 1:
-            check = _parse_external_balance_service_request(req)
-    except Exception as e:
-        logger.exception(e)
-        if balance_service_version == 1:
-            check = _unexpected_error()
+        check = _unexpected_error()
 
     return make_enforcement_response(check)
 
@@ -133,11 +119,9 @@ def _process(enforcer, request, func_v1, fun_v2):
 @transaction.atomic
 def check_create(keystone_api, request):
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-    balance_service = BalanceServiceClient()
     return _process(
         enforcer,
         request,
-        balance_service.check_create,
         enforcer.check_usage_against_allocation,
     )
 
@@ -148,11 +132,9 @@ def check_create(keystone_api, request):
 @transaction.atomic
 def check_update(keystone_api, request):
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-    balance_service = BalanceServiceClient()
     return _process(
         enforcer,
         request,
-        balance_service.check_update,
         enforcer.check_usage_against_allocation_update,
     )
 
@@ -163,10 +145,8 @@ def check_update(keystone_api, request):
 @transaction.atomic
 def on_end(keystone_api, request):
     enforcer = usage_enforcement.UsageEnforcer(keystone_api)
-    balance_service = BalanceServiceClient()
     return _process(
         enforcer,
         request,
-        balance_service.on_end,
         enforcer.stop_charging,
     )
