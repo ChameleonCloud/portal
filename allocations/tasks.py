@@ -12,7 +12,6 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
-from allocations.allocations_api import BalanceServiceClient
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
 from balance_service.enforcement.usage_enforcement import TMP_RESOURCE_ID_PREFIX
@@ -170,7 +169,7 @@ def _fork_charge(charge, split_datetime, new_allocation):
     charge.save()
 
 
-def expire_allocations(balance_service):
+def expire_allocations():
     now = timezone.now()
 
     expired_allocations = Allocation.objects.filter(
@@ -183,9 +182,6 @@ def expire_allocations(balance_service):
             with transaction.atomic():
                 # set status to inactive and set the final su_used in portal db
                 _deactivate_allocation(alloc)
-                # TODO: remove reset external balance service
-                # after retiring redis
-                balance_service.reset(charge_code)
                 expired_alloc_count = expired_alloc_count + 1
         except Exception:
             LOG.exception(f"Error expiring project {charge_code}")
@@ -224,7 +220,7 @@ def deactivate_multiple_active_allocations_of_projects():
                 )
 
 
-def active_approved_allocations(balance_service):
+def active_approved_allocations():
     now = timezone.now()
 
     approved_allocations = Allocation.objects.filter(
@@ -253,9 +249,6 @@ def active_approved_allocations(balance_service):
                             _fork_charge(c, now, alloc)
                 alloc.status = "active"
                 alloc.save()
-                # TODO: remove recharge external balance service
-                # after retiring redis
-                balance_service.recharge(charge_code, alloc.su_allocated)
                 KeycloakClient().update_project(
                     charge_code, has_active_allocation="true"
                 )
@@ -274,13 +267,12 @@ def active_approved_allocations(balance_service):
 
 @task
 def activate_expire_allocations():
-    balance_service = BalanceServiceClient()
     # expire allocations
-    expire_allocations(balance_service)
+    expire_allocations()
     # check projects with multiple active allocations
     deactivate_multiple_active_allocations_of_projects()
     # activate allocations
-    active_approved_allocations(balance_service)
+    active_approved_allocations()
 
 
 def _fill_charge_tmp_resource_ids():
