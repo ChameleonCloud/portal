@@ -2,6 +2,9 @@ import json
 import logging
 from datetime import datetime
 
+from bootstrap3.exceptions import BootstrapError
+from bootstrap3.renderers import FormRenderer
+
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
 from django.conf import settings
@@ -38,7 +41,7 @@ from .forms import (
     ConsentForm,
     EditNicknameForm,
     EditPIForm,
-    EditTypeForm,
+    EditTagForm,
     FundingFormset,
     ProjectAddUserForm,
     ProjectAddBulkUserForm,
@@ -205,8 +208,8 @@ def view_project(request, project_id):
 
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
-    type_form_args = {"request": request}
-    type_form = EditTypeForm(**type_form_args)
+    tag_form_args = {"request": request}
+    tag_form = EditTagForm(**tag_form_args)
     pubs_form = AddBibtexPublicationForm()
     pi_form = EditPIForm()
     bulk_user_form = ProjectAddBulkUserForm()
@@ -304,8 +307,8 @@ def view_project(request, project_id):
                 )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
-        elif "typeId" in request.POST:
-            type_form = edit_type(request, project_id)
+        elif "tagId" in request.POST:
+            tag_form = edit_tag(request, project_id)
         elif "pi_username" in request.POST:
             pi_form = edit_pi(request, project_id)
         elif "add_bulk_users" in request.POST:
@@ -384,13 +387,27 @@ def view_project(request, project_id):
 
     is_on_daypass = get_daypass(request.user.id, project_id) is not None
 
+    old_init = FormRenderer.__init__
+
+    def new_init(self, form, *args, **kwargs):
+        try:
+            old_init(self, form, *args, **kwargs)
+        except BootstrapError as e:
+            print("FORM ERROR")
+            print(type(form))
+            print(form)
+            print(self)
+            raise e
+
+    FormRenderer.__init__ = new_init
+
     return render(
         request,
         "projects/view_project.html",
         {
             "project": project,
             "project_nickname": project.nickname,
-            "project_type": project.type,
+            "project_tag": project.tag,
             "users": users_mashup,
             "invitations": clean_invitations,
             "can_manage_project_membership": can_manage_project_membership,
@@ -399,7 +416,7 @@ def view_project(request, project_id):
             "is_on_daypass": is_on_daypass,
             "form": form,
             "nickname_form": nickname_form,
-            "type_form": type_form,
+            "tag_form": tag_form,
             "pi_form": pi_form,
             "pubs_form": pubs_form,
             "bulk_user_form": bulk_user_form,
@@ -739,7 +756,7 @@ def create_project(request):
             and funding_formset.is_valid()
             and consent_form.is_valid()
         ):
-            # title, description, typeId, fieldId
+            # title, description, tagId
             project = form.cleaned_data.copy()
             allocation_data = allocation_form.cleaned_data.copy()
             # let's check that any provided nickname is unique
@@ -859,28 +876,28 @@ def edit_nickname(request, project_id):
 
 
 @require_POST
-def edit_type(request, project_id):
+def edit_tag(request, project_id):
     form_args = {"request": request}
     if not request.user.is_superuser:
-        messages.error(request, "Only the admin users can update project type.")
-        return EditTypeForm(**form_args)
+        messages.error(request, "Only the admin users can update project tag.")
+        return EditTagForm(**form_args)
 
-    form = EditTypeForm(request.POST, **form_args)
+    form = EditTagForm(request.POST, **form_args)
     if form.is_valid(request):
         # try to update type
         try:
-            project_type_id = int(form.cleaned_data["typeId"])
-            ProjectAllocationMapper.update_project_type(project_id, project_type_id)
-            form = EditTypeForm(**form_args)
+            project_tag_id = int(form.cleaned_data["tagId"])
+            ProjectAllocationMapper.update_project_tag(project_id, project_tag_id)
+            form = EditTagForm(**form_args)
             messages.success(
                 request,
                 "Update successful! Please refresh the page.",
             )
         except Exception:
-            logger.exception("Failed to update project type")
-            messages.error(request, "Failed to update project type")
+            logger.exception("Failed to update project tag")
+            messages.error(request, "Failed to update project tag")
     else:
-        messages.error(request, "Failed to update project type")
+        messages.error(request, "Failed to update project tag")
 
     return form
 

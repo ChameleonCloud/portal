@@ -48,17 +48,12 @@ class ProjectCreateForm(forms.Form):
         required=True,
         widget=forms.TextInput(attrs={"placeholder": "Project Nickname"}),
     )
-    fieldId = forms.ChoiceField(
-        label="Field of Science",
-        choices=(),
-        initial="45",
-        help_text="Please indicate a primary field of science for this research.",
-    )
-    typeId = forms.ChoiceField(
-        label="Type",
+    tagId = forms.ChoiceField(
+        label="Tag",
         choices=(),
         initial="",
-        help_text="Please indicate a project type.",
+        help_text="Please choose the research area that is "
+                  "most similar to the research you will conduct.",
     )
 
     def __init__(self, *args, **kwargs):
@@ -67,10 +62,9 @@ class ProjectCreateForm(forms.Form):
             del kwargs["request"]
             super(ProjectCreateForm, self).__init__(*args, **kwargs)
             mapper = ProjectAllocationMapper(request)
-            self.fields["fieldId"].choices = mapper.get_fields_choices()
-            self.fields["typeId"].choices = mapper.get_project_types_choices()
+            self.fields["tagId"].choices = mapper.get_project_tags_choices()
         else:
-            logger.error("Couldn't get field or type list.")
+            logger.error("Couldn't get field or tag list.")
 
 
 class EditNicknameForm(forms.Form):
@@ -95,27 +89,28 @@ class EditNicknameForm(forms.Form):
         ).exists()
 
 
-class EditTypeForm(forms.Form):
-    typeId = forms.ChoiceField(
+class EditTagForm(forms.Form):
+    tagId = forms.ChoiceField(
         label="",
         choices=(),
         initial="",
-        help_text="",
+        help_text="Please choose the research area that is "
+                  "most similar to the research you will conduct.",
         required=True,
     )
 
     def is_valid(self, request):
-        return super(EditTypeForm, self).is_valid()
+        return super(EditTagForm, self).is_valid()
 
     def __init__(self, *args, **kwargs):
         if "request" in kwargs:
             request = kwargs["request"]
             del kwargs["request"]
-            super(EditTypeForm, self).__init__(*args, **kwargs)
+            super(EditTagForm, self).__init__(*args, **kwargs)
             mapper = ProjectAllocationMapper(request)
-            self.fields["typeId"].choices = mapper.get_project_types_choices()
+            self.fields["tagId"].choices = mapper.get_project_tags_choices()
         else:
-            logger.error("Couldn't get type list.")
+            logger.error("Couldn't get tag list.")
 
 
 class EditPIForm(forms.Form):
@@ -129,7 +124,6 @@ class EditPIForm(forms.Form):
 
 
 class FundingForm(forms.Form):
-
     id = forms.IntegerField(
         widget=forms.HiddenInput(),
         required=False,
