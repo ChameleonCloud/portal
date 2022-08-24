@@ -53,7 +53,7 @@ class ProjectCreateForm(forms.Form):
         choices=(),
         initial="",
         help_text="Please choose the research area that is "
-                  "most similar to the research you will conduct.",
+        "most similar to the research you will conduct.",
     )
 
     def __init__(self, *args, **kwargs):
@@ -95,7 +95,7 @@ class EditTagForm(forms.Form):
         choices=(),
         initial="",
         help_text="Please choose the research area that is "
-                  "most similar to the research you will conduct.",
+        "most similar to the research you will conduct.",
         required=True,
     )
 
