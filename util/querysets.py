@@ -28,7 +28,7 @@ class CCQuerySets:
     def projectsQuerySet(self):
         """Get all projects from django DB."""
         logger.debug("Projects QS INIT")
-        output_qs = Project.objects.select_related("type", "pi", "field")
+        output_qs = Project.objects.select_related("tag", "pi")
         return output_qs
 
     def orderedProjects(self):

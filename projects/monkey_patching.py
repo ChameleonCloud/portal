@@ -12,10 +12,10 @@ point is a bit of a bear.
 
 def patch_user_model():
     UserModel = get_user_model()
-    UserModel.add_to_class("as_tas", _user_as_tas)
+    UserModel.add_to_class("as_json", _user_as_json)
 
 
-def _user_as_tas(user, role="Standard"):
+def _user_as_json(user, role="Standard"):
     try:
         # Short-cut if we already know the user is a PI (because they are
         # marked as the PI for a project, for example.)

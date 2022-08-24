@@ -14,9 +14,8 @@ from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 import logging
 from balance_service.utils.su_calculators import project_balances
-from projects.models import FieldHierarchy
 from projects.models import Project
-from projects.models import Type
+from projects.models import Tag
 from pytas.http import TASClient
 from pytas.models import Project as tas_proj
 from pytas.models import User as tas_user
@@ -132,22 +131,22 @@ class ProjectAllocationMapper:
             List[dict]: a list of projects in the TAS representation format,
                 sorted by newest allocation request date. Allocations in each
                 project are sorted from newest to oldest by
-                portal_to_tas_proj_obj.
+                portal_to_json_proj.
         """
 
         # for each project, get the most recent 'date_requested' among its allocations
         # annotate the project with 'newest_request'
         # order the projects by the 'newest_request' annotation
-        # to optimize the query, ensure requst includes foreign keys
+        # to optimize the query, ensure request includes foreign keys
 
         project_qs = (
             Project.objects.annotate(newest_request=Max("allocations__date_requested"))
-            .select_related("type", "pi", "field")
+            .select_related("tag", "pi")
             .order_by("newest_request")
             .reverse()
         )
         projects = self._with_relations(project_qs)
-        return [self.portal_to_tas_proj_obj(p) for p in projects]
+        return [self.portal_to_json_proj(p) for p in projects]
 
     def _with_relations(self, projects, fetch_balance=True, fetch_allocations=True):
         if fetch_allocations and isinstance(projects, QuerySet):
@@ -186,13 +185,13 @@ class ProjectAllocationMapper:
         return projects
 
     def save_allocation(self, alloc, project_charge_code, host):
-        reformated_alloc = self.tas_to_portal_alloc_obj(alloc, project_charge_code)
+        reformated_alloc = self.json_to_portal_alloc(alloc, project_charge_code)
         reformated_alloc.save()
         self._send_allocation_request_notification(project_charge_code, host)
 
     def save_project(self, proj, host=None):
         allocations = self.get_attr(proj, "allocations")
-        reformated_proj = self.tas_to_portal_proj_obj(proj)
+        reformated_proj = self.json_to_portal_proj(proj)
         reformated_proj.save()
         if reformated_proj.charge_code.startswith(TMP_PROJECT_CHARGE_CODE_PREFIX):
             # save project in portal
@@ -215,7 +214,7 @@ class ProjectAllocationMapper:
                 keycloak_client = KeycloakClient()
                 keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
 
-        return self.portal_to_tas_proj_obj(reformated_proj, fetch_allocations=False)
+        return self.portal_to_json_proj(reformated_proj, fetch_allocations=False)
 
     def get_portal_user_id(self, username):
         portal_user = self._get_user_from_portal_db(username)
@@ -228,7 +227,7 @@ class ProjectAllocationMapper:
         if not portal_user:
             return None
 
-        user = self.portal_user_to_tas_obj(portal_user, role=role)
+        user = self.portal_user_to_json(portal_user, role=role)
         # update user metadata from keycloak
         user = self.update_user_metadata_from_keycloak(user)
         return tas_user(initial=user) if to_pytas_model else user
@@ -269,10 +268,10 @@ class ProjectAllocationMapper:
         project.save()
 
     @staticmethod
-    def update_project_type(project_id, project_type_id):
+    def update_project_tag(project_id, project_tag_id):
         project = Project.objects.get(pk=project_id)
-        project_type = Type.objects.get(pk=project_type_id)
-        project.type = project_type
+        project_tag = Tag.objects.get(pk=project_tag_id)
+        project.tag = project_tag
         project.save()
 
     @staticmethod
@@ -342,7 +341,7 @@ class ProjectAllocationMapper:
         projects_qs = Project.objects.filter(charge_code__in=charge_codes)
 
         user_projects = [
-            self.portal_to_tas_proj_obj(p, alloc_status=alloc_status)
+            self.portal_to_json_proj(p, alloc_status=alloc_status)
             for p in self._with_relations(projects_qs, fetch_balance=fetch_balance)
         ]
 
@@ -363,7 +362,7 @@ class ProjectAllocationMapper:
         projects = list(self._with_relations(Project.objects.filter(pk=project_id)))
         if not projects:
             raise Project.DoesNotExist()
-        project = self.portal_to_tas_proj_obj(projects[0])
+        project = self.portal_to_json_proj(projects[0])
         return tas_proj(initial=project)
 
     def allocation_approval(self, data, host):
@@ -380,7 +379,7 @@ class ProjectAllocationMapper:
             "decisionSummary",
             "computeAllocated",
         ]:
-            setattr(alloc, allocation.TAS_TO_PORTAL_MAP[item], data[item])
+            setattr(alloc, allocation.JSON_TO_PORTAL_MAP[item], data[item])
         alloc.save()
         logger.info("Allocation model updated: data=%s", alloc.__dict__)
         # send email to PI
@@ -412,58 +411,24 @@ class ProjectAllocationMapper:
             result = result + self._parse_field_recursive(child, level)
         return result
 
-    def _portal_field_hierarchy_to_tas_format(self, parent, parent_children_map):
-        parent_d = {"id": parent[0], "name": parent[1], "children": []}
-        if parent in parent_children_map:
-            for child in parent_children_map[parent]:
-                child = self._portal_field_hierarchy_to_tas_format(
-                    child, parent_children_map
-                )
-                parent_d["children"].append(child)
-        return parent_d
-
-    def get_fields_choices(self):
+    def get_project_tags_choices(self):
         choices = (("", "Choose One"),)
-        fields = []
-        field_hierarchy = {}
-        for item in FieldHierarchy.objects.select_related("parent", "child").all():
-            key = (item.parent.id, item.parent.name)
-            if key not in field_hierarchy:
-                field_hierarchy[key] = []
-            field_hierarchy[key].append((item.child.id, item.child.name))
-        top_level_keys = set(field_hierarchy.keys()) - set(
-            [item for sublist in list(field_hierarchy.values()) for item in sublist]
-        )
-        for f in top_level_keys:
-            fields.append(
-                self._portal_field_hierarchy_to_tas_format(f, field_hierarchy)
-            )
-        field_list = []
-        for f in fields:
-            field_list = field_list + self._parse_field_recursive(f)
-        for item in field_list:
-            choices += (item,)
+        for item in Tag.objects.filter(expose=True):
+            choices += ((item.id, f"{item.name} — {item.description}"),)
         return choices
 
-    def get_project_types_choices(self):
-        choices = (("", "Choose One"),)
-        for item in Type.objects.all():
-            choices += ((item.id, item.name),)
-        return choices
-
-    def portal_to_tas_alloc_obj(self, alloc):
-        return Allocation.to_tas(alloc)
-
-    def portal_to_tas_proj_obj(self, proj, fetch_allocations=True, alloc_status=[]):
-        return Project.to_tas(
+    def portal_to_json_proj(self, proj, fetch_allocations=True, alloc_status=None):
+        if alloc_status is None:
+            alloc_status = []
+        return Project.to_json(
             proj, fetch_allocations=fetch_allocations, alloc_status=alloc_status
         )
 
-    def tas_to_portal_alloc_obj(self, alloc, project_charge_code):
+    def json_to_portal_alloc(self, alloc, project_charge_code):
         reformated_alloc = {}
         for key, val in list(alloc.items()):
-            if key in allocation.TAS_TO_PORTAL_MAP:
-                reformated_alloc[allocation.TAS_TO_PORTAL_MAP[key]] = val
+            if key in allocation.JSON_TO_PORTAL_MAP:
+                reformated_alloc[allocation.JSON_TO_PORTAL_MAP[key]] = val
 
         portal_project = Project.objects.filter(charge_code=project_charge_code)
         if len(portal_project) == 0:
@@ -477,11 +442,11 @@ class ProjectAllocationMapper:
 
         return reformated_alloc
 
-    def tas_to_portal_proj_obj(self, proj):
+    def json_to_portal_proj(self, proj):
         reformated_proj = {}
         for key, val in list(proj.items()):
-            if key in project.TAS_TO_PORTAL_MAP:
-                reformated_proj[project.TAS_TO_PORTAL_MAP[key]] = val
+            if key in project.JSON_TO_PORTAL_MAP:
+                reformated_proj[project.JSON_TO_PORTAL_MAP[key]] = val
         if "id" in proj:
             reformated_proj["id"] = proj["id"]
             reformated_proj["nickname"] = Project.objects.get(pk=proj["id"]).nickname
@@ -496,18 +461,18 @@ class ProjectAllocationMapper:
 
         return reformated_proj
 
-    def portal_user_to_tas_obj(self, user, role="Standard"):
-        return get_user_model().as_tas(user, role=role)
+    def portal_user_to_json(self, user, role="Standard"):
+        return get_user_model().as_json(user, role=role)
 
-    def update_user_metadata_from_keycloak(self, tas_formatted_user):
+    def update_user_metadata_from_keycloak(self, json_formatted_user):
         keycloak_client = KeycloakClient()
         keycloak_user = keycloak_client.get_user_by_username(
-            tas_formatted_user["username"]
+            json_formatted_user["username"]
         )
 
         if keycloak_user:
             attrs = keycloak_user["attributes"]
-            tas_formatted_user.update(
+            json_formatted_user.update(
                 {
                     "institution": attrs.get("affiliationInstitution", None),
                     "department": attrs.get("affiliationDepartment", None),
@@ -517,7 +482,7 @@ class ProjectAllocationMapper:
                     "citizenship": attrs.get("citizenship", None),
                 }
             )
-        return tas_formatted_user
+        return json_formatted_user
 
     def get_attr(self, obj, key):
         """Attempt to resolve the key either as an attribute or a dict key"""
