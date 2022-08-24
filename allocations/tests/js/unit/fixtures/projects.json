@@ -9,10 +9,6 @@
       "chargeCode": "CH-815748",
       "gid": 815748,
       "source": "Chameleon",
-      "fieldId": 3,
-      "field": "COMPUTER AND INFORMATION SCIENCE AND ENGINEERING (CISE)",
-      "typeId": 2,
-      "type": "Startup",
       "piId": 29170,
       "pi": {
         "id": 29170,
@@ -92,10 +88,6 @@
       "chargeCode": "CH-815749",
       "gid": 815749,
       "source": "Chameleon",
-      "fieldId": 3,
-      "field": "COMPUTER AND INFORMATION SCIENCE AND ENGINEERING (CISE)",
-      "typeId": 2,
-      "type": "Startup",
       "piId": 29170,
       "pi": {
         "id": 29170,
