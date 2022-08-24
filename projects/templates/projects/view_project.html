@@ -59,26 +59,22 @@
         <td style="white-space:pre-wrap;">{{ project.description }}</td>
       </tr>
       <tr>
-        <th>Type</th>
+        <th>Tag</th>
         <td>
           {% if is_admin %}
-            <span id='project_type'>{{ project_type|default_if_none:'' }}</span><span id='icon_show_type_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
-            <span id='project_type_edit_form' class='hidden'>
-            <form method="POST" id='project_type_edit_form' name='frm_edit_type'>
+            <span id='project_tag'>{{ project_tag|default_if_none:'' }}</span><span id='icon_show_type_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
+            <span id='project_tag_edit_form' class='hidden'>
+            <form method="POST" id='project_tag_edit_form' name='frm_edit_type'>
               {% csrf_token %}
-              {% bootstrap_form type_form %}
-            <button type="submit" class="btn btn-xs" id="btn_update_project_type">Update</button>
+              {% bootstrap_form tag_form %}
+            <button type="submit" class="btn btn-xs" id="btn_update_project_tag">Update</button>
             <button type="button" class="btn btn-xs" id="btn_type_cancel">Cancel</button>
             </form>
           </span>
           {% else %}
-            <span id='project_type'>{{ project_type|default_if_none:'' }}</span>
+            <span id='project_tag'>{{ project_tag|default_if_none:'' }}</span>
           {% endif %}
         </td>
-      </tr>
-      <tr>
-        <th>Field of Science</th>
-        <td>{{ project.field }}</td>
       </tr>
     </tbody>
   </table>
