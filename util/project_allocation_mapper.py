@@ -131,7 +131,7 @@ class ProjectAllocationMapper:
             List[dict]: a list of projects in the TAS representation format,
                 sorted by newest allocation request date. Allocations in each
                 project are sorted from newest to oldest by
-                portal_to_json_proj.
+                portal_to_dict_proj.
         """
 
         # for each project, get the most recent 'date_requested' among its allocations
@@ -146,7 +146,7 @@ class ProjectAllocationMapper:
             .reverse()
         )
         projects = self._with_relations(project_qs)
-        return [self.portal_to_json_proj(p) for p in projects]
+        return [self.portal_to_dict_proj(p) for p in projects]
 
     def _with_relations(self, projects, fetch_balance=True, fetch_allocations=True):
         if fetch_allocations and isinstance(projects, QuerySet):
@@ -214,7 +214,7 @@ class ProjectAllocationMapper:
                 keycloak_client = KeycloakClient()
                 keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
 
-        return self.portal_to_json_proj(reformated_proj, fetch_allocations=False)
+        return self.portal_to_dict_proj(reformated_proj, fetch_allocations=False)
 
     def get_portal_user_id(self, username):
         portal_user = self._get_user_from_portal_db(username)
@@ -227,7 +227,7 @@ class ProjectAllocationMapper:
         if not portal_user:
             return None
 
-        user = self.portal_user_to_json(portal_user, role=role)
+        user = self.portal_user_to_dict(portal_user, role=role)
         # update user metadata from keycloak
         user = self.update_user_metadata_from_keycloak(user)
         return tas_user(initial=user) if to_pytas_model else user
@@ -341,7 +341,7 @@ class ProjectAllocationMapper:
         projects_qs = Project.objects.filter(charge_code__in=charge_codes)
 
         user_projects = [
-            self.portal_to_json_proj(p, alloc_status=alloc_status)
+            self.portal_to_dict_proj(p, alloc_status=alloc_status)
             for p in self._with_relations(projects_qs, fetch_balance=fetch_balance)
         ]
 
@@ -362,7 +362,7 @@ class ProjectAllocationMapper:
         projects = list(self._with_relations(Project.objects.filter(pk=project_id)))
         if not projects:
             raise Project.DoesNotExist()
-        project = self.portal_to_json_proj(projects[0])
+        project = self.portal_to_dict_proj(projects[0])
         return tas_proj(initial=project)
 
     def allocation_approval(self, data, host):
@@ -417,10 +417,10 @@ class ProjectAllocationMapper:
             choices += ((item.id, f"{item.name} — {item.description}"),)
         return choices
 
-    def portal_to_json_proj(self, proj, fetch_allocations=True, alloc_status=None):
+    def portal_to_dict_proj(self, proj, fetch_allocations=True, alloc_status=None):
         if alloc_status is None:
             alloc_status = []
-        return Project.to_json(
+        return Project.to_dict(
             proj, fetch_allocations=fetch_allocations, alloc_status=alloc_status
         )
 
@@ -461,8 +461,8 @@ class ProjectAllocationMapper:
 
         return reformated_proj
 
-    def portal_user_to_json(self, user, role="Standard"):
-        return get_user_model().as_json(user, role=role)
+    def portal_user_to_dict(self, user, role="Standard"):
+        return get_user_model().as_dict(user, role=role)
 
     def update_user_metadata_from_keycloak(self, json_formatted_user):
         keycloak_client = KeycloakClient()

@@ -48,11 +48,11 @@ class Allocation(models.Model):
     su_used = models.FloatField(null=True)
     balance_service_version = models.IntegerField(default=2, null=False)
 
-    def as_json(self):
-        return Allocation.to_json(self)
+    def as_dict(self):
+        return Allocation.to_dict(self)
 
     @classmethod
-    def to_json(cls, alloc):
+    def to_dict(cls, alloc):
         return {
             "computeUsed": alloc.su_used,
             "computeAllocated": alloc.su_allocated,

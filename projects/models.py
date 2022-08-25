@@ -45,11 +45,11 @@ class Project(models.Model):
     def __str__(self) -> str:
         return self.charge_code
 
-    def as_json(self, **kwargs):
-        return Project.to_json(self, **kwargs)
+    def as_dict(self, **kwargs):
+        return Project.to_dict(self, **kwargs)
 
     @classmethod
-    def to_json(cls, proj, fetch_allocations=True, alloc_status=None):
+    def to_dict(cls, proj, fetch_allocations=True, alloc_status=None):
         if alloc_status is None:
             alloc_status = []
         json_proj = {
@@ -62,7 +62,7 @@ class Project(models.Model):
             "tag": f"{proj.tag.name} — {proj.tag.description}" if proj.tag else None,
             "allocations": [],
             "source": "Chameleon",
-            "pi": proj.pi.as_json(role="PI"),
+            "pi": proj.pi.as_dict(role="PI"),
             "id": proj.id,
         }
 
@@ -83,7 +83,7 @@ class Project(models.Model):
             )
             if alloc_status:
                 allocs = [a for a in allocs if a.status in alloc_status]
-            json_proj["allocations"] = [a.as_json() for a in allocs]
+            json_proj["allocations"] = [a.as_dict() for a in allocs]
 
         return json_proj
 
