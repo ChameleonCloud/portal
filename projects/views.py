@@ -2,21 +2,16 @@ import json
 import logging
 from datetime import datetime
 
-from bootstrap3.exceptions import BootstrapError
-from bootstrap3.renderers import FormRenderer
-
-from chameleon.decorators import terms_required
-from chameleon.keystone_auth import admin_ks_client
+from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import transaction
-from django.urls import reverse
-from django.utils import timezone
 from django.core.validators import validate_email
+from django.db import transaction
+from django.forms.models import model_to_dict
 from django.http import (
     Http404,
     HttpResponseForbidden,
@@ -24,17 +19,20 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
-from django.forms.models import model_to_dict
-from django import forms
+
+from allocations.models import Allocation, Charge
+from balance_service.utils import su_calculators
+from chameleon.decorators import terms_required
+from chameleon.keystone_auth import admin_ks_client
 from projects.models import Funding
-from util.project_allocation_mapper import ProjectAllocationMapper
-from util.keycloak_client import KeycloakClient
-
 from projects.serializer import ProjectExtrasJSONSerializer
+from util.keycloak_client import KeycloakClient
+from util.project_allocation_mapper import ProjectAllocationMapper
 from . import membership
-
 from .forms import (
     AddBibtexPublicationForm,
     AllocationCreateForm,
@@ -49,8 +47,6 @@ from .forms import (
 )
 from .models import Invitation, Project, ProjectExtras
 from .util import email_exists_on_project, get_project_members, get_charge_code
-from allocations.models import Allocation, Charge
-from balance_service.utils import su_calculators
 
 logger = logging.getLogger("projects")
 
