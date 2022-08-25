@@ -387,20 +387,6 @@ def view_project(request, project_id):
 
     is_on_daypass = get_daypass(request.user.id, project_id) is not None
 
-    old_init = FormRenderer.__init__
-
-    def new_init(self, form, *args, **kwargs):
-        try:
-            old_init(self, form, *args, **kwargs)
-        except BootstrapError as e:
-            print("FORM ERROR")
-            print(type(form))
-            print(form)
-            print(self)
-            raise e
-
-    FormRenderer.__init__ = new_init
-
     return render(
         request,
         "projects/view_project.html",
