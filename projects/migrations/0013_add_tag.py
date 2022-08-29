@@ -14,6 +14,7 @@ old_education_projects = []
 old_research_projects = []
 old_innovative_projects = []
 
+
 def create_tags(apps, _):
     """
     Move the tags from Type model to Tag model
@@ -157,7 +158,30 @@ def create_tags(apps, _):
     old_education_projects = list(education_type.project_type.all())
     old_innovative_projects = list(innovative_type.project_type.all())
 
-def migrate_tags(*_):
+
+def migrate_tags(apps, _):
+    tag_model = apps.get_model("projects", "Tag")
+    project_model = apps.get_model("projects", "Project")
+    global covid_tag
+    global education_tag
+    global other_tag
+    global innovative_tag
+
+    # Refresh tags with proper schema
+    covid_tag = tag_model.objects.get(name=covid_tag.name)
+    education_tag = tag_model.objects.get(name=education_tag.name)
+    other_tag = tag_model.objects.get(name=other_tag.name)
+    innovative_tag = tag_model.objects.get(name=innovative_tag.name)
+
+    # Refresh projects with proper schema
+    for project_list in (
+        old_covid_projects,
+        old_research_projects,
+        old_education_projects,
+        old_innovative_projects,
+    ):
+        for i, project in enumerate(project_list):
+            project_list[i] = project_model.objects.get(pk=project.id)
     covid_tag.projects.add(*old_covid_projects)
     education_tag.projects.add(*old_education_projects)
     other_tag.projects.add(*old_research_projects)
@@ -208,5 +232,5 @@ class Migration(migrations.Migration):
             model_name="project",
             name="type",
         ),
-        migrations.RunPython(migrate_tags)
+        migrations.RunPython(migrate_tags),
     ]
