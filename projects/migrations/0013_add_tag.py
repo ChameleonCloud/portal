@@ -158,6 +158,10 @@ def create_tags(apps, _):
     old_innovative_projects = list(innovative_type.project_type.all())
 
 def migrate_tags(*_):
+    covid_tag.refresh_from_db()
+    education_tag.refresh_from_db()
+    other_tag.refresh_from_db()
+    innovative_tag.refresh_from_db()
     covid_tag.projects.add(*old_covid_projects)
     education_tag.projects.add(*old_education_projects)
     other_tag.projects.add(*old_research_projects)
