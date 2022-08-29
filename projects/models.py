@@ -13,6 +13,7 @@ from projects.pub_utils import PublicationUtils
 logger = logging.getLogger(__name__)
 
 
+# DEPRECATED (needs to be removed, but kept for migration)
 class Type(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
 
@@ -20,28 +21,18 @@ class Type(models.Model):
         return self.name
 
 
-class Field(models.Model):
+class Tag(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
+    description = models.CharField(max_length=255, blank=False, unique=True)
+    expose = models.BooleanField(default=True)
 
     def __str__(self) -> str:
         return self.name
 
 
-class FieldHierarchy(models.Model):
-    parent = models.ForeignKey(
-        Field, related_name="field_parent", on_delete=models.CASCADE
-    )
-    child = models.ForeignKey(
-        Field, related_name="field_child", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = ("parent", "child")
-
-
 class Project(models.Model):
-    type = models.ForeignKey(
-        Type, related_name="project_type", on_delete=models.CASCADE
+    tag = models.ForeignKey(
+        Tag, related_name="projects", null=True, on_delete=models.CASCADE
     )
     description = models.TextField()
     pi = models.ForeignKey(
@@ -49,32 +40,29 @@ class Project(models.Model):
     )
     title = models.TextField(blank=False)
     nickname = models.CharField(max_length=255, blank=False, unique=True)
-    field = models.ForeignKey(
-        Field, related_name="project_field", null=True, on_delete=models.CASCADE
-    )
     charge_code = models.CharField(max_length=50, blank=False, unique=True)
 
     def __str__(self) -> str:
         return self.charge_code
 
-    def as_tas(self, **kwargs):
-        return Project.to_tas(self, **kwargs)
+    def as_dict(self, **kwargs):
+        return Project.to_dict(self, **kwargs)
 
     @classmethod
-    def to_tas(cls, proj, fetch_allocations=True, alloc_status=[]):
-        tas_proj = {
+    def to_dict(cls, proj, fetch_allocations=True, alloc_status=None):
+        if alloc_status is None:
+            alloc_status = []
+        json_proj = {
             "description": proj.description,
-            "piId": proj.pi_id,
+            "piId": proj.pi.id,
             "title": proj.title,
             "nickname": proj.nickname,
             "chargeCode": proj.charge_code,
-            "typeId": proj.type_id,
-            "fieldId": proj.field_id,
-            "type": proj.type.name if proj.type else None,
-            "field": proj.field.name if proj.field else None,
+            "tagId": proj.tag.id if proj.tag else None,
+            "tag": f"{proj.tag.name} — {proj.tag.description}" if proj.tag else None,
             "allocations": [],
             "source": "Chameleon",
-            "pi": proj.pi.as_tas(role="PI"),
+            "pi": proj.pi.as_dict(role="PI"),
             "id": proj.id,
         }
 
@@ -95,9 +83,9 @@ class Project(models.Model):
             )
             if alloc_status:
                 allocs = [a for a in allocs if a.status in alloc_status]
-            tas_proj["allocations"] = [a.as_tas() for a in allocs]
+            json_proj["allocations"] = [a.as_dict() for a in allocs]
 
-        return tas_proj
+        return json_proj
 
 
 class ProjectExtras(models.Model):

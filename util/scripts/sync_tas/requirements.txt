@@ -1,4 +1,0 @@
-django
-git+https://github.com/ChameleonCloud/pytas#egg=pytas
-mysql-connector-python
-pytz

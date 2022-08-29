@@ -1,6 +1,6 @@
-TAS_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+JSON_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
-TAS_TO_PORTAL_MAP = {
+JSON_TO_PORTAL_MAP = {
     "status": "status",
     "justification": "justification",
     "requestorId": "requestor_id",

@@ -1023,8 +1023,7 @@ def create_supplemental_project_if_needed(request, artifact, project):
             "description": "This project is for reproducing the artifact '{}' {}".format(
                 artifact["title"], artifact_url
             ),
-            "typeId": project.type.id,
-            "fieldId": project.field.id,
+            "tagId": project.tag.id,
             "piId": project.pi.id,
         }
         # Approval code is commented out during initial preview release.

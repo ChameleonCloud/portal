@@ -25,9 +25,9 @@
       });
 
     $('#icon_show_type_edit,#btn_type_cancel').on('click', function(e) {
-        $('#project_type').toggleClass('hidden');
+        $('#project_tag').toggleClass('hidden');
         $('#icon_show_type_edit').toggleClass('hidden');
-        $('#project_type_edit_form').toggleClass('hidden');
+        $('#project_tag_edit_form').toggleClass('hidden');
       });
       
     $('#icon_show_pi_edit,#btn_pi_cancel').on('click', function(e) {

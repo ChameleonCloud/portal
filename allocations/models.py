@@ -8,7 +8,7 @@ logger = logging.getLogger("allocations")
 
 
 def _format_date(dateobj):
-    return dateobj.strftime(allocation.TAS_DATE_FORMAT) if dateobj else None
+    return dateobj.strftime(allocation.JSON_DATE_FORMAT) if dateobj else None
 
 
 class Allocation(models.Model):
@@ -48,11 +48,11 @@ class Allocation(models.Model):
     su_used = models.FloatField(null=True)
     balance_service_version = models.IntegerField(default=2, null=False)
 
-    def as_tas(self):
-        return Allocation.to_tas(self)
+    def as_dict(self):
+        return Allocation.to_dict(self)
 
     @classmethod
-    def to_tas(cls, alloc):
+    def to_dict(cls, alloc):
         return {
             "computeUsed": alloc.su_used,
             "computeAllocated": alloc.su_allocated,

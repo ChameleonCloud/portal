@@ -79,8 +79,6 @@
     ],
     "chargeCode": "CH-1234",
     "description": "A test project.",
-    "field": "COMPUTER AND INFORMATION SCIENCE AND ENGINEERING (CISE)",
-    "fieldId": 3,
     "gid": 801234,
     "id": 1234,
     "pi": {
@@ -106,8 +104,6 @@
     "piId": 98765,
     "source": "Chameleon",
     "title": "Chameleon Project Request Test",
-    "type": "Startup",
-    "typeId": 2
   },
   {
     "allocations": [
@@ -164,8 +160,6 @@
     ],
     "chargeCode": "CH-1235",
     "description": "A test project.",
-    "field": "COMPUTER AND INFORMATION SCIENCE AND ENGINEERING (CISE)",
-    "fieldId": 3,
     "gid": 801234,
     "id": 1235,
     "pi": {
@@ -191,7 +185,5 @@
     "piId": 98765,
     "source": "Chameleon",
     "title": "Chameleon Project Request Test",
-    "type": "Startup",
-    "typeId": 2
   }
 ]

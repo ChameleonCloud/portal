@@ -2,18 +2,16 @@ import json
 import logging
 from datetime import datetime
 
-from chameleon.decorators import terms_required
-from chameleon.keystone_auth import admin_ks_client
+from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import transaction
-from django.urls import reverse
-from django.utils import timezone
 from django.core.validators import validate_email
+from django.db import transaction
+from django.forms.models import model_to_dict
 from django.http import (
     Http404,
     HttpResponseForbidden,
@@ -21,24 +19,27 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
-from django.forms.models import model_to_dict
-from django import forms
+
+from allocations.models import Allocation, Charge
+from balance_service.utils import su_calculators
+from chameleon.decorators import terms_required
+from chameleon.keystone_auth import admin_ks_client
 from projects.models import Funding
-from util.project_allocation_mapper import ProjectAllocationMapper
-from util.keycloak_client import KeycloakClient
-
 from projects.serializer import ProjectExtrasJSONSerializer
+from util.keycloak_client import KeycloakClient
+from util.project_allocation_mapper import ProjectAllocationMapper
 from . import membership
-
 from .forms import (
     AddBibtexPublicationForm,
     AllocationCreateForm,
     ConsentForm,
     EditNicknameForm,
     EditPIForm,
-    EditTypeForm,
+    EditTagForm,
     FundingFormset,
     ProjectAddUserForm,
     ProjectAddBulkUserForm,
@@ -46,8 +47,6 @@ from .forms import (
 )
 from .models import Invitation, Project, ProjectExtras
 from .util import email_exists_on_project, get_project_members, get_charge_code
-from allocations.models import Allocation, Charge
-from balance_service.utils import su_calculators
 
 logger = logging.getLogger("projects")
 
@@ -205,8 +204,8 @@ def view_project(request, project_id):
 
     form = ProjectAddUserForm()
     nickname_form = EditNicknameForm()
-    type_form_args = {"request": request}
-    type_form = EditTypeForm(**type_form_args)
+    tag_form_args = {"request": request}
+    tag_form = EditTagForm(**tag_form_args)
     pubs_form = AddBibtexPublicationForm()
     pi_form = EditPIForm()
     bulk_user_form = ProjectAddBulkUserForm()
@@ -304,8 +303,8 @@ def view_project(request, project_id):
                 )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
-        elif "typeId" in request.POST:
-            type_form = edit_type(request, project_id)
+        elif "tagId" in request.POST:
+            tag_form = edit_tag(request, project_id)
         elif "pi_username" in request.POST:
             pi_form = edit_pi(request, project_id)
         elif "add_bulk_users" in request.POST:
@@ -390,7 +389,7 @@ def view_project(request, project_id):
         {
             "project": project,
             "project_nickname": project.nickname,
-            "project_type": project.type,
+            "project_tag": project.tag,
             "users": users_mashup,
             "invitations": clean_invitations,
             "can_manage_project_membership": can_manage_project_membership,
@@ -399,7 +398,7 @@ def view_project(request, project_id):
             "is_on_daypass": is_on_daypass,
             "form": form,
             "nickname_form": nickname_form,
-            "type_form": type_form,
+            "tag_form": tag_form,
             "pi_form": pi_form,
             "pubs_form": pubs_form,
             "bulk_user_form": bulk_user_form,
@@ -739,7 +738,7 @@ def create_project(request):
             and funding_formset.is_valid()
             and consent_form.is_valid()
         ):
-            # title, description, typeId, fieldId
+            # title, description, tagId
             project = form.cleaned_data.copy()
             allocation_data = allocation_form.cleaned_data.copy()
             # let's check that any provided nickname is unique
@@ -859,28 +858,28 @@ def edit_nickname(request, project_id):
 
 
 @require_POST
-def edit_type(request, project_id):
+def edit_tag(request, project_id):
     form_args = {"request": request}
     if not request.user.is_superuser:
-        messages.error(request, "Only the admin users can update project type.")
-        return EditTypeForm(**form_args)
+        messages.error(request, "Only the admin users can update project tag.")
+        return EditTagForm(**form_args)
 
-    form = EditTypeForm(request.POST, **form_args)
+    form = EditTagForm(request.POST, **form_args)
     if form.is_valid(request):
         # try to update type
         try:
-            project_type_id = int(form.cleaned_data["typeId"])
-            ProjectAllocationMapper.update_project_type(project_id, project_type_id)
-            form = EditTypeForm(**form_args)
+            project_tag_id = int(form.cleaned_data["tagId"])
+            ProjectAllocationMapper.update_project_tag(project_id, project_tag_id)
+            form = EditTagForm(**form_args)
             messages.success(
                 request,
                 "Update successful! Please refresh the page.",
             )
         except Exception:
-            logger.exception("Failed to update project type")
-            messages.error(request, "Failed to update project type")
+            logger.exception("Failed to update project tag")
+            messages.error(request, "Failed to update project tag")
     else:
-        messages.error(request, "Failed to update project type")
+        messages.error(request, "Failed to update project tag")
 
     return form
 
