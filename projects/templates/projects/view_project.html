@@ -61,7 +61,7 @@
       <tr>
         <th>Tag</th>
         <td>
-          {% if is_admin %}
+          {% if can_manage_project %}
             <span id='project_tag'>{{ project_tag|default_if_none:'' }}</span><span id='icon_show_type_edit' title="Edit" style="padding-left: 5px;" class="glyphicon glyphicon-edit"></span>
             <span id='project_tag_edit_form' class='hidden'>
             <form method="POST" id='project_tag_edit_form' name='frm_edit_type'>
@@ -100,7 +100,7 @@
         Request Allocation
       </a>
   {% endif %}
-  
+
   <table width=100%>
     <tr>
       <th width=10%>Status</th>
@@ -130,7 +130,7 @@
       {% include 'projects/allocation.html' %}
     {% endfor %}
   </table>
-  
+
   {% include "projects/charge_modal.html" %}
 </div>
 
