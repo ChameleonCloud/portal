@@ -860,8 +860,9 @@ def edit_nickname(request, project_id):
 @require_POST
 def edit_tag(request, project_id):
     form_args = {"request": request}
-    if not request.user.is_superuser:
-        messages.error(request, "Only the admin users can update project tag.")
+    project = Project.objects.get(project_id)
+    if not request.user.is_superuser and request.user.username != project.pi.username:
+        messages.error(request, "Only the PI can update project tag.")
         return EditTagForm(**form_args)
 
     form = EditTagForm(request.POST, **form_args)
