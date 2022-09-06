@@ -272,6 +272,7 @@ class ProjectAllocationMapper:
         project = Project.objects.get(pk=project_id)
         project_tag = Tag.objects.get(pk=project_tag_id)
         project.tag = project_tag
+        project.automatically_tagged = False
         project.save()
 
     @staticmethod
