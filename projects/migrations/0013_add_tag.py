@@ -141,6 +141,8 @@ def create_tags(apps, _):
 
     tag_model.objects.bulk_create(tags)
 
+    if type_model.objects.count() == 0:
+        return
     covid_type = type_model.objects.get(name="COVID")
     research_type = type_model.objects.get(name="CS Research")
     education_type = type_model.objects.get(name="Education")
@@ -162,6 +164,8 @@ def create_tags(apps, _):
 def migrate_tags(apps, _):
     tag_model = apps.get_model("projects", "Tag")
     project_model = apps.get_model("projects", "Project")
+    if project_model.objects.count() == 0:
+        return
     global covid_tag
     global education_tag
     global other_tag
