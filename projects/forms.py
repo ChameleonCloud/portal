@@ -54,6 +54,7 @@ class ProjectCreateForm(forms.Form):
         initial="",
         help_text="Please choose the research area that is "
         "most similar to the research you will conduct.",
+        required=True,
     )
 
     def __init__(self, *args, **kwargs):
