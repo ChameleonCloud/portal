@@ -203,7 +203,7 @@ def email_body_intro_n_projects(projects):
     )
 
 
-def automatically_tag_projects():
+def automatically_tag_projects(dry=True):
     other_tag = Tag.objects.get(name="Other")
     uncategorized_projects = Project.objects.filter(tag=other_tag)
     # Container class to group tag models to keywords
@@ -674,7 +674,8 @@ def automatically_tag_projects():
         with transaction.atomic():
             project.tag = selected_tag
             project.automatically_tagged = True
-            project.save()
+            if not dry:
+                project.save()
 
         # Link the project and keyword info to the PI
         pi_projects[project.pi.email].append(ProjectTags(project, counter))
@@ -701,16 +702,19 @@ def automatically_tag_projects():
             Chameleon team
             """
 
-        mail_sent = send_mail(
-            subject=subject,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[pi_email],
-            message=strip_tags(body),
-            html_message=body,
-            fail_silently=True,
-        )
+        if not dry:
+            mail_sent = send_mail(
+                subject=subject,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[pi_email],
+                message=strip_tags(body),
+                html_message=body,
+                fail_silently=True,
+            )
 
-        if mail_sent:
-            LOG.info(f"Successfully sent tag update mail to {pi_email}.")
+            if mail_sent:
+                LOG.info(f"Successfully sent tag update mail to {pi_email}.")
+            else:
+                LOG.warning(f"Could not send tag update mail to {pi_email}")
         else:
-            LOG.warning(f"Could not send tag update mail to {pi_email}")
+            LOG.info(f"Would send mail to {pi_email}: {subject}")
