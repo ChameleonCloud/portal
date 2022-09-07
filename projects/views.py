@@ -667,7 +667,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                     % (project.id, allocation)
                 )
                 with transaction.atomic():
-                    updated_project = mapper.save_project(project.as_dict())
+                    project.save()
                     mapper.save_allocation(
                         allocation, project.chargeCode, request.get_host()
                     )
@@ -675,7 +675,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                     _remove_fundings(funding_source, new_funding_source)
                 messages.success(request, "Your allocation request has been submitted!")
                 return HttpResponseRedirect(
-                    reverse("projects:view_project", args=[updated_project["id"]])
+                    reverse("projects:view_project", args=[project.id])
                 )
             except:
                 logger.exception("Error creating allocation")
