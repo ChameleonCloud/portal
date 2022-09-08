@@ -43,7 +43,7 @@ RUN npm install -g \
 # Therefore, the vendored install provides no additional isolation.
 RUN pip install --upgrade pip && \
   pip install \
-  poetry~=1.1
+  poetry~=1.2
 
 COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false

@@ -34,6 +34,7 @@ class Project(models.Model):
     tag = models.ForeignKey(
         Tag, related_name="projects", null=True, on_delete=models.CASCADE
     )
+    automatically_tagged = models.BooleanField(default=False)
     description = models.TextField()
     pi = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="project_pi", on_delete=models.CASCADE
