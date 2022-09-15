@@ -1004,7 +1004,7 @@ def _artifact_display_versions(versions):
     it's reversed, the numbers still indicate chronological order.
     """
     versions_list = list(versions)
-    return [(v.model["slug"], v) for (i, v) in enumerate(reversed(versions_list))]
+    return [(v.model["slug"], v) for (i, v) in enumerate(versions_list)]
 
 
 def create_supplemental_project_if_needed(request, artifact, project):
