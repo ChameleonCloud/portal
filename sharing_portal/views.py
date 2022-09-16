@@ -998,13 +998,9 @@ def _request_artifact_dois(request, artifact, request_forms=[]):
 
 
 def _artifact_display_versions(versions):
-    """Return a list of artifact versions for display purposes.
-    This is slightly different than the 'versions' property of the artifact, as
-    it is reverse-sorted (newest at the top) and also enumerated so that while
-    it's reversed, the numbers still indicate chronological order.
-    """
+    """Return a list of artifact versions for display purposes."""
     versions_list = list(versions)
-    return [(v.model["slug"], v) for (i, v) in enumerate(versions_list)]
+    return [(v.model["slug"], v) for v in versions_list]
 
 
 def create_supplemental_project_if_needed(request, artifact, project):
