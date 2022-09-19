@@ -194,9 +194,7 @@ def _compute_artifact_fields(artifact):
     artifact["is_chameleon_supported"] = any(
         label == "chameleon" for label in artifact["tags"]
     )
-    artifact["is_private"] = artifact["visibility"] == "private" and not _parse_doi(
-        artifact
-    )
+    artifact["is_private"] = artifact["visibility"] == "private"
     return artifact
 
 
@@ -502,15 +500,16 @@ def preserve_sharing_key(url, request):
     return url
 
 
-def _parse_doi(artifact):
-    if artifact["versions"]:
-        contents = trovi.parse_contents_urn(artifact["versions"][-1]["contents"]["urn"])
-        if contents["provider"] == "zenodo":
-            return {
-                "doi": contents["id"],
-                "url": ZenodoClient.to_record_url(contents["id"]),
-                "created_at": artifact["versions"][-1]["created_at"],
-            }
+def _parse_doi(version):
+    if version is None:
+        return None
+    contents = trovi.parse_contents_urn(version["contents"]["urn"])
+    if contents["provider"] == "zenodo":
+        return {
+            "doi": contents["id"],
+            "url": ZenodoClient.to_record_url(contents["id"]),
+            "created_at": version["created_at"],
+        }
     return None
 
 
@@ -576,7 +575,7 @@ def artifact(request, artifact, version_slug=None):
 
     context = {
         "artifact": artifact,
-        "doi_info": _parse_doi(artifact),
+        "doi_info": _parse_doi(version),
         "version": version,
         "launch_url": launch_url,
         "download_url": download_url,
