@@ -327,16 +327,10 @@ def edit_artifact(request, artifact):
             # Return to Trovi home page
             return HttpResponseRedirect(reverse("sharing_portal:index_all"))
 
-        artifact, errors = _handle_artifact_forms(
+        artifact = _handle_artifact_forms(
             request, form, artifact=artifact, authors_formset=authors_formset
         )
-        if errors:
-            for e in errors:
-                messages.error(request, e)
-        else:
-            messages.add_message(
-                request, messages.SUCCESS, "Successfully saved artifact."
-            )
+        messages.add_message(request, messages.SUCCESS, "Successfully saved artifact.")
         return HttpResponseRedirect(
             reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
