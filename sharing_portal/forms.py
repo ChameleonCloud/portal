@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import widgets
+from django.forms import widgets, CheckboxSelectMultiple
 
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -29,7 +29,10 @@ class ArtifactForm(forms.Form):
             for t in trovi.list_tags(request.session.get("trovi_token"))
         ]
         self.fields["tags"] = forms.MultipleChoiceField(
-            choices=available_labels, required=False
+            widget=CheckboxSelectMultiple,
+            choices=available_labels,
+            required=False,
+            initial=artifact["tags"] if artifact else [],
         )
         if artifact:
             self.fields["title"].initial = artifact["title"]
