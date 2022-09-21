@@ -330,9 +330,7 @@ def edit_artifact(request, artifact):
         artifact = _handle_artifact_forms(
             request, form, artifact=artifact, authors_formset=authors_formset
         )
-        messages.add_message(
-            request, messages.SUCCESS, "Successfully saved artifact."
-        )
+        messages.add_message(request, messages.SUCCESS, "Successfully saved artifact.")
         return HttpResponseRedirect(
             reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
