@@ -612,12 +612,16 @@ def launch(request, artifact, version_slug=None):
     trovi.increment_metric_count(artifact["uuid"], version["slug"], token=trovi_token)
     return redirect(
         launch_url(
-            version, request, token=trovi_token, can_edit=can_edit(request, artifact)
+            artifact["uuid"],
+            version,
+            request,
+            token=trovi_token,
+            can_edit=can_edit(request, artifact),
         )
     )
 
 
-def launch_url(version, request, token=None, can_edit=False):
+def launch_url(artifact_uuid, version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
     contents_urn = version["contents"]["urn"]
     sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
@@ -636,6 +640,8 @@ def launch_url(version, request, token=None, can_edit=False):
         contents_url = ""
         proto = ""
     query = dict(
+        uuid=artifact_uuid,
+        version_slug=version["slug"],
         contents_urn=contents_urn,
         contents_url=contents_url,
         contents_proto=proto,
