@@ -216,7 +216,10 @@ class KeycloakClient:
                 keycloakproject.get_path("collection", realm=self.realm_name)
             )
             + "/{id}".format(id=group["id"]),
-            data=json.dumps({"attributes": group_attributes}, sort_keys=True),
+            data=json.dumps(
+                {"attributes": group_attributes, "name": charge_code},
+                sort_keys=True,
+            ),
         )
 
     def create_user(
