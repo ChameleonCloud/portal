@@ -3,6 +3,7 @@ import logging
 import secrets
 from operator import attrgetter
 from datetime import timedelta
+import pydetex.pipelines as pip
 
 from django.conf import settings
 from django.db import models
@@ -195,43 +196,67 @@ class Invitation(models.Model):
 
 
 class PublicationManager(models.Manager):
-    def create_from_bibtex(self, bibtex_entry, project, username):
+    def create_from_bibtex(self, bibtex_entry, project, username, source, status):
         pub = Publication()
 
         pub.project_id = project.id
 
-        pub.publication_type = bibtex_entry.get("ENTRYTYPE")
-        pub.title = bibtex_entry.get("title")
+        pub.publication_type = PublicationUtils.get_pub_type(bibtex_entry)
+        pub.title = pip.strict(bibtex_entry.get("title", ""))
         pub.year = bibtex_entry.get("year")
         pub.month = PublicationUtils.get_month(bibtex_entry)
-        pub.author = bibtex_entry.get("author")
+        pub.author = pip.strict(bibtex_entry.get("author", ""))
         pub.bibtex_source = json.dumps(bibtex_entry)
         pub.added_by_username = username
         pub.forum = PublicationUtils.get_forum(bibtex_entry)
         pub.link = PublicationUtils.get_link(bibtex_entry)
+        pub.doi = bibtex_entry.get("doi")
+        pub.source = source
+        pub.status = status
 
         pub.save()
         return pub
 
 
 class Publication(models.Model):
+    STATUS_SUBMITTED = "SUBMITTED"
+    STATUS_APPROVED = "APPROVED"
+    STATUS_IMPORTED = "IMPORTED"
+    STATUSES = [
+        (STATUS_SUBMITTED, "Submitted"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_IMPORTED, "Imported"),
+    ]
+
+    APPROVED_WITH = [
+        ("PUBLICATION", "Publication"),
+        ("JUSTIFICATION", "Justification"),
+        ("EMAIL", "Email"),
+    ]
+
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
         Project, related_name="project_publication", null=True, on_delete=models.CASCADE
     )
     publication_type = models.CharField(max_length=50, null=False)
-    forum = models.CharField(max_length=500, null=True)
+    forum = models.CharField(max_length=500, null=True, blank=True)
     title = models.CharField(max_length=500, null=False)
     year = models.IntegerField(null=False)
-    month = models.IntegerField(null=True)
+    month = models.IntegerField(null=True, blank=True)
     author = models.CharField(max_length=500, null=False)
     bibtex_source = models.TextField()
-    link = models.CharField(max_length=500, null=True)
+    link = models.CharField(max_length=500, null=True, blank=True)
     added_by_username = models.CharField(max_length=100)
     entry_created_date = models.DateField(auto_now_add=True)
+    doi = models.CharField(max_length=500, null=True, blank=True)
+    source = models.CharField(max_length=100, null=False)
+    status = models.CharField(choices=STATUSES, max_length=30, null=False)
+    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
+    scopus_citations = models.IntegerField(null=True)
+    semantic_scholar_citations = models.IntegerField(null=True)
 
     def __str__(self) -> str:
-        return self.title
+        return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
 
     objects = PublicationManager()
 

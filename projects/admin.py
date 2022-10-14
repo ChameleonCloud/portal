@@ -16,6 +16,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "project_charge_code",
         "added_by_username",
         "entry_created_date",
+        "scopus_citations",
+        "semantic_scholar_citations",
     ]
 
     fields = (
@@ -27,9 +29,15 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "month",
         "author",
         "bibtex_source",
+        "doi",
         "link",
         "added_by_username",
         "entry_created_date",
+        "source",
+        "status",
+        "approved_with",
+        "scopus_citations",
+        "semantic_scholar_citations",
     )
 
     ordering = ["project__charge_code", "-year", "-entry_created_date"]

@@ -50,6 +50,8 @@ mock = "^4.0.3"
 mozilla-django-oidc = {git = "https://github.com/chameleoncloud/mozilla-django-oidc"}
 mysqlclient = "^1.3.13"
 ply = "^3.11"
+pybliometrics = "~3.4"
+pydetex = "~0.9"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
 python = "^3.7"
 python-blazarclient = {git = "https://github.com/ChameleonCloud/python-blazarclient", branch = "chameleoncloud/stable/train"}
