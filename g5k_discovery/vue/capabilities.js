@@ -63,42 +63,56 @@ export const advancedCapabilities = {
   GPU: { discover: { prefix: ".gpu" } },
   FPGA: { discover: { prefix: ".fpga" } },
   "Network Devices": {
-    custom: {
-      "# Active Devices": {
-        capability({ networkAdapters }) {
-          return networkAdapters.filter(({ enabled }) => enabled).length;
+      custom: {
+          "# Active Devices": {
+                capability({networkAdapters}) {
+                    return networkAdapters.filter(({enabled}) => enabled).length;
+                },
+                tagPrefix: "Networks: ",
+            },
         },
-        tagPrefix: "Networks: ",
-      },
+        discover: {
+            prefix: ".networkAdapters",
+            ignore: ["device", "enabled", "interface", "mac", "rate", "driver",
+                "management", "bridged", "mounted", "guid", "version"]
+        }
     },
-  },
-  "Storage Devices": {
-    custom: {
-      SSD: {
-        capability({ storageDevices }) {
-          return storageDevices.some(
-            ({ model, mediaType }) =>
-              model.toLowerCase().includes("ssd") ||
-              (mediaType || "").toLowerCase() === "ssd"
-          )
-            ? "Yes"
-            : "No";
+    "SSD": {
+        custom: {
+            SSD: {
+                capability({storageDevices}) {
+                    return storageDevices.some(
+                        ({model, mediaType}) =>
+                            model.toLowerCase().includes("ssd") ||
+                            (mediaType || "").toLowerCase() === "ssd"
+                    )
+                        ? "Yes"
+                        : "No";
+                },
+            },
         },
-        tagPrefix: "SSD: ",
-      },
-      NVMe: {
-        capability({ storageDevices }) {
-          return storageDevices.some(
-            ({ driver, interface: iface }) =>
-              driver === "nvme" || (iface || "").toLowerCase() === "pcie"
-          )
-            ? "Yes"
-            : "No";
-        },
-        tagPrefix: "NVMe: ",
-      },
+        discover:
+            {
+                prefix: ".storageDevices",
+                ignore: ["device", "humanizedSize", "interface", "size", "rev",
+                    "mediaType", "driver"]
+            },
     },
-  },
+    "NVMe": {
+        custom: {
+            NVMe: {
+                capability({storageDevices}) {
+                    return storageDevices.some(
+                        ({driver, interface: iface}) =>
+                            driver === "nvme" || (iface || "").toLowerCase() === "pcie"
+                    )
+                        ? "Yes"
+                        : "No";
+                },
+                tagPrefix: "NVMe: ",
+            },
+        },
+    },
   RDMA: {
     custom: {
       InfiniBand: {
