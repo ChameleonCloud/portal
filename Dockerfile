@@ -6,7 +6,7 @@ ARG PY_VER=3.7.9-stretch
 FROM ${NODE_IMG}:${NODE_VER_NAME} as client
 WORKDIR /project
 COPY package.json yarn.lock ./
-RUN yarn install
+RUN yarn install --network-timeout 1000000
 COPY . ./
 RUN yarn build --production
 
