@@ -1,4 +1,4 @@
-/* Using this fix from Jason: also in, appliance_catalog/static/appliance_catalog/css/appliance_catalog.css
+/* Using this fix from Jason: also in, appliance_catalog/static/appliance_catalog/css/appliance_catalog
     TODO(alex): consider putting this somewhere global, other spots may be affected
 
     TODO(jason): the following is pasted from angular-csp.css--this is NOT

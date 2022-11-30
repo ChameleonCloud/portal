@@ -1,11 +1,13 @@
-from django.forms import ModelForm, CharField, TextInput, ImageField
-from django.core.validators import validate_email, URLValidator
+import logging
+
+from django import forms
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
+from django.core.validators import validate_email, URLValidator
+from django.forms import ModelForm, CharField, TextInput, ImageField
 from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
-from django import forms
+
 from .models import Appliance
-import logging
 
 logger = logging.getLogger("default")
 
@@ -16,7 +18,7 @@ class ApplianceForm(ModelForm):
         widget=TextInput(
             attrs={
                 "placeholder": "Provide comma separated keywords that"
-                " are not in the list above."
+                               " are not in the list above."
             }
         ),
         required=False,
@@ -50,11 +52,11 @@ class ApplianceForm(ModelForm):
         labels = {
             "short_description": "Short description (140 characters)",
             "chi_tacc_appliance_id": "Appliance ID for "
-            '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
+                                     '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
             "chi_uc_appliance_id": "Appliance ID for "
-            '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
+                                   '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
             "kvm_tacc_appliance_id": "Appliance ID for "
-            '<a href="https://kvm.tacc.chameleoncloud.org">KVM@TACC</a>',
+                                     '<a href="https://kvm.tacc.chameleoncloud.org">KVM@TACC</a>',
             "template": "Template (Complex Appliances Only)",
             "author_url": "Author: Contact URL or Email",
             "support_contact_name": "Support: Contact Name",
@@ -112,13 +114,13 @@ class ApplianceForm(ModelForm):
         author_url = cleaned_data.get("author_url")
         support_contact_url = cleaned_data.get("support_contact_url")
         cleaned_data["chi_tacc_appliance_id"] = (
-            cleaned_data.get("chi_tacc_appliance_id") or None
+                cleaned_data.get("chi_tacc_appliance_id") or None
         )
         cleaned_data["chi_uc_appliance_id"] = (
-            cleaned_data.get("chi_uc_appliance_id") or None
+                cleaned_data.get("chi_uc_appliance_id") or None
         )
         cleaned_data["kvm_tacc_appliance_id"] = (
-            cleaned_data.get("kvm_tacc_appliance_id") or None
+                cleaned_data.get("kvm_tacc_appliance_id") or None
         )
         chi_tacc_appliance_id = cleaned_data.get("chi_tacc_appliance_id")
         chi_uc_appliance_id = cleaned_data.get("chi_uc_appliance_id")
@@ -134,19 +136,20 @@ class ApplianceForm(ModelForm):
             self.add_error("support_contact_url", msg)
         if not template:
             if not (
-                chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id
+                    chi_tacc_appliance_id or chi_uc_appliance_id or kvm_tacc_appliance_id
             ):
                 msg = "At least one form of appliance id is required."
                 self.add_error("chi_tacc_appliance_id", "")
                 self.add_error("chi_uc_appliance_id", "")
                 self.add_error("kvm_tacc_appliance_id", msg)
 
-        # failed attempt at getting around the null=True, blank=True,unique=True bug...going to use custom action instead
+        # failed attempt at getting around the null=True, blank=True,unique=True bug
+        # going to use custom action instead
         else:
             if (
-                chi_tacc_appliance_id == ""
-                or chi_uc_appliance_id == ""
-                or kvm_tacc_appliance_id == ""
+                    chi_tacc_appliance_id == ""
+                    or chi_uc_appliance_id == ""
+                    or kvm_tacc_appliance_id == ""
             ):
                 logger.debug("appliance id is blank, returning None")
                 return None
@@ -159,7 +162,7 @@ class ApplianceShareForm(ModelForm):
         widget=TextInput(
             attrs={
                 "placeholder": "Provide comma separated keywords that"
-                " are not in the list above."
+                               " are not in the list above."
             }
         ),
         required=False,
@@ -192,9 +195,9 @@ class ApplianceShareForm(ModelForm):
         labels = {
             "short_description": "Short description (140 characters)",
             "chi_tacc_appliance_id": "Appliance ID for "
-            '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
+                                     '<a href="https://chi.tacc.chameleoncloud.org">CHI@TACC</a>',
             "chi_uc_appliance_id": "Appliance ID for "
-            '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
+                                   '<a href="https://chi.uc.chameleoncloud.org">CHI@UC</a>',
             "template": "Template (Complex Appliances Only)",
             "author_url": "Author: Contact URL or Email",
             "support_contact_name": "Support: Contact Name",
@@ -258,16 +261,14 @@ class ApplianceShareForm(ModelForm):
         if cleaned_data["description"] is None:
             cleaned_data["description"] = " "
         cleaned_data["chi_tacc_appliance_id"] = (
-            cleaned_data.get("chi_tacc_appliance_id") or None
+                cleaned_data.get("chi_tacc_appliance_id") or None
         )
         cleaned_data["chi_uc_appliance_id"] = (
-            cleaned_data.get("chi_uc_appliance_id") or None
+                cleaned_data.get("chi_uc_appliance_id") or None
         )
         chi_tacc_appliance_id = cleaned_data.get("chi_tacc_appliance_id")
         chi_uc_appliance_id = cleaned_data.get("chi_uc_appliance_id")
         template = cleaned_data.get("template")
-        project_supported = cleaned_data.get("project_supported")
-        shared_from_horizon = cleaned_data.get("shared_from_horizon")
         self.validate_picture(cleaned_data)
 
         if not self._is_valid_email_or_url(author_url):
@@ -282,7 +283,8 @@ class ApplianceShareForm(ModelForm):
                 self.add_error("chi_tacc_appliance_id", "")
                 self.add_error("chi_uc_appliance_id", msg)
 
-        # failed attempt at getting around the null=True, blank=True,unique=True bug...going to use custom action instead
+        # failed attempt at getting around the null=True, blank=True,unique=True bug
+        # going to use custom action instead
         else:
             if chi_tacc_appliance_id == "" or chi_uc_appliance_id == "":
                 logger.debug("appliance id is blank, returning None")

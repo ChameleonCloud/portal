@@ -1,0 +1,26 @@
+{% extends 'layout/default.html' %}
+{% load render_bundle from webpack_loader %}
+{% load sekizai_tags static %}
+{% block title %}Appliance Catalog | Chameleon Cloud {% endblock %}
+{% block styles %}
+    {{ block.super }}
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="{% static 'appliance_catalog/../../static/css/appliance_catalog.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div id="content-main" class="appCatalog">
+        <div class="content">
+            <h2>Appliance Catalog</h2>
+            {% if request.user.is_authenticated %}
+                <div id="createAppButton"></div>
+            {% endif %}
+            <div id="appCatalog"></div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    {% render_bundle 'vendor' %}
+    {% render_bundle 'app_catalog' %}
+{% endblock %}

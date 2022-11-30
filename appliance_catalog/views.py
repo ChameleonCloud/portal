@@ -53,7 +53,7 @@ def make_image_public(username, image_id, region_name):
 
 def app_list(request):
     logger.info("App catalog requested.")
-    return render(request, "appliance_catalog/list.html")
+    return render(request, "index.html")
 
 
 def get_appliances(request):
@@ -100,13 +100,13 @@ def get_appliances(request):
 def app_detail(request, pk):
     logger.info("Detail requested for appliance id: %s.", pk)
     appliance = get_object_or_404(Appliance, pk=pk)
-    logger.debug("Appliance found. Fetching it's keywords.")
+    logger.debug("Appliance found. Fetching its keywords.")
     keywords = appliance.keywords.all()
     logger.debug("This appliance has %d keywords.", keywords.count())
     editable = (
-        request.user.is_staff
-        or request.user == appliance.created_by
-        or request.user.has_perm("appliance_catalog.change_appliance")
+            request.user.is_staff
+            or request.user == appliance.created_by
+            or request.user.has_perm("appliance_catalog.change_appliance")
     )
     try:
         validate_email(appliance.author_url)
@@ -119,7 +119,7 @@ def app_detail(request, pk):
     except ValidationError:
         appliance.support_contact_type = "url"
     context = {"appliance": appliance, "keywords": keywords, "editable": editable}
-    return render(request, "appliance_catalog/detail.html", context)
+    return render(request, "detail.html", context)
 
 
 def app_documentation(request, pk):
@@ -129,7 +129,7 @@ def app_documentation(request, pk):
     context = {
         "appliance": appliance,
     }
-    return render(request, "appliance_catalog/documentation.html", context)
+    return render(request, "documentation.html", context)
 
 
 def get_appliance(request, pk):
@@ -163,9 +163,7 @@ def get_appliance_by_id(request, appliance_id):
 
 def get_appliance_template(request, pk):
     logger.info("Getting and displaying YAML template for appliance")
-
     appliance = Appliance.objects.filter(pk=pk).get()
-
     # send message to GA
     if settings.GOOGLE_ANALYTICS_PROPERTY_ID:
         try:
@@ -250,15 +248,15 @@ def app_create(request):
                 message = "New Appliance Submitted: " + appliance.name + "."
                 logger.debug(message)
                 body = (
-                    "A new appliance has been submitted and is ready for review. \n\n"
-                    "Appliance Name: " + appliance.name + "\n"
-                    "Contact Name and Email: "
-                    + appliance.author_name
-                    + " ("
-                    + appliance.author_url
-                    + ")\n\n"
-                    "Appliance URL: https://www.chameleoncloud.org/appliances/"
-                    + str(appliance.id)
+                        "A new appliance has been submitted and is ready for review. \n\n"
+                        "Appliance Name: " + appliance.name + "\n"
+                                                              "Contact Name and Email: "
+                        + appliance.author_name
+                        + " ("
+                        + appliance.author_url
+                        + ")\n\n"
+                          "Appliance URL: https://www.chameleoncloud.org/appliances/"
+                        + str(appliance.id)
                 )
                 try:
                     send_mail(
@@ -279,11 +277,11 @@ def app_create(request):
         logger.info("Appliance create page requested.")
         form = ApplianceForm(request.user)
     return render(
-        request, "appliance_catalog/create-edit.html", {"appliance_form": form}
+        request, "create-edit.html", {"appliance_form": form}
     )
 
 
-## this handles creating appliances shared from Horizon images
+# this handles creating appliances shared from Horizon images
 @login_required
 def app_create_image(request):
     if request.method == "POST":
@@ -318,15 +316,15 @@ def app_create_image(request):
                 message = "New Appliance Submitted: " + appliance.name + "."
                 logger.debug(message)
                 body = (
-                    "A new appliance has been published to the Appliance Catalog from Horizon. \n\n"
-                    "Appliance Name: " + appliance.name + "\n"
-                    "Contact Name and Email: "
-                    + appliance.author_name
-                    + " ("
-                    + appliance.author_url
-                    + ")\n\n"
-                    "Appliance URL: https://www.chameleoncloud.org/appliances/"
-                    + str(appliance.id)
+                        "A new appliance has been published to the Appliance Catalog from Horizon. \n\n"
+                        "Appliance Name: " + appliance.name + "\n"
+                                                              "Contact Name and Email: "
+                        + appliance.author_name
+                        + " ("
+                        + appliance.author_url
+                        + ")\n\n"
+                          "Appliance URL: https://www.chameleoncloud.org/appliances/"
+                        + str(appliance.id)
                 )
                 try:
                     send_mail(
@@ -360,7 +358,7 @@ def app_create_image(request):
         form = ApplianceShareForm(request.user, initial=params)
     return render(
         request,
-        "appliance_catalog/create-edit-shared.html",
+        "create-edit-shared.html",
         {"appliance_share_form": form},
     )
 
@@ -371,9 +369,9 @@ def app_edit(request, pk):
     appliance = get_object_or_404(Appliance, pk=pk)
 
     editable = (
-        request.user.is_staff
-        or request.user == appliance.created_by
-        or request.user.has_perm("appliance_catalog.change_appliance")
+            request.user.is_staff
+            or request.user == appliance.created_by
+            or request.user.has_perm("appliance_catalog.change_appliance")
     )
     if not editable:
         messages.error(request, "You do not have permission to edit this appliance.")
@@ -405,7 +403,7 @@ def app_edit(request, pk):
         form = ApplianceForm(request.user, instance=appliance)
     return render(
         request,
-        "appliance_catalog/create-edit.html",
+        "create-edit.html",
         {"appliance_form": form, "edit": True, "pk": pk},
     )
 
@@ -416,9 +414,9 @@ def app_edit_image(request, pk):
     appliance = get_object_or_404(Appliance, pk=pk)
 
     editable = (
-        request.user.is_staff
-        or request.user == appliance.created_by
-        or request.user.has_perm("appliance_catalog.change_appliance")
+            request.user.is_staff
+            or request.user == appliance.created_by
+            or request.user.has_perm("appliance_catalog.change_appliance")
     )
     if not editable:
         messages.error(request, "You do not have permission to edit this appliance.")
@@ -462,7 +460,7 @@ def app_edit_image(request, pk):
         form = ApplianceShareForm(request.user, instance=appliance)
     return render(
         request,
-        "appliance_catalog/create-edit-shared.html",
+        "create-edit-shared.html",
         {"appliance_share_form": form, "edit": True, "pk": pk},
     )
 

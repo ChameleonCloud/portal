@@ -1,5 +1,6 @@
-from django.contrib import admin
 import django.forms as forms
+from django.contrib import admin
+
 from .models import Keyword, Appliance, ApplianceTagging
 
 
