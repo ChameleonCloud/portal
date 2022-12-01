@@ -25,6 +25,9 @@
     .multiselect__option--selected.multiselect__option--highlight:after {
         background: #798b91;
     }
+    .multiselect__tag-icon:hover {
+        background: #74a93c;
+    }
 </style>
 
 <script>
