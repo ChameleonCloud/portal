@@ -7,10 +7,10 @@
   </div>
 </template>
 
-<style scoped/>
+<style scoped></style>
 
 <script>
-export default {
-  data() {}
-}
+    export default {
+      data() {}
+    }
 </script>

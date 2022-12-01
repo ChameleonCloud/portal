@@ -107,12 +107,23 @@
     background-color: white;
 }
 
-.appCatalog .dropdown-multiselect {
-    margin-top: 8px;
-    margin-bottom: 3px;
-
+.toggle-wrapper {
+    margin-left: 504px;
 }
 
+.toggle-option {
+    height: 42px;
+    width: 50px;
+}
+
+.appCatalog .multiselect-wrapper {
+    width: 500px;
+    position: absolute;
+    display: inline-block;
+}
+.appCatalog .multiselect {
+    margin-bottom: 8px;
+}
 
 div.appliance-grid-padding {
     min-height: 50px;

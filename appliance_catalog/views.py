@@ -14,14 +14,10 @@ from django.core.mail import send_mail
 from .forms import ApplianceForm, ApplianceShareForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
-from itertools import chain
 import markdown_deux
 import logging
 import json
 from django.conf import settings
-from keystoneauth1.identity import v3
-from keystoneauth1 import session
-from keystoneclient.v3 import client
 from glanceclient import Client
 from smtplib import SMTPException
 from six.moves import http_client, urllib

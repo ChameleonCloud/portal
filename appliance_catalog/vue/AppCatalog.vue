@@ -7,13 +7,11 @@
             class="label label-success">Chameleon Supported</span></label>&nbsp;
         <input id="filter.project_supported" type="checkbox" aria-label="Toggle Show">
       </div>
+      <Multiselect></Multiselect>
+      <Toggle></Toggle>
       <div>
-        <span>Search by keywords</span><br>
-        <span>Toggle switch</span>
-      </div>
-      <div>
-        <input type="button" value="Search" class="btn btn-primary">
-        <input type="button" value="Reset" class="btn btn-warning" style="margin-left:4px"/>
+        <input type="button" value="Search" class="btn btn-primary" style="margin-right:4px">
+        <input type="button" value="Reset" class="btn btn-warning"/>
         <div class="btn-group pull-right" role="group" aria-label="View options">
           <button type="button" class="btn btn-default view-switch"
                   tooltip="Switch to grid view"
@@ -73,10 +71,14 @@
 
 </template>
 
-<style scoped/>
+<style scoped></style>
 
 <script>
-export default {
-  data() {}
-}
+    import Multiselect from "./Multiselect.vue"
+    import Toggle from "./Toggle.vue"
+
+    export default {
+        components: {Multiselect, Toggle},
+        data() {}
+    }
 </script>
