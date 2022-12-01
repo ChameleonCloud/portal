@@ -6,30 +6,6 @@
 
 </template>
 
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
-
-<!-- Override package CSS with custom Chameleon-themed CSS-->
-<style>
-    .multiselect__tag {
-        background: #74a93c;
-    }
-    .multiselect__option--highlight {
-        background: #74a93c;
-    }
-    .multiselect__option--highlight:after {
-        background: #74a93c;
-    }
-    .multiselect__option--selected.multiselect__option--highlight {
-        background: #798b91;
-    }
-    .multiselect__option--selected.multiselect__option--highlight:after {
-        background: #798b91;
-    }
-    .multiselect__tag-icon:hover {
-        background: #74a93c;
-    }
-</style>
-
 <script>
     import Multiselect from 'vue-multiselect'
 
@@ -43,3 +19,32 @@
         }
     }
 </script>
+
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+
+<!-- Override package CSS with custom Chameleon-themed CSS-->
+<style>
+    .multiselect__tag {
+        background: #74a93c;
+    }
+
+    .multiselect__option--highlight {
+        background: #74a93c;
+    }
+
+    .multiselect__option--highlight:after {
+        background: #74a93c;
+    }
+
+    .multiselect__option--selected.multiselect__option--highlight {
+        background: #798b91;
+    }
+
+    .multiselect__option--selected.multiselect__option--highlight:after {
+        background: #798b91;
+    }
+
+    .multiselect__tag-icon:hover {
+        background: #74a93c;
+    }
+</style>

@@ -67,11 +67,7 @@
       </div>
     </div>
   </div>
-
-
 </template>
-
-<style scoped></style>
 
 <script>
     import Multiselect from "./Multiselect.vue"

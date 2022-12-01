@@ -10,7 +10,6 @@
     "glob": "^7.1.6",
     "style-loader": "^2.0.0",
     "vue": "^2.6.12",
-    "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.12",
     "webpack-bundle-tracker": "<1"
   },
@@ -21,7 +20,13 @@
     "change-case": "^4.1.2",
     "filesize": "^6.3.0",
     "jspath": "^0.4.0",
+    "pug": "^3.0.2",
+    "pug-plain-loader": "^1.1.0",
+    "sass": "^1.56.1",
+    "sass-loader": "10.1.1",
     "snakecase-keys": "^3.2.0",
+    "vue-loader": "^17.0.1",
+    "vue-multiselect": "^2.1.6",
     "yuglify": "^2.0.0"
   }
 }
