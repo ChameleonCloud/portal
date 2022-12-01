@@ -1,9 +1,7 @@
 <template>
   <div class="toggle-wrapper btn-group" role="group" aria-label="Basic outlined example">
-    <div class="toggle-setter">
-      <button type="button" class="toggle-option btn btn-outline-primary active">And</button>
-      <button type="button" class="toggle-option btn btn-outline-primary">Or</button>
-    </div>
+    <button type="button" class="toggle-option btn btn-outline-primary active">And</button>
+    <button type="button" class="toggle-option btn btn-outline-primary">Or</button>
   </div>
 </template>
 

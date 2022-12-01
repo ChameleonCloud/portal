@@ -47,4 +47,13 @@
     .multiselect__tag-icon:hover {
         background: #74a93c;
     }
+
+    .multiselect__input, .multiselect__single {
+        padding: 0 0 0 0;
+    }
+
+    .multiselect__placeholder {
+        margin-left:4px;
+        color: #999999;
+    }
 </style>
