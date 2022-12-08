@@ -54,7 +54,7 @@ def update_scopus_citation(pub, dry_run=True):
 def update_semantic_scholar_citation(pub, dry_run=True):
     semantic_scholar_pub = None
     if pub.doi:
-        url = f"http://api.semanticscholar.org/graph/v1/paper/DOI:{pub.doi}"
+        url = f"https://api.semanticscholar.org/graph/v1/paper/DOI:{pub.doi}"
         response = requests.get(
             url,
             params={"fields": "title,citationCount"},
@@ -62,7 +62,7 @@ def update_semantic_scholar_citation(pub, dry_run=True):
         )
         semantic_scholar_pub = response.json()
     if not semantic_scholar_pub:
-        url = "http://api.semanticscholar.org/graph/v1/paper/search"
+        url = "https://api.semanticscholar.org/graph/v1/paper/search"
         fields = [
             "title",
             "citationCount",
