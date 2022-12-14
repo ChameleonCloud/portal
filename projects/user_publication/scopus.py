@@ -38,6 +38,7 @@ def _parse_author(author):
     else:
         return names[0]
 
+
 def _get_pub_type(scopus_pub_type):
     if scopus_pub_type == "Conference Paper":
         return "conference full paper"
