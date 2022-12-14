@@ -26,7 +26,7 @@ CHAMELEON_REFS_REGEX = [
 
 
 def _search_semantic_scholar(query):
-    url = "http://api.semanticscholar.org/graph/v1/paper/search"
+    url = "https://api.semanticscholar.org/graph/v1/paper/search"
     fields = [
         "externalIds",
         "url",
@@ -67,7 +67,7 @@ def _search_semantic_scholar(query):
 
 
 def _get_references(pid):
-    url = f"http://api.semanticscholar.org/graph/v1/paper/{pid}"
+    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
     response = requests.get(
         url,
         params={"fields": "references.title"},
@@ -77,7 +77,7 @@ def _get_references(pid):
 
 
 def _get_citations(pid):
-    url = f"http://api.semanticscholar.org/graph/v1/paper/{pid}"
+    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
     fields = [
         "citations.externalIds",
         "citations.url",
