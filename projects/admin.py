@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from projects.models import Invitation, Publication, Funding
+from projects.models import Invitation, Publication, Funding, ChameleonPublication
 
 
 class ProjectFields:
@@ -16,6 +16,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "project_charge_code",
         "added_by_username",
         "entry_created_date",
+        "scopus_citations",
+        "semantic_scholar_citations",
     ]
 
     fields = (
@@ -27,13 +29,24 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "month",
         "author",
         "bibtex_source",
+        "doi",
         "link",
         "added_by_username",
         "entry_created_date",
+        "source",
+        "status",
+        "approved_with",
+        "scopus_citations",
+        "semantic_scholar_citations",
     )
 
     ordering = ["project__charge_code", "-year", "-entry_created_date"]
     list_display = ("title", "project_charge_code", "year", "entry_created_date")
+
+
+class ChameleonPublicationAdmin(admin.ModelAdmin):
+    fields = ("title", "ref")
+    list_display = ("title", "ref")
 
 
 class FundingAdmin(ProjectFields, admin.ModelAdmin):
@@ -62,3 +75,4 @@ class FundingAdmin(ProjectFields, admin.ModelAdmin):
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation)
 admin.site.register(Funding, FundingAdmin)
+admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)

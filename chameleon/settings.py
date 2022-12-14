@@ -911,3 +911,8 @@ if DEBUG:
 ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
     "ALLOWED_OPENSTACK_SERVICE_USERS", ["blazar", "portal"]
 )
+
+########
+# Publication
+########
+SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")

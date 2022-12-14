@@ -107,7 +107,11 @@ def add_publications(request, project_id):
             with transaction.atomic():
                 for entry in bib_database.entries:
                     new_pub = Publication.objects.create_from_bibtex(
-                        entry, project, request.user.username
+                        entry,
+                        project,
+                        request.user.username,
+                        "user_reported",
+                        Publication.STATUS_SUBMITTED,
                     )
                     new_pubs.append(new_pub)
             messages.success(request, "Publication(s) added successfully")
