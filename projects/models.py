@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from projects.pub_utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -89,11 +89,21 @@ class Project(models.Model):
 
         return json_proj
 
+    def __hash__(self):
+        return hash(self.id)
+
 
 class ProjectExtras(models.Model):
     tas_project_id = models.IntegerField(primary_key=True)
     charge_code = models.CharField(max_length=50, blank=False, null=False)
     nickname = models.CharField(max_length=50, blank=False, null=False, unique=True)
+
+
+class ProjectPIAlias(models.Model):
+    pi = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="pi", on_delete=models.CASCADE
+    )
+    alias = models.CharField(max_length=100)
 
 
 class InvitationQuerySet(models.QuerySet):
@@ -259,6 +269,11 @@ class Publication(models.Model):
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
 
     objects = PublicationManager()
+
+
+class ChameleonPublication(models.Model):
+    title = models.CharField(max_length=500, null=False)
+    ref = models.CharField(max_length=40, null=True)
 
 
 class Funding(models.Model):

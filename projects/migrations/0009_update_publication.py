@@ -6,7 +6,8 @@ from django.db import migrations, models
 
 import json
 
-from projects.pub_utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils
+
 
 def migrate_to_publication_fields(apps, schema_editor):
     Publication = apps.get_model('projects', 'Publication')

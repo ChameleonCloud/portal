@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from projects.models import Invitation, Publication, Funding
+from projects.models import Invitation, Publication, Funding, ChameleonPublication
 
 
 class ProjectFields:
@@ -44,6 +44,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     list_display = ("title", "project_charge_code", "year", "entry_created_date")
 
 
+class ChameleonPublicationAdmin(admin.ModelAdmin):
+    fields = ("title", "ref")
+    list_display = ("title", "ref")
+
+
 class FundingAdmin(ProjectFields, admin.ModelAdmin):
 
     readonly_fields = [
@@ -70,3 +75,4 @@ class FundingAdmin(ProjectFields, admin.ModelAdmin):
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation)
 admin.site.register(Funding, FundingAdmin)
+admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
