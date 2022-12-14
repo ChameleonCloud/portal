@@ -9,7 +9,7 @@ import re
 import requests
 
 from projects.models import Publication
-from projects.pub_utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 

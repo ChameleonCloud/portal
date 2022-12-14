@@ -1,108 +1,165 @@
-from collections import defaultdict
-from django.db import connection
-from projects.models import Publication
-from projects.pub_utils import PublicationUtils
+import datetime
+import logging
+import re
+from collections import Counter
+from difflib import SequenceMatcher
+
+import pytz
+from django.db.models import Q
+
+LOG = logging.getLogger(__name__)
 
 
-CHAMELEON_PUBLICATIONS = [
-    "lessons learned from the chameleon testbed",
-    "chameleon: a large-scale, deeply reconfigurable testbed for computer science research",
-    "chameleon@edge community workshop report",
-    "operational lessons from chameleon",
-    "application-based qos support with p4 and openflow: a demonstration using chameleon",
-    "application-based qoe support with p4 and openflow",
-    "overcast: running controlled experiments spanning research and commercial clouds",
-    "managing allocatable resources",
-    "a case for integrating experimental containers with notebooks",
-    "managing allocatable resources ( invited paper )",
-    "next generation clouds, the chameleon cloud testbed, and software defined networking (sdn)",
-    "chi-in-a-box: reducing operational costs of research testbeds",
-    "migrating towards single sign-on and federated identity",
-]
+def guess_project_for_publication(authors, pub_year):
+    """
+    For a given publication, we figure out which project it is most-likely from by
+    finding out which projects were active during the publication year, and have a PI
+    in the publication's list of authors.
+    """
+    from projects.models import Project, ProjectPIAlias
+
+    # Build a complex filter for all projects which have a PI that matches an author name
+    name_filter = Q()
+    for author in authors:
+        first_name, *_, last_name = author.rsplit(" ", 1)
+        name_filter |= Q(
+            pi__first_name__iexact=first_name, pi__last_name__iexact=last_name
+        )
+        aliases = ProjectPIAlias.objects.filter(alias__iexact=author)
+        # If the author has any aliases, look for those as well
+        for alias in aliases.all():
+            name_filter |= Q(
+                pi__first_name__iexact=alias.pi.first_name,
+                pi__last_name__iexact=alias.pi.last_name,
+            )
+    # Grab all the projects who have a publications written by one of the requested authors
+    projects = Project.objects.filter(name_filter)
+    if not projects.exists():
+        LOG.info(f"Could not find project for authors {authors}")
+        return
+    counter = Counter()
+    fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
+    fake_end = datetime.datetime(year=1, month=1, day=1, tzinfo=pytz.UTC)
+    for project in projects.all():
+        if not project.allocations.exists():
+            continue
+        # Consider the runtime of a project to be the start of its first allocation
+        # until the end of its last allocation
+        start = min(
+            alloc.start_date or fake_start for alloc in project.allocations.all()
+        )
+        end = max(
+            alloc.expiration_date or fake_end for alloc in project.allocations.all()
+        )
+        # If the publication took place during the lifetime of the project, record it
+        if start.year <= pub_year <= end.year + 1:
+            # Count the number of authors that appear in this project's publications
+            all_authors = {p.author.lower() for p in project.project_publication.all()}
+            found_authors = len({a for a in authors if a in all_authors})
+            counter.update({project: found_authors})
+
+    if len(counter) == 0:
+        LOG.info(
+            f"Could not find project during publication timeframe: "
+            f"(Year {pub_year}, authors {authors})"
+        )
+        return
+
+    return counter.most_common(1)[0][0]
 
 
-def get_pi_projects():
-    with connection.cursor() as cursor:
-        sql = """
-            SELECT MIN(first_name) AS first_name, MIN(last_name) AS last_name,
-                proj.project_id AS project_id, MIN(charge_code) AS charge_code,
-                MIN(a.start_date) AS start_date, MAX(a.expiration_date) AS end_date
-            FROM
-            (
-                SELECT u.first_name, u.last_name, p.id AS project_id, p.charge_code
-                FROM auth_user AS u
-                JOIN projects_project AS p
-                ON u.id = p.pi_id
-            ) AS proj
-            JOIN allocations_allocation AS a
-            ON proj.project_id = a.project_id
-            GROUP BY proj.project_id
-        """
-        cursor.execute(sql)
+class PublicationUtils:
+    @staticmethod
+    def get_month(bibtex_entry):
+        month = bibtex_entry.get("month")
+        m = None
+        try:
+            m = int(month)
+        except Exception:
+            pass
+        try:
+            m = datetime.datetime.strptime(month, "%b").month
+        except Exception:
+            pass
+        try:
+            m = datetime.datetime.strptime(month, "%B").month
+        except Exception:
+            pass
 
-        pi_projects = defaultdict(list)
-        for r in cursor.fetchall():
-            first_name = r[0]
-            last_name = r[1]
-            project_id = r[2]
-            charge_code = r[3]
-            start_date = r[4]
-            end_date = r[5]
+        return m
 
-            last_name = last_name.rsplit(" ", 1)
-            if len(last_name) == 1:
-                last_name = last_name[0]
-            else:
-                last_name = last_name[1]
+    @staticmethod
+    def get_forum(bibtex_entry):
+        forum = []
+        if "journal" in bibtex_entry:
+            forum.append(bibtex_entry["journal"])
+        if "booktitle" in bibtex_entry:
+            forum.append(bibtex_entry["booktitle"])
+        if "series" in bibtex_entry:
+            forum.append(bibtex_entry["series"])
+        if "publisher" in bibtex_entry:
+            forum.append(bibtex_entry["publisher"])
+        if "school" in bibtex_entry:
+            forum.append(bibtex_entry["school"])
+        if "institution" in bibtex_entry:
+            forum.append(bibtex_entry["institution"])
+        if "address" in bibtex_entry:
+            forum.append(bibtex_entry["address"])
+        return ",".join(forum)
 
-            # Vijay uses a different name for his publications
-            if last_name.lower() == "pillai" and r["first_name"].lower().startswith(
-                "vijay"
-            ):
-                last_name = "chidambaram"
+    @staticmethod
+    def get_link(bibtex_entry):
+        if "url" in bibtex_entry:
+            return bibtex_entry.get("url")
+        if "doi" in bibtex_entry:
+            return "https://doi.org/" + bibtex_entry.get("doi")
+        if "note" in bibtex_entry:
+            m = re.search("^\\\\url{(.+?)}$", bibtex_entry["note"])
+            if m:
+                return m.group(1)
+        if "howpublished" in bibtex_entry:
+            m = re.search("^\\\\url{(.+?)}$", bibtex_entry["howpublished"])
+            if m:
+                return m.group(1)
+        return None
 
-            key = (first_name.lower()[0] + ".", last_name.lower())
-            pi_projects[key].append((project_id, charge_code, start_date, end_date))
-        return pi_projects
+    @staticmethod
+    def get_pub_type(bibtex_entry):
+        bibtex_type = bibtex_entry.get("ENTRYTYPE")
+        if not bibtex_type:
+            return "other"
+        bibtex_entry.pop("abstract", None)
+        bibtex_as_str = str(bibtex_entry).lower()
 
-
-def link_publication_to_project(pi_projects, author_keys, pub_year):
-    counter = defaultdict(int)
-    for key in author_keys:
-        if key in pi_projects:
-            for proj in pi_projects[key]:
-                proj_id = proj[0]
-                proj_charge_code = proj[1]
-                allocation_start = proj[2]
-                allocation_end = proj[3]
-                if (
-                    allocation_start
-                    and allocation_start.year <= pub_year
-                    and allocation_end
-                    and allocation_end.year + 1 >= pub_year
-                ):
-                    counter[(proj_id, proj_charge_code)] += 1
-
-    if counter:
-        return max(counter, key=counter.get)
-    else:
-        return (None, None)
-
-
-def get_publications():
-    result = defaultdict(str)
-    for pub in Publication.objects.all():
-        result[pub.title] = pub.project_id
-
-    return result
-
-
-def pub_exists(all_publications, pub_title, pub_project_id):
-    for title, proj in all_publications.items():
+        if "arxiv" in bibtex_as_str:
+            return "preprint"
+        if "poster" in bibtex_as_str:
+            return "poster"
+        if "thesis" in bibtex_as_str:
+            if "ms" in bibtex_as_str or "master thesis" in bibtex_as_str:
+                return "ms thesis"
+            if "phd" in bibtex_as_str:
+                return "phd thesis"
+            return "thesis"
+        if "github" in bibtex_as_str:
+            return "github"
+        if "patent" in bibtex_as_str:
+            return "patent"
+        if bibtex_type == "incollection":
+            return "book chapter"
         if (
-            PublicationUtils.how_similar(title.lower(), pub_title.lower()) >= 0.9
-            and proj == pub_project_id
+            "techreport" in bibtex_as_str
+            or "tech report" in bibtex_as_str
+            or "internal report" in bibtex_as_str
         ):
-            return True
+            return "tech report"
+        if bibtex_type == "article":
+            return "journal article"
+        if bibtex_type == "inproceedings" or "proceeding" in bibtex_as_str:
+            return "conference paper"
 
-    return False
+        return "other"
+
+    @staticmethod
+    def how_similar(str1, str2):
+        return SequenceMatcher(None, str1, str2).ratio()
