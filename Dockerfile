@@ -1,21 +1,20 @@
 ARG NODE_IMG=node
-ARG NODE_VER=lts
+ARG NODE_VER_NAME=lts-gallium
 ARG PY_IMG=python
 ARG PY_VER=3.7.9-stretch
 
-FROM ${NODE_IMG}:${NODE_VER} as client
+FROM ${NODE_IMG}:${NODE_VER_NAME} as client
 WORKDIR /project
 COPY package.json yarn.lock ./
-RUN yarn install
+RUN yarn install --network-timeout 1000000
 COPY . ./
 RUN yarn build --production
 
 FROM ${PY_IMG}:${PY_VER}
-ARG NODE_VER=lts
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VER}.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
