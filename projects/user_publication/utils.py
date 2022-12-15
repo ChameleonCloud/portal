@@ -21,7 +21,12 @@ def guess_project_for_publication(authors, pub_year):
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
-        first_name, *_, last_name = author.rsplit(" ", 1)
+        try:
+            first_name, *_, last_name = author.rsplit(" ", 1)
+        except ValueError:
+            # There are some authors on semantic scholar with only a last name
+            name_filter |= Q(pi__last_name=author)
+            continue
         name_filter |= Q(
             pi__first_name__iexact=first_name, pi__last_name__iexact=last_name
         )

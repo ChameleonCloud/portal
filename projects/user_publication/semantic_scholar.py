@@ -103,8 +103,11 @@ def _get_citations(pid):
 
 def _get_pub_type(types, forum):
     if not forum:
-        return "other"
+        forum = ""
     forum = forum.lower()
+    if not types:
+        types = []
+    types = [t.lower() for t in types]
 
     if "arxiv" in forum:
         return "preprint"
@@ -120,9 +123,9 @@ def _get_pub_type(types, forum):
         return "github"
     if "techreport" in forum or "tech report" in forum or "internal report" in forum:
         return "tech report"
-    if "JournalArticle" in types:
+    if "journalarticle" in types:
         return "journal article"
-    if "Conference" in types or "proceeding" in forum or "conference" in forum:
+    if "conference" in types or "proceeding" in forum or "conference" in forum:
         return "conference paper"
 
     return "other"
