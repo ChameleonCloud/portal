@@ -4,6 +4,7 @@ import logging
 import re
 import requests
 from django.db.models import Q
+from unidecode import unidecode
 
 from projects.models import Publication, ChameleonPublication
 from projects.user_publication import utils
@@ -133,6 +134,10 @@ def _get_pub_type(types, forum):
 
 def _save_publication(publication, dry_run=True):
     title = publication.get("title")
+    decoded_title = unidecode(title)
+    if title != decoded_title:
+        logger.info(f"decoding title - {title} to {decoded_title}")
+        title = decoded_title
     pub_date_raw = publication.get("publicationDate")
     if pub_date_raw:
         published_on = datetime.datetime.strptime(pub_date_raw, "%Y-%m-%d")
@@ -201,15 +206,20 @@ def _publication_references_chameleon(raw_pub):
 
 
 def pub_import(dry_run=True):
+    publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
-            _save_publication(cc, dry_run)
+            p = _save_publication(cc, dry_run)
+            if p:
+                publications.append(p)
 
     pubs = _search_semantic_scholar("chameleon cloud testbed")
     for raw_pub in pubs:
         pub_year = raw_pub.get("year")
         if not pub_year or pub_year <= 2014:
             continue
-
         if _publication_references_chameleon(raw_pub):
-            _save_publication(raw_pub, dry_run)
+            p = _save_publication(raw_pub, dry_run)
+            if p:
+                publications.append(p)
+    return publications

@@ -3,6 +3,7 @@ import logging
 import re
 from collections import Counter
 from difflib import SequenceMatcher
+from unidecode import unidecode
 
 import pytz
 from django.db.models import Q
@@ -21,6 +22,10 @@ def guess_project_for_publication(authors, pub_year):
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
+        decoded_author = unidecode(author)
+        if author != decoded_author:
+            LOG.info(f"decoding author - {author} to {decoded_author}")
+            author = decoded_author
         try:
             first_name, *_, last_name = author.rsplit(" ", 1)
         except ValueError:
