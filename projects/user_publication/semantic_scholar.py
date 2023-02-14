@@ -132,7 +132,7 @@ def _get_pub_type(types, forum):
     return "other"
 
 
-def _save_publication(publication, dry_run=True):
+def _get_pub_model(publication, dry_run=True):
     title = publication.get("title")
     decoded_title = unidecode(title)
     if title != decoded_title:
@@ -180,11 +180,8 @@ def _save_publication(publication, dry_run=True):
         source="semantic_scholar",
         status=Publication.STATUS_IMPORTED,
     )
-
     if dry_run:
         logger.info(f"import {str(pub_model)}")
-    else:
-        pub_model.save()
     return pub_model
 
 
@@ -209,7 +206,7 @@ def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
-            p = _save_publication(cc, dry_run)
+            p = _get_pub_model(cc, dry_run)
             if p:
                 publications.append(p)
 
@@ -219,7 +216,7 @@ def pub_import(dry_run=True):
         if not pub_year or pub_year <= 2014:
             continue
         if _publication_references_chameleon(raw_pub):
-            p = _save_publication(raw_pub, dry_run)
+            p = _get_pub_model(raw_pub, dry_run)
             if p:
                 publications.append(p)
     return publications

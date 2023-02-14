@@ -117,6 +117,4 @@ def pub_import(dry_run=True):
         publications.append(pub_model)
         if dry_run:
             logger.info(f"import {str(pub_model)}")
-        else:
-            pub_model.save()
     return publications

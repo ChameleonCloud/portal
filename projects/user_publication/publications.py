@@ -37,4 +37,7 @@ def import_pubs(file_name, dry_run=True):
     pubs = _get_unique_pubs(pubs)
     report_publications(pubs)
     export_publications(pubs, file_name)
+    if not dry_run:
+        for pub in pubs:
+            pub.save()
     return pubs
