@@ -29,14 +29,15 @@ def _get_unique_pubs(pubs):
     return pubs
 
 
-def import_pubs(file_name, dry_run=True):
+def import_pubs(dry_run=True, file_name=""):
     pubs = []
-    reports = []
     pubs.extend(scopus.pub_import(dry_run))
     pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)
+    # displays them on console
     report_publications(pubs)
-    export_publications(pubs, file_name)
+    if file_name:
+        export_publications(pubs, file_name)
     if not dry_run:
         for pub in pubs:
             pub.save()

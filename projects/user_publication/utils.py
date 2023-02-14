@@ -26,6 +26,15 @@ PUBLICATION_REPORT_KEYS = [
 ]
 
 
+def decode_unicode_text(en_text):
+    # for texts with unicode chars - accented chars replace them with eq ASCII
+    # to perform LIKE operation to database
+    de_text = unidecode(en_text)
+    if en_text != de_text:
+        LOG.info(f"decoding - {en_text} to {de_text}")
+    return de_text
+
+
 def guess_project_for_publication(authors, pub_year):
     """
     For a given publication, we figure out which project it is most-likely from by
@@ -37,10 +46,7 @@ def guess_project_for_publication(authors, pub_year):
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
-        decoded_author = unidecode(author)
-        if author != decoded_author:
-            LOG.info(f"decoding author - {author} to {decoded_author}")
-            author = decoded_author
+        author = decode_unicode_text(author)
         try:
             first_name, *_, last_name = author.rsplit(" ", 1)
         except ValueError:

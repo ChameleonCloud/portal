@@ -4,7 +4,6 @@ import logging
 import re
 import requests
 from django.db.models import Q
-from unidecode import unidecode
 
 from projects.models import Publication, ChameleonPublication
 from projects.user_publication import utils
@@ -133,11 +132,7 @@ def _get_pub_type(types, forum):
 
 
 def _get_pub_model(publication, dry_run=True):
-    title = publication.get("title")
-    decoded_title = unidecode(title)
-    if title != decoded_title:
-        logger.info(f"decoding title - {title} to {decoded_title}")
-        title = decoded_title
+    title = utils.decode_unicode_text(publication.get("title"))
     pub_date_raw = publication.get("publicationDate")
     if pub_date_raw:
         published_on = datetime.datetime.strptime(pub_date_raw, "%Y-%m-%d")
