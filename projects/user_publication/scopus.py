@@ -59,6 +59,7 @@ def _publication_references_chameleon(references):
 def pub_import(dry_run=True):
     search = ScopusSearch(CHAMELEON_QUERY)
     logger.debug("Performed search")
+    publications = []
     for raw_pub in search.results:
         logger.debug(f"Fetching results for {raw_pub.eid}")
         retries = 0
@@ -113,8 +114,9 @@ def pub_import(dry_run=True):
             source="scopus",
             status=Publication.STATUS_IMPORTED,
         )
-
+        publications.append(pub_model)
         if dry_run:
             logger.info(f"import {str(pub_model)}")
         else:
             pub_model.save()
+    return publications

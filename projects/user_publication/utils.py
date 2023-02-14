@@ -78,6 +78,29 @@ def guess_project_for_publication(authors, pub_year):
     return counter.most_common(1)[0][0]
 
 
+def report_publication(publication, display=True):
+    column_keys = [
+        "title",
+        "project_id",
+        "publication_type",
+        "forum",
+        "year",
+        "month",
+        "author",
+        "bibtex_source",
+        "link",
+        "doi",
+        "source",
+    ]
+    line_format = "{0:18} : {1}\n"
+    pd = publication.__dict__
+    report = [line_format.format(ck, pd.get(ck)) for ck in column_keys]
+    if display:
+        print(*report, sep="")
+        print("")
+    return report
+
+
 class PublicationUtils:
     @staticmethod
     def get_month(bibtex_entry):
