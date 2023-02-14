@@ -6,9 +6,24 @@ from difflib import SequenceMatcher
 from unidecode import unidecode
 
 import pytz
+import csv
 from django.db.models import Q
 
 LOG = logging.getLogger(__name__)
+
+PUBLICATION_REPORT_KEYS = [
+    "title",
+    "project_id",
+    "publication_type",
+    "forum",
+    "year",
+    "month",
+    "author",
+    "bibtex_source",
+    "link",
+    "doi",
+    "source",
+]
 
 
 def guess_project_for_publication(authors, pub_year):
@@ -78,27 +93,25 @@ def guess_project_for_publication(authors, pub_year):
     return counter.most_common(1)[0][0]
 
 
-def report_publication(publication, display=True):
-    column_keys = [
-        "title",
-        "project_id",
-        "publication_type",
-        "forum",
-        "year",
-        "month",
-        "author",
-        "bibtex_source",
-        "link",
-        "doi",
-        "source",
-    ]
+def report_publications(pubs, display=True):
     line_format = "{0:18} : {1}\n"
-    pd = publication.__dict__
-    report = [line_format.format(ck, pd.get(ck)) for ck in column_keys]
-    if display:
-        print(*report, sep="")
-        print("")
-    return report
+    for pub in pubs:
+        pd = pub.__dict__
+        report = [line_format.format(ck, pd.get(ck)) for ck in PUBLICATION_REPORT_KEYS]
+        if display:
+            print(*report, sep="")
+            print("")
+    return
+
+
+def export_publications(pubs, file_name):
+    with open(file_name, "w", newline="") as myfile:
+        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+        wr.writerow(PUBLICATION_REPORT_KEYS)
+        for pub in pubs:
+            pd = pub.__dict__
+            wr.writerow([pd.get(k) for k in PUBLICATION_REPORT_KEYS])
+    return
 
 
 class PublicationUtils:
