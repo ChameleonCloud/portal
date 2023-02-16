@@ -1,5 +1,7 @@
+from datetime import datetime
 from projects.user_publication import semantic_scholar
 from projects.user_publication import scopus
+from projects.user_publication import gscholar
 from projects.user_publication.utils import report_publications, export_publications
 import logging
 
@@ -29,10 +31,11 @@ def _get_unique_pubs(pubs):
     return pubs
 
 
-def import_pubs(dry_run=True, file_name=""):
+def import_pubs(dry_run=True, file_name="", year_low=2014, year_high=datetime.now().year):
     pubs = []
-    pubs.extend(scopus.pub_import(dry_run))
-    pubs.extend(semantic_scholar.pub_import(dry_run))
+    pubs.extend(gscholar.pub_import(dry_run, year_low=year_low, year_high=year_high))
+    # pubs.extend(scopus.pub_import(dry_run))
+    # pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)
     # displays them on console
     report_publications(pubs)

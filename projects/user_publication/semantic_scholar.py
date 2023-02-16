@@ -101,34 +101,7 @@ def _get_citations(pid):
     return response.json().get("citations", [])
 
 
-def _get_pub_type(types, forum):
-    if not forum:
-        forum = ""
-    forum = forum.lower()
-    if not types:
-        types = []
-    types = [t.lower() for t in types]
 
-    if "arxiv" in forum:
-        return "preprint"
-    if "poster" in forum:
-        return "poster"
-    if "thesis" in forum:
-        if "ms" in forum or "master thesis" in forum:
-            return "ms thesis"
-        if "phd" in forum:
-            return "phd thesis"
-        return "thesis"
-    if "github" in forum:
-        return "github"
-    if "techreport" in forum or "tech report" in forum or "internal report" in forum:
-        return "tech report"
-    if "journalarticle" in types:
-        return "journal article"
-    if "conference" in types or "proceeding" in forum or "conference" in forum:
-        return "conference paper"
-
-    return "other"
 
 
 def _get_pub_model(publication, dry_run=True):
@@ -171,7 +144,7 @@ def _get_pub_model(publication, dry_run=True):
         forum=forum,
         doi=doi,
         link=f"https://www.doi.org/{doi}" if doi else publication.get("url"),
-        publication_type=_get_pub_type(publication.get("publicationTypes", []), forum),
+        publication_type=utils.get_pub_type(publication.get("publicationTypes", []), forum),
         source="semantic_scholar",
         status=Publication.STATUS_IMPORTED,
     )

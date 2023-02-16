@@ -31,12 +31,7 @@ def _get_references(a):
     return a.references if a.references else []
 
 
-def _parse_author(author):
-    names = [name.strip() for name in author.split(",")]
-    if len(names) > 1:
-        return f"{names[1]} {names[0]}"
-    else:
-        return names[0]
+
 
 
 def _get_pub_type(scopus_pub_type):
@@ -87,7 +82,7 @@ def pub_import(dry_run=True):
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
         year = published_on.year
         author_names = utils.decode_unicode_text(raw_pub.author_names)
-        authors = [_parse_author(author) for author in author_names.split(";")]
+        authors = [utils.parse_author(author) for author in author_names.split(";")]
         proj = utils.guess_project_for_publication(authors, year)
         if not proj:
             continue
