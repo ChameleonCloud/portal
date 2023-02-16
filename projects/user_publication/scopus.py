@@ -83,10 +83,11 @@ def pub_import(dry_run=True):
         if not _publication_references_chameleon(references):
             continue
 
-        title = raw_pub.title
+        title = utils.decode_unicode_text(raw_pub.title)
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
         year = published_on.year
-        authors = [_parse_author(author) for author in raw_pub.author_names.split(";")]
+        author_names = utils.decode_unicode_text(raw_pub.author_names)
+        authors = [_parse_author(author) for author in author_names.split(";")]
         proj = utils.guess_project_for_publication(authors, year)
         if not proj:
             continue
