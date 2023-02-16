@@ -244,6 +244,21 @@ class Publication(models.Model):
         ("EMAIL", "Email"),
     ]
 
+    # keys to report in __repr__
+    PUBLICATION_REPORT_FIELDS = [
+        "title",
+        "project_id",
+        "publication_type",
+        "forum",
+        "year",
+        "month",
+        "author",
+        "bibtex_source",
+        "link",
+        "doi",
+        "source",
+    ]
+
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
         Project, related_name="project_publication", null=True, on_delete=models.CASCADE
@@ -267,6 +282,14 @@ class Publication(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
+    
+    def __repr__(self) -> str:
+        line_format = "{0:18} : {1}"
+        lines = [
+            line_format.format(ck, getattr(self, ck))
+            for ck in self.PUBLICATION_REPORT_FIELDS
+        ]
+        return "\n".join(lines)
 
     objects = PublicationManager()
 

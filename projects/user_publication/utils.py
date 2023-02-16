@@ -99,14 +99,11 @@ def guess_project_for_publication(authors, pub_year):
     return counter.most_common(1)[0][0]
 
 
-def report_publications(pubs, display=True):
+def report_publications(pubs):
     line_format = "{0:18} : {1}\n"
     for pub in pubs:
-        pd = pub.__dict__
-        report = [line_format.format(ck, pd.get(ck)) for ck in PUBLICATION_REPORT_KEYS]
-        if display:
-            print(*report, sep="")
-            print("")
+        print(pub.__repr__)
+        print("")
     return
 
 
