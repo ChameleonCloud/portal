@@ -33,7 +33,12 @@ def _get_unique_pubs(pubs):
 
 def import_pubs(dry_run=True, file_name="", year_low=2014, year_high=datetime.now().year):
     pubs = []
-    pubs.extend(gscholar.pub_import(dry_run, year_low=year_low, year_high=year_high))
+    pubs.extend(gscholar.pub_import(
+        dry_run,
+        scraper_api_key="7dce61330ae5c75de49cc4d2238b91f1",
+        year_low=year_low,
+        year_high=year_high
+    ))
     # pubs.extend(scopus.pub_import(dry_run))
     # pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)

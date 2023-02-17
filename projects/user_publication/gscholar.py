@@ -12,21 +12,22 @@ from projects.models import Publication
 MAX_RETRIES = 10
 
 class GoogleScholarHandler(object):
-    def __init__(self):
+    def __init__(self, scraper_api=''):
         """To make google scholar calls using proxy"""
         self.pg = ProxyGenerator()
-        self.pg.FreeProxies()
         self.scholarly = scholarly
+        if scraper_api:
+            self.pg.ScraperAPI(scraper_api)
+        else:
+            self.pg.FreeProxies()
         self.scholarly.use_proxy(self.pg)
         self.retries = 0
         self.citations = []
-        self.tries = 0
 
     def _handle_proxy_reload(func):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
-                    print("calling function from decorator")
                     print(f"has proxy - {True if self.pg.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
@@ -48,6 +49,7 @@ class GoogleScholarHandler(object):
         """sets a new proxy from free-proxy library"""
         if not self.pg.proxy_mode.value == "FREE_PROXIES":
             return
+        print("Getting newproxy")
         self.pg.get_next_proxy()
         self.scholarly.use_proxy(self.pg)
 
@@ -59,7 +61,7 @@ class GoogleScholarHandler(object):
         Args:
             title (str): Title of the publication
         """
-        print(title)
+        print(f"Getting the publication - {title}")
         return self.scholarly.search_single_pub(title)
 
     @_handle_proxy_reload
@@ -73,12 +75,11 @@ class GoogleScholarHandler(object):
             year_low (int, optional): year to query from. Defaults to 2014
             year_high (int, optional): yaar to query till. Defaults to datetime.now().year
 
-
         Returns:
             list: list of publications that cited arg:pub
         """
         pub_id = self._publication_id(pub)
-        print(f"citatios for {pub_id}")
+        print(f"citations for {pub_id}")
         no_citations = pub['num_citations']
         cites_gen = self.scholarly.search_citedby(
             pub_id, year_low=year_low, year_high=year_high
@@ -90,14 +91,11 @@ class GoogleScholarHandler(object):
                 citations.append(cited_pub)
                 print(len(citations), no_citations)
             except StopIteration:
+                print(f"End of iteration. Citations count - ", len(citations), no_citations)
                 return citations
 
     @_handle_proxy_reload
     def _get_next_cite(self, cites_gen):
-        if self.tries == 5:
-            self.tries = 0
-            raise StopIteration
-        self.tries += 1
         return next(cites_gen)
     
     @_handle_proxy_reload
@@ -138,7 +136,6 @@ class GoogleScholarHandler(object):
             status=Publication.STATUS_IMPORTED,
         )
 
-
 def pub_import(
     dry_run=True, scraper_api_key="", year_low=2014, year_high=datetime.now().year
 ):
@@ -151,21 +148,26 @@ def pub_import(
         scraper_api_key (str, optional): _description_. Defaults to ''.
         year_low (int, optional): _description_. Defaults to 2014.
     """
-    gscholar = GoogleScholarHandler()
+    gscholar = GoogleScholarHandler(scraper_api=scraper_api_key)
     pubs = []
-    for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
+    for chameleon_pub in ChameleonPublication.objects.filter(id=14):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
-        print(ch_pub)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
             authors = gscholar.get_authors(cited_pub)
+            cited_pub_title = cited_pub['bib']['title']
+            print(cited_pub_title)
             if not authors:
                 continue
             proj = utils.guess_project_for_publication(
                 authors, cited_pub["bib"]["pub_year"]
             )
-            if proj:
-                pubs.append(gscholar.get_pub_model(cited_pub))
-            if len(pubs) == 5:
-                return pubs
+            if not proj:
+                continue
+            if(
+                ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists()
+                or Publication.objects.filter(title=cited_pub_title, project_id=proj).exists()
+            ):
+                continue
+            pubs.append(gscholar.get_pub_model(cited_pub))
     return pubs
