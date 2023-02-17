@@ -282,7 +282,7 @@ class Publication(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
-    
+
     def __repr__(self) -> str:
         line_format = "{0:18} : {1}"
         lines = [

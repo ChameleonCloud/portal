@@ -100,7 +100,6 @@ def guess_project_for_publication(authors, pub_year):
 
 
 def report_publications(pubs):
-    line_format = "{0:18} : {1}\n"
     for pub in pubs:
         print(pub.__repr__)
         print("")
