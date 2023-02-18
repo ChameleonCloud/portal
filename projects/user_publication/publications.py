@@ -1,8 +1,6 @@
 import logging
-
 from projects.user_publication import scopus, semantic_scholar
-from projects.user_publication.utils import (export_publications,
-                                             report_publications)
+from projects.user_publication.utils import export_publications, report_publications
 
 logger = logging.getLogger(__name__)
 
