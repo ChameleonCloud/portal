@@ -1,13 +1,13 @@
+import csv
 import datetime
 import logging
 import re
 from collections import Counter
 from difflib import SequenceMatcher
-from unidecode import unidecode
 
 import pytz
-import csv
 from django.db.models import Q
+from django.utils.text import slugify
 
 LOG = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ PUBLICATION_REPORT_KEYS = [
 def decode_unicode_text(en_text):
     # for texts with unicode chars - accented chars replace them with eq ASCII
     # to perform LIKE operation to database
-    de_text = unidecode(en_text)
+    de_text = slugify(en_text)
     if en_text != de_text:
         LOG.info(f"decoding - {en_text} to {de_text}")
     return de_text

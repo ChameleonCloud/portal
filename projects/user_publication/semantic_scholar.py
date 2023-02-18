@@ -1,11 +1,12 @@
 import datetime
-from django.conf import settings
 import logging
 import re
+
 import requests
+from django.conf import settings
 from django.db.models import Q
 
-from projects.models import Publication, ChameleonPublication
+from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
 
 logger = logging.getLogger("projects")

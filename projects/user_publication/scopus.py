@@ -2,11 +2,10 @@ import datetime
 import logging
 import re
 
-from pybliometrics.scopus import AbstractRetrieval
-from pybliometrics.scopus import ScopusSearch
+from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import Publication, ChameleonPublication
+from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
 
 logger = logging.getLogger("projects")
