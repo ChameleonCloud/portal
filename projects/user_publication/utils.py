@@ -115,6 +115,7 @@ def export_publications(pubs, file_name):
             wr.writerow([pd.get(k) for k in PUBLICATION_REPORT_KEYS])
     return
 
+
 def parse_author(author):
     """Parse author by stripping off the spaces
     and joining as "firstname lastname" instead of "lastname, firstname"
@@ -131,6 +132,7 @@ def parse_author(author):
         return f"{names[1]} {names[0]}"
     else:
         return names[0]
+
 
 def get_pub_type(types, forum):
     """Return the type of publication
@@ -169,6 +171,7 @@ def get_pub_type(types, forum):
         return "conference paper"
 
     return "other"
+
 
 class PublicationUtils:
     @staticmethod

@@ -1,25 +1,46 @@
+import logging
 import re
-
 from datetime import datetime
-from projects.user_publication import utils
-from scholarly import ProxyGenerator
-from scholarly import scholarly
+from pathlib import Path
+
+from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication
-from projects.models import Publication
+from projects.models import ChameleonPublication, Publication
+from projects.user_publication import utils
+
+logger = logging.getLogger("projects")
 
 MAX_RETRIES = 10
 
+
+def handle_scrapper():
+    scraper_config = Path("scraper.config")
+    scraper_api = ''
+    if scraper_config.exists():
+        with scraper_config.open('r') as s_config:
+            logger.info("Using scraper.config file for API key")
+            scraper_api = s_config.read()
+    if not scraper_api:
+        scraper_api = input("Enter the scraper API key, if you have one, else press enter: ")
+    if scraper_api:
+        with scraper_config.open('w') as s_config:
+            s_config.write(scraper_api)
+    return scraper_api
+
+
 class GoogleScholarHandler(object):
-    def __init__(self, scraper_api=''):
+    def __init__(self):
         """To make google scholar calls using proxy"""
         self.pg = ProxyGenerator()
         self.scholarly = scholarly
+        scraper_api = handle_scrapper()
         if scraper_api:
             self.pg.ScraperAPI(scraper_api)
+            logger.info("Using scrapper proxy")
         else:
             self.pg.FreeProxies()
+            logger.info("Using Free proxy")
         self.scholarly.use_proxy(self.pg)
         self.retries = 0
         self.citations = []
@@ -28,11 +49,11 @@ class GoogleScholarHandler(object):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
-                    print(f"has proxy - {True if self.pg.has_proxy() else False}")
+                    logger.info(f"Using Free proxy - {True if self.pg.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
-                    print(f"max retires expception - new proxy retries : {self.retries}")
+                    logger.info(f"New free proxy retries : {self.retries} / {MAX_RETRIES}")
                     self.retries += 1
                     self.new_proxy()
                 else:
@@ -42,14 +63,14 @@ class GoogleScholarHandler(object):
         return inner_f
 
     def _publication_id(self, pub: dict):
-        m = re.search("cites=[\d+,]*", pub["citedby_url"])
+        m = re.search(r"cites=[\d+,]*", pub["citedby_url"])
         return m.group()[6:]
 
     def new_proxy(self):
         """sets a new proxy from free-proxy library"""
         if not self.pg.proxy_mode.value == "FREE_PROXIES":
             return
-        print("Getting newproxy")
+        logger.info("Getting new free proxy")
         self.pg.get_next_proxy()
         self.scholarly.use_proxy(self.pg)
 
@@ -61,13 +82,13 @@ class GoogleScholarHandler(object):
         Args:
             title (str): Title of the publication
         """
-        print(f"Getting the publication - {title}")
         return self.scholarly.search_single_pub(title)
 
     @_handle_proxy_reload
     def get_cites(
-            self, pub, year_low=2014, year_high=datetime.now().year
-        ) -> list:
+            self, pub, year_low=2014,
+            year_high=datetime.now().year
+    ):
         """Returns all the citations of the publication
 
         Args:
@@ -79,25 +100,27 @@ class GoogleScholarHandler(object):
             list: list of publications that cited arg:pub
         """
         pub_id = self._publication_id(pub)
-        print(f"citations for {pub_id}")
+        logger.info(f"Getting citations for {pub['bib']['title']}")
         no_citations = pub['num_citations']
         cites_gen = self.scholarly.search_citedby(
             pub_id, year_low=year_low, year_high=year_high
         )
         citations = []
+        cit_count = 0
         while True:
             try:
                 cited_pub = self._get_bib(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
-                print(len(citations), no_citations)
+                cit_count += 1
+                logger.info(f"Got {len(cit_count)} / {no_citations}")
             except StopIteration:
-                print(f"End of iteration. Citations count - ", len(citations), no_citations)
+                logger.info(f"End of iteration. Got {len(citations)} / {no_citations}")
                 return citations
 
     @_handle_proxy_reload
     def _get_next_cite(self, cites_gen):
         return next(cites_gen)
-    
+
     @_handle_proxy_reload
     def _get_bib(self, pub):
         bibt = self.scholarly.bibtex(pub)
@@ -105,12 +128,22 @@ class GoogleScholarHandler(object):
         return pub
 
     def get_authors(self, pub):
+        """returns a list of authors in a publication
+
+        Args:
+            pub (dict): scholarly return of the publication
+
+        Returns:
+            list: list of authors in ["firstname lastname",] format
+        """
         bibt = pub['bibtex']
-        match = re.search(r'author\s*=\s*\{([\w\s,]+)\}', bibt)
+        bibt = utils.decode_unicode_text(bibt)
+        match = re.search(r'author\s*=\s*\{([\w\s-,]+)\}', bibt)
         if match:
             authors_t = match.groups()[0]
         else:
-            print(f"cannot parse - {bibt}")
+            # this mostly never happens - if it does - log it
+            logger.info(f"cannot parse bibtex, so ignoring - {bibt}")
             return
         if "and" in authors_t:
             authors = authors_t.split(" and ")
@@ -136,19 +169,20 @@ class GoogleScholarHandler(object):
             status=Publication.STATUS_IMPORTED,
         )
 
+
 def pub_import(
-    dry_run=True, scraper_api_key="", year_low=2014, year_high=datetime.now().year
+    dry_run=True, year_low=2014, year_high=datetime.now().year
 ):
     """Returns Publication models of all publicationls that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
 
     Args:
-        dry_run (bool, optional): _description_. Defaults to True.
-        scraper_api_key (str, optional): _description_. Defaults to ''.
-        year_low (int, optional): _description_. Defaults to 2014.
+        dry_run (bool, optional): Defaults to True.
+        year_low (int, optional): Defaults to 2014.
+        year_high (int, optional): Defaults to datetime.now().year.
     """
-    gscholar = GoogleScholarHandler(scraper_api=scraper_api_key)
+    gscholar = GoogleScholarHandler()
     pubs = []
     for chameleon_pub in ChameleonPublication.objects.filter(id=14):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
@@ -156,7 +190,6 @@ def pub_import(
         for cited_pub in cited_pubs:
             authors = gscholar.get_authors(cited_pub)
             cited_pub_title = cited_pub['bib']['title']
-            print(cited_pub_title)
             if not authors:
                 continue
             proj = utils.guess_project_for_publication(
@@ -164,10 +197,11 @@ def pub_import(
             )
             if not proj:
                 continue
-            if(
-                ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists()
-                or Publication.objects.filter(title=cited_pub_title, project_id=proj).exists()
-            ):
+            if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
+                logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
+                continue
+            if Publication.objects.filter(title=cited_pub_title, project_id=proj).exists():
+                logger.info(f"{cited_pub_title} is already is Publications table")
                 continue
             pubs.append(gscholar.get_pub_model(cited_pub))
     return pubs
