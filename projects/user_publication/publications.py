@@ -1,13 +1,6 @@
-from datetime import datetime
-from projects.user_publication import semantic_scholar
-from projects.user_publication import scopus
-from projects.user_publication import gscholar
-from projects.user_publication.utils import report_publications, export_publications
 import logging
-
-from projects.user_publication import scopus, semantic_scholar
-from projects.user_publication.utils import (export_publications,
-                                             report_publications)
+from projects.user_publication import scopus, semantic_scholar, gscholar
+from projects.user_publication.utils import export_publications, report_publications
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +28,9 @@ def _get_unique_pubs(pubs):
     return pubs
 
 
-def import_pubs(dry_run=True, file_name="", year_low=2014, year_high=datetime.now().year):
+def import_pubs(dry_run=True, file_name=""):
     pubs = []
-    pubs.extend(gscholar.pub_import(
-        dry_run,
-        scraper_api_key="7dce61330ae5c75de49cc4d2238b91f1",
-        year_low=year_low,
-        year_high=year_high
-    ))
+    pubs.extend(gscholar.pub_import(dry_run))
     # pubs.extend(scopus.pub_import(dry_run))
     # pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)
