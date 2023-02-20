@@ -1,11 +1,12 @@
 import datetime
-from django.conf import settings
 import logging
 import re
+
 import requests
+from django.conf import settings
 from django.db.models import Q
 
-from projects.models import Publication, ChameleonPublication
+from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
 
 logger = logging.getLogger("projects")
@@ -131,8 +132,8 @@ def _get_pub_type(types, forum):
     return "other"
 
 
-def _save_publication(publication, dry_run=True):
-    title = publication.get("title")
+def _get_pub_model(publication, dry_run=True):
+    title = utils.decode_unicode_text(publication.get("title"))
     pub_date_raw = publication.get("publicationDate")
     if pub_date_raw:
         published_on = datetime.datetime.strptime(pub_date_raw, "%Y-%m-%d")
@@ -175,11 +176,8 @@ def _save_publication(publication, dry_run=True):
         source="semantic_scholar",
         status=Publication.STATUS_IMPORTED,
     )
-
     if dry_run:
         logger.info(f"import {str(pub_model)}")
-    else:
-        pub_model.save()
     return pub_model
 
 
@@ -201,15 +199,20 @@ def _publication_references_chameleon(raw_pub):
 
 
 def pub_import(dry_run=True):
+    publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
-            _save_publication(cc, dry_run)
+            p = _get_pub_model(cc, dry_run)
+            if p:
+                publications.append(p)
 
     pubs = _search_semantic_scholar("chameleon cloud testbed")
     for raw_pub in pubs:
         pub_year = raw_pub.get("year")
         if not pub_year or pub_year <= 2014:
             continue
-
         if _publication_references_chameleon(raw_pub):
-            _save_publication(raw_pub, dry_run)
+            p = _get_pub_model(raw_pub, dry_run)
+            if p:
+                publications.append(p)
+    return publications

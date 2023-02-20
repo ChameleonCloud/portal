@@ -1,3 +1,4 @@
+import csv
 import datetime
 import logging
 import re
@@ -6,8 +7,32 @@ from difflib import SequenceMatcher
 
 import pytz
 from django.db.models import Q
+from django.utils.text import slugify
 
 LOG = logging.getLogger(__name__)
+
+PUBLICATION_REPORT_KEYS = [
+    "title",
+    "project_id",
+    "publication_type",
+    "forum",
+    "year",
+    "month",
+    "author",
+    "bibtex_source",
+    "link",
+    "doi",
+    "source",
+]
+
+
+def decode_unicode_text(en_text):
+    # for texts with unicode chars - accented chars replace them with eq ASCII
+    # to perform LIKE operation to database
+    de_text = slugify(en_text)
+    if en_text != de_text:
+        LOG.info(f"decoding - {en_text} to {de_text}")
+    return de_text
 
 
 def guess_project_for_publication(authors, pub_year):
@@ -21,6 +46,7 @@ def guess_project_for_publication(authors, pub_year):
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
+        author = decode_unicode_text(author)
         try:
             first_name, *_, last_name = author.rsplit(" ", 1)
         except ValueError:
@@ -71,6 +97,23 @@ def guess_project_for_publication(authors, pub_year):
         return
 
     return counter.most_common(1)[0][0]
+
+
+def report_publications(pubs):
+    for pub in pubs:
+        print(pub.__repr__)
+        print("")
+    return
+
+
+def export_publications(pubs, file_name):
+    with open(file_name, "w", newline="") as myfile:
+        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+        wr.writerow(PUBLICATION_REPORT_KEYS)
+        for pub in pubs:
+            pd = pub.__dict__
+            wr.writerow([pd.get(k) for k in PUBLICATION_REPORT_KEYS])
+    return
 
 
 class PublicationUtils:
