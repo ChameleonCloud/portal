@@ -31,8 +31,8 @@ def _get_unique_pubs(pubs):
 def import_pubs(dry_run=True, file_name=""):
     pubs = []
     pubs.extend(gscholar.pub_import(dry_run))
-    # pubs.extend(scopus.pub_import(dry_run))
-    # pubs.extend(semantic_scholar.pub_import(dry_run))
+    pubs.extend(scopus.pub_import(dry_run))
+    pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)
     # displays them on console
     report_publications(pubs)
