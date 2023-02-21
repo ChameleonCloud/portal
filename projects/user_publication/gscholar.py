@@ -1,47 +1,32 @@
 import logging
 import re
 from datetime import datetime
-from pathlib import Path
 
+from django.conf import settings
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
 
-logger = logging.getLogger("projects")
+logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 10
-
-
-def handle_scrapper():
-    scraper_config = Path("scraper.config")
-    scraper_api = ''
-    if scraper_config.exists():
-        with scraper_config.open('r') as s_config:
-            logger.info("Using scraper.config file for API key")
-            scraper_api = s_config.read()
-    if not scraper_api:
-        scraper_api = input("Enter the scraper API key, if you have one, else press enter: ")
-    if scraper_api:
-        with scraper_config.open('w') as s_config:
-            s_config.write(scraper_api)
-    return scraper_api
 
 
 class GoogleScholarHandler(object):
     def __init__(self):
         """To make google scholar calls using proxy"""
-        self.pg = ProxyGenerator()
+        self.proxy = ProxyGenerator()
         self.scholarly = scholarly
-        scraper_api = handle_scrapper()
-        if scraper_api:
-            self.pg.ScraperAPI(scraper_api)
-            logger.info("Using scrapper proxy")
+        scraper_api_key = settings.SCRAPER_API_KEY
+        if scraper_api_key:
+            self.proxy.ScraperAPI(scraper_api_key)
+            logger.info("Using scraper proxy")
         else:
-            self.pg.FreeProxies()
+            self.proxy.FreeProxies()
             logger.info("Using Free proxy")
-        self.scholarly.use_proxy(self.pg)
+        self.scholarly.use_proxy(self.proxy)
         self.retries = 0
         self.citations = []
 
@@ -49,7 +34,7 @@ class GoogleScholarHandler(object):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
-                    logger.info(f"Using Free proxy - {True if self.pg.has_proxy() else False}")
+                    logger.info(f"Using Free proxy - {True if self.proxy.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
@@ -68,11 +53,11 @@ class GoogleScholarHandler(object):
 
     def new_proxy(self):
         """sets a new proxy from free-proxy library"""
-        if not self.pg.proxy_mode.value == "FREE_PROXIES":
+        if not self.proxy.proxy_mode.value == "FREE_PROXIES":
             return
         logger.info("Getting new free proxy")
-        self.pg.get_next_proxy()
-        self.scholarly.use_proxy(self.pg)
+        self.proxy.get_next_proxy()
+        self.scholarly.use_proxy(self.proxy)
 
     @_handle_proxy_reload
     def get_one_pub(self, title: str):
@@ -85,10 +70,7 @@ class GoogleScholarHandler(object):
         return self.scholarly.search_single_pub(title)
 
     @_handle_proxy_reload
-    def get_cites(
-            self, pub, year_low=2014,
-            year_high=datetime.now().year
-    ):
+    def get_cites(self, pub, year_low=2014, year_high=None):
         """Returns all the citations of the publication
 
         Args:
@@ -99,9 +81,11 @@ class GoogleScholarHandler(object):
         Returns:
             list: list of publications that cited arg:pub
         """
+        if not year_high:
+            year_high = datetime.now().year
         pub_id = self._publication_id(pub)
         logger.info(f"Getting citations for {pub['bib']['title']}")
-        no_citations = pub['num_citations']
+        num_citations = pub['num_citations']
         cites_gen = self.scholarly.search_citedby(
             pub_id, year_low=year_low, year_high=year_high
         )
@@ -112,9 +96,9 @@ class GoogleScholarHandler(object):
                 cited_pub = self._get_bib(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
                 cit_count += 1
-                logger.info(f"Got {len(cit_count)} / {no_citations}")
+                logger.info(f"Got {len(cit_count)} / {num_citations}")
             except StopIteration:
-                logger.info(f"End of iteration. Got {len(citations)} / {no_citations}")
+                logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
 
     @_handle_proxy_reload
@@ -122,7 +106,7 @@ class GoogleScholarHandler(object):
         return next(cites_gen)
 
     @_handle_proxy_reload
-    def _get_bib(self, pub):
+    def _update_with_bibtex(self, pub):
         bibt = self.scholarly.bibtex(pub)
         pub.update({"bibtex": bibt})
         return pub
@@ -140,19 +124,14 @@ class GoogleScholarHandler(object):
         bibt = utils.decode_unicode_text(bibt)
         match = re.search(r'author\s*=\s*\{([\w\s-,]+)\}', bibt)
         if match:
-            authors_t = match.groups()[0]
+            authors_match = match.groups()[0]
         else:
             # this mostly never happens - if it does - log it
             logger.info(f"cannot parse bibtex, so ignoring - {bibt}")
             return
-        if "and" in authors_t:
-            authors = authors_t.split(" and ")
-        else:
-            authors = [authors_t]
-        parsed_authors = []
-        for author in authors:
-            parsed_authors.append(utils.parse_author(author))
-        return authors
+        authors = authors_match.split(" and ")
+        parsed_authors = [utils.parse_author(author) for author in authors]
+        return parsed_authors
 
     def get_pub_model(self, pub):
         return Publication(
@@ -171,7 +150,7 @@ class GoogleScholarHandler(object):
 
 
 def pub_import(
-    dry_run=True, year_low=2014, year_high=datetime.now().year
+    dry_run=True, year_low=2014, year_high=None
 ):
     """Returns Publication models of all publicationls that ref chameleon
     and are not in database already
@@ -184,7 +163,9 @@ def pub_import(
     """
     gscholar = GoogleScholarHandler()
     pubs = []
-    for chameleon_pub in ChameleonPublication.objects.filter(id=14):
+    if not year_high:
+        year_high = datetime.now().year
+    for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
