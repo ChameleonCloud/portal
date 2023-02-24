@@ -30,9 +30,6 @@ def _get_references(a):
     return a.references if a.references else []
 
 
-
-
-
 def _get_pub_type(scopus_pub_type):
     if scopus_pub_type == "Conference Paper":
         return "conference full paper"

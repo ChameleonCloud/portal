@@ -102,9 +102,6 @@ def _get_citations(pid):
     return response.json().get("citations", [])
 
 
-
-
-
 def _get_pub_model(publication, dry_run=True):
     title = utils.decode_unicode_text(publication.get("title"))
     pub_date_raw = publication.get("publicationDate")

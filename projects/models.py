@@ -279,6 +279,7 @@ class Publication(models.Model):
     approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
     scopus_citations = models.IntegerField(null=True)
     semantic_scholar_citations = models.IntegerField(null=True)
+    google_citations = models.IntegerField(null=True)
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"

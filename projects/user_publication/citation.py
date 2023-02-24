@@ -10,6 +10,7 @@ import requests
 
 from projects.models import Publication
 from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.gscholar import GoogleScholarHandler
 
 logger = logging.getLogger("projects")
 
@@ -30,7 +31,7 @@ def update_scopus_citation(pub, dry_run=True):
             for x in search.results:
                 if (
                     PublicationUtils.how_similar(x.title.lower(), pub.title.lower())
-                    >= 0.9
+                    >= PublicationUtils.SIMILARITY
                 ):
                     search_results.append(x)
         if (len(search_results)) > 0:
@@ -103,14 +104,22 @@ def update_semantic_scholar_citation(pub, dry_run=True):
 
 def update_citation_numbers(dry_run=True):
     for pub in Publication.objects.all():
+        # try:
+        #     update_scopus_citation(pub, dry_run)
+        # except Exception:
+        #     logger.exception(
+        #         f"failed to update scopus citation number for {pub.title} (id: {pub.id})"
+        #     )
+        # try:
+        #     update_semantic_scholar_citation(pub, dry_run)
+        # except Exception:
+        #     logger.exception(
+        #         f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})"
+        #     )
         try:
-            update_scopus_citation(pub, dry_run)
-        except Exception:
-            logger.exception(
-                f"failed to update scopus citation number for {pub.title} (id: {pub.id})"
-            )
-        try:
-            update_semantic_scholar_citation(pub, dry_run)
+            logger.info(f"{pub.title} \n")
+            gscholar = GoogleScholarHandler()
+            gscholar.update_g_scholar_citation(pub, dry_run)
         except Exception:
             logger.exception(
                 f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})"

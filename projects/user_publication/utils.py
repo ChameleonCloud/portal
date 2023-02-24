@@ -7,7 +7,7 @@ from difflib import SequenceMatcher
 
 import pytz
 from django.db.models import Q
-from django.utils.text import slugify
+import unicodedata
 
 LOG = logging.getLogger(__name__)
 
@@ -29,7 +29,11 @@ PUBLICATION_REPORT_KEYS = [
 def decode_unicode_text(en_text):
     # for texts with unicode chars - accented chars replace them with eq ASCII
     # to perform LIKE operation to database
-    de_text = slugify(en_text)
+    de_text = (
+        unicodedata.normalize("NFKD", en_text)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )
     if en_text != de_text:
         LOG.info(f"decoding - {en_text} to {de_text}")
     return de_text
@@ -165,7 +169,7 @@ def get_pub_type(types, forum):
         return "github"
     if "techreport" in forum or "tech report" in forum or "internal report" in forum:
         return "tech report"
-    if "journalarticle" in types:
+    if "journalarticle" in types or 'article' in types:
         return "journal article"
     if "conference" in types or "proceeding" in forum or "conference" in forum:
         return "conference paper"
@@ -174,6 +178,8 @@ def get_pub_type(types, forum):
 
 
 class PublicationUtils:
+    SIMILARITY = 0.9
+    
     @staticmethod
     def get_month(bibtex_entry):
         month = bibtex_entry.get("month")

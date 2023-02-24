@@ -8,6 +8,7 @@ from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class GoogleScholarHandler(object):
         cit_count = 0
         while True:
             try:
-                cited_pub = self._get_bib(self._get_next_cite(cites_gen))
+                cited_pub = self.fill(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
                 cit_count += 1
                 logger.info(f"Got {len(cit_count)} / {num_citations}")
@@ -106,10 +107,13 @@ class GoogleScholarHandler(object):
         return next(cites_gen)
 
     @_handle_proxy_reload
-    def _update_with_bibtex(self, pub):
-        bibt = self.scholarly.bibtex(pub)
-        pub.update({"bibtex": bibt})
-        return pub
+    def fill(self, pub):
+        """fills the publication object with details from bibtex
+
+        Args:
+            pub (dict): scholarly return of the publication
+        """
+        return self.scholarly.fill(pub)
 
     def get_authors(self, pub):
         """returns a list of authors in a publication
@@ -120,33 +124,89 @@ class GoogleScholarHandler(object):
         Returns:
             list: list of authors in ["firstname lastname",] format
         """
-        bibt = pub['bibtex']
-        bibt = utils.decode_unicode_text(bibt)
-        match = re.search(r'author\s*=\s*\{([\w\s-,]+)\}', bibt)
-        if match:
-            authors_match = match.groups()[0]
-        else:
-            # this mostly never happens - if it does - log it
-            logger.info(f"cannot parse bibtex, so ignoring - {bibt}")
-            return
-        authors = authors_match.split(" and ")
+        authors = utils.decode_unicode_text(pub['bib']['author'])
+        # substitute all charachter from text except
+        # ',' , \w word charachter, \s whitespace charachter
+        # - any other charachter
+        # inspired from django.utils.text.slugify
+        authors = re.sub(r"[^\,\w\s-]", "", authors)
+        authors = authors.split(" and ")
         parsed_authors = [utils.parse_author(author) for author in authors]
         return parsed_authors
 
     def get_pub_model(self, pub):
+        entry_type = []
+        # bibtex ENTRYTYPE field
+        if 'ENTRYTYPE' in pub['bib']:
+            entry_type.append(pub['bib']['ENTRYTPE'])
+        if 'pub_type' in pub['bib']:
+            entry_type.append(pub['bib']['pub_type'])
+        forum = ''
+        if 'booktitle' in pub['bib']:
+            forum = pub['bib']['booktitle']
+        if 'journal' in pub['bib']:
+            forum = pub['bib']['journal']
+        pub_type = utils.get_pub_type(entry_type, forum)
         return Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
             author=" and ".join(self.get_authors(pub)),
             entry_created_date=datetime.date.today(),
-            publication_type=utils.get_pub_type(pub["bib"]["ENTRYTYPE"]),
-            bibtex_source="{}",
+            publication_type=pub_type,
+            bibtex_source=pub['bib'],
             added_by_username="admin",
-            forum=pub["bib"]["booktitle"],
+            forum=forum,
             link=pub["pub_url"],
             source="gscholar",
             status=Publication.STATUS_IMPORTED,
         )
+
+    @staticmethod
+    def get_num_citations(pub):
+        """Returns the number of citations repoerted in google scholar
+
+        Args:
+            pub (dict): publication dict from scholarly
+
+        Returns:
+            int: number of citations
+        """
+        return pub.get("num_citations", 0)
+
+    def update_g_scholar_citation(self, pub, dry_run=False):
+        """Updates number of google scholar citations
+        in publication model instance
+
+        Args:
+            pub (models.Publication): Publication model instance
+            dry_run (bool, optional): to not save in DB. Defaults to False.
+        """
+        result_pub = self.get_one_pub(pub.title)
+        similarity = PublicationUtils.how_similar(result_pub['bib']['title'].lower(), pub.title.lower())
+        if similarity < PublicationUtils.SIMILARITY:
+            return
+        g_citations = self.get_num_citations(result_pub)
+        if dry_run:
+            logger.info(
+                (
+                    f"update Google citation number for "
+                    f"{pub.title} (id: {pub.id}) "
+                    f"from {pub.google_citations} "
+                    f"to {g_citations}"
+                )
+            )
+        else:
+            logger.info(
+                (
+                    f"update Google citation number for "
+                    f"{pub.title} (id: {pub.id}) "
+                    f"from {pub.google_citations} "
+                    f"to {g_citations}"
+                )
+            )
+            pub.google_citations = g_citations
+            pub.save()
+        return
 
 
 def pub_import(
