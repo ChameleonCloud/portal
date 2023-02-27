@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     "djangocms_file",
     "djangocms_link",
     "djangocms_picture",
+    "djangocms_snippet",
     "djangocms_video",
     "reversion",
     ##
@@ -854,6 +855,7 @@ CSP_SCRIPT_SRC = [
     "https://www.google-analytics.com",
     "https://www.google.com/recaptcha/",
     "https://www.gstatic.com/recaptcha/",
+    "https://cdnjs.cloudflare.com/ajax/libs/ace/1.9.6/ace.js", # snippet editor
     "'unsafe-inline'",
 ]
 CSP_CONNECT_SRC = [
