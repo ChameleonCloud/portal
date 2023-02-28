@@ -228,6 +228,27 @@ class PublicationManager(models.Manager):
         return pub
 
 
+class Sources(models.Model):
+    USER_REPORTED = "User Reported"
+    SCOPUS = "Scopus"
+    SEMANTIC_SCHOLAR = "Semantic Scholar"
+    G_SCHOLAR = "Google Scholar"
+    SOURCES = [
+        (USER_REPORTED, "User Reported"),
+        (SCOPUS, "Scopus"),
+        (SEMANTIC_SCHOLAR, "Semantic Scholar"),
+        (G_SCHOLAR, "Google Scholar"),
+    ]
+
+    name = models.CharField(choices=SOURCES, max_length=30)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
@@ -280,17 +301,18 @@ class Publication(models.Model):
     scopus_citations = models.IntegerField(null=True)
     semantic_scholar_citations = models.IntegerField(null=True)
     google_citations = models.IntegerField(null=True)
+    all_sources = models.ManyToManyField(Sources)
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
 
     def __repr__(self) -> str:
-        line_format = "{0:18} : {1}"
+        line_format = "{0:18} : {1}\n"
         lines = [
             line_format.format(ck, getattr(self, ck))
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
-        return "\n".join(lines)
+        return "".join(lines)
 
     objects = PublicationManager()
 
