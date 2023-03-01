@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import time
 
 import requests
 from django.conf import settings
@@ -27,7 +28,7 @@ CHAMELEON_REFS_REGEX = [
 
 
 def _search_semantic_scholar(query):
-    url = "https://api.semanticscholar.org/graph/v1/paper/search"
+    url = f"https://api.semanticscholar.org/graph/v1/paper/{query}"
     fields = [
         "externalIds",
         "url",
@@ -42,29 +43,24 @@ def _search_semantic_scholar(query):
         "authors",
         "abstract",
     ]
-
     total = 1
     offset = 0
     results = []
-    while offset < total:
-        response = requests.get(
-            url,
-            params={
-                "query": query,
-                "limit": 100,
-                "offset": offset,
-                "fields": ",".join(fields),
-            },
-            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-        )
-
-        json_response = response.json()
-        total = json_response.get("total")
-        if not total:
-            return results
-        offset = json_response.get("next", total)
-        results.extend(json_response["data"])
-    return results
+    # while offset < total:
+    response = requests.get(
+        url,
+        params={
+            "fields": ",".join(fields),
+        },
+        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+    )
+    json_response = response.json()
+    # total = json_response.get("total")
+    # if not total:
+    #     return results
+    # offset = json_response.get("next", total)
+    # results.extend(json_response["data"])
+    return json_response
 
 
 def _get_references(pid):
@@ -93,13 +89,28 @@ def _get_citations(pid):
         "citations.authors",
         "citations.abstract",
     ]
-
     response = requests.get(
         url,
         params={"fields": ",".join(fields)},
         headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
     )
     return response.json().get("citations", [])
+
+
+def _get_authors(aids):
+    url = f"https://api.semanticscholar.org/graph/v1/author/batch"
+    fields = [
+        "name",
+        "aliases"
+    ]
+    data = {'ids' : aids}
+    response = requests.post(
+        url,
+        json=data,
+        params={"fields": ",".join(fields)},
+        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+    )
+    return response.json()
 
 
 def _get_pub_model(publication, dry_run=True):
@@ -114,7 +125,20 @@ def _get_pub_model(publication, dry_run=True):
         month = None
     if not year:
         return None
-    authors = [a["name"] for a in publication.get("authors", [])]
+    author_ids = [a["authorId"] for a in publication.get("authors", [])]
+    author_details = _get_authors(author_ids)
+    authors = set()
+    for author_detail in author_details:
+        if not author_detail:
+            continue
+        try:
+            authors.add(author_detail['name'])
+            if author_detail['aliases']:
+                authors.update(set(author_detail['aliases']))
+        except Exception as e:
+            print(author_detail, author_details, publication)
+            print("----------------------------")
+    authors = list(authors)
     proj = utils.guess_project_for_publication(authors, year)
     journal = publication.get("journal")
     if journal:
@@ -126,9 +150,12 @@ def _get_pub_model(publication, dry_run=True):
     if (
         not proj
         or ChameleonPublication.objects.filter(title__iexact=title).exists()
-        or Publication.objects.filter(Q(title=title) | Q(project=proj)).exists()
     ):
         return None
+    pub_exists = Publication.objects.filter(title=title)
+    if pub_exists:
+        utils.add_to_all_sources(pub_exists[0], Publication.SEMANTIC_SCHOLAR)
+        return
 
     pub_model = Publication(
         title=title,
@@ -171,18 +198,23 @@ def _publication_references_chameleon(raw_pub):
 def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
+        count = 0
         for cc in _get_citations(chameleon_pub.ref):
+            count += 1
+            if count % 20 == 0:
+                logger.info("sleeping for 100 seconds")
+                time.sleep(100)
             p = _get_pub_model(cc, dry_run)
             if p:
                 publications.append(p)
 
-    pubs = _search_semantic_scholar("chameleon cloud testbed")
-    for raw_pub in pubs:
-        pub_year = raw_pub.get("year")
-        if not pub_year or pub_year <= 2014:
-            continue
-        if _publication_references_chameleon(raw_pub):
-            p = _get_pub_model(raw_pub, dry_run)
-            if p:
-                publications.append(p)
+    # pubs = _search_semantic_scholar("chameleon cloud testbed")
+    # for raw_pub in pubs:
+    #     pub_year = raw_pub.get("year")
+    #     if not pub_year or pub_year <= 2014:
+    #         continue
+    #     if _publication_references_chameleon(raw_pub):
+    #         p = _get_pub_model(raw_pub, dry_run)
+    #         if p:
+    #             publications.append(p)
     return publications

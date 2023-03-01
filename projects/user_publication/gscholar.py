@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime
+import datetime
 
 from django.conf import settings
 from scholarly import ProxyGenerator, scholarly
@@ -8,7 +8,7 @@ from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, add_to_all_sources
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class GoogleScholarHandler(object):
         """To make google scholar calls using proxy"""
         self.proxy = ProxyGenerator()
         self.scholarly = scholarly
-        scraper_api_key = settings.SCRAPER_API_KEY
+        scraper_api_key = "16d20776cf0591e05d16a53874212107"
         if scraper_api_key:
             self.proxy.ScraperAPI(scraper_api_key)
             logger.info("Using scraper proxy")
@@ -35,7 +35,6 @@ class GoogleScholarHandler(object):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
-                    logger.info(f"Using Free proxy - {True if self.proxy.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
@@ -91,13 +90,13 @@ class GoogleScholarHandler(object):
             pub_id, year_low=year_low, year_high=year_high
         )
         citations = []
-        cit_count = 0
+        cite_count = 0
         while True:
             try:
                 cited_pub = self.fill(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
-                cit_count += 1
-                logger.info(f"Got {len(cit_count)} / {num_citations}")
+                cite_count += 1
+                logger.info(f"Got {cite_count} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
@@ -224,15 +223,13 @@ def pub_import(
     gscholar = GoogleScholarHandler()
     pubs = []
     if not year_high:
-        year_high = datetime.now().year
+        year_high = datetime.date.today().year
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
             authors = gscholar.get_authors(cited_pub)
             cited_pub_title = cited_pub['bib']['title']
-            if not authors:
-                continue
             proj = utils.guess_project_for_publication(
                 authors, cited_pub["bib"]["pub_year"]
             )
@@ -241,8 +238,9 @@ def pub_import(
             if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
                 logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
                 continue
-            if Publication.objects.filter(title=cited_pub_title, project_id=proj).exists():
-                logger.info(f"{cited_pub_title} is already is Publications table")
-                continue
+            pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=proj)
+            if pub_exists:
+                logger.info(f"{cited_pub_title} is already in Publications table")
+                add_to_all_sources(pub_exists[0], Publication.G_SCHOLAR)
             pubs.append(gscholar.get_pub_model(cited_pub))
     return pubs

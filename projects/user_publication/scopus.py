@@ -86,8 +86,11 @@ def pub_import(dry_run=True):
         if (
             not proj
             or ChameleonPublication.objects.filter(title__iexact=title).exists()
-            or Publication.objects.filter(title=title, project_id=proj).exists()
         ):
+            continue
+        pub_exists = Publication.objects.filter(title=title)
+        if pub_exists:
+            utils.add_to_all_sources(pub_exists[0], Publication.SCOPUS)
             continue
 
         pub_model = Publication(

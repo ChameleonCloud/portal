@@ -228,27 +228,6 @@ class PublicationManager(models.Manager):
         return pub
 
 
-class Sources(models.Model):
-    USER_REPORTED = "User Reported"
-    SCOPUS = "Scopus"
-    SEMANTIC_SCHOLAR = "Semantic Scholar"
-    G_SCHOLAR = "Google Scholar"
-    SOURCES = [
-        (USER_REPORTED, "User Reported"),
-        (SCOPUS, "Scopus"),
-        (SEMANTIC_SCHOLAR, "Semantic Scholar"),
-        (G_SCHOLAR, "Google Scholar"),
-    ]
-
-    name = models.CharField(choices=SOURCES, max_length=30)
-
-    class Meta:
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
@@ -280,6 +259,11 @@ class Publication(models.Model):
         "source",
     ]
 
+    USER_REPORTED = "User Reported"
+    SCOPUS = "Scopus"
+    SEMANTIC_SCHOLAR = "Semantic Scholar"
+    G_SCHOLAR = "Google Scholar"
+
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
         Project, related_name="project_publication", null=True, on_delete=models.CASCADE
@@ -301,7 +285,7 @@ class Publication(models.Model):
     scopus_citations = models.IntegerField(null=True)
     semantic_scholar_citations = models.IntegerField(null=True)
     google_citations = models.IntegerField(null=True)
-    all_sources = models.ManyToManyField(Sources)
+    all_sources = models.CharField(max_length=100, default='', blank=True)
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"

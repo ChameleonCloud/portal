@@ -12,6 +12,7 @@ import unicodedata
 LOG = logging.getLogger(__name__)
 
 PUBLICATION_REPORT_KEYS = [
+    "id",
     "title",
     "project_id",
     "publication_type",
@@ -24,6 +25,13 @@ PUBLICATION_REPORT_KEYS = [
     "doi",
     "source",
 ]
+
+
+def add_to_all_sources(pub, source):
+    if source in pub.all_sources:
+        return
+    LOG.info(f"Publication already exists - {pub.title} - updating all sources")
+    pub.all_sources += f'{source},'
 
 
 def decode_unicode_text(en_text):
@@ -46,7 +54,11 @@ def guess_project_for_publication(authors, pub_year):
     in the publication's list of authors.
     """
     from projects.models import Project, ProjectPIAlias
-
+    try:
+        pub_year = int(pub_year)
+    except Exception as e:
+        LOG.error('Error at converting pub_year to int', exc_info=e)
+        return
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
@@ -87,7 +99,7 @@ def guess_project_for_publication(authors, pub_year):
             alloc.expiration_date or fake_end for alloc in project.allocations.all()
         )
         # If the publication took place during the lifetime of the project, record it
-        if start.year <= pub_year <= end.year + 1:
+        if start.year <= int(pub_year) <= end.year + 1:
             # Count the number of authors that appear in this project's publications
             all_authors = {p.author.lower() for p in project.project_publication.all()}
             found_authors = len({a for a in authors if a in all_authors})
@@ -105,7 +117,7 @@ def guess_project_for_publication(authors, pub_year):
 
 def report_publications(pubs):
     for pub in pubs:
-        print(pub.__repr__)
+        pub.__repr__()
         print("")
     return
 
