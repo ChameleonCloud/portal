@@ -231,9 +231,13 @@ def pub_import(
             if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
                 logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
                 continue
+            # this is to find if there is a publication already in database matching to
+            # this title and project however this needs to be changed after looking
+            # at some examples and how to better handle these dumplicates
             pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
             if pub_exists:
                 add_to_all_sources(pub_exists[0], Publication.G_SCHOLAR)
+                logger.info(f"{cited_pub_title} is already in Publications table - This check might be outdated.")
                 continue
             pub_model = gscholar.get_pub_model(cited_pub)
             pub_model.project = project

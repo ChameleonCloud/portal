@@ -7,7 +7,12 @@ logger = logging.getLogger(__name__)
 
 def _is_same_publication(o_pub, d_pub):
     # check if original publication is same as duplicate
-    if o_pub.title == d_pub.title and o_pub.year == d_pub.year:
+    if (
+        o_pub.title == d_pub.title
+        and o_pub.year == d_pub.year
+        and o_pub.forum == d_pub.forum
+        and o_pub.publication_type == d_pub.publication_type
+    ):
         return True
     return False
 
