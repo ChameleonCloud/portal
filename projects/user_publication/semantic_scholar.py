@@ -5,7 +5,6 @@ import time
 
 import requests
 from django.conf import settings
-from django.db.models import Q
 
 from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
@@ -25,42 +24,6 @@ CHAMELEON_REFS_REGEX = [
         "chameleon project",
     ]
 ]
-
-
-def _search_semantic_scholar(query):
-    url = f"https://api.semanticscholar.org/graph/v1/paper/{query}"
-    fields = [
-        "externalIds",
-        "url",
-        "title",
-        "venue",
-        "year",
-        "citationCount",
-        "fieldsOfStudy",
-        "publicationTypes",
-        "publicationDate",
-        "journal",
-        "authors",
-        "abstract",
-    ]
-    total = 1
-    offset = 0
-    results = []
-    # while offset < total:
-    response = requests.get(
-        url,
-        params={
-            "fields": ",".join(fields),
-        },
-        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-    )
-    json_response = response.json()
-    # total = json_response.get("total")
-    # if not total:
-    #     return results
-    # offset = json_response.get("next", total)
-    # results.extend(json_response["data"])
-    return json_response
 
 
 def _get_references(pid):
@@ -98,7 +61,7 @@ def _get_citations(pid):
 
 
 def _get_authors(aids):
-    url = f"https://api.semanticscholar.org/graph/v1/author/batch"
+    url = "https://api.semanticscholar.org/graph/v1/author/batch"
     fields = [
         "name",
         "aliases"
@@ -201,20 +164,10 @@ def pub_import(dry_run=True):
         count = 0
         for cc in _get_citations(chameleon_pub.ref):
             count += 1
-            if count % 20 == 0:
+            if count % 30 == 0:
                 logger.info("sleeping for 100 seconds")
                 time.sleep(100)
             p = _get_pub_model(cc, dry_run)
             if p:
                 publications.append(p)
-
-    # pubs = _search_semantic_scholar("chameleon cloud testbed")
-    # for raw_pub in pubs:
-    #     pub_year = raw_pub.get("year")
-    #     if not pub_year or pub_year <= 2014:
-    #         continue
-    #     if _publication_references_chameleon(raw_pub):
-    #         p = _get_pub_model(raw_pub, dry_run)
-    #         if p:
-    #             publications.append(p)
     return publications

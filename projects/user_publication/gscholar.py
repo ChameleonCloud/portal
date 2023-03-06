@@ -1,6 +1,6 @@
+import datetime
 import logging
 import re
-import datetime
 
 from django.conf import settings
 from scholarly import ProxyGenerator, scholarly
@@ -8,7 +8,8 @@ from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils, add_to_all_sources
+from projects.user_publication.utils import (PublicationUtils,
+                                             add_to_all_sources)
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +156,7 @@ class GoogleScholarHandler(object):
             bibtex_source=pub['bib'],
             added_by_username="admin",
             forum=forum,
-            link=pub["pub_url"],
+            link=pub.get("pub_url", ''),
             source="gscholar",
             status=Publication.STATUS_IMPORTED,
         )
@@ -185,26 +186,18 @@ class GoogleScholarHandler(object):
         if similarity < PublicationUtils.SIMILARITY:
             return
         g_citations = self.get_num_citations(result_pub)
-        if dry_run:
-            logger.info(
-                (
-                    f"update Google citation number for "
-                    f"{pub.title} (id: {pub.id}) "
-                    f"from {pub.google_citations} "
-                    f"to {g_citations}"
-                )
-            )
-        else:
-            logger.info(
-                (
-                    f"update Google citation number for "
-                    f"{pub.title} (id: {pub.id}) "
-                    f"from {pub.google_citations} "
-                    f"to {g_citations}"
-                )
-            )
+        existing_gcites = pub.google_citations
+        if not dry_run:
             pub.google_citations = g_citations
             pub.save()
+        logger.info(
+            (
+                f"update Google citation number for "
+                f"{pub.title} (id: {pub.id}) "
+                f"from {existing_gcites} "
+                f"to {g_citations}"
+            )
+        )
         return
 
 
@@ -230,17 +223,19 @@ def pub_import(
         for cited_pub in cited_pubs:
             authors = gscholar.get_authors(cited_pub)
             cited_pub_title = cited_pub['bib']['title']
-            proj = utils.guess_project_for_publication(
+            project = utils.guess_project_for_publication(
                 authors, cited_pub["bib"]["pub_year"]
             )
-            if not proj:
+            if not project:
                 continue
             if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
                 logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
                 continue
-            pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=proj)
+            pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
             if pub_exists:
-                logger.info(f"{cited_pub_title} is already in Publications table")
                 add_to_all_sources(pub_exists[0], Publication.G_SCHOLAR)
-            pubs.append(gscholar.get_pub_model(cited_pub))
+                continue
+            pub_model = gscholar.get_pub_model(cited_pub)
+            pub_model.project = project
+            pubs.append(pub_model)
     return pubs

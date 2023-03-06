@@ -32,6 +32,7 @@ def add_to_all_sources(pub, source):
         return
     LOG.info(f"Publication already exists - {pub.title} - updating all sources")
     pub.all_sources += f'{source},'
+    pub.save()
 
 
 def decode_unicode_text(en_text):
@@ -95,7 +96,7 @@ def guess_project_for_publication(authors, pub_year):
         start = min(
             alloc.start_date or fake_start for alloc in project.allocations.all()
         )
-        end = max(
+        end = max(  
             alloc.expiration_date or fake_end for alloc in project.allocations.all()
         )
         # If the publication took place during the lifetime of the project, record it
