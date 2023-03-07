@@ -12,7 +12,7 @@ logger = logging.getLogger("projects")
 
 CHAMELEON_QUERY = (
     "( TITLE (chameleon) OR REF (chameleon) OR ABS (chameleon) OR KEY (chameleon) )"
-    "AND PUBYEAR > 2018 AND SUBJAREA(COMP)"
+    "AND PUBYEAR > 2014 AND SUBJAREA(COMP)"
 )
 
 CHAMELEON_REFS_REGEX = [

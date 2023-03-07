@@ -16,10 +16,6 @@ from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
-# scholarly limits to 100 requests for 5 minutes
-# https://researchguides.smu.edu.sg/api-list/scholarly-metadata-api
-REQUESTS_IN_MINUTE = 10
-
 DOI_RE = re.compile("(10.\d{4,9}\/[-._;()\/:\w]+)")
 SEMANTIC_CITATION_RETRIES = 100
 
