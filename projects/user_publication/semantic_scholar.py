@@ -94,15 +94,10 @@ def _get_pub_model(publication, dry_run=True):
     for author_detail in author_details:
         if not author_detail:
             continue
-        try:
-            authors.add(author_detail['name'])
-            if author_detail['aliases']:
-                authors.update(set(author_detail['aliases']))
-        except Exception as e:
-            print(author_detail, author_details, publication)
-            print("----------------------------")
-    authors = list(authors)
-    proj = utils.guess_project_for_publication(authors, year)
+        authors.add(author_detail['name'])
+        if author_detail['aliases']:
+            authors.update(set(author_detail['aliases']))
+    proj = utils.guess_project_for_publication(list(authors), year)
     journal = publication.get("journal")
     if journal:
         forum = journal.get("name")
@@ -115,8 +110,9 @@ def _get_pub_model(publication, dry_run=True):
         or ChameleonPublication.objects.filter(title__iexact=title).exists()
     ):
         return None
-    pub_exists = Publication.objects.filter(title=title)
+    pub_exists = Publication.objects.filter(title=title, project=proj)
     if pub_exists:
+        logger.info(f"{title} is already in Publications table - This check might be outdated")
         utils.add_to_all_sources(pub_exists[0], Publication.SEMANTIC_SCHOLAR)
         return
 
@@ -133,9 +129,10 @@ def _get_pub_model(publication, dry_run=True):
         doi=doi,
         link=f"https://www.doi.org/{doi}" if doi else publication.get("url"),
         publication_type=utils.get_pub_type(publication.get("publicationTypes", []), forum),
-        source="semantic_scholar",
+        source=Publication.SEMANTIC_SCHOLAR,
         status=Publication.STATUS_IMPORTED,
     )
+    setattr(pub_model, Publication.SEMANTIC_SCHOLAR, True)
     if dry_run:
         logger.info(f"import {str(pub_model)}")
     return pub_model
@@ -161,12 +158,7 @@ def _publication_references_chameleon(raw_pub):
 def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
-        count = 0
         for cc in _get_citations(chameleon_pub.ref):
-            count += 1
-            if count % 30 == 0:
-                logger.info("sleeping for 100 seconds")
-                time.sleep(100)
             p = _get_pub_model(cc, dry_run)
             if p:
                 publications.append(p)

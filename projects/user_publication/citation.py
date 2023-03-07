@@ -21,6 +21,7 @@ logger = logging.getLogger("projects")
 REQUESTS_IN_MINUTE = 10
 
 DOI_RE = re.compile("(10.\d{4,9}\/[-._;()\/:\w]+)")
+SEMANTIC_CITATION_RETRIES = 100
 
 
 def update_scopus_citation(pub, dry_run=True):
@@ -32,11 +33,6 @@ def update_scopus_citation(pub, dry_run=True):
             scopus_pub = AbstractRetrieval(match, id_type="doi")
         except Scopus404Error:
             logger.info(f"Request resouce for doi: {pub.doi} not found - searching with title")
-        else:
-            if scopus_pub and pub.doi != match:
-                logger.info(f"Updating id:{pub.id} doi {pub.doi} to {match}")
-                pub.doi = match
-                pub.save()
     if not scopus_pub:
         no_words = re.compile(r"[^a-zA-Z\d\s:\-_.]")
         whitespace = re.compile(r"\s+")
@@ -77,7 +73,7 @@ def make_semantic_call(url, params, headers):
     Semantic Scholar gives up and returns the response - Strange
     """
     count = 0
-    while count < 100:
+    while count < SEMANTIC_CITATION_RETRIES:
         response = requests.get(
             url,
             params=params,
@@ -138,29 +134,23 @@ def update_semantic_scholar_citation(pub, dry_run=True):
 
 
 def update_citation_numbers(dry_run=True):
-    count = 0
     gscholar = GoogleScholarHandler()
     for pub in Publication.objects.filter(id__gt=589):
-        count += 1
-        # to not overload any system
-        # if count % REQUESTS_IN_MINUTE == 0:
-        #     logger.info("Waiting for 10 seconds before making another {REQUESTS_IN_MINUTE} requests")
-        #     time.sleep(10)
-        # try:
-        #     update_scopus_citation(pub, dry_run)
-        # except Exception:
-        #     logger.exception(
-        #         f"failed to update scopus citation number for {pub.title} (id: {pub.id})"
-        #     )
+        try:
+            update_scopus_citation(pub, dry_run)
+        except Exception:
+            logger.exception(
+                f"failed to update scopus citation number for {pub.title} (id: {pub.id})"
+            )
         try:
             update_semantic_scholar_citation(pub, dry_run)
         except Exception as e:
             logger.exception(
                 f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})", exc_info=e
             )
-        # try:
-        #     gscholar.update_g_scholar_citation(pub, dry_run)
-        # except Exception:
-        #     logger.exception(
-        #         f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})"
-        #     )
+        try:
+            gscholar.update_g_scholar_citation(pub, dry_run)
+        except Exception:
+            logger.exception(
+                f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})"
+            )

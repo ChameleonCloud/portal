@@ -28,10 +28,8 @@ PUBLICATION_REPORT_KEYS = [
 
 
 def add_to_all_sources(pub, source):
-    if source in pub.all_sources:
-        return
-    LOG.info(f"Publication already exists - {pub.title} - updating all sources")
-    pub.all_sources += f'{source},'
+    LOG.info(f"Publication already exists - {pub.title} - updating other source")
+    setattr(pub, source, True)
     pub.save()
 
 
@@ -119,7 +117,7 @@ def guess_project_for_publication(authors, pub_year):
 def report_publications(pubs):
     for pub in pubs:
         pub.__repr__()
-        print("")
+        print("\n")
     return
 
 

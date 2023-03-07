@@ -88,8 +88,9 @@ def pub_import(dry_run=True):
             or ChameleonPublication.objects.filter(title__iexact=title).exists()
         ):
             continue
-        pub_exists = Publication.objects.filter(title=title)
+        pub_exists = Publication.objects.filter(title=title, project_id=proj)
         if pub_exists:
+            logger.info(f"{title} is already in Publications table - This check might be outdated")
             utils.add_to_all_sources(pub_exists[0], Publication.SCOPUS)
             continue
 
@@ -106,9 +107,10 @@ def pub_import(dry_run=True):
             forum=raw_pub.publicationName,
             doi=raw_pub.doi,
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
-            source="scopus",
-            status=Publication.STATUS_IMPORTED,
+            source=Publication.SCOPUS,
+            status=Publication.STATUS_IMPORTED
         )
+        setattr(pub_model, Publication.SCOPUS, True)
         publications.append(pub_model)
         if dry_run:
             logger.info(f"import {str(pub_model)}")

@@ -232,10 +232,15 @@ class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
     STATUS_IMPORTED = "IMPORTED"
+    STATUS_DUPLICATE = "DUPLICATE"
+    STATUS_REJECTED = "REJECTED"
+
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
         (STATUS_IMPORTED, "Imported"),
+        (STATUS_DUPLICATE, "Duplicate"),
+        (STATUS_REJECTED, "Rejected"),
     ]
 
     APPROVED_WITH = [
@@ -246,12 +251,12 @@ class Publication(models.Model):
 
     # keys to report in __repr__
     PUBLICATION_REPORT_FIELDS = [
+        "id",
         "title",
         "project_id",
         "publication_type",
         "forum",
         "year",
-        "month",
         "author",
         "bibtex_source",
         "link",
@@ -259,10 +264,11 @@ class Publication(models.Model):
         "source",
     ]
 
-    USER_REPORTED = "User Reported"
-    SCOPUS = "Scopus"
-    SEMANTIC_SCHOLAR = "Semantic Scholar"
-    G_SCHOLAR = "Google Scholar"
+    # attribute names to show the other sources the publication is availble in
+    USER_REPORTED = "user_reported"
+    SCOPUS = "scopus"
+    SEMANTIC_SCHOLAR = "semantic_scholar"
+    G_SCHOLAR = "google_scholar"
 
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
@@ -284,19 +290,21 @@ class Publication(models.Model):
     approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
     scopus_citations = models.IntegerField(null=True)
     semantic_scholar_citations = models.IntegerField(null=True)
-    google_citations = models.IntegerField(null=True)
-    all_sources = models.CharField(max_length=100, default='', blank=True)
+    google_scholar_citations = models.IntegerField(null=True)
+    scopus = models.BooleanField(default=False, null=False)
+    semantic_scholar = models.BooleanField(default=False, null=False)
+    google_scholar = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
 
     def __repr__(self) -> str:
-        line_format = "{0:18} : {1}\n"
+        line_format = "{0:18} : {1}"
         lines = [
             line_format.format(ck, getattr(self, ck))
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
-        return "".join(lines)
+        return "\n".join(lines)
 
     objects = PublicationManager()
 

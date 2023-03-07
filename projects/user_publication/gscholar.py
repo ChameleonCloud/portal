@@ -21,7 +21,7 @@ class GoogleScholarHandler(object):
         """To make google scholar calls using proxy"""
         self.proxy = ProxyGenerator()
         self.scholarly = scholarly
-        scraper_api_key = "16d20776cf0591e05d16a53874212107"
+        scraper_api_key = settings.SCRAPER_API_KEY
         if scraper_api_key:
             self.proxy.ScraperAPI(scraper_api_key)
             logger.info("Using scraper proxy")
@@ -147,7 +147,7 @@ class GoogleScholarHandler(object):
         if 'journal' in pub['bib']:
             forum = pub['bib']['journal']
         pub_type = utils.get_pub_type(entry_type, forum)
-        return Publication(
+        pub_model = Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
             author=" and ".join(self.get_authors(pub)),
@@ -157,9 +157,11 @@ class GoogleScholarHandler(object):
             added_by_username="admin",
             forum=forum,
             link=pub.get("pub_url", ''),
-            source="gscholar",
+            source=Publication.G_SCHOLAR,
             status=Publication.STATUS_IMPORTED,
         )
+        setattr(pub_model, Publication.G_SCHOLAR, True)
+        return pub_model
 
     @staticmethod
     def get_num_citations(pub):
@@ -237,7 +239,7 @@ def pub_import(
             pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
             if pub_exists:
                 add_to_all_sources(pub_exists[0], Publication.G_SCHOLAR)
-                logger.info(f"{cited_pub_title} is already in Publications table - This check might be outdated.")
+                logger.info(f"{cited_pub_title} is already in Publications table - This check might be outdated")
                 continue
             pub_model = gscholar.get_pub_model(cited_pub)
             pub_model.project = project
