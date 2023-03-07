@@ -918,3 +918,4 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 # Publication
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
+SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")

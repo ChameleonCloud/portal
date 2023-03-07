@@ -1,5 +1,5 @@
 import logging
-from projects.user_publication import scopus, semantic_scholar
+from projects.user_publication import scopus, semantic_scholar, gscholar
 from projects.user_publication.utils import export_publications, report_publications
 
 logger = logging.getLogger(__name__)
@@ -7,7 +7,12 @@ logger = logging.getLogger(__name__)
 
 def _is_same_publication(o_pub, d_pub):
     # check if original publication is same as duplicate
-    if o_pub.title == d_pub.title and o_pub.year == d_pub.year:
+    if (
+        o_pub.title == d_pub.title
+        and o_pub.year == d_pub.year
+        and o_pub.forum == d_pub.forum
+        and o_pub.publication_type == d_pub.publication_type
+    ):
         return True
     return False
 
@@ -30,6 +35,7 @@ def _get_unique_pubs(pubs):
 
 def import_pubs(dry_run=True, file_name=""):
     pubs = []
+    pubs.extend(gscholar.pub_import(dry_run))
     pubs.extend(scopus.pub_import(dry_run))
     pubs.extend(semantic_scholar.pub_import(dry_run))
     pubs = _get_unique_pubs(pubs)

@@ -116,6 +116,63 @@ def export_publications(pubs, file_name):
     return
 
 
+def parse_author(author):
+    """Parse author by stripping off the spaces
+    and joining as "firstname lastname" instead of "lastname, firstname"
+    returns arg:author is only single name is passed
+
+    Args:
+        author (str): author name in "lastname, firstname" format
+
+    Returns:
+        str: Name of the author in "firstname lastname"
+    """
+    names = [name.strip() for name in author.split(",")]
+    if len(names) > 1:
+        return f"{names[1]} {names[0]}"
+    else:
+        return names[0]
+
+
+def get_pub_type(types, forum):
+    """Return the type of publication
+
+    Args:
+        types (list): (semantic scholar) Journal Article, Conference, Review, etc.
+        forum (str): EntryType - https://www.bibtex.com/e/entry-types/
+
+    Returns:
+        str : publication type - conference, thesis, report, etc.
+    """
+    if not forum:
+        forum = ""
+    forum = forum.lower()
+    if not types:
+        types = []
+    types = [t.lower() for t in types]
+
+    if "arxiv" in forum:
+        return "preprint"
+    if "poster" in forum:
+        return "poster"
+    if "thesis" in forum:
+        if "ms" in forum or "master thesis" in forum:
+            return "ms thesis"
+        if "phd" in forum:
+            return "phd thesis"
+        return "thesis"
+    if "github" in forum:
+        return "github"
+    if "techreport" in forum or "tech report" in forum or "internal report" in forum:
+        return "tech report"
+    if "journalarticle" in types:
+        return "journal article"
+    if "conference" in types or "proceeding" in forum or "conference" in forum:
+        return "conference paper"
+
+    return "other"
+
+
 class PublicationUtils:
     @staticmethod
     def get_month(bibtex_entry):
