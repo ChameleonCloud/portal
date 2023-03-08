@@ -16,13 +16,14 @@ from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
-DOI_RE = re.compile("(10.\d{4,9}\/[-._;()\/:\w]+)")
+DOI_RE = r"(10.\d{4,9}\/[-._;()\/:\w]+)"
 SEMANTIC_CITATION_RETRIES = 100
 
 
 def update_scopus_citation(pub, dry_run=True):
     scopus_pub = None
-    doi_re_result = DOI_RE.search(str(pub.doi))
+    # few publications have doi in ('doi') format in the DB
+    doi_re_result = re.search(DOI_RE, str(pub.doi))
     if doi_re_result:
         match = doi_re_result.group(1)
         try:
@@ -40,33 +41,35 @@ def update_scopus_citation(pub, dry_run=True):
         search_results = []
         if search and search.results:
             for x in search.results:
-                if (
-                    PublicationUtils.how_similar(x.title.lower(), pub.title.lower())
-                    >= PublicationUtils.SIMILARITY
-                ):
+                if (PublicationUtils.are_similar(x.title.lower(), pub.title.lower())):
                     search_results.append(x)
         if (len(search_results)) > 0:
             scopus_pub = search_results[0]
     if scopus_pub:
-        existing_scopus_cites = pub.scopus_citations
+        # Returns a tuple of (object, created)
+        existing_scopus_source = pub.source.get_or_create(name=Publication.SCOPUS)[0]
+        logger.info((
+            f"update scopus citation number for "
+            f"{pub.title} (id: {pub.id}) "
+            f"from {existing_scopus_source.citation_count} "
+            f"to {scopus_pub.citedby_count}"
+        ))
         if not dry_run:
-            pub.scopus_citations = scopus_pub.citedby_count
-            pub.save()
-        logger.info(
-            (
-                f"update scopus citation number for "
-                f"{pub.title} (id: {pub.id}) "
-                f"from {existing_scopus_cites} "
-                f"to {scopus_pub.citedby_count}"
-            )
-        )
+            existing_scopus_source.citation_count = scopus_pub.citedby_count
+            existing_scopus_source.save()
 
 
 def make_semantic_call(url, params, headers):
-    """It is very strange why I had to make this function in this way
-    to keep in loop and wait for arbitrary 10 seconds
-    but after few retries and the message too many reqeusts
-    Semantic Scholar gives up and returns the response - Strange
+    """Makes a requests.get call
+    Retries for 100 times waiting for 5 seconds between subsequent
+    calls with response code 429 - too many requests
+    After few retries - SemanticScholar responds with the response
+
+    Args:
+        url (str)
+        params (dict): field names needed in the response
+        headers (dict): with semantic scholar API key
+
     """
     count = 0
     while count < SEMANTIC_CITATION_RETRIES:
@@ -77,7 +80,8 @@ def make_semantic_call(url, params, headers):
         )
         if response.ok:
             return response.json()
-        if 'Too Many Requests' not in response.text:
+        # if "Too many requests response"
+        if response.status_code == 429:
             return
         count += 1
         logger.info(f"Sleeping for 5 seconds - {count}/100")
@@ -107,31 +111,30 @@ def update_semantic_scholar_citation(pub, dry_run=True):
             sc_title = result.get("title")
             if (
                 sc_title
-                and PublicationUtils.how_similar(sc_title.lower(), pub.title.lower())
-                >= 0.9
+                and PublicationUtils.are_similar(sc_title.lower(), pub.title.lower())
             ):
                 semantic_scholar_pub = result
 
     if semantic_scholar_pub:
-        citation_cnt = semantic_scholar_pub.get("citationCount")
-        existing_semantic_cites = pub.semantic_scholar_citations
-        if citation_cnt:
-            if not dry_run:
-                pub.semantic_scholar_citations = citation_cnt
-                pub.save()
-            logger.info(
-                (
-                    f"update semantic scholar citation number for "
-                    f"{pub.title} (id: {pub.id}) "
-                    f"from {existing_semantic_cites} "
-                    f"to {citation_cnt}"
-                )
+        citation_cnt = semantic_scholar_pub.get("citationCount", 0)
+        # Returns a tuple of (object, created)
+        existing_sem_source = pub.source.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
+        logger.info(
+            (
+                f"update semantic scholar citation number for "
+                f"{pub.title} (id: {pub.id}) "
+                f"from {existing_sem_source.citation_count} "
+                f"to {citation_cnt}"
             )
+        )
+        if not dry_run:
+            existing_sem_source.citation_count = citation_cnt
+            existing_sem_source.save()
 
 
 def update_citation_numbers(dry_run=True):
     gscholar = GoogleScholarHandler()
-    for pub in Publication.objects.filter(id__gt=589):
+    for pub in Publication.objects.all():
         try:
             update_scopus_citation(pub, dry_run)
         except Exception:

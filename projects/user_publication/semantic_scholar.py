@@ -1,13 +1,13 @@
 import datetime
 import logging
 import re
-import time
 
 import requests
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
@@ -48,6 +48,7 @@ def _get_citations(pid):
         "citations.fieldsOfStudy",
         "citations.publicationTypes",
         "citations.publicationDate",
+        "citations.citationStyles",
         "citations.journal",
         "citations.authors",
         "citations.abstract",
@@ -112,10 +113,12 @@ def _get_pub_model(publication, dry_run=True):
         return None
     pub_exists = Publication.objects.filter(title=title, project=proj)
     if pub_exists:
-        logger.info(f"{title} is already in Publications table - This check might be outdated")
-        utils.add_to_all_sources(pub_exists[0], Publication.SEMANTIC_SCHOLAR)
+        utils.add_source_to_pub(pub_exists[0], Publication.SEMANTIC_SCHOLAR)
         return
-
+    # semantic scholar returns all publication types in a list ["JournalArticle", "Review"]
+    entry_type = ''
+    if publication["publicationTypes"]:
+        entry_type = ','.join(publication["publicationTypes"])
     pub_model = Publication(
         title=title,
         year=year,
@@ -123,18 +126,21 @@ def _get_pub_model(publication, dry_run=True):
         author=" and ".join(a["name"] for a in publication.get("authors", [])),
         entry_created_date=datetime.date.today(),
         project=proj,
-        bibtex_source="{}",
+        bibtex_source=publication.get("citationStyles", {}),
         added_by_username="admin",
         forum=forum,
         doi=doi,
         link=f"https://www.doi.org/{doi}" if doi else publication.get("url"),
-        publication_type=utils.get_pub_type(publication.get("publicationTypes", []), forum),
-        source=Publication.SEMANTIC_SCHOLAR,
+        publication_type=PublicationUtils.get_pub_type({
+            "ENTRYTYPE": entry_type,
+            "forum": forum
+        }),
         status=Publication.STATUS_IMPORTED,
     )
-    setattr(pub_model, Publication.SEMANTIC_SCHOLAR, True)
-    if dry_run:
-        logger.info(f"import {str(pub_model)}")
+    logger.info(f"import {str(pub_model)}")
+    if not dry_run:
+        # save publication model with source
+        utils.save_publication(pub_model, PublicationSource.SEMANTIC_SCHOLAR)
     return pub_model
 
 

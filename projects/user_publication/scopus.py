@@ -5,8 +5,10 @@ import re
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import ChameleonPublication, Publication, PublicationSource
+
 from projects.user_publication import utils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
@@ -90,8 +92,7 @@ def pub_import(dry_run=True):
             continue
         pub_exists = Publication.objects.filter(title=title, project_id=proj)
         if pub_exists:
-            logger.info(f"{title} is already in Publications table - This check might be outdated")
-            utils.add_to_all_sources(pub_exists[0], Publication.SCOPUS)
+            utils.add_source_to_pub(pub_exists[0], Publication.SCOPUS)
             continue
 
         pub_model = Publication(
@@ -101,17 +102,19 @@ def pub_import(dry_run=True):
             author=" and ".join(authors),
             entry_created_date=datetime.date.today(),
             project=proj,
-            publication_type=_get_pub_type(raw_pub.subtypeDescription),
+            publication_type=PublicationUtils.get_pub_type({
+                "ENTRYTYPE": raw_pub.subtypeDescription
+            }),
             bibtex_source="{}",
             added_by_username="admin",
             forum=raw_pub.publicationName,
             doi=raw_pub.doi,
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
-            source=Publication.SCOPUS,
             status=Publication.STATUS_IMPORTED
         )
-        setattr(pub_model, Publication.SCOPUS, True)
+        logger.info(f"import {str(pub_model)}")
+        if not dry_run:
+            # save publication model with source
+            utils.save_publication(pub_model, PublicationSource.SCOPUS)
         publications.append(pub_model)
-        if dry_run:
-            logger.info(f"import {str(pub_model)}")
     return publications

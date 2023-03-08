@@ -6,10 +6,9 @@ from django.conf import settings
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import (PublicationUtils,
-                                             add_to_all_sources)
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -125,9 +124,11 @@ class GoogleScholarHandler(object):
             list: list of authors in ["firstname lastname",] format
         """
         authors = utils.decode_unicode_text(pub['bib']['author'])
-        # substitute all charachter from text except
-        # ',' , \w word charachter, \s whitespace charachter
-        # - any other charachter
+        # few authors have unicode characters encoded to ascii
+        # for example Lo{\"}c
+        # substitute all character from text except
+        # ',' , \w word charachter, \s whitespace character
+        # - any other character
         # inspired from django.utils.text.slugify
         authors = re.sub(r"[^\,\w\s-]", "", authors)
         authors = authors.split(" and ")
@@ -135,18 +136,8 @@ class GoogleScholarHandler(object):
         return parsed_authors
 
     def get_pub_model(self, pub):
-        entry_type = []
-        # bibtex ENTRYTYPE field
-        if 'ENTRYTYPE' in pub['bib']:
-            entry_type.append(pub['bib']['ENTRYTPE'])
-        if 'pub_type' in pub['bib']:
-            entry_type.append(pub['bib']['pub_type'])
-        forum = ''
-        if 'booktitle' in pub['bib']:
-            forum = pub['bib']['booktitle']
-        if 'journal' in pub['bib']:
-            forum = pub['bib']['journal']
-        pub_type = utils.get_pub_type(entry_type, forum)
+        forum = PublicationUtils.get_forum(pub['bib'])
+        pub_type = PublicationUtils.get_pub_type(pub['bib'])
         pub_model = Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
@@ -157,23 +148,9 @@ class GoogleScholarHandler(object):
             added_by_username="admin",
             forum=forum,
             link=pub.get("pub_url", ''),
-            source=Publication.G_SCHOLAR,
             status=Publication.STATUS_IMPORTED,
         )
-        setattr(pub_model, Publication.G_SCHOLAR, True)
         return pub_model
-
-    @staticmethod
-    def get_num_citations(pub):
-        """Returns the number of citations repoerted in google scholar
-
-        Args:
-            pub (dict): publication dict from scholarly
-
-        Returns:
-            int: number of citations
-        """
-        return pub.get("num_citations", 0)
 
     def update_g_scholar_citation(self, pub, dry_run=False):
         """Updates number of google scholar citations
@@ -184,22 +161,22 @@ class GoogleScholarHandler(object):
             dry_run (bool, optional): to not save in DB. Defaults to False.
         """
         result_pub = self.get_one_pub(pub.title)
-        similarity = PublicationUtils.how_similar(result_pub['bib']['title'].lower(), pub.title.lower())
-        if similarity < PublicationUtils.SIMILARITY:
+        if not PublicationUtils.are_similar(result_pub['bib']['title'].lower(), pub.title.lower()):
             return
-        g_citations = self.get_num_citations(result_pub)
-        existing_gcites = pub.google_citations
+
+        g_citations = result_pub.get("num_citations", 0)
+        # Returns a tuple of (object, created)
+        existing_g_source = pub.source.get_or_create(name=Publication.G_SCHOLAR)[0]
+        existing_citation_count = existing_g_source.citation_count
         if not dry_run:
-            pub.google_citations = g_citations
-            pub.save()
-        logger.info(
-            (
-                f"update Google citation number for "
-                f"{pub.title} (id: {pub.id}) "
-                f"from {existing_gcites} "
-                f"to {g_citations}"
-            )
-        )
+            existing_g_source.citation_count = g_citations
+            existing_g_source.save()
+        logger.info((
+            f"update Google citation number for "
+            f"{pub.title} (id: {pub.id}) "
+            f"from {existing_citation_count} "
+            f"to {g_citations}"
+        ))
         return
 
 
@@ -238,10 +215,12 @@ def pub_import(
             # at some examples and how to better handle these dumplicates
             pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
             if pub_exists:
-                add_to_all_sources(pub_exists[0], Publication.G_SCHOLAR)
-                logger.info(f"{cited_pub_title} is already in Publications table - This check might be outdated")
+                utils.add_source_to_pub(pub_exists[0], Publication.G_SCHOLAR)
                 continue
             pub_model = gscholar.get_pub_model(cited_pub)
             pub_model.project = project
+            if not dry_run:
+                # save publication model with source
+                utils.save_publication(pub_model, PublicationSource.GOOGLE_SCHOLAR)
             pubs.append(pub_model)
     return pubs
