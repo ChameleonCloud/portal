@@ -343,11 +343,17 @@ def check_charge():
         for openstack_r in openstack_records:
             resource_id = openstack_r.get("resource_id")
             portal_r = region_resources.get(resource_id)
-            if openstack_r.get("end_time") != portal_r.get("end_time").strftime(
-                utils.DATETIME_FORMAT
-            ):
-                LOG.error(f"{resource_id} at {region} has incorrect end time!")
-            if float(openstack_r.get("hourly_cost")) != float(
-                portal_r.get("hourly_cost")
-            ):
-                LOG.error(f"{resource_id} at {region} has incorrect hourly cost!")
+            openstack_endtime = openstack_r.get("end_time")
+            portal_endtime = portal_r.get("end_time").strftime(utils.DATETIME_FORMAT)
+            if openstack_endtime != portal_endtime:
+                LOG.error(
+                    f"{resource_id} at {region} has incorrect end time! "
+                    f"openstack={openstack_endtime}, portal={portal_endtime}"
+                )
+            openstack_cost = openstack_r.get("hourly_cost")
+            portal_cost = float(portal_r.get("hourly_cost"))
+            if openstack_cost != portal_cost:
+                LOG.error(
+                    f"{resource_id} at {region} has incorrect hourly cost! "
+                    f"openstack={openstack_cost}, portal={portal_cost}"
+                )
