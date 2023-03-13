@@ -41,7 +41,7 @@ def update_scopus_citation(pub, dry_run=True):
         search_results = []
         if search and search.results:
             for x in search.results:
-                if (PublicationUtils.are_similar(x.title.lower(), pub.title.lower())):
+                if (PublicationUtils.is_similar_str(x.title.lower(), pub.title.lower())):
                     search_results.append(x)
         if (len(search_results)) > 0:
             scopus_pub = search_results[0]
@@ -111,7 +111,7 @@ def update_semantic_scholar_citation(pub, dry_run=True):
             sc_title = result.get("title")
             if (
                 sc_title
-                and PublicationUtils.are_similar(sc_title.lower(), pub.title.lower())
+                and PublicationUtils.is_similar_str(sc_title.lower(), pub.title.lower())
             ):
                 semantic_scholar_pub = result
 

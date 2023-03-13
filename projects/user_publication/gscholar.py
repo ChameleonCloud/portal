@@ -161,7 +161,7 @@ class GoogleScholarHandler(object):
             dry_run (bool, optional): to not save in DB. Defaults to False.
         """
         result_pub = self.get_one_pub(pub.title)
-        if not PublicationUtils.are_similar(result_pub['bib']['title'].lower(), pub.title.lower()):
+        if not PublicationUtils.is_similar_str(result_pub['bib']['title'].lower(), pub.title.lower()):
             return
 
         g_citations = result_pub.get("num_citations", 0)

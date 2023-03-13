@@ -150,9 +150,36 @@ def parse_author(author):
         return names[0]
 
 
+def clean_authors_attr(authors):
+    """Split the authors based on the presense of ',' and 'and' in the text
+    stripped off whitespaces
+
+    Args:
+        authors (str): list of authors seperated by , or and
+
+    Returns:
+        cleaned_authors (list)
+    """
+    # names with lastname, firstname and lastname, firstname
+    # split by and make firstname lastname format
+    if 'and' in authors and ', ' in authors:
+        split_authors = [name.strip() for name in authors.split('and')]
+        cleaned_authors = [parse_author(author) for author in split_authors]
+    elif ', ' in authors:
+        split_authors = [name.strip() for name in authors.split(',')]
+        cleaned_authors = [parse_author(author) for author in authors]
+    elif 'and' in authors:
+        cleaned_authors = [name.strip() for name in authors.split('and')]
+    else:
+        # when there is a single author
+        return [authors]
+    return cleaned_authors
+
+
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
+    PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.8
 
     @staticmethod
     def get_month(bibtex_entry):
@@ -253,10 +280,43 @@ class PublicationUtils:
         return SequenceMatcher(None, str1, str2).ratio()
 
     @staticmethod
-    def are_similar(str1, str2):
+    def is_similar_str(str1, str2):
         return (
             PublicationUtils.how_similar(str1, str2) >= PublicationUtils.SIMILARITY_THRESHOLD
         )
+
+    @staticmethod
+    def is_pub_similar(pub1, pub2):
+        """Returns if the arg:pub1 and arg:pub2 are similar
+        It returns true if the year and authors are an exact match and
+        if title and venue are almost similar strings see difflib.SequenceMatcher
+
+        Args:
+            pub1 (projects.models.Publication)
+            pub2 (projects.models.Publication)
+
+        Returns:
+            boolean
+        """
+        if (pub1.year != pub2.year):
+            return False
+        if not (
+            set(clean_authors_attr(pub1.author)) == set(clean_authors_attr(pub2.author))
+        ):
+            return False
+        if not (
+            PublicationUtils.how_similar(
+                pub1.title, pub2.title
+            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+        ):
+            return False
+        if not (
+            PublicationUtils.how_similar(
+                pub1.forum, pub2.forum
+            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+        ):
+            return False
+        return True
 
 
 def save_publication(pub_model, source):

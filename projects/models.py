@@ -261,7 +261,6 @@ class Publication(models.Model):
         "bibtex_source",
         "link",
         "doi",
-        "source",
     ]
 
     # attribute names to show the other sources the publication is availble in
