@@ -89,7 +89,7 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "publication_title",
         "name",
         "count",
-        "is_source",
+        "found_by_algorithm",
     )
 
     ordering = ["publication__id"]
@@ -99,7 +99,7 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "publication_title",
         "name",
         "citation_count",
-        "is_source",
+        "found_by_algorithm",
     )
 
 
