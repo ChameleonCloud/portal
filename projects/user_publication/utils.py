@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 
 import pytz
 from django.db.models import Q
+from django.db import transaction
 import unicodedata
 
 LOG = logging.getLogger(__name__)
@@ -32,10 +33,11 @@ def add_source_to_pub(pub, source):
         f"Publication already exists - {pub.title}"
         f" - adding other source - {source} - This check might be outdated"
     )
-    source = pub.source.get_or_create(name=source)[0]
-    source.is_source = True
-    source.save()
-    return
+    with transaction.atomic():
+        source = pub.sources.get_or_create(name=source)[0]
+        source.found_by_source = True
+        source.save()
+        return
 
 
 def decode_unicode_text(en_text):
@@ -58,7 +60,6 @@ def guess_project_for_publication(authors, pub_year):
     in the publication's list of authors.
     """
     from projects.models import Project, ProjectPIAlias
-    pub_year = int(pub_year)
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
@@ -262,8 +263,9 @@ class PublicationUtils:
 def save_publication(pub_model, source):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
-    pub_model.save()
-    pub_model.source.create(
-        name=source,
-        is_source=True
-    )
+    with transaction.atomic():
+        pub_model.save()
+        pub_model.sources.create(
+            name=source,
+            found_by_algorithm=True
+        )

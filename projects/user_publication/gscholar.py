@@ -3,6 +3,7 @@ import logging
 import re
 
 from django.conf import settings
+from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
@@ -166,11 +167,12 @@ class GoogleScholarHandler(object):
 
         g_citations = result_pub.get("num_citations", 0)
         # Returns a tuple of (object, created)
-        existing_g_source = pub.source.get_or_create(name=Publication.G_SCHOLAR)[0]
+        existing_g_source = pub.sources.get_or_create(name=Publication.G_SCHOLAR)[0]
         existing_citation_count = existing_g_source.citation_count
         if not dry_run:
-            existing_g_source.citation_count = g_citations
-            existing_g_source.save()
+            with transaction.atomic():
+                existing_g_source.citation_count = g_citations
+                existing_g_source.save()
         logger.info((
             f"update Google citation number for "
             f"{pub.title} (id: {pub.id}) "

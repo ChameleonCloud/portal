@@ -261,7 +261,6 @@ class Publication(models.Model):
         "bibtex_source",
         "link",
         "doi",
-        "source",
     ]
 
     # attribute names to show the other sources the publication is availble in
@@ -334,12 +333,12 @@ class PublicationSource(models.Model):
         (GOOGLE_SCHOLAR, "Google Scholar"),
     ]
 
-    publication = models.ForeignKey(Publication, related_name="source", on_delete=models.CASCADE)
+    publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
     name = models.CharField(max_length=30, choices=SOURCES)
     citation_count = models.IntegerField(default=0, null=False)
     # if the publication identified by the source
     # using our algorithm to find publications ref Chamaleon
-    is_source = models.BooleanField(default=False, null=False)
+    found_by_algorithm = models.BooleanField(default=False, null=False)
 
     class Meta:
         constraints = [models.UniqueConstraint(

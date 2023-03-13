@@ -85,21 +85,17 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
     ]
 
     fields = (
-        "publication_id",
-        "publication_title",
         "name",
-        "count",
-        "is_source",
+        "publication",
+        "citation_count",
     )
 
-    ordering = ["publication__id"]
-
     list_display = (
-        "publication_id",
-        "publication_title",
         "name",
         "citation_count",
-        "is_source",
+        "publication",
+        "citation_count",
+
     )
 
 

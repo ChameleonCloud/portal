@@ -7,6 +7,7 @@ import time
 
 import requests
 from django.conf import settings
+from django.db import transaction
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from pybliometrics.scopus.exception import Scopus404Error
 
@@ -47,16 +48,17 @@ def update_scopus_citation(pub, dry_run=True):
             scopus_pub = search_results[0]
     if scopus_pub:
         # Returns a tuple of (object, created)
-        existing_scopus_source = pub.source.get_or_create(name=Publication.SCOPUS)[0]
-        logger.info((
+        existing_scopus_source = pub.sources.get_or_create(name=Publication.SCOPUS)[0]
+        logger.info(
             f"update scopus citation number for "
             f"{pub.title} (id: {pub.id}) "
             f"from {existing_scopus_source.citation_count} "
             f"to {scopus_pub.citedby_count}"
-        ))
+        )
         if not dry_run:
-            existing_scopus_source.citation_count = scopus_pub.citedby_count
-            existing_scopus_source.save()
+            with transaction.atomic():
+                existing_scopus_source.citation_count = scopus_pub.citedby_count
+                existing_scopus_source.save()
 
 
 def make_semantic_call(url, params, headers):
@@ -118,7 +120,7 @@ def update_semantic_scholar_citation(pub, dry_run=True):
     if semantic_scholar_pub:
         citation_cnt = semantic_scholar_pub.get("citationCount", 0)
         # Returns a tuple of (object, created)
-        existing_sem_source = pub.source.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
+        existing_sem_source = pub.sources.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
         logger.info(
             (
                 f"update semantic scholar citation number for "
@@ -128,8 +130,9 @@ def update_semantic_scholar_citation(pub, dry_run=True):
             )
         )
         if not dry_run:
-            existing_sem_source.citation_count = citation_cnt
-            existing_sem_source.save()
+            with transaction.atomic():
+                existing_sem_source.citation_count = citation_cnt
+                existing_sem_source.save()
 
 
 def update_citation_numbers(dry_run=True):
