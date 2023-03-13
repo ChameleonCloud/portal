@@ -49,12 +49,12 @@ def update_scopus_citation(pub, dry_run=True):
     if scopus_pub:
         # Returns a tuple of (object, created)
         existing_scopus_source = pub.source.get_or_create(name=Publication.SCOPUS)[0]
-        logger.info(
+        logger.info((
             f"update scopus citation number for "
             f"{pub.title} (id: {pub.id}) "
             f"from {existing_scopus_source.citation_count} "
             f"to {scopus_pub.citedby_count}"
-        )
+        ))
         if not dry_run:
             with transaction.atomic():
                 existing_scopus_source.citation_count = scopus_pub.citedby_count

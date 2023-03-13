@@ -33,7 +33,7 @@ def add_source_to_pub(pub, source):
         f"Publication already exists - {pub.title}"
         f" - adding other source - {source} - This check might be outdated"
     )
-    with transaction.atomic()
+    with transaction.atomic():
         source = pub.source.get_or_create(name=source)[0]
         source.found_by_source = True
         source.save()
@@ -290,8 +290,10 @@ class PublicationUtils:
     @staticmethod
     def is_pub_similar(pub1, pub2):
         """Returns if the arg:pub1 and arg:pub2 are similar
-        It returns true if the year and authors are an exact match and
+        It returns true if the year are an exact match and
         if title and venue are almost similar strings see difflib.SequenceMatcher
+        # Not checking for authors match - as authors can have alias
+        # A reviewer to flagged duplicates can verify for authors
 
         Args:
             pub1 (projects.models.Publication)
@@ -301,10 +303,6 @@ class PublicationUtils:
             boolean
         """
         if (pub1.year != pub2.year):
-            return False
-        if not (
-            set(clean_authors_attr(pub1.author)) == set(clean_authors_attr(pub2.author))
-        ):
             return False
         if not (
             PublicationUtils.how_similar(
