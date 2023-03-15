@@ -34,7 +34,7 @@ def add_source_to_pub(pub, source):
         f" - adding other source - {source} - This check might be outdated"
     )
     with transaction.atomic():
-        source = pub.source.get_or_create(name=source)[0]
+        source = pub.sources.get_or_create(name=source)[0]
         source.found_by_source = True
         source.save()
         return
@@ -60,7 +60,6 @@ def guess_project_for_publication(authors, pub_year):
     in the publication's list of authors.
     """
     from projects.models import Project, ProjectPIAlias
-    pub_year = int(pub_year)
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
@@ -324,7 +323,7 @@ def save_publication(pub_model, source):
     Creates the source model with FK to publication"""
     with transaction.atomic():
         pub_model.save()
-        pub_model.source.create(
+        pub_model.sources.create(
             name=source,
             found_by_algorithm=True
         )
