@@ -104,6 +104,8 @@ def add_publications(request, project_id):
         if pubs_form.is_valid():
             bib_database = bibtexparser.loads(pubs_form.cleaned_data["bibtex_string"])
             new_pubs = []
+            # TODO: add a check here to see if a publication is duplicate
+            # use user_projects.deduplicate.flag_duplicates()
             with transaction.atomic():
                 for entry in bib_database.entries:
                     new_pub = Publication.objects.create_from_bibtex(

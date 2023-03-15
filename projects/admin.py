@@ -88,13 +88,13 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "name",
         "publication",
         "citation_count",
+        "found_by_algorithm",
     )
 
     list_display = (
         "name",
         "citation_count",
         "publication",
-        "citation_count",
 
     )
 

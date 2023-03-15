@@ -42,13 +42,13 @@ def update_scopus_citation(pub, dry_run=True):
         search_results = []
         if search and search.results:
             for x in search.results:
-                if (PublicationUtils.are_similar(x.title.lower(), pub.title.lower())):
+                if (PublicationUtils.is_similar_str(x.title.lower(), pub.title.lower())):
                     search_results.append(x)
         if (len(search_results)) > 0:
             scopus_pub = search_results[0]
     if scopus_pub:
         # Returns a tuple of (object, created)
-        existing_scopus_source = pub.source.get_or_create(name=Publication.SCOPUS)[0]
+        existing_scopus_source = pub.sources.get_or_create(name=Publication.SCOPUS)[0]
         logger.info(
             f"update scopus citation number for "
             f"{pub.title} (id: {pub.id}) "
@@ -113,14 +113,14 @@ def update_semantic_scholar_citation(pub, dry_run=True):
             sc_title = result.get("title")
             if (
                 sc_title
-                and PublicationUtils.are_similar(sc_title.lower(), pub.title.lower())
+                and PublicationUtils.is_similar_str(sc_title.lower(), pub.title.lower())
             ):
                 semantic_scholar_pub = result
 
     if semantic_scholar_pub:
         citation_cnt = semantic_scholar_pub.get("citationCount", 0)
         # Returns a tuple of (object, created)
-        existing_sem_source = pub.source.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
+        existing_sem_source = pub.sources.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
         logger.info(
             (
                 f"update semantic scholar citation number for "

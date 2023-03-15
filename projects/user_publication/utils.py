@@ -34,7 +34,7 @@ def add_source_to_pub(pub, source):
         f" - adding other source - {source} - This check might be outdated"
     )
     with transaction.atomic():
-        source = pub.source.get_or_create(name=source)[0]
+        source = pub.sources.get_or_create(name=source)[0]
         source.found_by_source = True
         source.save()
         return
@@ -60,7 +60,6 @@ def guess_project_for_publication(authors, pub_year):
     in the publication's list of authors.
     """
     from projects.models import Project, ProjectPIAlias
-    pub_year = int(pub_year)
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
@@ -155,6 +154,7 @@ def parse_author(author):
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
+    PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.8
 
     @staticmethod
     def get_month(bibtex_entry):
@@ -255,10 +255,41 @@ class PublicationUtils:
         return SequenceMatcher(None, str1, str2).ratio()
 
     @staticmethod
-    def are_similar(str1, str2):
+    def is_similar_str(str1, str2):
         return (
             PublicationUtils.how_similar(str1, str2) >= PublicationUtils.SIMILARITY_THRESHOLD
         )
+
+    @staticmethod
+    def is_pub_similar(pub1, pub2):
+        """Returns if the arg:pub1 and arg:pub2 are similar
+        It returns true if the year are an exact match and
+        if title and venue are almost similar strings see difflib.SequenceMatcher
+        # Not checking for authors match - as authors can have alias
+        # A reviewer to flagged duplicates can verify for authors
+
+        Args:
+            pub1 (projects.models.Publication)
+            pub2 (projects.models.Publication)
+
+        Returns:
+            boolean
+        """
+        if (pub1.year != pub2.year):
+            return False
+        if not (
+            PublicationUtils.how_similar(
+                pub1.title, pub2.title
+            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+        ):
+            return False
+        if not (
+            PublicationUtils.how_similar(
+                pub1.forum, pub2.forum
+            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+        ):
+            return False
+        return True
 
 
 def save_publication(pub_model, source):
@@ -266,7 +297,7 @@ def save_publication(pub_model, source):
     Creates the source model with FK to publication"""
     with transaction.atomic():
         pub_model.save()
-        pub_model.source.create(
+        pub_model.sources.create(
             name=source,
             found_by_algorithm=True
         )
