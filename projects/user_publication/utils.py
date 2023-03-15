@@ -151,32 +151,6 @@ def parse_author(author):
         return names[0]
 
 
-def clean_authors_attr(authors):
-    """Split the authors based on the presense of ',' and 'and' in the text
-    stripped off whitespaces
-
-    Args:
-        authors (str): list of authors seperated by , or and
-
-    Returns:
-        cleaned_authors (list)
-    """
-    # names with lastname, firstname and lastname, firstname
-    # split by and make firstname lastname format
-    if 'and' in authors and ', ' in authors:
-        split_authors = [name.strip() for name in authors.split('and')]
-        cleaned_authors = [parse_author(author) for author in split_authors]
-    elif ', ' in authors:
-        split_authors = [name.strip() for name in authors.split(',')]
-        cleaned_authors = [parse_author(author) for author in authors]
-    elif 'and' in authors:
-        cleaned_authors = [name.strip() for name in authors.split('and')]
-    else:
-        # when there is a single author
-        return [authors]
-    return cleaned_authors
-
-
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
