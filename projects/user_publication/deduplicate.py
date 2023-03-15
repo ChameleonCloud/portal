@@ -24,21 +24,21 @@ def flag_duplicates(dry_run=True, pub_model=None):
 
     # Get a list of publications to check for duplicates
     if pub_model:
-        pubs = [Publication.objects.get(id=pub_model.id)]
+        pubs_to_check_duplicates = [pub_model]
     else:
         # get the publications in reverse so latest can be checked against
         # old ones.
-        pubs = Publication.objects.exclude(exclude_status).order_by("-id")
+        pubs_to_check_duplicates = Publication.objects.exclude(exclude_status).order_by("-id")
 
     # Loop through each publication to check for duplicates
-    for pub1 in pubs:
+    for pub1 in pubs_to_check_duplicates:
         # Get a subset of publications with id less than the publication at question
         # and of same year as the publication at question to check against
-        subset_pubs = Publication.objects.filter(id__lt=pub1.id, year=pub1.year).order_by('-id')
-        subset_pubs = subset_pubs.exclude(exclude_status)
+        pubs_to_check_against = Publication.objects.filter(id__lt=pub1.id, year=pub1.year).order_by('-id')
+        pubs_to_check_against = pubs_to_check_against.exclude(exclude_status)
 
         # Loop through each subset publication to check against for duplicates
-        for pub2 in subset_pubs:
+        for pub2 in pubs_to_check_against:
             # Check if pub1 and pub2 are similar enough to be flagged as duplicates
             if PublicationUtils.is_pub_similar(pub1, pub2):
                 # Flag pub1 as a duplicate if it is not a dry run
