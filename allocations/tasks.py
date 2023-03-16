@@ -319,7 +319,8 @@ def check_charge():
 
     compare_content = defaultdict(lambda: defaultdict(dict))
     for alloc in Allocation.objects.filter(status="active"):
-        for charge in alloc.charges.all():
+        now = datetime.now()
+        for charge in alloc.charges.filter(start_time__lte=now, end_time__gte=now):
             region = charge.region_name
             resource_id = charge.resource_id
 
