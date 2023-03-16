@@ -7,13 +7,11 @@ from difflib import SequenceMatcher
 
 import pytz
 from django.db.models import Q
-from django.db import transaction
-import unicodedata
+from django.utils.text import slugify
 
 LOG = logging.getLogger(__name__)
 
 PUBLICATION_REPORT_KEYS = [
-    "id",
     "title",
     "project_id",
     "publication_type",
@@ -28,26 +26,10 @@ PUBLICATION_REPORT_KEYS = [
 ]
 
 
-def add_source_to_pub(pub, source):
-    LOG.info(
-        f"Publication already exists - {pub.title}"
-        f" - adding other source - {source} - This check might be outdated"
-    )
-    with transaction.atomic():
-        source = pub.source.get_or_create(name=source)[0]
-        source.found_by_source = True
-        source.save()
-        return
-
-
 def decode_unicode_text(en_text):
     # for texts with unicode chars - accented chars replace them with eq ASCII
     # to perform LIKE operation to database
-    de_text = (
-        unicodedata.normalize("NFKD", en_text)
-        .encode("ascii", "ignore")
-        .decode("ascii")
-    )
+    de_text = slugify(en_text)
     if en_text != de_text:
         LOG.info(f"decoding - {en_text} to {de_text}")
     return de_text
@@ -60,7 +42,7 @@ def guess_project_for_publication(authors, pub_year):
     in the publication's list of authors.
     """
     from projects.models import Project, ProjectPIAlias
-    pub_year = int(pub_year)
+
     # Build a complex filter for all projects which have a PI that matches an author name
     name_filter = Q()
     for author in authors:
@@ -97,7 +79,7 @@ def guess_project_for_publication(authors, pub_year):
         start = min(
             alloc.start_date or fake_start for alloc in project.allocations.all()
         )
-        end = max(  
+        end = max(
             alloc.expiration_date or fake_end for alloc in project.allocations.all()
         )
         # If the publication took place during the lifetime of the project, record it
@@ -119,8 +101,8 @@ def guess_project_for_publication(authors, pub_year):
 
 def report_publications(pubs):
     for pub in pubs:
-        print(pub.__repr__())
-        print("\n")
+        print(pub.__repr__)
+        print("")
     return
 
 
@@ -152,10 +134,46 @@ def parse_author(author):
         return names[0]
 
 
-class PublicationUtils:
-    # ratio threshold from difflib.SequenceMatcher for publication titles
-    SIMILARITY_THRESHOLD = 0.9
+def get_pub_type(types, forum):
+    """Return the type of publication
 
+    Args:
+        types (list): (semantic scholar) Journal Article, Conference, Review, etc.
+        forum (str): EntryType - https://www.bibtex.com/e/entry-types/
+
+    Returns:
+        str : publication type - conference, thesis, report, etc.
+    """
+    if not forum:
+        forum = ""
+    forum = forum.lower()
+    if not types:
+        types = []
+    types = [t.lower() for t in types]
+
+    if "arxiv" in forum:
+        return "preprint"
+    if "poster" in forum:
+        return "poster"
+    if "thesis" in forum:
+        if "ms" in forum or "master thesis" in forum:
+            return "ms thesis"
+        if "phd" in forum:
+            return "phd thesis"
+        return "thesis"
+    if "github" in forum:
+        return "github"
+    if "techreport" in forum or "tech report" in forum or "internal report" in forum:
+        return "tech report"
+    if "journalarticle" in types:
+        return "journal article"
+    if "conference" in types or "proceeding" in forum or "conference" in forum:
+        return "conference paper"
+
+    return "other"
+
+
+class PublicationUtils:
     @staticmethod
     def get_month(bibtex_entry):
         month = bibtex_entry.get("month")
@@ -212,12 +230,12 @@ class PublicationUtils:
 
     @staticmethod
     def get_pub_type(bibtex_entry):
-        """For a bibtex entry: dictionary
-        with "ENTRYTYPE" key expected return type of publication based on ENTRYTYPE
-        and other relevant text in the bibtex (excluding abstract)"""
-        bibtex_types = bibtex_entry.get("ENTRYTYPE", '').lower()
+        bibtex_type = bibtex_entry.get("ENTRYTYPE")
+        if not bibtex_type:
+            return "other"
         bibtex_entry.pop("abstract", None)
         bibtex_as_str = str(bibtex_entry).lower()
+
         if "arxiv" in bibtex_as_str:
             return "preprint"
         if "poster" in bibtex_as_str:
@@ -232,41 +250,21 @@ class PublicationUtils:
             return "github"
         if "patent" in bibtex_as_str:
             return "patent"
-        for bibtex_type in bibtex_types.split(','):
-            if bibtex_type == "incollection":
-                return "book chapter"
-            if (
-                "techreport" in bibtex_as_str
-                or "tech report" in bibtex_as_str
-                or "internal report" in bibtex_as_str
-            ):
-                return "tech report"
-            if bibtex_type in ["article", "review", "journal article", "journalarticle"]:
-                return "journal article"
-            if (
-                bibtex_type in ["inproceedings", "conference paper", "conference full paper"]
-                or "proceeding" in bibtex_as_str
-            ):
-                return "conference paper"
+        if bibtex_type == "incollection":
+            return "book chapter"
+        if (
+            "techreport" in bibtex_as_str
+            or "tech report" in bibtex_as_str
+            or "internal report" in bibtex_as_str
+        ):
+            return "tech report"
+        if bibtex_type == "article":
+            return "journal article"
+        if bibtex_type == "inproceedings" or "proceeding" in bibtex_as_str:
+            return "conference paper"
+
         return "other"
 
     @staticmethod
     def how_similar(str1, str2):
         return SequenceMatcher(None, str1, str2).ratio()
-
-    @staticmethod
-    def are_similar(str1, str2):
-        return (
-            PublicationUtils.how_similar(str1, str2) >= PublicationUtils.SIMILARITY_THRESHOLD
-        )
-
-
-def save_publication(pub_model, source):
-    """Saves publication model along with the source
-    Creates the source model with FK to publication"""
-    with transaction.atomic():
-        pub_model.save()
-        pub_model.source.create(
-            name=source,
-            found_by_algorithm=True
-        )

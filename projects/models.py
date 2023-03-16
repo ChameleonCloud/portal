@@ -221,10 +221,10 @@ class PublicationManager(models.Manager):
         pub.forum = PublicationUtils.get_forum(bibtex_entry)
         pub.link = PublicationUtils.get_link(bibtex_entry)
         pub.doi = bibtex_entry.get("doi")
+        pub.source = source
         pub.status = status
 
         pub.save()
-        PublicationSource.objects.create(name=source, publication=pub, is_source=True)
         return pub
 
 
@@ -232,15 +232,10 @@ class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
     STATUS_IMPORTED = "IMPORTED"
-    STATUS_DUPLICATE = "DUPLICATE"
-    STATUS_REJECTED = "REJECTED"
-
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
         (STATUS_IMPORTED, "Imported"),
-        (STATUS_DUPLICATE, "Duplicate"),
-        (STATUS_REJECTED, "Rejected"),
     ]
 
     APPROVED_WITH = [
@@ -251,24 +246,18 @@ class Publication(models.Model):
 
     # keys to report in __repr__
     PUBLICATION_REPORT_FIELDS = [
-        "id",
         "title",
         "project_id",
         "publication_type",
         "forum",
         "year",
+        "month",
         "author",
         "bibtex_source",
         "link",
         "doi",
         "source",
     ]
-
-    # attribute names to show the other sources the publication is availble in
-    USER_REPORTED = "user_reported"
-    SCOPUS = "scopus"
-    SEMANTIC_SCHOLAR = "semantic_scholar"
-    G_SCHOLAR = "google_scholar"
 
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
@@ -285,8 +274,11 @@ class Publication(models.Model):
     added_by_username = models.CharField(max_length=100)
     entry_created_date = models.DateField(auto_now_add=True)
     doi = models.CharField(max_length=500, null=True, blank=True)
+    source = models.CharField(max_length=100, null=False)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
     approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
+    scopus_citations = models.IntegerField(null=True)
+    semantic_scholar_citations = models.IntegerField(null=True)
 
     def __str__(self) -> str:
         return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
@@ -318,34 +310,3 @@ class Funding(models.Model):
 
     def __str__(self) -> str:
         return f"{self.agency} {self.award}-{self.grant_name}"
-
-
-class PublicationSource(models.Model):
-    """Model to hold information about source of publication and number of citations"""
-    USER_REPORTED = "user_reported"
-    SCOPUS = "scopus"
-    SEMANTIC_SCHOLAR = "semantic_scholar"
-    GOOGLE_SCHOLAR = "google_scholar"
-
-    SOURCES = [
-        (USER_REPORTED, "User Reported"),
-        (SCOPUS, "Scopus"),
-        (SEMANTIC_SCHOLAR, "Semantic scholar"),
-        (GOOGLE_SCHOLAR, "Google Scholar"),
-    ]
-
-    publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
-    name = models.CharField(max_length=30, choices=SOURCES)
-    citation_count = models.IntegerField(default=0, null=False)
-    # if the publication identified by the source
-    # using our algorithm to find publications ref Chamaleon
-    found_by_algorithm = models.BooleanField(default=False, null=False)
-
-    class Meta:
-        constraints = [models.UniqueConstraint(
-            fields=["publication", "name"],
-            name='Unique source for a publication'
-        )]
-
-    def __str__(self):
-        return self.name

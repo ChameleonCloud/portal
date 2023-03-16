@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from projects.models import Invitation, Publication, Funding, ChameleonPublication, PublicationSource
+from projects.models import Invitation, Publication, Funding, ChameleonPublication
 
 
 class ProjectFields:
@@ -16,6 +16,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "project_charge_code",
         "added_by_username",
         "entry_created_date",
+        "scopus_citations",
+        "semantic_scholar_citations",
     ]
 
     fields = (
@@ -31,8 +33,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "link",
         "added_by_username",
         "entry_created_date",
+        "source",
         "status",
         "approved_with",
+        "scopus_citations",
+        "semantic_scholar_citations",
     )
 
     ordering = ["project__charge_code", "-year", "-entry_created_date"]
@@ -67,40 +72,7 @@ class FundingAdmin(ProjectFields, admin.ModelAdmin):
         return form
 
 
-class PublicationFields:
-    def publication_id(self, model):
-        """Obtain the publication id attribute from the `publication` relation """
-        publication = getattr(model, "publication", None)
-        return getattr(publication, "id", None)
-
-    def publication_title(self, model):
-        """Obtain the publication title attribute from the `publication` relation """
-        publication = getattr(model, "publication", None)
-        return getattr(publication, "title", None)
-
-
-class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
-    readonly_fields = [
-        "citation_count"
-    ]
-
-    fields = (
-        "name",
-        "publication",
-        "citation_count",
-    )
-
-    list_display = (
-        "name",
-        "citation_count",
-        "publication",
-        "citation_count",
-
-    )
-
-
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation)
 admin.site.register(Funding, FundingAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
-admin.site.register(PublicationSource, PublicationSourceAdmin)
