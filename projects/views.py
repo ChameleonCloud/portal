@@ -210,6 +210,9 @@ def view_project(request, project_id):
     pi_form = EditPIForm()
     bulk_user_form = ProjectAddBulkUserForm()
 
+    user_roles = keycloak_client.get_roles_for_all_project_members(
+        get_charge_code(project)
+    )
     can_manage_project_membership, can_manage_project = get_user_permissions(
         keycloak_client, request.user.username, project
     )
@@ -319,6 +322,21 @@ def view_project(request, project_id):
                 ]
                 if _add_users_to_project(request, project, project_id, usernames):
                     bulk_user_form = ProjectAddBulkUserForm()
+        elif "remove_bulk_users" in request.POST:
+            non_managers = [
+                user
+                for user in get_project_members(project)
+                if user_roles.get(user.username) not in ("admin", "manager")
+            ]
+            errors = []
+            for user in non_managers:
+                if not membership.remove_user_from_project(project, user):
+                    errors.append(f"Failed to remove {user}")
+            if not errors:
+                messages.success(request, "Removed all non-managers from project.")
+            else:
+                for error in errors:
+                    messages.error(request, error)
 
     for a in project.allocations:
         if a.start and isinstance(a.start, str):
@@ -339,9 +357,6 @@ def view_project(request, project_id):
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
-    user_roles = keycloak_client.get_roles_for_all_project_members(
-        get_charge_code(project)
-    )
     users_mashup = []
 
     for u in users:
