@@ -320,8 +320,8 @@ def save_publication(pub_model, source):
         source.save()
 
 
-def export_publication_csv(
-        file_name, pub, source, author_usernames, valid_projcts, projects, reason
+def export_publication_status_run(
+        file_name, pub, author_usernames, valid_projcts, projects, reason
 ):
     if not os.path.isfile(file_name):
         with open(file_name, 'w', newline='') as csv_f:
@@ -339,7 +339,6 @@ def export_publication_csv(
             pub.bibtex_source,
             pub.link,
             pub.doi,
-            source,
             author_usernames,
             valid_projcts,
             projects,

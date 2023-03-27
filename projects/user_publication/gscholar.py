@@ -202,27 +202,6 @@ def pub_import(
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
-            authors = gscholar.get_authors(cited_pub)
-            cited_pub_title = cited_pub['bib']['title']
-            project = utils.guess_project_for_publication(
-                authors, cited_pub["bib"]["pub_year"]
-            )
-            if not project:
-                continue
-            if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
-                logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
-                continue
-            # this is to find if there is a publication already in database matching to
-            # this title and project however this needs to be changed after looking
-            # at some examples and how to better handle these dumplicates
-            pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
-            if pub_exists:
-                utils.add_source_to_pub(pub_exists[0], Publication.G_SCHOLAR)
-                continue
             pub_model = gscholar.get_pub_model(cited_pub)
-            pub_model.project = project
-            if not dry_run:
-                # save publication model with source
-                utils.save_publication(pub_model, PublicationSource.GOOGLE_SCHOLAR)
             pubs.append(pub_model)
     return pubs
