@@ -203,6 +203,14 @@ def _compute_artifact_fields(artifact):
     return artifact
 
 
+def _owns_artifact(user, artifact):
+    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
+    return (
+        owner_urn["id"] == user.username
+        and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
+    )
+
+
 @handle_trovi_errors
 def _trovi_artifacts(request):
     artifacts = [
