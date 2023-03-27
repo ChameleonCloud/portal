@@ -121,7 +121,10 @@ def handle_trovi_errors(view_func):
 
 
 def can_edit(request, artifact):
-    return _owns_artifact(request.user, artifact)
+    return any(
+        role["user"] == trovi.to_user_urn(request.user.username)
+        for role in artifact["roles"]
+    )
 
 
 def handle_get_artifact(request, uuid, sharing_key=None):
@@ -198,14 +201,6 @@ def _compute_artifact_fields(artifact):
     )
     artifact["is_private"] = artifact["visibility"] == "private"
     return artifact
-
-
-def _owns_artifact(user, artifact):
-    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
-    return (
-        owner_urn["id"] == user.username
-        and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
-    )
 
 
 @handle_trovi_errors
