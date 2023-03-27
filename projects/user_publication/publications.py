@@ -1,9 +1,11 @@
 import logging
 from datetime import date
+
+from projects.models import (ChameleonPublication, Project, Publication,
+                             PublicationSource)
+from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.deduplicate import flag_duplicates
-from projects.user_publication import scopus, semantic_scholar, gscholar, utils
-from projects.user_publication.utils import export_publications, report_publications, PublicationUtils
-from projects.models import Project, PublicationSource, ChameleonPublication, Publication
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +43,9 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         elif pub.status == Publication.STATUS_DUPLICATE:
             logger.info("Found publication as duplicate. Run review_duplicates() to review")
             reason = f"Skipping: Found Duplicate {duplicates[pub.title]}"
-        elif not dry_run:
+        if not dry_run:
             utils.save_publication(pub, PublicationSource.SCOPUS)
+            utils.update_original_pub_source(pub, duplicates[pub.title])
             reason = f"Saving: {pub.title}"
         utils.export_publication_status_run(
             report_file_name,

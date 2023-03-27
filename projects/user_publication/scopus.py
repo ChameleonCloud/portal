@@ -5,11 +5,9 @@ import re
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import ChameleonPublication, Project, Publication, PublicationSource
-
+from projects.models import Publication, PublicationSource
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
-from projects.user_publication.deduplicate import flag_duplicates
 
 logger = logging.getLogger("projects")
 
@@ -90,5 +88,8 @@ def pub_import(dry_run=True):
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
             status=Publication.STATUS_SUBMITTED
         )
+        same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+        if same_pub.exists():
+            utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
         publications.append(pub_model)
     return publications

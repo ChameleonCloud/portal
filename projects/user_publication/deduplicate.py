@@ -2,9 +2,8 @@
 
 import logging
 from projects.user_publication.utils import PublicationUtils
-from projects.models import Publication, PublicationSource
+from projects.models import Publication
 from django.db.models import Q
-from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -58,30 +57,14 @@ def flag_duplicates(source, dry_run=True, pub_model=None):
             pub1.status = Publication.STATUS_DUPLICATE
             pub1.is_reviewed = False
             duplicate_mappings[pub1.title] = pub2.id
-            # Flag pub1 as a duplicate if it is not a dry run
-            # add pub1's source as source to pub2 source
-            if dry_run:
-                # Log the publications that have been flagged as duplicates                
-                logger.info(f"{pub1.title} is flagged duplicate to {pub2.id} {pub2.title}")
-                continue
+            # Log the publications that have been flagged as duplicates                
+            logger.info(f"{pub1.title} is flagged duplicate to {pub2.id} {pub2.title}")
             # when pub1 has no ID, then its not saved in database
             # so no need to save it my flagging it as duplicate
             if not pub1.id:
                 continue
-            with transaction.atomic():
-                pub1_sources = pub1.sources.all()
-                for pub1_source in pub1_sources:
-                    # copy all the objects's data to pub2_source
-                    pub2_source = pub1_source
-                    # assign pk as none so when save() a new object is created
-                    pub2_source.pk = None
-                    pub2_source.publication = pub2
-                    pub2_source.is_found_by_algorithm = True
-                    pub2_source.approved_with = PublicationSource.PENDING_REVIEW
-                    pub2_source.save()
-                pub1.save()
             # when the function is called with pub_model argument
-            # return true when a dupplicate if found
+            # return true when a duplicate if found
             if pub_model:
                 return duplicate_mappings
             # stop searching when pub1 is found as duplicate

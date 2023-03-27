@@ -36,13 +36,29 @@ PUBLICATION_REPORT_KEYS = [
 ]
 
 
-def publications_with_same_attributes(pub, publication_manager):
+def get_publication_with_same_attributes(pub, publication_manager):
     # return publications with exact title, forum, year
     return publication_manager.filter(
         title__iexact=pub.title,
         forum__iexact=pub.forum,
+        author__iexact=pub.author,
         year=pub.year,
-    )
+    ).exists()
+
+
+def update_original_pub_source(original_pub, duplicate_pub):
+    with transaction.atomic():
+        dpub_sources = duplicate_pub.sources.all()
+        for dpub_source in dpub_sources:
+            # copy all the objects's data to pub2_source
+            opub_source = dpub_source
+            # assign pk as none so when save() a new object is created
+            opub_source.pk = None
+            opub_source.publication = original_pub
+            opub_source.is_found_by_algorithm = True
+            opub_source.approved_with = opub_source.PENDING_REVIEW
+            opub_source.save()
+        duplicate_pub.save()
 
 
 def add_source_to_pub(pub, source, dry_run=True):
@@ -106,32 +122,6 @@ def get_usernames_for_author(author):
         name_filter = Q(first_name__iexact=first_name, last_name__iexact=last_name)
     users = User.objects.filter(name_filter)
     return [user.username for user in users]
-
-
-def guess_project_for_publication(authors, pub_year, title=None):
-    """
-    For a given publication, we figure out which project it is most-likely from by
-    finding out which projects were active during the publication year, and have a PI
-    in the publication's list of authors.
-    """
-    pass
-
-
-def report_publications(pubs):
-    for pub in pubs:
-        print(pub.__repr__())
-        print("\n")
-    return
-
-
-def export_publications(pubs, file_name):
-    with open(file_name, "w", newline="") as myfile:
-        wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-        wr.writerow(PUBLICATION_REPORT_KEYS)
-        for pub in pubs:
-            pd = pub.__dict__
-            wr.writerow([pd.get(k) for k in PUBLICATION_REPORT_KEYS])
-    return
 
 
 def format_author_name(author):
@@ -321,7 +311,7 @@ def save_publication(pub_model, source):
 
 
 def export_publication_status_run(
-        file_name, pub, author_usernames, valid_projcts, projects, reason
+        file_name, pub, author_usernames, valid_projects, projects, reason
 ):
     if not os.path.isfile(file_name):
         with open(file_name, 'w', newline='') as csv_f:
@@ -340,10 +330,8 @@ def export_publication_status_run(
             pub.link,
             pub.doi,
             author_usernames,
-            valid_projcts,
+            valid_projects,
             projects,
             reason
         ]
         csv_f_writer.writerow(row)
-
-

@@ -7,7 +7,8 @@ from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication, Publication, PublicationSource
+from projects.models import (ChameleonPublication, Publication,
+                             PublicationSource)
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -77,7 +78,7 @@ class GoogleScholarHandler(object):
         Args:
             pub (dict): return of the search_single_pub method
             year_low (int, optional): year to query from. Defaults to 2014
-            year_high (int, optional): yaar to query till. Defaults to datetime.now().year
+            year_high (int, optional): year to query till. Defaults to datetime.now().year
 
         Returns:
             list: list of publications that cited arg:pub
@@ -185,7 +186,7 @@ class GoogleScholarHandler(object):
 def pub_import(
     dry_run=True, year_low=2014, year_high=None
 ):
-    """Returns Publication models of all publicationls that ref chameleon
+    """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
 
@@ -203,5 +204,8 @@ def pub_import(
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
             pub_model = gscholar.get_pub_model(cited_pub)
+            same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+            if same_pub.exists():
+                utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
             pubs.append(pub_model)
     return pubs

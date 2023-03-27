@@ -5,7 +5,8 @@ import re
 import requests
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import (ChameleonPublication, Publication,
+                             PublicationSource)
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -125,6 +126,9 @@ def _get_pub_model(publication, dry_run=True):
         }),
         status=Publication.STATUS_SUBMITTED,
     )
+    same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+    if same_pub.exists():
+        utils.add_source_to_pub(same_pub.get(), PublicationSource.SEMANTIC_SCHOLAR)
     return pub_model
 
 
