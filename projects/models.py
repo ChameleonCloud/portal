@@ -231,22 +231,14 @@ class PublicationManager(models.Manager):
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
-    STATUS_IMPORTED = "IMPORTED"
     STATUS_DUPLICATE = "DUPLICATE"
     STATUS_REJECTED = "REJECTED"
 
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
-        (STATUS_IMPORTED, "Imported"),
         (STATUS_DUPLICATE, "Duplicate"),
         (STATUS_REJECTED, "Rejected"),
-    ]
-
-    APPROVED_WITH = [
-        ("PUBLICATION", "Publication"),
-        ("JUSTIFICATION", "Justification"),
-        ("EMAIL", "Email"),
     ]
 
     # keys to report in __repr__
@@ -263,12 +255,6 @@ class Publication(models.Model):
         "doi",
     ]
 
-    # attribute names to show the other sources the publication is availble in
-    USER_REPORTED = "user_reported"
-    SCOPUS = "scopus"
-    SEMANTIC_SCHOLAR = "semantic_scholar"
-    G_SCHOLAR = "google_scholar"
-
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
         Project, related_name="project_publication", null=True, on_delete=models.CASCADE
@@ -282,13 +268,12 @@ class Publication(models.Model):
     bibtex_source = models.TextField()
     link = models.CharField(max_length=500, null=True, blank=True)
     added_by_username = models.CharField(max_length=100)
-    entry_created_date = models.DateField(auto_now_add=True)
     doi = models.CharField(max_length=500, null=True, blank=True)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
-    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
+    is_reviewed = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
-        return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
+        return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"
 
     def __repr__(self) -> str:
         line_format = "{0:18} : {1}"
@@ -333,12 +318,28 @@ class PublicationSource(models.Model):
         (GOOGLE_SCHOLAR, "Google Scholar"),
     ]
 
+    PUBLICATION = "publication"
+    JUSTIFICATION = "justification"
+    EMAIL = "email"
+    PENDING_REVIEW = "pending_review"
+
+    APPROVED_WITH = [
+        (PUBLICATION, "Publication"),
+        (JUSTIFICATION, "Justification"),
+        (EMAIL, "Email"),
+        (PENDING_REVIEW, "Review Pending")
+    ]
+
     publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
     name = models.CharField(max_length=30, choices=SOURCES)
     citation_count = models.IntegerField(default=0, null=False)
+    entry_created_date = models.DateField(auto_now_add=True)
     # if the publication identified by the source
     # using our algorithm to find publications ref Chamaleon
-    found_by_algorithm = models.BooleanField(default=False, null=False)
+    is_found_by_algorithm = models.BooleanField(default=False, null=False)
+    is_cited = models.BooleanField(default=False, null=False)
+    is_acknowledged = models.BooleanField(default=False, null=False)
+    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(

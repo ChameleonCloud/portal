@@ -133,7 +133,7 @@ class GoogleScholarHandler(object):
         # inspired from django.utils.text.slugify
         authors = re.sub(r"[^\,\w\s-]", "", authors)
         authors = authors.split(" and ")
-        parsed_authors = [utils.parse_author(author) for author in authors]
+        parsed_authors = [utils.format_author_name(author) for author in authors]
         return parsed_authors
 
     def get_pub_model(self, pub):

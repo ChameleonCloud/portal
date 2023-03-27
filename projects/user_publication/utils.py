@@ -1,8 +1,8 @@
 import csv
 import datetime
 import logging
+import os
 import re
-from collections import Counter
 from difflib import SequenceMatcher
 
 import pytz
@@ -10,12 +10,16 @@ from django.db.models import Q
 from django.db import transaction
 import unicodedata
 
+# from projects.models import Publication
+from util.keycloak_client import KeycloakClient
+from django.contrib.auth.models import User
+
+
 LOG = logging.getLogger(__name__)
 
 PUBLICATION_REPORT_KEYS = [
     "id",
     "title",
-    "project_id",
     "publication_type",
     "forum",
     "year",
@@ -25,19 +29,35 @@ PUBLICATION_REPORT_KEYS = [
     "link",
     "doi",
     "source",
+    "author_usernames",
+    "valid_projects",
+    "projects",
+    "reason"
 ]
 
 
-def add_source_to_pub(pub, source):
+def publications_with_same_attributes(pub, publication_manager):
+    # return publications with exact title, forum, year
+    return publication_manager.filter(
+        title__iexact=pub.title,
+        forum__iexact=pub.forum,
+        year=pub.year,
+    )
+
+
+def add_source_to_pub(pub, source, dry_run=True):
     LOG.info(
         f"Publication already exists - {pub.title}"
-        f" - adding other source - {source} - This check might be outdated"
+        f" - adding other source - {source}"
     )
+    if dry_run:
+        return
     with transaction.atomic():
         source = pub.sources.get_or_create(name=source)[0]
-        source.found_by_source = True
+        source.is_found_by_algorithm = True
+        source.is_cited = True
+        source.approved_with = source.PUBLICATION
         source.save()
-        return
 
 
 def decode_unicode_text(en_text):
@@ -53,67 +73,48 @@ def decode_unicode_text(en_text):
     return de_text
 
 
-def guess_project_for_publication(authors, pub_year):
+def get_projects_of_users(usernames):
+    kcc = KeycloakClient()
+    projects = []
+    for username in usernames:
+        projects.extend(kcc.get_user_projects_by_username(username))
+    return projects
+
+
+def is_project_prior_to_publication(project, pub_year):
+    fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
+    # Consider the runtime of a project to be the start of its first allocation
+    # until the end of its last allocation
+    start = min(
+        alloc.start_date or fake_start for alloc in project.allocations.all()
+    )
+    # if project's allocation is prior to publication year
+    if start.year <= pub_year:
+        return True
+    return False
+
+
+def get_usernames_for_author(author):
+    name_filter = Q()
+    author = decode_unicode_text(author)
+    try:
+        first_name, *_, last_name = author.rsplit(" ", 1)
+    except ValueError:
+        # There are some authors on semantic scholar with only a last name
+        name_filter = Q(last_name=author)
+    else:
+        name_filter = Q(first_name__iexact=first_name, last_name__iexact=last_name)
+    users = User.objects.filter(name_filter)
+    return [user.username for user in users]
+
+
+def guess_project_for_publication(authors, pub_year, title=None):
     """
     For a given publication, we figure out which project it is most-likely from by
     finding out which projects were active during the publication year, and have a PI
     in the publication's list of authors.
     """
-    from projects.models import Project, ProjectPIAlias
-    # Build a complex filter for all projects which have a PI that matches an author name
-    name_filter = Q()
-    for author in authors:
-        author = decode_unicode_text(author)
-        try:
-            first_name, *_, last_name = author.rsplit(" ", 1)
-        except ValueError:
-            # There are some authors on semantic scholar with only a last name
-            name_filter |= Q(pi__last_name=author)
-            continue
-        name_filter |= Q(
-            pi__first_name__iexact=first_name, pi__last_name__iexact=last_name
-        )
-        aliases = ProjectPIAlias.objects.filter(alias__iexact=author)
-        # If the author has any aliases, look for those as well
-        for alias in aliases.all():
-            name_filter |= Q(
-                pi__first_name__iexact=alias.pi.first_name,
-                pi__last_name__iexact=alias.pi.last_name,
-            )
-    # Grab all the projects who have a publications written by one of the requested authors
-    projects = Project.objects.filter(name_filter)
-    if not projects.exists():
-        LOG.info(f"Could not find project for authors {authors}")
-        return
-    counter = Counter()
-    fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
-    fake_end = datetime.datetime(year=1, month=1, day=1, tzinfo=pytz.UTC)
-    for project in projects.all():
-        if not project.allocations.exists():
-            continue
-        # Consider the runtime of a project to be the start of its first allocation
-        # until the end of its last allocation
-        start = min(
-            alloc.start_date or fake_start for alloc in project.allocations.all()
-        )
-        end = max(  
-            alloc.expiration_date or fake_end for alloc in project.allocations.all()
-        )
-        # If the publication took place during the lifetime of the project, record it
-        if start.year <= pub_year <= end.year + 1:
-            # Count the number of authors that appear in this project's publications
-            all_authors = {p.author.lower() for p in project.project_publication.all()}
-            found_authors = len({a for a in authors if a in all_authors})
-            counter.update({project: found_authors})
-
-    if len(counter) == 0:
-        LOG.info(
-            f"Could not find project during publication timeframe: "
-            f"(Year {pub_year}, authors {authors})"
-        )
-        return
-
-    return counter.most_common(1)[0][0]
+    pass
 
 
 def report_publications(pubs):
@@ -133,7 +134,7 @@ def export_publications(pubs, file_name):
     return
 
 
-def parse_author(author):
+def format_author_name(author):
     """Parse author by stripping off the spaces
     and joining as "firstname lastname" instead of "lastname, firstname"
     returns arg:author is only single name is passed
@@ -252,6 +253,10 @@ class PublicationUtils:
 
     @staticmethod
     def how_similar(str1, str2):
+        if not str1:
+            str1 = ""
+        if not str2:
+            str2 = ""
         return SequenceMatcher(None, str1, str2).ratio()
 
     @staticmethod
@@ -291,13 +296,55 @@ class PublicationUtils:
             return False
         return True
 
+    @staticmethod
+    def get_projects_for_author_names(author_names, year):
+        usernames = []
+        for author in author_names:
+            usernames.extend(get_usernames_for_author(author))
+        kcc = KeycloakClient()
+        projects = [proj for u in usernames for proj in kcc.get_user_projects_by_username(u)]
+        return projects
+
 
 def save_publication(pub_model, source):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
     with transaction.atomic():
         pub_model.save()
-        pub_model.sources.create(
+        source = pub_model.sources.create(
             name=source,
-            found_by_algorithm=True
+            is_found_by_algorithm=True,
+            is_cited=True
         )
+        source.approved_with = source.PENDING_REVIEW
+        source.save()
+
+
+def export_publication_csv(
+        file_name, pub, source, author_usernames, valid_projcts, projects, reason
+):
+    if not os.path.isfile(file_name):
+        with open(file_name, 'w', newline='') as csv_f:
+            csv_f_writer = csv.writer(csv_f)
+            csv_f_writer.writerow(PUBLICATION_REPORT_KEYS)
+    with open(file_name, 'a', newline='') as csv_f:
+        csv_f_writer = csv.writer(csv_f)
+        row = [
+            pub.title,
+            pub.publication_type,
+            pub.forum,
+            pub.year,
+            pub.month,
+            pub.author,
+            pub.bibtex_source,
+            pub.link,
+            pub.doi,
+            source,
+            author_usernames,
+            valid_projcts,
+            projects,
+            reason
+        ]
+        csv_f_writer.writerow(row)
+
+

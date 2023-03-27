@@ -5,10 +5,11 @@ import re
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import ChameleonPublication, Publication, PublicationSource
+from projects.models import ChameleonPublication, Project, Publication, PublicationSource
 
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.deduplicate import flag_duplicates
 
 logger = logging.getLogger("projects")
 
@@ -30,14 +31,6 @@ CHAMELEON_REFS_REGEX = [
 
 def _get_references(a):
     return a.references if a.references else []
-
-
-def _get_pub_type(scopus_pub_type):
-    if scopus_pub_type == "Conference Paper":
-        return "conference full paper"
-    if scopus_pub_type == "Article" or scopus_pub_type == "Review":
-        return "journal article"
-    return scopus_pub_type
 
 
 def _publication_references_chameleon(references):
@@ -72,36 +65,21 @@ def pub_import(dry_run=True):
         # then consider the publication a lost cause
         if not references:
             continue
-
         if not _publication_references_chameleon(references):
+            print(raw_pub.title, "Does not referece chameleon")
             continue
-
         title = utils.decode_unicode_text(raw_pub.title)
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
         year = published_on.year
+        # get the author names with decoded unicode charachters
         author_names = utils.decode_unicode_text(raw_pub.author_names)
-        authors = [utils.parse_author(author) for author in author_names.split(";")]
-        proj = utils.guess_project_for_publication(authors, year)
-        if not proj:
-            continue
-
-        if (
-            not proj
-            or ChameleonPublication.objects.filter(title__iexact=title).exists()
-        ):
-            continue
-        pub_exists = Publication.objects.filter(title=title, project_id=proj)
-        if pub_exists:
-            utils.add_source_to_pub(pub_exists[0], Publication.SCOPUS)
-            continue
-
+        # authors as a list of strings "firstname lastname" format
+        authors = [utils.format_author_name(author) for author in author_names.split(";")]
         pub_model = Publication(
             title=title,
             year=year,
             month=published_on.month,
             author=" and ".join(authors),
-            entry_created_date=datetime.date.today(),
-            project=proj,
             publication_type=PublicationUtils.get_pub_type({
                 "ENTRYTYPE": raw_pub.subtypeDescription
             }),
@@ -110,11 +88,83 @@ def pub_import(dry_run=True):
             forum=raw_pub.publicationName,
             doi=raw_pub.doi,
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
-            status=Publication.STATUS_IMPORTED
+            status=Publication.STATUS_SUBMITTED
         )
-        logger.info(f"import {str(pub_model)}")
+        # all the projects from the authors in chameleon
+        projects = PublicationUtils.get_projects_for_author_names(authors, year)
+        # valid projects that are active prior to the publication year
+        valid_projects = []
+        for project_code in projects:
+            try:
+                project = Project.objects.get(charge_code=project_code)
+            except Project.DoesNotExist:
+                logger.info(f"{project_code} does not exist in database")
+                continue
+            if utils.is_project_prior_to_publication(project, year):
+                valid_projects.append(project_code)
+        author_usernames = [utils.get_usernames_for_author(author) for author in authors]
+        report_file_name = 'scoppu_report.csv'
+        if (
+            not valid_projects
+            or ChameleonPublication.objects.filter(title__iexact=title).exists()
+        ):
+            reason = "Skipping: no valid projects"
+            utils.export_publication_csv(
+                report_file_name,
+                pub_model,
+                PublicationSource.SCOPUS,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason
+            )
+            continue
+        same_pubs = utils.publications_with_same_attributes(pub_model, Publication.objects)
+        reason = None
+        if len(same_pubs) > 0:
+            same_pubs_ids_str = ""
+            for same_pub in same_pubs:
+                same_pubs_ids_str += f"{same_pub.id} "
+                utils.add_source_to_pub(same_pub, PublicationSource.SCOPUS, dry_run=dry_run)
+            logger.info("Found publication with same attributes - adding source")
+            reason = f"Adding Source: Found Publication ids {same_pubs_ids_str} with same attributes"
+            utils.export_publication_csv(
+                report_file_name,
+                pub_model,
+                PublicationSource.SCOPUS,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason
+            )
+            continue
+        duplicates = flag_duplicates(PublicationSource.SCOPUS, dry_run=dry_run, pub_model=pub_model)
+        if pub_model.status == Publication.STATUS_DUPLICATE:
+            logger.info("Found publication as duplicate. Run review_duplicates() to review")
+            reason = f"Skipping: Found Duplicate {duplicates[pub_model.title]}"
+            utils.export_publication_csv(
+                report_file_name,
+                pub_model,
+                PublicationSource.SCOPUS,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason
+            )
+            continue
         if not dry_run:
             # save publication model with source
             utils.save_publication(pub_model, PublicationSource.SCOPUS)
+            reason = f"Saving: {pub_model.title}"
+            utils.export_publication_csv(
+                report_file_name,
+                pub_model,
+                PublicationSource.SCOPUS,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason
+            )
+        logger.info(f"import {str(pub_model)}")
         publications.append(pub_model)
     return publications
