@@ -1,11 +1,13 @@
 # Functions to identify similarities in two publications to flag one of them as diplicate
 
-from collections import defaultdict
 import logging
-from projects.user_publication.utils import PublicationUtils, update_original_pub_source
-from projects.models import Publication, PublicationSource
-from django.db.models import Q
+from collections import defaultdict
+
 from django.db import transaction
+
+from projects.models import Publication
+from projects.user_publication.utils import (PublicationUtils,
+                                             update_original_pub_source)
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ def flag_duplicates(pubs=None):
     then the pub_model status is changed as DUPLICATE and lets downstream decide to save it or not
 
     Args:
-        pub_model (models.Publication, optional): Publication model to check if it is a duplicate.
+        pub_model (list, optional): list of Publication models to check if it is a duplicate.
             Defaults to None, checks for all the publications if None
     Returns:
         (dict): keys are title or id (depends if the model is saved or not) of the publication
@@ -67,7 +69,7 @@ def review_duplicates(dry_run=True):
     for dpub in duplicate_originals_map:
         opubs = duplicate_originals_map[dpub]
         for opub in opubs:
-            print(f"Found duplicate publication: ")
+            print("Found duplicate publication: ")
             print("Publication 1: ", dpub.__repr__())
             print("Publication 2: ", opub.__repr__())
             print("Is publication ")

@@ -1,8 +1,7 @@
 import logging
 from datetime import date
 
-from projects.models import (ChameleonPublication, Project, Publication,
-                             PublicationSource)
+from projects.models import ChameleonPublication, Project, Publication
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.deduplicate import flag_duplicates
 from projects.user_publication.utils import PublicationUtils
@@ -40,7 +39,7 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         author_usernames = [utils.get_usernames_for_author(author) for author in authors]
         report_file_name = f'publications_run_{date.today()}.csv'
 
-        duplicates = flag_duplicates(pub_model=pub)
+        duplicates = flag_duplicates(pubs=[pub])
 
         # Check if there are valid projects and if the publication already exists
         if (

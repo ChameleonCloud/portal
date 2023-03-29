@@ -3,17 +3,16 @@ import datetime
 import logging
 import os
 import re
+import unicodedata
 from difflib import SequenceMatcher
 
 import pytz
-from django.db.models import Q
+from django.contrib.auth.models import User
 from django.db import transaction
-import unicodedata
+from django.db.models import Q
 
 # from projects.models import Publication
 from util.keycloak_client import KeycloakClient
-from django.contrib.auth.models import User
-
 
 LOG = logging.getLogger(__name__)
 
