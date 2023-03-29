@@ -88,8 +88,8 @@ def pub_import(dry_run=True):
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
             status=Publication.STATUS_SUBMITTED
         )
-        same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+        same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
         if same_pub.exists():
             utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
-        publications.append(pub_model)
+        publications.append((PublicationSource.SCOPUS, pub_model))
     return publications

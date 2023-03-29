@@ -75,7 +75,6 @@ def _get_authors(aids):
         params={"fields": ",".join(fields)},
         headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
     )
-    print(response.status_code)
     return response.json()
 
 
@@ -95,7 +94,6 @@ def _get_pub_model(publication, dry_run=True):
     author_details = _get_authors(author_ids)
     authors = set()
     for author_detail in author_details:
-        print(author_detail)
         if not author_detail:
             continue
         authors.add(author_detail['name'])
@@ -126,7 +124,7 @@ def _get_pub_model(publication, dry_run=True):
         }),
         status=Publication.STATUS_SUBMITTED,
     )
-    same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+    same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
     if same_pub.exists():
         utils.add_source_to_pub(same_pub.get(), PublicationSource.SEMANTIC_SCHOLAR)
     return pub_model
@@ -138,5 +136,6 @@ def pub_import(dry_run=True):
         for cc in _get_citations(chameleon_pub.ref):
             p = _get_pub_model(cc, dry_run)
             if p:
-                publications.append(p)
+                publications.append((PublicationSource.SEMANTIC_SCHOLAR, p))
+        break
     return publications

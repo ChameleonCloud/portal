@@ -84,7 +84,7 @@ class GoogleScholarHandler(object):
             list: list of publications that cited arg:pub
         """
         if not year_high:
-            year_high = datetime.now().year
+            year_high = datetime.datetime.now().year
         pub_id = self._publication_id(pub)
         logger.info(f"Getting citations for {pub['bib']['title']}")
         num_citations = pub['num_citations']
@@ -129,7 +129,7 @@ class GoogleScholarHandler(object):
         # few authors have unicode characters encoded to ascii
         # for example Lo{\"}c
         # substitute all character from text except
-        # ',' , \w word charachter, \s whitespace character
+        # ',' , \w word character, \s whitespace character
         # - any other character
         # inspired from django.utils.text.slugify
         authors = re.sub(r"[^\,\w\s-]", "", authors)
@@ -150,7 +150,7 @@ class GoogleScholarHandler(object):
             added_by_username="admin",
             forum=forum,
             link=pub.get("pub_url", ''),
-            status=Publication.STATUS_IMPORTED,
+            status=Publication.STATUS_SUBMITTED,
         )
         return pub_model
 
@@ -204,8 +204,9 @@ def pub_import(
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
             pub_model = gscholar.get_pub_model(cited_pub)
-            same_pub = utils.get_publication_with_same_attributes(pub_model, Publication.objects)
+            same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
             if same_pub.exists():
                 utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
-            pubs.append(pub_model)
+            pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+        break
     return pubs

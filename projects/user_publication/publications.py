@@ -12,16 +12,21 @@ logger = logging.getLogger(__name__)
 
 def import_pubs(dry_run=True, file_name="", source="all"):
     pubs = []
+
+    # Import publications from different sources based on the input argument
     if source in ["scopus", "all"]:
         pubs.extend(scopus.pub_import(dry_run))
     if source in ["semantic_scholar", "all"]:
         pubs.extend(semantic_scholar.pub_import(dry_run))
     if source in ["gscholar", "all"]:
         pubs.extend(gscholar.pub_import(dry_run))
-    for pub in pubs:
+
+    # Process each publication
+    for source, pub in pubs:
         authors = [author.strip() for author in pub.author.split("and")]
         projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
-        # valid projects that are active prior to the publication year
+
+        # Get valid projects that are active prior to the publication year
         valid_projects = []
         for project_code in projects:
             try:
@@ -31,28 +36,39 @@ def import_pubs(dry_run=True, file_name="", source="all"):
                 continue
             if utils.is_project_prior_to_publication(project, pub.year):
                 valid_projects.append(project_code)
+
         author_usernames = [utils.get_usernames_for_author(author) for author in authors]
         report_file_name = f'publications_run_{date.today()}.csv'
-        duplicates = flag_duplicates(PublicationSource.SCOPUS, dry_run=dry_run, pub_model=pub)
-        reason = None
+
+        duplicates = flag_duplicates(pub_model=pub)
+
+        # Check if there are valid projects and if the publication already exists
         if (
             not valid_projects
             or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
         ):
-            reason = "Skipping: no valid projects"
+            reason_for_report = "Skipping: no valid projects"
+
+        # Check if publication is marked as duplicate
         elif pub.status == Publication.STATUS_DUPLICATE:
             logger.info("Found publication as duplicate. Run review_duplicates() to review")
-            reason = f"Skipping: Found Duplicate {duplicates[pub.title]}"
-        if not dry_run:
-            utils.save_publication(pub, PublicationSource.SCOPUS)
-            utils.update_original_pub_source(pub, duplicates[pub.title])
-            reason = f"Saving: {pub.title}"
+            reason_for_report = f"Skipping: Found Duplicates {duplicates[pub.title]}"
+
+        # If all conditions are met, import the publication
+        else:
+            logger.info(f"import {pub.__repr__()}")
+            reason_for_report = f"Saving: {pub.title}"
+            # Save the publication if it is not a dry run
+            if not dry_run:
+                utils.save_publication(pub, source)
+
+        # Export the publication status report
         utils.export_publication_status_run(
-            report_file_name,
-            pub,
-            author_usernames,
-            valid_projects,
-            projects,
-            reason
+            report_file_name, pub, author_usernames,
+            valid_projects, projects, reason_for_report
         )
-        logger.info(f"import {str(pub)}")
+
+
+def review_imported_publications():
+    # with functionality to review imported publications
+    pass

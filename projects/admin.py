@@ -30,7 +30,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "link",
         "added_by_username",
         "status",
-        "approved_with",
+        "reviewed",
     )
     ordering = ["project__charge_code", "-year"]
     list_display = ("title", "project_charge_code", "year",)
@@ -86,8 +86,8 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "publication",
         "citation_count",
         "found_by_algorithm",
-        "cited",
-        "acknowledged",
+        "is_cited",
+        "is_acknowledged",
         "entry_created_date",
     )
 

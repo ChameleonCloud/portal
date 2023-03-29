@@ -36,29 +36,33 @@ PUBLICATION_REPORT_KEYS = [
 ]
 
 
-def get_publication_with_same_attributes(pub, publication_manager):
-    # return publications with exact title, forum, year
-    return publication_manager.filter(
+def get_publication_with_same_attributes(pub, publication_model_class):
+    # return publications with exact title, forum, author and year
+    return publication_model_class.objects.filter(
         title__iexact=pub.title,
         forum__iexact=pub.forum,
         author__iexact=pub.author,
         year=pub.year,
-    ).exists()
+    ).exclude(status=publication_model_class.STATUS_DUPLICATE)
 
 
 def update_original_pub_source(original_pub, duplicate_pub):
+    """Updates original publications' source with the duplicate publication's sources
+
+    Args:
+        original_pubs (models.Publication)
+        duplicate_pub (models.Publication)
+    """
     with transaction.atomic():
         dpub_sources = duplicate_pub.sources.all()
         for dpub_source in dpub_sources:
             # copy all the objects's data to pub2_source
-            opub_source = dpub_source
-            # assign pk as none so when save() a new object is created
-            opub_source.pk = None
-            opub_source.publication = original_pub
+            opub_source = original_pub.sources.get_or_create(name=dpub_source.name)[0]
+            opub_source.is_cited = dpub_source.is_cited
+            opub_source.is_acknowledged = dpub_source.is_acknowledged
             opub_source.is_found_by_algorithm = True
-            opub_source.approved_with = opub_source.PENDING_REVIEW
+            opub_source.approved_with = opub_source.PUBLICATION
             opub_source.save()
-        duplicate_pub.save()
 
 
 def add_source_to_pub(pub, source, dry_run=True):
@@ -72,7 +76,11 @@ def add_source_to_pub(pub, source, dry_run=True):
         source = pub.sources.get_or_create(name=source)[0]
         source.is_found_by_algorithm = True
         source.is_cited = True
-        source.approved_with = source.PUBLICATION
+        # if publication is already reviewed - is a valid publication with project in chameleon
+        if pub.reviewed:
+            source.approved_with = source.PUBLICATION
+        else:
+            source.approved_with = source.PENDING_REVIEW
         source.save()
 
 
@@ -296,7 +304,7 @@ class PublicationUtils:
         return projects
 
 
-def save_publication(pub_model, source):
+def save_publication(pub_model, source, is_cited=True, is_acknowledged=False):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
     with transaction.atomic():
@@ -304,7 +312,8 @@ def save_publication(pub_model, source):
         source = pub_model.sources.create(
             name=source,
             is_found_by_algorithm=True,
-            is_cited=True
+            is_cited=is_cited,
+            is_acknowledged=is_acknowledged
         )
         source.approved_with = source.PENDING_REVIEW
         source.save()

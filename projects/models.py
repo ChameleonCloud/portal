@@ -245,11 +245,10 @@ class Publication(models.Model):
     PUBLICATION_REPORT_FIELDS = [
         "id",
         "title",
-        "project_id",
+        "author",
+        "year",
         "publication_type",
         "forum",
-        "year",
-        "author",
         "bibtex_source",
         "link",
         "doi",
@@ -270,7 +269,7 @@ class Publication(models.Model):
     added_by_username = models.CharField(max_length=100)
     doi = models.CharField(max_length=500, null=True, blank=True)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
-    is_reviewed = models.BooleanField(default=False, null=False)
+    reviewed = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
         return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"
@@ -281,7 +280,7 @@ class Publication(models.Model):
             line_format.format(ck, getattr(self, ck))
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
-        return "\n".join(lines)
+        return "\n" + "\n".join(lines)
 
     objects = PublicationManager()
 
@@ -318,16 +317,24 @@ class PublicationSource(models.Model):
         (GOOGLE_SCHOLAR, "Google Scholar"),
     ]
 
-    PUBLICATION = "publication"
-    JUSTIFICATION = "justification"
-    EMAIL = "email"
-    PENDING_REVIEW = "pending_review"
+    APPROVED_WITH_PUBLICATION = "publication"
+    APPROVED_WITH_JUSTIFICATION = "justification"
+    APPROVED_WITH_EMAIL = "email"
+    APPROVED_WITH_PENDING_REVIEW = "pending_review"
 
     APPROVED_WITH = [
-        (PUBLICATION, "Publication"),
-        (JUSTIFICATION, "Justification"),
-        (EMAIL, "Email"),
-        (PENDING_REVIEW, "Review Pending")
+        (APPROVED_WITH_PUBLICATION, "Publication"),
+        (APPROVED_WITH_JUSTIFICATION, "Justification"),
+        (APPROVED_WITH_EMAIL, "Email"),
+        (APPROVED_WITH_PENDING_REVIEW, "Review Pending")
+    ]
+
+    SOURCE_REPORT_FIELDS = [
+        "name",
+        "is_found_by_algorithm",
+        "is_cited",
+        "is_acknowledged",
+        "approved_with"
     ]
 
     publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
@@ -335,7 +342,7 @@ class PublicationSource(models.Model):
     citation_count = models.IntegerField(default=0, null=False)
     entry_created_date = models.DateField(auto_now_add=True)
     # if the publication identified by the source
-    # using our algorithm to find publications ref Chamaleon
+    # using our algorithm to find publications ref Chamaeleon
     is_found_by_algorithm = models.BooleanField(default=False, null=False)
     is_cited = models.BooleanField(default=False, null=False)
     is_acknowledged = models.BooleanField(default=False, null=False)
@@ -349,3 +356,11 @@ class PublicationSource(models.Model):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self) -> str:
+        line_format = "{0:18} : {1}"
+        lines = [
+            line_format.format(ck, getattr(self, ck))
+            for ck in self.SOURCE_REPORT_FIELDS
+        ]
+        return "\n" + "\n".join(lines)
