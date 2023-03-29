@@ -52,7 +52,7 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         # Check if publication is marked as duplicate
         elif pub.status == Publication.STATUS_DUPLICATE:
             logger.info("Found publication as duplicate. Run review_duplicates() to review")
-            reason_for_report = f"Skipping: Found Duplicates {duplicates[pub.title]}"
+            reason_for_report = f"Saving: Found Duplicates {duplicates[pub]}"
 
         # If all conditions are met, import the publication
         else:

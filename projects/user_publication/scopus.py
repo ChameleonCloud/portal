@@ -69,7 +69,7 @@ def pub_import(dry_run=True):
         title = utils.decode_unicode_text(raw_pub.title)
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
         year = published_on.year
-        # get the author names with decoded unicode charachters
+        # get the author names with decoded unicode characters
         author_names = utils.decode_unicode_text(raw_pub.author_names)
         # authors as a list of strings "firstname lastname" format
         authors = [utils.format_author_name(author) for author in author_names.split(";")]
