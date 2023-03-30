@@ -1,19 +1,15 @@
-import datetime
 import json
 import logging
 import secrets
 from operator import attrgetter
 from datetime import timedelta
 
-import django.db
 import pydetex.pipelines as pip
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db import models, transaction, DataError
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 from projects.user_publication.utils import PublicationUtils
