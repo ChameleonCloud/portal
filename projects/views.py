@@ -195,7 +195,9 @@ def request_to_join(request, secret):
                 subject=f"A user has requested to join "
                 f"your Chameleon project ({project.charge_code})!",
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[project.pi.email],
+                recipient_list=[
+                    user.email for user in get_project_membership_managers(project)
+                ],
                 message=strip_tags(body),
                 html_message=body,
             )
