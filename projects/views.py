@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
-from django.db import transaction
+from django.db import transaction, DataError
 from django.forms.models import model_to_dict
 from django.http import (
     Http404,
@@ -23,12 +23,13 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
+from keycloak.exceptions import KeycloakClientError
 
 from allocations.models import Allocation, Charge
 from balance_service.utils import su_calculators
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
-from projects.models import Funding
+from projects.models import Funding, JoinLink, JoinRequest
 from projects.serializer import ProjectExtrasJSONSerializer
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -156,6 +157,99 @@ def accept_invite_for_user(user, invitation, mapper):
     return False
 
 
+@login_required
+def request_to_join(request, secret):
+    try:
+        join_link = JoinLink.objects.get(secret=secret)
+    except JoinLink.DoesNotExist:
+        raise Http404("There is no project for this join link.")
+
+    project = join_link.project
+    user = request.user
+
+    if request.POST:
+        # User has submitted a response to the project join page
+        if join_link.has_join_request(user):
+            # If user manages to click the confirm button twice
+            messages.error(
+                request,
+                f"Already sent request to join project {project.charge_code}.",
+            )
+        elif "confirm_join_project_request" in request.POST:
+            # User clicked confirm
+            join_request = JoinRequest.objects.create(join_link=join_link, user=user)
+            project_url = request.build_absolute_uri(
+                reverse("projects:view_project", args=[project.id])
+            )
+            body = f"""
+            <p>{user.email} has requested to join your project, {project.charge_code}.<br> 
+            Please review all join requests for this project here: <br><br>
+            
+            <a href="{project_url}" target="_blank">{project_url}</a><br><br>
+            
+            Thanks,<br>
+            Chameleon Team
+            </p>
+            """
+            mail_sent = send_mail(
+                subject=f"A user has requested to join "
+                f"your Chameleon project ({project.charge_code})!",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[project.pi.email],
+                message=strip_tags(body),
+                html_message=body,
+            )
+            messages.success(
+                request,
+                f"Your request to join project {project.charge_code} has been sent.",
+            )
+            if not mail_sent:
+                logger.warning(
+                    f"Failed to send project join request email ({join_request})"
+                )
+        return HttpResponseRedirect(reverse("projects:user_projects"))
+
+    # If the user is already a member of the project, just take them to the project page
+    if project_member_or_admin_or_superuser(
+        user, project, get_project_members(project)
+    ):
+        messages.success(request, "You are already a member of this project!")
+        return HttpResponseRedirect(reverse("projects:view_project", args=[project.id]))
+
+    if join_link.has_join_request(user):
+        join_request = join_link.join_requests.get(user=user)
+        if join_request.is_accepted():
+            # If the user is not a project member, but has an accepted join request,
+            # then something went wrong
+            messages.error(
+                request,
+                "Your join request has been accepted, "
+                "but you are not a member of this project. "
+                "Please reach out to the PI and have them add you manually.",
+            )
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+        elif join_request.is_rejected():
+            # If user has been rejected from the project, let them know
+            messages.error(
+                request,
+                f"Your request to join {project.charge_code} "
+                f"was rejected by the project's PI.",
+            )
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+        else:
+            # If the user hasn't been rejected or accepted, their request is pending
+            messages.warning(
+                request,
+                f"Your request to join project {project.charge_code} is still pending.",
+            )
+            return HttpResponseRedirect(reverse("projects:user_projects"))
+
+    # If the user is not a member and has no join request,
+    return render(
+        request, "projects/request_to_join_project.html", {"project": project}
+    )
+
+
 def get_daypass(user_id, project_id, status=Invitation.STATUS_ACCEPTED):
     try:
         return Invitation.objects.get(
@@ -189,6 +283,37 @@ def get_invite_url(request, code):
     return request.build_absolute_uri(
         reverse("projects:accept_invite", kwargs={"invite_code": code})
     )
+
+
+def notify_join_request_user(django_request, join_request):
+    project = join_request.join_link.project
+    link = django_request.build_absolute_uri(
+        reverse("projects:view_project", args=[project.id])
+    )
+    status_str = "accepted!" if join_request.is_accepted() else "rejected."
+    subject = (
+        f"Your request to join project {project.charge_code} has been {status_str}"
+    )
+    view_text = (
+        f'You can view the project here: <a href="{link}" target="_blank">{link}</a>'
+    )
+    body = f"""
+    {subject} {view_text if join_request.is_accepted() else ''}<br><br>
+    
+    Thanks,<br>
+    Chameleon Team
+    """
+    mail_sent = send_mail(
+        subject=subject,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[join_request.user.email],
+        message=strip_tags(body),
+        html_message=body,
+    )
+    if not mail_sent:
+        logger.warning(
+            f"Failed to send notification to user for join request {join_request.id}"
+        )
 
 
 @login_required
@@ -301,6 +426,42 @@ def view_project(request, project_id):
                     "An unexpected error occurred while attempting "
                     "to resend this invitation. Please try again",
                 )
+        elif "accept_join_request" in request.POST:
+            try:
+                join_request = JoinRequest.objects.get(
+                    id=int(request.POST.get("join_request"))
+                )
+                user = join_request.user
+                if membership.add_user_to_project(project, user.username):
+                    join_request.accept()
+                    messages.success(
+                        request, f"Successfully added {user.username} to this project!"
+                    )
+                    notify_join_request_user(request, join_request)
+                else:
+                    messages.error(request, "Failed to add user to project.")
+            except KeycloakClientError:
+                messages.error(request, "Failed to add user to project.")
+            except JoinRequest.DoesNotExist:
+                messages.error(request, "Failed to process join request.")
+            except DataError:
+                messages.error(
+                    request,
+                    "This join request has already been responded to!",
+                )
+        elif "reject_join_request" in request.POST:
+            try:
+                join_request = JoinRequest.objects.get(
+                    id=int(request.POST.get("join_request"))
+                )
+                join_request.reject()
+                notify_join_request_user(request, join_request)
+            except JoinRequest.DoesNotExist:
+                messages.error(request, "Failed to process join request.")
+            except DataError:
+                messages.error(
+                    request, "This join request has already been responded to!"
+                )
         elif "nickname" in request.POST:
             nickname_form = edit_nickname(request, project_id)
         elif "tagId" in request.POST:
@@ -381,6 +542,8 @@ def view_project(request, project_id):
             new_item["duration"] = i.duration
         clean_invitations.append(new_item)
 
+    join_link = JoinLink.objects.get_or_create(project_id=project.id)[0]
+
     is_on_daypass = get_daypass(request.user.id, project_id) is not None
 
     return render(
@@ -392,6 +555,10 @@ def view_project(request, project_id):
             "project_tag": project.tag,
             "users": users_mashup,
             "invitations": clean_invitations,
+            "join_link": join_link.get_url(request),
+            "join_requests": join_link.join_requests.filter(
+                status=JoinRequest.Status.PENDING
+            ),
             "can_manage_project_membership": can_manage_project_membership,
             "can_manage_project": can_manage_project,
             "is_admin": request.user.is_superuser,
