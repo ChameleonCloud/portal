@@ -182,11 +182,11 @@ def request_to_join(request, secret):
                 reverse("projects:view_project", args=[project.id])
             )
             body = f"""
-            <p>{user.email} has requested to join your project, {project.charge_code}.<br> 
+            <p>{user.email} has requested to join your project, {project.charge_code}.<br>
             Please review all join requests for this project here: <br><br>
-            
+
             <a href="{project_url}" target="_blank">{project_url}</a><br><br>
-            
+
             Thanks,<br>
             Chameleon Team
             </p>
@@ -299,7 +299,7 @@ def notify_join_request_user(django_request, join_request):
     )
     body = f"""
     {subject} {view_text if join_request.is_accepted() else ''}<br><br>
-    
+
     Thanks,<br>
     Chameleon Team
     """
