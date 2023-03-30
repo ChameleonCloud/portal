@@ -169,21 +169,21 @@
       <i>Requested to join</i>
     </td>
     <td>
+      {% if can_manage_project_membership %}
       <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="joinRequestDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {% if not can_manage_project_membership %}disabled{%endif%}>
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="joinRequestDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Respond to Request</span>
         </button>
         <div class="dropdown-menu dropdown-content" aria-labelledby="joinRequestDropdown">
-          {% if can_manage_project_membership %}
           <form method="post" style="display:inline">
             {% csrf_token %}
             <input type="hidden" name="join_request" value="{{ join_request.id }}">
             <button type="submit" class="btn btn-xs btn-success btn-block" name="accept_join_request">Accept</button>
             <button type="submit" class="btn btn-xs btn-danger btn-block" name="reject_join_request">Reject</button>
           </form>
-          {% endif %}
         </div>
       </div>
+      {% endif %}
     </td>
   </tr>
   {% endfor %}
