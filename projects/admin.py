@@ -86,8 +86,8 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "publication",
         "citation_count",
         "found_by_algorithm",
-        "is_cited",
-        "is_acknowledged",
+        "cites_chameleon",
+        "acknowledges_chameleon",
         "entry_created_date",
     )
 

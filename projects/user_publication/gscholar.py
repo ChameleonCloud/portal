@@ -206,7 +206,6 @@ def pub_import(
             pub_model = gscholar.get_pub_model(cited_pub)
             same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
             if same_pub.exists():
-                utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
+                utils.add_source_to_pub(same_pub.get(), PublicationSource.GOOGLE_SCHOLAR)
             pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
-        break
     return pubs

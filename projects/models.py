@@ -332,20 +332,21 @@ class PublicationSource(models.Model):
     SOURCE_REPORT_FIELDS = [
         "name",
         "is_found_by_algorithm",
-        "is_cited",
-        "is_acknowledged",
+        "cites_chameleon",
+        "acknowledges_chameleon",
         "approved_with"
     ]
 
     publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
     name = models.CharField(max_length=30, choices=SOURCES)
     citation_count = models.IntegerField(default=0, null=False)
-    entry_created_date = models.DateField(auto_now_add=True)
+    # auto_add_now does not allow to insert with a custom datetime
+    entry_created_date = models.DateField(default=timezone.now)
     # if the publication identified by the source
     # using our algorithm to find publications ref Chamaeleon
     is_found_by_algorithm = models.BooleanField(default=False, null=False)
-    is_cited = models.BooleanField(default=False, null=False)
-    is_acknowledged = models.BooleanField(default=False, null=False)
+    cites_chameleon = models.BooleanField(default=False, null=False)
+    acknowledges_chameleon = models.BooleanField(default=False, null=False)
     approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
 
     class Meta:

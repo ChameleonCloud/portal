@@ -31,7 +31,7 @@ PUBLICATION_REPORT_KEYS = [
     "author_usernames",
     "valid_projects",
     "projects",
-    "reason"
+    "reason",
 ]
 
 
@@ -57,8 +57,8 @@ def update_original_pub_source(original_pub, duplicate_pub):
         for dpub_source in dpub_sources:
             # copy all the objects's data to pub2_source
             opub_source = original_pub.sources.get_or_create(name=dpub_source.name)[0]
-            opub_source.is_cited = dpub_source.is_cited
-            opub_source.is_acknowledged = dpub_source.is_acknowledged
+            opub_source.cites_chameleon = dpub_source.cites_chameleon
+            opub_source.acknowledges_chameleon = dpub_source.acknowledges_chameleon
             opub_source.is_found_by_algorithm = True
             opub_source.approved_with = opub_source.PUBLICATION
             opub_source.save()
@@ -66,20 +66,16 @@ def update_original_pub_source(original_pub, duplicate_pub):
 
 def add_source_to_pub(pub, source, dry_run=True):
     LOG.info(
-        f"Publication already exists - {pub.title}"
-        f" - adding other source - {source}"
+        f"Publication already exists - {pub.title}" f" - adding other source - {source}"
     )
     if dry_run:
         return
     with transaction.atomic():
         source = pub.sources.get_or_create(name=source)[0]
         source.is_found_by_algorithm = True
-        source.is_cited = True
-        # if publication is already reviewed - is a valid publication with project in chameleon
-        if pub.reviewed:
-            source.approved_with = source.PUBLICATION
-        else:
-            source.approved_with = source.PENDING_REVIEW
+        source.cites_chameleon = True
+        # Adding source to a publication only when it already exists is a valid publication with project in chameleon
+        source.approved_with = source.PUBLICATION
         source.save()
 
 
@@ -87,9 +83,7 @@ def decode_unicode_text(en_text):
     # for texts with unicode chars - accented chars replace them with eq ASCII
     # to perform LIKE operation to database
     de_text = (
-        unicodedata.normalize("NFKD", en_text)
-        .encode("ascii", "ignore")
-        .decode("ascii")
+        unicodedata.normalize("NFKD", en_text).encode("ascii", "ignore").decode("ascii")
     )
     if en_text != de_text:
         LOG.info(f"decoding - {en_text} to {de_text}")
@@ -108,9 +102,7 @@ def is_project_prior_to_publication(project, pub_year):
     fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
     # Consider the runtime of a project to be the start of its first allocation
     # until the end of its last allocation
-    start = min(
-        alloc.start_date or fake_start for alloc in project.allocations.all()
-    )
+    start = min(alloc.start_date or fake_start for alloc in project.allocations.all())
     # if project's allocation is prior to publication year
     if start.year <= pub_year:
         return True
@@ -118,6 +110,8 @@ def is_project_prior_to_publication(project, pub_year):
 
 
 def get_usernames_for_author(author):
+    from projects.models import ProjectPIAlias
+
     name_filter = Q()
     author = decode_unicode_text(author)
     try:
@@ -127,6 +121,14 @@ def get_usernames_for_author(author):
         name_filter = Q(last_name=author)
     else:
         name_filter = Q(first_name__iexact=first_name, last_name__iexact=last_name)
+    # Aliases for PI are in the PIAliases table. Get the users with aliases
+    # in PI aliases table
+    aliases = ProjectPIAlias.objects.filter(alias__iexact=author)
+    for alias in aliases.all():
+        name_filter |= Q(
+            first_name__iexact=alias.pi.first_name,
+            last_name__iexact=alias.pi.last_name,
+        )
     users = User.objects.filter(name_filter)
     return [user.username for user in users]
 
@@ -213,7 +215,7 @@ class PublicationUtils:
         """For a bibtex entry: dictionary
         with "ENTRYTYPE" key expected return type of publication based on ENTRYTYPE
         and other relevant text in the bibtex (excluding abstract)"""
-        bibtex_types = bibtex_entry.get("ENTRYTYPE", '').lower()
+        bibtex_types = bibtex_entry.get("ENTRYTYPE", "").lower()
         bibtex_entry.pop("abstract", None)
         bibtex_as_str = str(bibtex_entry).lower()
         if "arxiv" in bibtex_as_str:
@@ -230,7 +232,7 @@ class PublicationUtils:
             return "github"
         if "patent" in bibtex_as_str:
             return "patent"
-        for bibtex_type in bibtex_types.split(','):
+        for bibtex_type in bibtex_types.split(","):
             if bibtex_type == "incollection":
                 return "book chapter"
             if (
@@ -239,10 +241,16 @@ class PublicationUtils:
                 or "internal report" in bibtex_as_str
             ):
                 return "tech report"
-            if bibtex_type in ["article", "review", "journal article", "journalarticle"]:
+            if bibtex_type in [
+                "article",
+                "review",
+                "journal article",
+                "journalarticle",
+            ]:
                 return "journal article"
             if (
-                bibtex_type in ["inproceedings", "conference paper", "conference full paper"]
+                bibtex_type
+                in ["inproceedings", "conference paper", "conference full paper"]
                 or "proceeding" in bibtex_as_str
             ):
                 return "conference paper"
@@ -259,7 +267,8 @@ class PublicationUtils:
     @staticmethod
     def is_similar_str(str1, str2):
         return (
-            PublicationUtils.how_similar(str1, str2) >= PublicationUtils.SIMILARITY_THRESHOLD
+            PublicationUtils.how_similar(str1, str2)
+            >= PublicationUtils.SIMILARITY_THRESHOLD
         )
 
     @staticmethod
@@ -277,18 +286,16 @@ class PublicationUtils:
         Returns:
             boolean
         """
-        if (pub1.year != pub2.year):
+        if pub1.year != pub2.year:
             return False
         if not (
-            PublicationUtils.how_similar(
-                pub1.title, pub2.title
-            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+            PublicationUtils.how_similar(pub1.title, pub2.title)
+            > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
         ):
             return False
         if not (
-            PublicationUtils.how_similar(
-                pub1.forum, pub2.forum
-            ) > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+            PublicationUtils.how_similar(pub1.forum, pub2.forum)
+            > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
         ):
             return False
         return True
@@ -299,11 +306,15 @@ class PublicationUtils:
         for author in author_names:
             usernames.extend(get_usernames_for_author(author))
         kcc = KeycloakClient()
-        projects = [proj for u in usernames for proj in kcc.get_user_projects_by_username(u)]
+        projects = [
+            proj for u in usernames for proj in kcc.get_user_projects_by_username(u)
+        ]
         return projects
 
 
-def save_publication(pub_model, source, is_cited=True, is_acknowledged=False):
+def save_publication(
+    pub_model, source, cites_chameleon=True, acknowledges_chameleon=False
+):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
     with transaction.atomic():
@@ -311,21 +322,21 @@ def save_publication(pub_model, source, is_cited=True, is_acknowledged=False):
         source = pub_model.sources.create(
             name=source,
             is_found_by_algorithm=True,
-            is_cited=is_cited,
-            is_acknowledged=is_acknowledged
+            cites_chameleon=cites_chameleon,
+            acknowledges_chameleon=acknowledges_chameleon,
         )
         source.approved_with = source.PENDING_REVIEW
         source.save()
 
 
 def export_publication_status_run(
-        file_name, pub, author_usernames, valid_projects, projects, reason
+    file_name, pub, author_usernames, valid_projects, projects, reason
 ):
     if not os.path.isfile(file_name):
-        with open(file_name, 'w', newline='') as csv_f:
+        with open(file_name, "w", newline="") as csv_f:
             csv_f_writer = csv.writer(csv_f)
             csv_f_writer.writerow(PUBLICATION_REPORT_KEYS)
-    with open(file_name, 'a', newline='') as csv_f:
+    with open(file_name, "a", newline="") as csv_f:
         csv_f_writer = csv.writer(csv_f)
         row = [
             pub.title,
@@ -340,6 +351,6 @@ def export_publication_status_run(
             author_usernames,
             valid_projects,
             projects,
-            reason
+            reason,
         ]
         csv_f_writer.writerow(row)

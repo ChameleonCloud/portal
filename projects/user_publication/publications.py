@@ -1,10 +1,16 @@
 import logging
 from datetime import date
 
-from projects.models import ChameleonPublication, Project, Publication
+from projects.models import (
+    ChameleonPublication,
+    Project,
+    Publication,
+    PublicationSource,
+)
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
-from projects.user_publication.deduplicate import flag_duplicates
+from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +42,12 @@ def import_pubs(dry_run=True, file_name="", source="all"):
             if utils.is_project_prior_to_publication(project, pub.year):
                 valid_projects.append(project_code)
 
-        author_usernames = [utils.get_usernames_for_author(author) for author in authors]
-        report_file_name = f'publications_run_{date.today()}.csv'
+        author_usernames = [
+            utils.get_usernames_for_author(author) for author in authors
+        ]
+        report_file_name = f"publications_run_{date.today()}.csv"
 
-        duplicates = flag_duplicates(pubs=[pub])
+        duplicates = get_duplicate_pubs(pubs=[pub])
 
         # Check if there are valid projects and if the publication already exists
         if (
@@ -50,7 +58,9 @@ def import_pubs(dry_run=True, file_name="", source="all"):
 
         # Check if publication is marked as duplicate
         elif pub.status == Publication.STATUS_DUPLICATE:
-            logger.info("Found publication as duplicate. Run review_duplicates() to review")
+            logger.info(
+                "Found publication as duplicate. Run review_duplicates() to review"
+            )
             reason_for_report = f"Saving: Found Duplicates {duplicates[pub]}"
 
         # If all conditions are met, import the publication
@@ -63,11 +73,68 @@ def import_pubs(dry_run=True, file_name="", source="all"):
 
         # Export the publication status report
         utils.export_publication_status_run(
-            report_file_name, pub, author_usernames,
-            valid_projects, projects, reason_for_report
+            report_file_name,
+            pub,
+            author_usernames,
+            valid_projects,
+            projects,
+            reason_for_report,
         )
 
 
+def choose_approved_with_option():
+    print("Change the status of source's Approval status")
+    print("1. If you have verified the publication was enabled by Chameleon")
+    print("2. If the publication was uploaded as part of justification for a project")
+    print(
+        (
+            "3. If the publication did not explicitly mention using Chameleon, "
+            "send an email to authors and choose this option. "
+            "if email is already sent then choose this option to input the confirmation"
+        )
+    )
+    print("4. To leave the status as is. Choose this")
+    inp = input("Choose 1, 2, 3 or 4")
+    if inp == "1":
+        return PublicationSource.APPROVED_WITH_PUBLICATION
+    elif inp == "2":
+        print("You chose two")
+        return PublicationSource.APPROVED_WITH_JUSTIFICATION
+    elif inp == "3":
+        return PublicationSource.APPROVED_WITH_EMAIL
+    elif inp == "4":
+        return
+    else:
+        return choose_approved_with_option()
+
+
 def review_imported_publications():
-    # with functionality to review imported publications
-    pass
+    """This needs be to be invoked interactively
+    with functionality to review imported publications
+    go through all the flagged duplicates that are pending a review
+    """
+    pubs_to_review = Publication.objects.filter(
+        status=Publication.STATUS_SUBMITTED, reviewed=False
+    )
+    for pub in pubs_to_review:
+        print("Found publication to review: ")
+        print("Publication: ", pub.__repr__())
+        for source in pub.sources.exclude(
+            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
+        ):
+            print("with source: ", source.__repr__())
+        approval_needed_sources = pub.sources.filter(
+            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
+        )
+        if approval_needed_sources:
+            print("These sources need review: ")
+            for source in approval_needed_sources:
+                print(source.__repr__())
+                choice = choose_approved_with_option
+                if choice:
+                    if choice == PublicationSource.APPROVED_WITH_EMAIL:
+                        print("")
+                    with transaction.atomic():
+                        source.approved_with = choice
+                        source.save()
+                        print(f"status updated to {source.approved_with}")

@@ -5,8 +5,7 @@ import re
 import requests
 from django.conf import settings
 
-from projects.models import (ChameleonPublication, Publication,
-                             PublicationSource)
+from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -64,11 +63,8 @@ def _get_citations(pid):
 
 def _get_authors(aids):
     url = "https://api.semanticscholar.org/graph/v1/author/batch"
-    fields = [
-        "name",
-        "aliases"
-    ]
-    data = {'ids' : aids}
+    fields = ["name", "aliases"]
+    data = {"ids": aids}
     response = requests.post(
         url,
         json=data,
@@ -96,18 +92,18 @@ def _get_pub_model(publication, dry_run=True):
     for author_detail in author_details:
         if not author_detail:
             continue
-        authors.add(author_detail['name'])
-        if author_detail['aliases']:
-            authors.update(set(author_detail['aliases']))
+        authors.add(author_detail["name"])
+        if author_detail["aliases"]:
+            authors.update(set(author_detail["aliases"]))
     journal = publication.get("journal")
     if journal:
         forum = journal.get("name")
     else:
         forum = publication.get("venue")
     doi = (publication.get("externalIds", {}).get("DOI"),)
-    entry_type = ''
+    entry_type = ""
     if publication["publicationTypes"]:
-        entry_type = ','.join(publication["publicationTypes"])
+        entry_type = ",".join(publication["publicationTypes"])
     pub_model = Publication(
         title=title,
         year=year,
@@ -118,10 +114,9 @@ def _get_pub_model(publication, dry_run=True):
         forum=forum,
         doi=doi,
         link=f"https://www.doi.org/{doi}" if doi else publication.get("url"),
-        publication_type=PublicationUtils.get_pub_type({
-            "ENTRYTYPE": entry_type,
-            "forum": forum
-        }),
+        publication_type=PublicationUtils.get_pub_type(
+            {"ENTRYTYPE": entry_type, "forum": forum}
+        ),
         status=Publication.STATUS_SUBMITTED,
     )
     same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
@@ -137,5 +132,4 @@ def pub_import(dry_run=True):
             p = _get_pub_model(cc, dry_run)
             if p:
                 publications.append((PublicationSource.SEMANTIC_SCHOLAR, p))
-        break
     return publications

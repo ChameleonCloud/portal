@@ -72,21 +72,23 @@ def pub_import(dry_run=True):
         # get the author names with decoded unicode characters
         author_names = utils.decode_unicode_text(raw_pub.author_names)
         # authors as a list of strings "firstname lastname" format
-        authors = [utils.format_author_name(author) for author in author_names.split(";")]
+        authors = [
+            utils.format_author_name(author) for author in author_names.split(";")
+        ]
         pub_model = Publication(
             title=title,
             year=year,
             month=published_on.month,
             author=" and ".join(authors),
-            publication_type=PublicationUtils.get_pub_type({
-                "ENTRYTYPE": raw_pub.subtypeDescription
-            }),
+            publication_type=PublicationUtils.get_pub_type(
+                {"ENTRYTYPE": raw_pub.subtypeDescription}
+            ),
             bibtex_source="{}",
             added_by_username="admin",
             forum=raw_pub.publicationName,
             doi=raw_pub.doi,
             link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
-            status=Publication.STATUS_SUBMITTED
+            status=Publication.STATUS_SUBMITTED,
         )
         same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
         if same_pub.exists():
