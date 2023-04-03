@@ -161,6 +161,34 @@
     <th>Role</th>
     <th></th>
   </tr>
+  {% for join_request in join_requests %}
+  <tr>
+    <td>{{ join_request.user.username }}</td>
+    <td>{{ join_request.user.first_name }}</td>
+    <td>{{ join_request.user.last_name }}</td>
+    <td>{{ join_request.user.email }}</td>
+    <td>
+      <i>Requested to join</i>
+    </td>
+    <td>
+      {% if can_manage_project_membership %}
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="joinRequestDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Respond to Request</span>
+        </button>
+        <div class="dropdown-menu dropdown-content" aria-labelledby="joinRequestDropdown">
+          <form method="post" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="join_request" value="{{ join_request.id }}">
+            <button type="submit" class="btn btn-xs btn-success btn-block" name="accept_join_request">Accept</button>
+            <button type="submit" class="btn btn-xs btn-danger btn-block" name="reject_join_request">Reject</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
   {% for u in users %}
   <tr>
     <td>{{ u.username }}</td>
