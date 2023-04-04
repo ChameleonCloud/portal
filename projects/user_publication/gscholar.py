@@ -7,7 +7,8 @@ from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication, Publication, PublicationSource
+from projects.models import (ChameleonPublication, Publication,
+                             PublicationSource)
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -77,13 +78,13 @@ class GoogleScholarHandler(object):
         Args:
             pub (dict): return of the search_single_pub method
             year_low (int, optional): year to query from. Defaults to 2014
-            year_high (int, optional): yaar to query till. Defaults to datetime.now().year
+            year_high (int, optional): year to query till. Defaults to datetime.now().year
 
         Returns:
             list: list of publications that cited arg:pub
         """
         if not year_high:
-            year_high = datetime.now().year
+            year_high = datetime.datetime.now().year
         pub_id = self._publication_id(pub)
         logger.info(f"Getting citations for {pub['bib']['title']}")
         num_citations = pub['num_citations']
@@ -128,12 +129,12 @@ class GoogleScholarHandler(object):
         # few authors have unicode characters encoded to ascii
         # for example Lo{\"}c
         # substitute all character from text except
-        # ',' , \w word charachter, \s whitespace character
+        # ',' , \w word character, \s whitespace character
         # - any other character
         # inspired from django.utils.text.slugify
         authors = re.sub(r"[^\,\w\s-]", "", authors)
         authors = authors.split(" and ")
-        parsed_authors = [utils.parse_author(author) for author in authors]
+        parsed_authors = [utils.format_author_name(author) for author in authors]
         return parsed_authors
 
     def get_pub_model(self, pub):
@@ -149,7 +150,7 @@ class GoogleScholarHandler(object):
             added_by_username="admin",
             forum=forum,
             link=pub.get("pub_url", ''),
-            status=Publication.STATUS_IMPORTED,
+            status=Publication.STATUS_SUBMITTED,
         )
         return pub_model
 
@@ -185,7 +186,7 @@ class GoogleScholarHandler(object):
 def pub_import(
     dry_run=True, year_low=2014, year_high=None
 ):
-    """Returns Publication models of all publicationls that ref chameleon
+    """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
 
@@ -202,27 +203,9 @@ def pub_import(
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
-            authors = gscholar.get_authors(cited_pub)
-            cited_pub_title = cited_pub['bib']['title']
-            project = utils.guess_project_for_publication(
-                authors, cited_pub["bib"]["pub_year"]
-            )
-            if not project:
-                continue
-            if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
-                logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
-                continue
-            # this is to find if there is a publication already in database matching to
-            # this title and project however this needs to be changed after looking
-            # at some examples and how to better handle these dumplicates
-            pub_exists = Publication.objects.filter(title=cited_pub_title, project_id=project)
-            if pub_exists:
-                utils.add_source_to_pub(pub_exists[0], Publication.G_SCHOLAR)
-                continue
             pub_model = gscholar.get_pub_model(cited_pub)
-            pub_model.project = project
-            if not dry_run:
-                # save publication model with source
-                utils.save_publication(pub_model, PublicationSource.GOOGLE_SCHOLAR)
-            pubs.append(pub_model)
+            same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
+            if same_pub.exists():
+                utils.add_source_to_pub(same_pub.get(), PublicationSource.GOOGLE_SCHOLAR)
+            pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
     return pubs

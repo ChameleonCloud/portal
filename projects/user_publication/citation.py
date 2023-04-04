@@ -30,7 +30,9 @@ def update_scopus_citation(pub, dry_run=True):
         try:
             scopus_pub = AbstractRetrieval(match, id_type="doi")
         except Scopus404Error:
-            logger.info(f"Request resouce for doi: {pub.doi} not found - searching with title")
+            logger.info(
+                f"Request resouce for doi: {pub.doi} not found - searching with title"
+            )
     if not scopus_pub:
         no_words = re.compile(r"[^a-zA-Z\d\s:\-_.]")
         whitespace = re.compile(r"\s+")
@@ -42,7 +44,7 @@ def update_scopus_citation(pub, dry_run=True):
         search_results = []
         if search and search.results:
             for x in search.results:
-                if (PublicationUtils.is_similar_str(x.title.lower(), pub.title.lower())):
+                if PublicationUtils.is_similar_str(x.title.lower(), pub.title.lower()):
                     search_results.append(x)
         if (len(search_results)) > 0:
             scopus_pub = search_results[0]
@@ -111,16 +113,17 @@ def update_semantic_scholar_citation(pub, dry_run=True):
         if len(result) > 0:
             result = result[0]
             sc_title = result.get("title")
-            if (
-                sc_title
-                and PublicationUtils.is_similar_str(sc_title.lower(), pub.title.lower())
+            if sc_title and PublicationUtils.is_similar_str(
+                sc_title.lower(), pub.title.lower()
             ):
                 semantic_scholar_pub = result
 
     if semantic_scholar_pub:
         citation_cnt = semantic_scholar_pub.get("citationCount", 0)
         # Returns a tuple of (object, created)
-        existing_sem_source = pub.sources.get_or_create(name=Publication.SEMANTIC_SCHOLAR)[0]
+        existing_sem_source = pub.sources.get_or_create(
+            name=Publication.SEMANTIC_SCHOLAR
+        )[0]
         logger.info(
             (
                 f"update semantic scholar citation number for "
@@ -148,7 +151,8 @@ def update_citation_numbers(dry_run=True):
             update_semantic_scholar_citation(pub, dry_run)
         except Exception as e:
             logger.exception(
-                f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})", exc_info=e
+                f"failed to update semantic scholar citation number for {pub.title} (id: {pub.id})",
+                exc_info=e,
             )
         try:
             gscholar.update_g_scholar_citation(pub, dry_run)

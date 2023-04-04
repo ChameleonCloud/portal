@@ -15,7 +15,6 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     readonly_fields = [
         "project_charge_code",
         "added_by_username",
-        "entry_created_date",
     ]
 
     fields = (
@@ -30,13 +29,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "doi",
         "link",
         "added_by_username",
-        "entry_created_date",
         "status",
-        "approved_with",
+        "reviewed",
     )
-
-    ordering = ["project__charge_code", "-year", "-entry_created_date"]
-    list_display = ("title", "project_charge_code", "year", "entry_created_date")
+    ordering = ["project__charge_code", "-year"]
+    list_display = ("title", "project_charge_code", "year",)
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
@@ -89,13 +86,16 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "publication",
         "citation_count",
         "found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "entry_created_date",
     )
 
     list_display = (
         "name",
         "citation_count",
         "publication",
-
+        "entry_created_date",
     )
 
 

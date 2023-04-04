@@ -231,43 +231,28 @@ class PublicationManager(models.Manager):
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
-    STATUS_IMPORTED = "IMPORTED"
     STATUS_DUPLICATE = "DUPLICATE"
     STATUS_REJECTED = "REJECTED"
 
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
-        (STATUS_IMPORTED, "Imported"),
         (STATUS_DUPLICATE, "Duplicate"),
         (STATUS_REJECTED, "Rejected"),
-    ]
-
-    APPROVED_WITH = [
-        ("PUBLICATION", "Publication"),
-        ("JUSTIFICATION", "Justification"),
-        ("EMAIL", "Email"),
     ]
 
     # keys to report in __repr__
     PUBLICATION_REPORT_FIELDS = [
         "id",
         "title",
-        "project_id",
+        "author",
+        "year",
         "publication_type",
         "forum",
-        "year",
-        "author",
         "bibtex_source",
         "link",
         "doi",
     ]
-
-    # attribute names to show the other sources the publication is availble in
-    USER_REPORTED = "user_reported"
-    SCOPUS = "scopus"
-    SEMANTIC_SCHOLAR = "semantic_scholar"
-    G_SCHOLAR = "google_scholar"
 
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
@@ -282,13 +267,12 @@ class Publication(models.Model):
     bibtex_source = models.TextField()
     link = models.CharField(max_length=500, null=True, blank=True)
     added_by_username = models.CharField(max_length=100)
-    entry_created_date = models.DateField(auto_now_add=True)
     doi = models.CharField(max_length=500, null=True, blank=True)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
-    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
+    reviewed = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
-        return f"{self.title}, {self.author}, In {self.forum}. {self.year}"
+        return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"
 
     def __repr__(self) -> str:
         line_format = "{0:18} : {1}"
@@ -296,7 +280,7 @@ class Publication(models.Model):
             line_format.format(ck, getattr(self, ck))
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
-        return "\n".join(lines)
+        return "\n" + "\n".join(lines)
 
     objects = PublicationManager()
 
@@ -333,12 +317,37 @@ class PublicationSource(models.Model):
         (GOOGLE_SCHOLAR, "Google Scholar"),
     ]
 
+    APPROVED_WITH_PUBLICATION = "publication"
+    APPROVED_WITH_JUSTIFICATION = "justification"
+    APPROVED_WITH_EMAIL = "email"
+    APPROVED_WITH_PENDING_REVIEW = "pending_review"
+
+    APPROVED_WITH = [
+        (APPROVED_WITH_PUBLICATION, "Publication"),
+        (APPROVED_WITH_JUSTIFICATION, "Justification"),
+        (APPROVED_WITH_EMAIL, "Email"),
+        (APPROVED_WITH_PENDING_REVIEW, "Review Pending")
+    ]
+
+    SOURCE_REPORT_FIELDS = [
+        "name",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "approved_with"
+    ]
+
     publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
     name = models.CharField(max_length=30, choices=SOURCES)
     citation_count = models.IntegerField(default=0, null=False)
+    # auto_add_now does not allow to insert with a custom datetime
+    entry_created_date = models.DateField(default=timezone.now)
     # if the publication identified by the source
-    # using our algorithm to find publications ref Chamaleon
-    found_by_algorithm = models.BooleanField(default=False, null=False)
+    # using our algorithm to find publications ref Chamaeleon
+    is_found_by_algorithm = models.BooleanField(default=False, null=False)
+    cites_chameleon = models.BooleanField(default=False, null=False)
+    acknowledges_chameleon = models.BooleanField(default=False, null=False)
+    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(
@@ -348,3 +357,11 @@ class PublicationSource(models.Model):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self) -> str:
+        line_format = "{0:18} : {1}"
+        lines = [
+            line_format.format(ck, getattr(self, ck))
+            for ck in self.SOURCE_REPORT_FIELDS
+        ]
+        return "\n" + "\n".join(lines)
