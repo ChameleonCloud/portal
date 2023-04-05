@@ -365,3 +365,15 @@ class PublicationSource(models.Model):
             for ck in self.SOURCE_REPORT_FIELDS
         ]
         return "\n" + "\n".join(lines)
+
+
+class PublicationDuplicate(models.Model):
+    """Model to hold information about duplicate publications"""
+    duplicate = models.ForeignKey(Publication, related_name="duplicate_of", on_delete=models.CASCADE)
+    original = models.ForeignKey(Publication, related_name="duplicates", on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["duplicate", "original"],
+            name='Unique duplicate to its duplicate of publication'
+        )]

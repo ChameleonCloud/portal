@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from django.db import transaction
 
-from projects.models import Publication
+from projects.models import Publication, PublicationDuplicate
 from projects.user_publication.utils import PublicationUtils, update_original_pub_source
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def get_duplicate_pubs(pubs=None):
         pubs_to_check_duplicates = pubs
     else:
         # get the publications in reverse so latest can be checked against old ones
-        # reviewed=True are the ones that are reviewed and are concrete non-duplicates
+        # reviewed=False are the ones that are yet to be reviewed
         pubs_to_check_duplicates = Publication.objects.filter(reviewed=False).order_by(
             "-id"
         )
@@ -65,16 +65,18 @@ def get_duplicate_pubs(pubs=None):
     return duplicate_with_their_original_pubs_map
 
 
-def deduplicate_whole_db():
+def flag_duplicate_in_whole_db():
     """Run this interactively to flag duplicates - change status to Duplicate
     for publication in whole database
     """
-    duplicates = get_duplicate_pubs()
-    with transaction.atomic():
-        for pub in duplicates:
-            pub.status = Publication.STATUS_DUPLICATE
-            pub.reviewed = False
-            pub.save()
+    pubs = Publication.objects.all()
+    duplicates = get_duplicate_pubs(pubs)
+    for pub in pubs:
+        if pub in duplicates:
+            with transaction.atomic():
+                pub.status = Publication.STATUS_DUPLICATE
+                pub.reviewed = False
+                pub.save()
 
 
 def review_duplicates(dry_run=True):
@@ -86,23 +88,29 @@ def review_duplicates(dry_run=True):
     """
     duplicate_originals_map = get_duplicate_pubs()
     # go through all the flagged duplicates that are pending a review
+    total_dupes = len(duplicate_originals_map)
+    print(f"Found total {total_dupes} publications duplicate")
+    count = 0
     for dpub in duplicate_originals_map:
+        count += 1
         opubs = duplicate_originals_map[dpub]
         for opub in opubs:
-            print("Found duplicate publication: ")
-            print("Publication 1: ", dpub.__repr__())
-            print("Publication 2: ", opub.__repr__())
-            print("Is publication ")
+            print(f"Found duplicate publication: {count}/{total_dupes}")
+            print(f"Publication 1: \n {dpub.__repr__()}\n")
+            print(f"Publication 2: \n {opub.__repr__()}\n")
             is_duplicate = input(
-                "Is Publication 1 a duplicate? (y/n/c): use 'c' to cancel"
+                "Is Publication 1 a duplicate? (y/n/c): use 'c' to cancel:"
             )
+            print()
             with transaction.atomic():
                 if is_duplicate == "n":
                     dpub.status = Publication.STATUS_APPROVED
                 elif is_duplicate == "y":
                     update_original_pub_source(opub, dpub)
-                    # as the publication is flagged as duplicate we can move on to next publication
-                    break
+                    PublicationDuplicate.objects.create(
+                        duplicate=dpub,
+                        original=opub
+                    )
                 else:
                     continue
                 dpub.reviewed = True
