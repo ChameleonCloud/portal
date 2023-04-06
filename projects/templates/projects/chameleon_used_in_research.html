@@ -10,7 +10,7 @@
             <th>Title</th>
             <th>Year</th>
             <th>Forum</th>
-            <th>Suthors</th>
+            <th>Authors</th>
             <th>Cites</th>
         </tr>
     </thead>
@@ -21,7 +21,7 @@
             <td>{{p.year}}</td>
             <td>{{p.forum}}</td>
             <td>{{p.author}}</td>
-            <td></td>
+            <td>{{p.max_cites_from_all_sources}}</td>
         </tr>
         {% endfor %}
     </tbody>

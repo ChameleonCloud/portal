@@ -1,20 +1,23 @@
-from django.shortcuts import render
-from django.core.mail import send_mail
+import datetime
+import logging
+
+import bibtexparser
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.http import Http404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Max
+from django.http import Http404
+from django.shortcuts import render
 from django.utils.html import strip_tags
 
-from projects.user_publication.deduplicate import get_duplicate_pubs
-from .forms import AddBibtexPublicationForm
-from projects.views import is_admin_or_superuser
 from projects.models import Publication
+from projects.user_publication.deduplicate import get_duplicate_pubs
+from projects.views import is_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
-import logging
-import bibtexparser
-import datetime
+
+from .forms import AddBibtexPublicationForm
 
 logger = logging.getLogger("projects")
 
@@ -165,7 +168,11 @@ def add_publications(request, project_id):
 
 @login_required
 def view_chameleon_used_in_research_publications(request):
-    pubs = Publication.objects.filter(reviewed=True, status=Publication.STATUS_APPROVED).order_by("-year")
+    pubs = Publication.objects.filter(
+        reviewed=True, status=Publication.STATUS_APPROVED
+    ).order_by('-year').annotate(
+        max_cites_from_all_sources=Max('sources__citation_count')
+    )
     return render(
         request,
         "projects/chameleon_used_in_research.html",
