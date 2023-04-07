@@ -60,7 +60,8 @@ def update_original_pub_source(original_pub, duplicate_pub):
             opub_source.cites_chameleon = dpub_source.cites_chameleon
             opub_source.acknowledges_chameleon = dpub_source.acknowledges_chameleon
             opub_source.is_found_by_algorithm = True
-            opub_source.approved_with = opub_source.PUBLICATION
+            opub_source.approved_with = opub_source.APPROVED_WITH_PUBLICATION
+            opub_source.entry_created_date = dpub_source.entry_created_date
             opub_source.save()
 
 
