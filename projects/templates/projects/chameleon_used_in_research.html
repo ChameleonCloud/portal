@@ -17,7 +17,15 @@
     <tbody>
       {% for p in pubs %}
         <tr>
-            <td>{{p.title}}</td>
+            <td>
+              {% if p.doi %}
+                <a href="https://doi.org/{{p.doi}}">{{p.title}}</a>
+              {% elif p.link %}
+                <a href="{{p.link}}">{{p.title}}</a>
+              {% else %}
+                {{p.title}}
+              {% endif %}
+            </td>
             <td>{{p.year}}</td>
             <td>{{p.forum}}</td>
             <td>{{p.author}}</td>
