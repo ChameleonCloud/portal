@@ -326,7 +326,7 @@ def save_publication(
             cites_chameleon=cites_chameleon,
             acknowledges_chameleon=acknowledges_chameleon,
         )
-        source.approved_with = source.PENDING_REVIEW
+        source.approved_with = source.APPROVED_WITH_PENDING_REVIEW
         source.save()
 
 

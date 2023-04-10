@@ -8,14 +8,20 @@ from projects.models import (
     PublicationSource,
 )
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
-from projects.user_publication.deduplicate import get_duplicate_pubs
+from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
 from projects.user_publication.utils import PublicationUtils
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 
-def import_pubs(dry_run=True, file_name="", source="all"):
+def import_pubs(dry_run=True, source="all"):
+    """Invoke import_pubs() interactively in django manage.py shell
+
+    Args:
+        dry_run (bool, optional): False means stores the publications in DB. Defaults to True.
+        source (str, optional): scopus, semantic_scholar, gscholar as options. Defaults to "all".
+    """
     pubs = []
 
     # Import publications from different sources based on the input argument
@@ -45,9 +51,12 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         author_usernames = [
             utils.get_usernames_for_author(author) for author in authors
         ]
-        report_file_name = f"publications_run_{date.today()}.csv"
+        report_file_name = f"publications_run_{date.today()}_{source}.csv"
 
-        duplicates = get_duplicate_pubs(pubs=[pub])
+        pubs_to_check_against = Publication.objects.filter(year=pub.year).order_by(
+            "-id"
+        )
+        original_pubs = get_originals_for_duplicate_pub(pub, pubs_to_check_against)
 
         # Check if there are valid projects and if the publication already exists
         if (
@@ -56,17 +65,16 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         ):
             reason_for_report = "Skipping: no valid projects"
 
-        # Check if publication is marked as duplicate
-        elif pub.status == Publication.STATUS_DUPLICATE:
-            logger.info(
-                "Found publication as duplicate. Run review_duplicates() to review"
-            )
-            reason_for_report = f"Saving: Found Duplicates {duplicates[pub]}"
-
         # If all conditions are met, import the publication
         else:
-            logger.info(f"import {pub.__repr__()}")
-            reason_for_report = f"Saving: {pub.title}"
+            if pub.status == Publication.STATUS_DUPLICATE:
+                logger.info(
+                    "Found publication as duplicate. Run review_duplicates() to review"
+                )
+                reason_for_report = f"Saving: Found Duplicates of {original_pubs}"
+            else:
+                logger.info(f"import {pub.__repr__()}")
+                reason_for_report = f"Saving: {pub.title}"
             # Save the publication if it is not a dry run
             if not dry_run:
                 utils.save_publication(pub, source)
