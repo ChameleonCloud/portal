@@ -169,7 +169,7 @@ def add_publications(request, project_id):
 def view_chameleon_used_in_research_publications(request):
     pubs = Publication.objects.filter(
         reviewed=True, status=Publication.STATUS_APPROVED
-    ).order_by('-year').annotate(
+    ).order_by('-year', 'title').annotate(
         max_cites_from_all_sources=Max('sources__citation_count')
     )
     return render(
