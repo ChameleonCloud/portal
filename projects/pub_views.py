@@ -166,7 +166,6 @@ def add_publications(request, project_id):
     )
 
 
-@login_required
 def view_chameleon_used_in_research_publications(request):
     pubs = Publication.objects.filter(
         reviewed=True, status=Publication.STATUS_APPROVED
