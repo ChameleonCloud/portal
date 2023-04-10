@@ -10,6 +10,9 @@ def migrate_date_to_sources(apps, schema_editor):
     PublicationSource = apps.get_model("projects", "PublicationSource")
     pubs = Publication.objects.all()
     for pub in pubs:
+        if pub.status == "IMPORTED":
+            # "no reason to use 'IMPORTED' when source name is other than 'user_reported'
+            pub.status = Publication.STATUS_APPROVED
         if pub.source == "scopus":
             citation_count = pub.scopus_citations if pub.scopus_citations else 0
         elif pub.source == "semantic_scholar":

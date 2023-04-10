@@ -27,4 +27,5 @@ urlpatterns = [
     ),
     path("publications/", pub_views.user_publications, name="publications"),
     path("charge/<int:allocation_id>/", views.view_charge, name="view_charge"),
+    path("chameleon-used-research/", pub_views.view_chameleon_used_in_research_publications, name="chameleon_used_research"),
 ]
