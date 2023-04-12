@@ -5,7 +5,8 @@ import re
 import requests
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication, PublicationSource
+from projects.models import (ChameleonPublication, Publication,
+                             PublicationSource)
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -100,10 +101,14 @@ def _get_pub_model(publication, dry_run=True):
         forum = journal.get("name")
     else:
         forum = publication.get("venue")
-    doi = (publication.get("externalIds", {}).get("DOI"),)
+    doi = publication.get("externalIds", {}).get("DOI", "")
     entry_type = ""
     if publication["publicationTypes"]:
         entry_type = ",".join(publication["publicationTypes"])
+    doi = doi if doi else publication.get("url", "")
+    link = ""
+    if doi:
+        link = f"https://www.doi.org/{doi}"
     pub_model = Publication(
         title=title,
         year=year,
@@ -113,15 +118,12 @@ def _get_pub_model(publication, dry_run=True):
         added_by_username="admin",
         forum=forum,
         doi=doi,
-        link=f"https://www.doi.org/{doi}" if doi else publication.get("url"),
+        link=link,
         publication_type=PublicationUtils.get_pub_type(
             {"ENTRYTYPE": entry_type, "forum": forum}
         ),
         status=Publication.STATUS_SUBMITTED,
     )
-    same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
-    if same_pub.exists():
-        utils.add_source_to_pub(same_pub.get(), PublicationSource.SEMANTIC_SCHOLAR)
     return pub_model
 
 

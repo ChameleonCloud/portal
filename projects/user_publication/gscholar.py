@@ -203,10 +203,9 @@ def pub_import(
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
             pub_model = gscholar.get_pub_model(cited_pub)
-            if pub_model.year == 'NA':
+            try:
+                pub_model.year = int(pub_model.year)
+            except ValueError:
                 continue
-            same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
-            if same_pub.exists():
-                utils.add_source_to_pub(same_pub.get(), PublicationSource.GOOGLE_SCHOLAR)
             pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
     return pubs

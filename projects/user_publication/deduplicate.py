@@ -1,7 +1,6 @@
 # Functions to identify similarities in two publications to flag one of them as diplicate
 
 import logging
-from collections import defaultdict
 
 from django.db import transaction
 
@@ -118,7 +117,7 @@ def review_duplicates(dry_run=True):
             print()
             with transaction.atomic():
                 if is_duplicate == "n":
-                    dpub.status = Publication.STATUS_APPROVED
+                    dpub.status = Publication.STATUS_SUBMITTED
                 elif is_duplicate == "y":
                     update_original_pub_source(opub, dpub)
                     PublicationDuplicate.objects.create(
@@ -127,5 +126,5 @@ def review_duplicates(dry_run=True):
                     )
                 else:
                     continue
-                dpub.reviewed = True
+                dpub.reviewed = False
                 dpub.save()

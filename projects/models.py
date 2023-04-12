@@ -252,6 +252,7 @@ class Publication(models.Model):
         "bibtex_source",
         "link",
         "doi",
+        "status"
     ]
 
     tas_project_id = models.IntegerField(null=True)
@@ -334,7 +335,7 @@ class PublicationSource(models.Model):
         "is_found_by_algorithm",
         "cites_chameleon",
         "acknowledges_chameleon",
-        "approved_with"
+        "approved_with",
     ]
 
     publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
@@ -359,7 +360,7 @@ class PublicationSource(models.Model):
         return self.name
 
     def __repr__(self) -> str:
-        line_format = "{0:18} : {1}"
+        line_format = "{0:24} : {1}"
         lines = [
             line_format.format(ck, getattr(self, ck))
             for ck in self.SOURCE_REPORT_FIELDS
