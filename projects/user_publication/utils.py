@@ -47,25 +47,25 @@ def get_publications_with_same_attributes(pub, publication_model_class):
 
 def update_original_pub_source(original_pub, duplicate_pub):
     """Updates original publications' source with the duplicate publication's sources
+    this function does not use transaction.atomic() - expects caller to use it
 
     Args:
         original_pubs (models.Publication)
         duplicate_pub (models.Publication)
     """
-    with transaction.atomic():
-        dpub_sources = duplicate_pub.sources.all()
-        for dpub_source in dpub_sources:
-            # copy all the objects's data to pub2_source
-            opub_source = original_pub.sources.get_or_create(name=dpub_source.name)[0]
-            opub_source.cites_chameleon = dpub_source.cites_chameleon
-            opub_source.acknowledges_chameleon = dpub_source.acknowledges_chameleon
-            opub_source.is_found_by_algorithm = True
-            if original_pub.status == original_pub.STATUS_APPROVED:
-                opub_source.approved_with = opub_source.APPROVED_WITH_PUBLICATION
-            else:
-                opub_source.approved_with = opub_source.APPROVED_WITH_PENDING_REVIEW
-            opub_source.entry_created_date = dpub_source.entry_created_date
-            opub_source.save()
+    dpub_sources = duplicate_pub.sources.all()
+    for dpub_source in dpub_sources:
+        # copy all the objects's data to original_pub source
+        opub_source = original_pub.sources.get_or_create(name=dpub_source.name)[0]
+        opub_source.cites_chameleon = dpub_source.cites_chameleon
+        opub_source.acknowledges_chameleon = dpub_source.acknowledges_chameleon
+        opub_source.is_found_by_algorithm = True
+        if original_pub.status == original_pub.STATUS_APPROVED:
+            opub_source.approved_with = opub_source.APPROVED_WITH_PUBLICATION
+        else:
+            opub_source.approved_with = opub_source.APPROVED_WITH_PENDING_REVIEW
+        opub_source.entry_created_date = dpub_source.entry_created_date
+        opub_source.save()
 
 
 def add_source_to_pub(pub, source, dry_run=True):
@@ -161,7 +161,7 @@ def format_author_name(author):
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
-    PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.7
+    PUB_TITLE_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.7
 
     @staticmethod
     def get_month(bibtex_entry):
@@ -282,9 +282,10 @@ class PublicationUtils:
     def is_pub_similar(pub1, pub2):
         """Returns if the arg:pub1 and arg:pub2 are similar
         It returns true if the year are an exact match and
-        if title and venue are almost similar strings see difflib.SequenceMatcher
-        # Not checking for authors match - as authors can have alias
-        # A reviewer to flagged duplicates can verify for authors
+        if title is almost similar strings see difflib.SequenceMatcher
+        Not checking for forum as forums can be abbreviated
+        Not checking for authors match - as authors can have alias
+        A reviewer to flagged duplicates can verify for authors
 
         Args:
             pub1 (projects.models.Publication)
@@ -295,19 +296,11 @@ class PublicationUtils:
         """
         if pub1.year != pub2.year:
             return False
-        similar_venue = False
-        similar_title = False
         if (
             PublicationUtils.how_similar(pub1.title, pub2.title)
-            > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
+            > PublicationUtils.PUB_TITLE_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
         ):
-            similar_title = True
             return True
-        # if (
-        #     PublicationUtils.how_similar(pub1.forum, pub2.forum)
-        #     > PublicationUtils.PUB_DUPLICATE_CHECK_SIMILARITY_THRESHOLD
-        # ):
-        #     similar_venue = True
         return False
 
     @staticmethod

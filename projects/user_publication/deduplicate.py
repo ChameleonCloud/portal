@@ -25,12 +25,7 @@ def get_originals_for_duplicate_pub(dpub, pubs_to_check_against):
     for pub2 in pubs_to_check_against:
         # Check if dpub and pub2 are similar enough to be flagged as duplicates
         if PublicationUtils.is_pub_similar(dpub, pub2):
-            dpub.status = Publication.STATUS_DUPLICATE
             original_pubs.append(pub2)
-            # Log the publications that have been flagged as duplicates
-            logger.info(
-                f"{dpub.title} is flagged duplicate to {pub2.id} {pub2.title}"
-            )
     return original_pubs
 
 
@@ -92,6 +87,37 @@ def flag_duplicate_in_whole_db():
                 pub.save()
 
 
+def pick_duplicate_from_pubs(dpub, opub):
+    # this logic can further extend, currently its for if publication is preprint
+    preprint_in_duplicate = (
+        'preprint' in dpub.forum if dpub.forum else ""
+        or 'preprint' in dpub.bibtex_source
+        or 'arXiv' in dpub.doi if dpub.doi else ""
+        or 'preprint' in dpub.publication_type
+    )
+    preprint_in_original = (
+        'preprint' in opub.forum if opub.forum else ""
+        or 'preprint' in opub.bibtex_source
+        or 'arXiv' in opub.doi if opub.doi else ""
+        or 'preprint' in opub.publication_type
+    )
+    if preprint_in_duplicate or preprint_in_original:
+        # if preprint is both in duplicate and original pick duplicate as duplicate
+        if preprint_in_duplicate and preprint_in_original:
+            duplicate_pub = dpub
+            original_pub = opub
+        elif preprint_in_duplicate:
+            duplicate_pub = dpub
+            original_pub = opub
+        else:
+            duplicate_pub = opub
+            original_pub = dpub
+    else:
+        duplicate_pub = dpub
+        original_pub = opub
+    return duplicate_pub, original_pub
+
+
 def review_duplicates(dry_run=True):
     """This function needs to be invoked interactively through cli
     Prompts reviewer to review publications that are flagged as duplicates (y/n)
@@ -99,32 +125,61 @@ def review_duplicates(dry_run=True):
     Args:
         dry_run (bool, optional):
     """
-    duplicate_originals_map = get_duplicate_pubs()
-    # go through all the flagged duplicates that are pending a review
-    total_dupes = len(duplicate_originals_map)
-    print(f"Found total {total_dupes} publications duplicate")
-    count = 0
-    for dpub in duplicate_originals_map:
-        count += 1
-        opubs = duplicate_originals_map[dpub]
-        for opub in opubs:
-            print(f"Found duplicate publication: {count}/{total_dupes}")
-            print(f"Publication 1: \n {dpub.__repr__()}\n")
+    # get all the publications that are to be checked for duplicates
+    pubs_to_check_for_duplicates = Publication.objects.filter(
+        checked_for_duplicates=False
+    ).order_by("id")
+    print(f"{len(pubs_to_check_for_duplicates)} pubs to check for duplicates")
+    pub_checked = 0
+    for pub1 in pubs_to_check_for_duplicates:
+        pub_checked += 1
+        # get all the publications that already checked for duplicates
+        # and are not duplicates, that are published in the same year as pub1
+        # and is older than (created) pub1
+        pubs_to_check_against = Publication.objects.filter(
+            year=pub1.year, id__lt=pub1.id, checked_for_duplicates=True
+        ).exclude(status=Publication.STATUS_DUPLICATE).order_by("id")
+        original_pubs = get_originals_for_duplicate_pub(pub1, pubs_to_check_against)
+        # is not a duplicate pub
+        if len(original_pubs) == 0:
+            if not dry_run:
+                with transaction.atomic():
+                    pub1.checked_for_duplicates = True
+                    pub1.save()
+            continue
+        for opub in original_pubs:
+            print(f"\nChecking publication: {pub_checked} count out of {len(pubs_to_check_for_duplicates)}")
+            print(f"Publication 1: \n {pub1.__repr__()}\n")
             print(f"Publication 2: \n {opub.__repr__()}\n")
+
+            print("\nAuthors")
+            print(f"{pub1.author}")
+            print(f"{opub.author}")
+            print("\nForum")
+            print(f"{pub1.forum}")
+            print(f"{opub.forum}")
             is_duplicate = input(
                 "Is Publication 1 a duplicate? (y/n/c): use 'c' to cancel:"
             )
             print()
+            if dry_run:
+                continue
             with transaction.atomic():
                 if is_duplicate == "n":
-                    dpub.status = Publication.STATUS_SUBMITTED
+                    pub1.checked_for_duplicates = True
                 elif is_duplicate == "y":
-                    update_original_pub_source(opub, dpub)
+                    duplicate_pub, original_pub = pick_duplicate_from_pubs(pub1, opub)
+                    duplicate_pub.status = Publication.STATUS_DUPLICATE
+                    update_original_pub_source(original_pub, duplicate_pub)
                     PublicationDuplicate.objects.create(
-                        duplicate=dpub,
-                        original=opub
+                        duplicate=duplicate_pub,
+                        original=original_pub
+                    )
+                    # Log the publications that have been flagged as duplicates
+                    logger.info(
+                        f"{duplicate_pub.title} is flagged duplicate to {original_pub.id} {original_pub.title}"
                     )
                 else:
                     continue
-                dpub.reviewed = False
-                dpub.save()
+                pub1.checked_for_duplicates = True
+                pub1.save()

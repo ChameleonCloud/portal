@@ -131,7 +131,7 @@ def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
-            p = _get_pub_model(cc, dry_run)
-            if p:
-                publications.append((PublicationSource.SEMANTIC_SCHOLAR, p))
+            pub = _get_pub_model(cc, dry_run)
+            if pub:
+                publications.append((PublicationSource.SEMANTIC_SCHOLAR, pub))
     return publications

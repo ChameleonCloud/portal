@@ -270,7 +270,7 @@ class Publication(models.Model):
     added_by_username = models.CharField(max_length=100)
     doi = models.CharField(max_length=500, null=True, blank=True)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
-    reviewed = models.BooleanField(default=False, null=False)
+    checked_for_duplicates = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
         return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"

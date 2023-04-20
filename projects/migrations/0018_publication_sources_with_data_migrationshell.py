@@ -3,39 +3,41 @@
 from django.db import migrations, models
 import django.db.models.deletion
 from django.utils import timezone
-
+from django.db import transaction
 
 def migrate_date_to_sources(apps, schema_editor):
     Publication = apps.get_model("projects", "Publication")
     PublicationSource = apps.get_model("projects", "PublicationSource")
     pubs = Publication.objects.all()
-    for pub in pubs:
-        if pub.status == "IMPORTED":
-            # "no reason to use 'IMPORTED' when source name is other than 'user_reported'
-            pub.status = Publication.STATUS_APPROVED
-        if pub.source == "scopus":
-            citation_count = pub.scopus_citations if pub.scopus_citations else 0
-        elif pub.source == "semantic_scholar":
-            citation_count = (
-                pub.semantic_scholar_citations if pub.semantic_scholar_citations else 0
+    with transaction.atomic():
+        for pub in pubs:
+            found_by_algo = False
+            if pub.status == "IMPORTED":
+                found_by_algo = True
+                # "no reason to use 'IMPORTED' when source name is other than 'user_reported'
+                pub.status = "APPROVED"
+            if pub.source == "scopus":
+                citation_count = pub.scopus_citations if pub.scopus_citations else 0
+            elif pub.source == "semantic_scholar":
+                citation_count = (
+                    pub.semantic_scholar_citations if pub.semantic_scholar_citations else 0
+                )
+            else:
+                citation_count = 0
+            if pub.approved_with == "Publication":
+                cites_chameleon = True
+            else:
+                cites_chameleon = False
+            pub.sources.get_or_create(
+                name=pub.source,
+                citation_count=citation_count,
+                entry_created_date=pub.entry_created_date,
+                is_found_by_algorithm=found_by_algo,
+                cites_chameleon=cites_chameleon,
+                acknowledges_chameleon=False,
+                approved_with=pub.approved_with,
             )
-        else:
-            citation_count = 0
-        if pub.approved_with == "Publication":
-            cites_chameleon = True
-        else:
-            cites_chameleon = False
-        pub.sources.get_or_create(
-            name=pub.source,
-            citation_count=citation_count,
-            entry_created_date=pub.entry_created_date,
-            is_found_by_algorithm=True,
-            cites_chameleon=cites_chameleon,
-            acknowledges_chameleon=False,
-            approved_with=pub.approved_with,
-        )
-        pub.reviewed = True
-        pub.save()
+            pub.save()
     return
 
 
@@ -47,8 +49,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="publication",
-            name="reviewed",
+            model_name='publication',
+            name='checked_for_duplicates',
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
