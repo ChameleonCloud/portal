@@ -26,9 +26,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ruby-dev \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
-  # Install SASS requirements \
-  # These are pinned because compass is decommissioned and thus tricky to get working \
-  # These versions were chosen
+  # Install SASS requirements
+  # These are pinned because compass is decommissioned and thus tricky to get working.
+  # These versions were chosen because they were used
+  # in the latest functioning portal image at the time of this edit.
   && gem install sass --version 3.4.23 \
   && gem install compass --version 1.0.3
 
