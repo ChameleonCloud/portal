@@ -364,12 +364,12 @@ def edit_artifact(request, artifact):
             reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
 
-    authors_formset = AuthorFormset(initial=artifact["authors"])
+    authors_formset = AuthorFormset(initial=artifact["authors"], prefix="author")
     roles_formset = RoleFormset(
         initial=_convert_artifact_roles_to_formset_roles(artifact["roles"]),
         prefix="role",
     )
-    form = ArtifactForm(artifact=artifact, request=request, prefix="author")
+    form = ArtifactForm(artifact=artifact, request=request, prefix="artifact")
     template = loader.get_template("sharing_portal/edit.html")
     context = {
         "artifact_form": form,
@@ -984,7 +984,10 @@ def _handle_artifact_forms(
         for key in keys:
             value = artifact_form.cleaned_data[key]
             if artifact.get(key) != value:
-                patches.append({"op": "replace", "path": f"/{key}", "value": value})
+                if value == "":
+                    patches.append({"op": "remove", "path": f"/{key}"})
+                else:
+                    patches.append({"op": "replace", "path": f"/{key}", "value": value})
 
     if authors_formset:
         if not authors_formset.is_valid():

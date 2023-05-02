@@ -18,6 +18,7 @@ class ArtifactForm(forms.Form):
     long_description = forms.CharField(
         label="Long Description", widget=forms.Textarea(), required=False
     )
+    prefix = "artifact"
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request")

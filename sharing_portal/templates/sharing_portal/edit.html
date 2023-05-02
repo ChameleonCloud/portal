@@ -30,7 +30,9 @@
           </div>
         </header>
 
-        {% bootstrap_form artifact_form %}
+        <fieldset prefix="artifact">
+          {% bootstrap_form artifact_form %}
+        </fieldset>
 
         <h4>Authors</h4>
         {{ authors_formset.management_form }}
