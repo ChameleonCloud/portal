@@ -206,6 +206,7 @@ def pub_import(
             try:
                 pub_model.year = int(pub_model.year)
             except ValueError:
+                logger.warning(f"Skipping: {pub_model.title} does not have an year")
                 continue
             pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
     return pubs

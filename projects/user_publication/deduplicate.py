@@ -32,7 +32,8 @@ def get_originals_for_duplicate_pub(dpub, pubs_to_check_against):
 def get_duplicate_pubs(pubs=None):
     """
     returns duplicate publications in the database.
-    If passed pubs are not stored in database - this does not work.
+    If the passed pubs are not stored (saved) in the database
+    the function fails with an error, as it needs ID of the publication
     Use get_originals_for_duplicate_pub() for each publication
 
     Args:
@@ -49,8 +50,8 @@ def get_duplicate_pubs(pubs=None):
         pubs_to_check_duplicates = pubs
     else:
         # get the publications in reverse so latest can be checked against old ones
-        # reviewed=False are the ones that are yet to be reviewed
-        pubs_to_check_duplicates = Publication.objects.filter(reviewed=False).order_by(
+        # checked_for_duplicates=False are the ones that are yet to be reviewed
+        pubs_to_check_duplicates = Publication.objects.filter(checked_for_duplicates=False).order_by(
             "-id"
         )
 
@@ -61,8 +62,7 @@ def get_duplicate_pubs(pubs=None):
         if not pub1.year:
             logger.info(f"{pub1.title} does not have year - ignoring")
             continue
-        # publications without ID means they are not in the database yet. So get all Publications
-        # that are older than pub1
+        # Get all Publications that are older than pub1
         pubs_to_check_against = Publication.objects.filter(
             id__lt=pub1.id, year=pub1.year
         ).order_by("-id")
@@ -83,38 +83,34 @@ def flag_duplicate_in_whole_db():
         if pub in duplicates:
             with transaction.atomic():
                 pub.status = Publication.STATUS_DUPLICATE
-                pub.reviewed = False
+                pub.checked_for_duplicates = False
                 pub.save()
 
 
 def pick_duplicate_from_pubs(dpub, opub):
+    # decide which publication should be categorized as duplicate
     # this logic can further extend, currently its for if publication is preprint
-    preprint_in_duplicate = (
-        'preprint' in dpub.forum if dpub.forum else ""
-        or 'preprint' in dpub.bibtex_source
-        or 'arXiv' in dpub.doi if dpub.doi else ""
-        or 'preprint' in dpub.publication_type
-    )
-    preprint_in_original = (
-        'preprint' in opub.forum if opub.forum else ""
-        or 'preprint' in opub.bibtex_source
-        or 'arXiv' in opub.doi if opub.doi else ""
-        or 'preprint' in opub.publication_type
-    )
-    if preprint_in_duplicate or preprint_in_original:
-        # if preprint is both in duplicate and original pick duplicate as duplicate
-        if preprint_in_duplicate and preprint_in_original:
-            duplicate_pub = dpub
-            original_pub = opub
-        elif preprint_in_duplicate:
-            duplicate_pub = dpub
-            original_pub = opub
-        else:
-            duplicate_pub = opub
-            original_pub = dpub
-    else:
+    def has_preprint(publication):
+        return (
+            'preprint' in publication.forum.lower() if publication.forum else ""
+            or 'preprint' in publication.bibtex_source.lower()
+            or 'arxiv' in publication.doi.lower() if publication.doi else ""
+            or 'preprint' in publication.publication_type.lower()
+        )
+
+    duplicate_has_preprint = has_preprint(dpub)
+    original_has_preprint = has_preprint(opub)
+
+    if duplicate_has_preprint and original_has_preprint:
         duplicate_pub = dpub
         original_pub = opub
+    elif duplicate_has_preprint:
+        duplicate_pub = dpub
+        original_pub = opub
+    else:
+        duplicate_pub = opub
+        original_pub = dpub
+
     return duplicate_pub, original_pub
 
 

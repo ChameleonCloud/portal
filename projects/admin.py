@@ -10,7 +10,13 @@ class ProjectFields:
         return getattr(project, "charge_code", None)
 
 
+class PublicationSourceInline(admin.TabularInline):
+    model = PublicationSource
+    extra = 0
+
+
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
+    inlines = (PublicationSourceInline, )
 
     readonly_fields = [
         "project_charge_code",
@@ -30,7 +36,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "link",
         "added_by_username",
         "status",
-        "reviewed",
+        "checked_for_duplicates",
     )
     ordering = ["project__charge_code", "-year"]
     list_display = ("title", "project_charge_code", "year",)
@@ -76,16 +82,17 @@ class PublicationFields:
         return getattr(publication, "title", None)
 
 
+
 class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
     readonly_fields = [
-        "citation_count"
+        "citation_count",
     ]
 
     fields = (
         "name",
         "publication",
         "citation_count",
-        "found_by_algorithm",
+        "is_found_by_algorithm",
         "cites_chameleon",
         "acknowledges_chameleon",
         "entry_created_date",

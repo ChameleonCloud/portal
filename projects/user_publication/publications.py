@@ -147,29 +147,6 @@ def update_status_for_email_approval(pub, user_reported_source):
             user_reported_source.save()
 
 
-def update_user_reported_status(pub, user_reported_source):
-    print("Choose the appropriate approval for user reported source")
-    choice = choose_approved_with_option()
-    # For email approval
-    if choice and choice == PublicationSource.APPROVED_WITH_EMAIL:
-        update_status_for_email_approval(pub, user_reported_source)
-    # for other approvals
-    elif choice:
-        with transaction.atomic():
-            user_reported_source.status = choice
-            user_reported_source.save()
-            if choice == PublicationSource.APPROVED_WITH_PENDING_REVIEW:
-                pub.status = Publication.STATUS_SUBMITTED
-            else:
-                pub.status = Publication.STATUS_APPROVED
-            pub.save()
-    # if rejected
-    else:
-        with transaction.atomic():
-            pub.status = Publication.STATUS_REJECTED
-            pub.save()
-
-
 def update_other_sources_status(pub, sources):
     print("Choose the appropriate approval for other sources")
     for source in sources:
@@ -214,7 +191,9 @@ def review_imported_publications():
         ).first()
         if user_reported_source:
             if user_reported_source.approved_with == PublicationSource.APPROVED_WITH_PENDING_REVIEW:
-                update_user_reported_status(pub, user_reported_source)
+                print("User reported publications can be approved from admin interface")
+                print("Skipping publication...")
+                continue
             # update other sources to same approved status of user_reported source
             with transaction.atomic():
                 for other_source in approval_needed_sources:
