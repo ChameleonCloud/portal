@@ -357,13 +357,16 @@ class PublicationSource(models.Model):
                 fields=["publication", "name"], name="Unique source for a publication"
             ),
             models.CheckConstraint(
-            # if the publication is approved then approved_with must have a value
+                # if the publication is approved then approved_with must have a value
                 check=(
-                    models.Q(publication__status=Publication.STATUS_APPROVED, approved_with__isnull=False)
+                    models.Q(
+                        publication__status=Publication.STATUS_APPROVED,
+                        approved_with__isnull=False,
+                    )
                     | ~models.Q(publication__status=Publication.STATUS_APPROVED)
                 ),
-                name='valid_approved_with_for_approved_status'
-            )
+                name="valid_approved_with_for_approved_status",
+            ),
         ]
 
     def __str__(self):
