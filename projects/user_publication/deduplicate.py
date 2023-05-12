@@ -51,9 +51,9 @@ def get_duplicate_pubs(pubs=None):
     else:
         # get the publications in reverse so latest can be checked against old ones
         # checked_for_duplicates=False are the ones that are yet to be reviewed
-        pubs_to_check_duplicates = Publication.objects.filter(checked_for_duplicates=False).order_by(
-            "-id"
-        )
+        pubs_to_check_duplicates = Publication.objects.filter(
+            checked_for_duplicates=False
+        ).order_by("-id")
 
     # Loop through each publication to check for duplicates
     for pub1 in pubs_to_check_duplicates:
@@ -92,10 +92,13 @@ def pick_duplicate_from_pubs(dpub, opub):
     # this logic can further extend, currently its for if publication is preprint
     def has_preprint(publication):
         return (
-            'preprint' in publication.forum.lower() if publication.forum else ""
-            or 'preprint' in publication.bibtex_source.lower()
-            or 'arxiv' in publication.doi.lower() if publication.doi else ""
-            or 'preprint' in publication.publication_type.lower()
+            "preprint" in publication.forum.lower()
+            if publication.forum
+            else ""
+            or "preprint" in publication.bibtex_source.lower()
+            or "arxiv" in publication.doi.lower()
+            if publication.doi
+            else "" or "preprint" in publication.publication_type.lower()
         )
 
     duplicate_has_preprint = has_preprint(dpub)
@@ -132,9 +135,13 @@ def review_duplicates(dry_run=True):
         # get all the publications that already checked for duplicates
         # and are not duplicates, that are published in the same year as pub1
         # and is older than (created) pub1
-        pubs_to_check_against = Publication.objects.filter(
-            year=pub1.year, id__lt=pub1.id, checked_for_duplicates=True
-        ).exclude(status=Publication.STATUS_DUPLICATE).order_by("id")
+        pubs_to_check_against = (
+            Publication.objects.filter(
+                year=pub1.year, id__lt=pub1.id, checked_for_duplicates=True
+            )
+            .exclude(status=Publication.STATUS_DUPLICATE)
+            .order_by("id")
+        )
         original_pubs = get_originals_for_duplicate_pub(pub1, pubs_to_check_against)
         # is not a duplicate pub
         if len(original_pubs) == 0:
@@ -144,7 +151,9 @@ def review_duplicates(dry_run=True):
                     pub1.save()
             continue
         for opub in original_pubs:
-            print(f"\nChecking publication: {pub_checked} count out of {len(pubs_to_check_for_duplicates)}")
+            print(
+                f"\nChecking publication: {pub_checked} count out of {len(pubs_to_check_for_duplicates)}"
+            )
             print(f"Publication 1: \n {pub1.__repr__()}\n")
             print(f"Publication 2: \n {opub.__repr__()}\n")
 
@@ -168,8 +177,7 @@ def review_duplicates(dry_run=True):
                     duplicate_pub.status = Publication.STATUS_DUPLICATE
                     update_original_pub_source(original_pub, duplicate_pub)
                     PublicationDuplicate.objects.create(
-                        duplicate=duplicate_pub,
-                        original=original_pub
+                        duplicate=duplicate_pub, original=original_pub
                     )
                     # Log the publications that have been flagged as duplicates
                     logger.info(

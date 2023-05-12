@@ -104,7 +104,7 @@ def choose_approved_with_option():
     elif inp == "3":
         return PublicationSource.APPROVED_WITH_EMAIL
     elif inp == "4":
-        return 
+        return
     elif inp == "5":
         return PublicationSource.APPROVED_WITH_PENDING_REVIEW
     else:
@@ -118,9 +118,9 @@ def choose_email_approval_status():
     print("3. To leave as is, no reply yet from the user")
     inp = input("Choose 1, 2, 3: ")
     if inp == "1":
-        return 'approved'
+        return "approved"
     elif inp == "2":
-        return 'rejected'
+        return "rejected"
     elif inp == "3":
         return
     else:
@@ -129,13 +129,13 @@ def choose_email_approval_status():
 
 def update_status_for_email_approval(pub, user_reported_source):
     email_choice = choose_email_approval_status()
-    if email_choice == 'approved':
+    if email_choice == "approved":
         with transaction.atomic():
             user_reported_source.approved_with = PublicationSource.APPROVED_WITH_EMAIL
             user_reported_source.save()
             pub.status = Publication.STATUS_APPROVED
             pub.save()
-    elif email_choice == 'rejected':
+    elif email_choice == "rejected":
         with transaction.atomic():
             user_reported_source.approved_with = PublicationSource.APPROVED_WITH_EMAIL
             user_reported_source.save()
@@ -143,7 +143,9 @@ def update_status_for_email_approval(pub, user_reported_source):
             pub.save()
     else:
         with transaction.atomic():
-            user_reported_source.approved_with = PublicationSource.APPROVED_WITH_PENDING_REVIEW
+            user_reported_source.approved_with = (
+                PublicationSource.APPROVED_WITH_PENDING_REVIEW
+            )
             user_reported_source.save()
 
 
@@ -173,7 +175,9 @@ def review_imported_publications():
     with functionality to review imported publications
     go through all the flagged duplicates that are pending a review
     """
-    pubs_to_review = Publication.objects.filter(status=Publication.STATUS_SUBMITTED).order_by("id")
+    pubs_to_review = Publication.objects.filter(
+        status=Publication.STATUS_SUBMITTED
+    ).order_by("id")
     pubs_count = pubs_to_review.count()
     print("Found publications to review: {pubs_count}")
     review_counter = 0
@@ -190,7 +194,10 @@ def review_imported_publications():
             name=PublicationSource.USER_REPORTED,
         ).first()
         if user_reported_source:
-            if user_reported_source.approved_with == PublicationSource.APPROVED_WITH_PENDING_REVIEW:
+            if (
+                user_reported_source.approved_with
+                == PublicationSource.APPROVED_WITH_PENDING_REVIEW
+            ):
                 print("User reported publications can be approved from admin interface")
                 print("Skipping publication...")
                 continue
@@ -218,5 +225,7 @@ def review_imported_publications():
                     for source in pub.sources.all():
                         print("with source: ", source.__repr__())
                         print("")
-                        source.approved_with = PublicationSource.APPROVED_WITH_PENDING_REVIEW
+                        source.approved_with = (
+                            PublicationSource.APPROVED_WITH_PENDING_REVIEW
+                        )
                         source.save()

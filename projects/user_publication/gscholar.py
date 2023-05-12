@@ -7,8 +7,7 @@ from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import (ChameleonPublication, Publication,
-                             PublicationSource)
+from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils
 
@@ -40,13 +39,16 @@ class GoogleScholarHandler(object):
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
-                    logger.info(f"New free proxy retries : {self.retries} / {MAX_RETRIES}")
+                    logger.info(
+                        f"New free proxy retries : {self.retries} / {MAX_RETRIES}"
+                    )
                     self.retries += 1
                     self.new_proxy()
                 else:
                     self.retries = 0
                     break
             return resp
+
         return inner_f
 
     def _publication_id(self, pub: dict):
@@ -87,7 +89,7 @@ class GoogleScholarHandler(object):
             year_high = datetime.datetime.now().year
         pub_id = self._publication_id(pub)
         logger.info(f"Getting citations for {pub['bib']['title']}")
-        num_citations = pub['num_citations']
+        num_citations = pub["num_citations"]
         cites_gen = self.scholarly.search_citedby(
             pub_id, year_low=year_low, year_high=year_high
         )
@@ -125,7 +127,7 @@ class GoogleScholarHandler(object):
         Returns:
             list: list of authors in ["firstname lastname",] format
         """
-        authors = utils.decode_unicode_text(pub['bib']['author'])
+        authors = utils.decode_unicode_text(pub["bib"]["author"])
         # few authors have unicode characters encoded to ascii
         # for example Lo{\"}c
         # substitute all character from text except
@@ -138,17 +140,17 @@ class GoogleScholarHandler(object):
         return parsed_authors
 
     def get_pub_model(self, pub):
-        forum = PublicationUtils.get_forum(pub['bib'])
-        pub_type = PublicationUtils.get_pub_type(pub['bib'])
+        forum = PublicationUtils.get_forum(pub["bib"])
+        pub_type = PublicationUtils.get_pub_type(pub["bib"])
         pub_model = Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
             author=" and ".join(self.get_authors(pub)),
             publication_type=pub_type,
-            bibtex_source=pub['bib'],
+            bibtex_source=pub["bib"],
             added_by_username="admin",
             forum=forum,
-            link=pub.get("pub_url", ''),
+            link=pub.get("pub_url", ""),
             status=Publication.STATUS_SUBMITTED,
         )
         return pub_model
@@ -162,7 +164,9 @@ class GoogleScholarHandler(object):
             dry_run (bool, optional): to not save in DB. Defaults to False.
         """
         result_pub = self.get_one_pub(pub.title)
-        if not PublicationUtils.is_similar_str(result_pub['bib']['title'].lower(), pub.title.lower()):
+        if not PublicationUtils.is_similar_str(
+            result_pub["bib"]["title"].lower(), pub.title.lower()
+        ):
             return
 
         g_citations = result_pub.get("num_citations", 0)
@@ -173,18 +177,18 @@ class GoogleScholarHandler(object):
             with transaction.atomic():
                 existing_g_source.citation_count = g_citations
                 existing_g_source.save()
-        logger.info((
-            f"update Google citation number for "
-            f"{pub.title} (id: {pub.id}) "
-            f"from {existing_citation_count} "
-            f"to {g_citations}"
-        ))
+        logger.info(
+            (
+                f"update Google citation number for "
+                f"{pub.title} (id: {pub.id}) "
+                f"from {existing_citation_count} "
+                f"to {g_citations}"
+            )
+        )
         return
 
 
-def pub_import(
-    dry_run=True, year_low=2014, year_high=None
-):
+def pub_import(dry_run=True, year_low=2014, year_high=None):
     """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
