@@ -106,47 +106,9 @@ def choose_approved_with_option():
     elif inp == "4":
         return
     elif inp == "5":
-        return PublicationSource.APPROVED_WITH_PENDING_REVIEW
+        return "DO NOTHING"
     else:
         return choose_approved_with_option()
-
-
-def choose_email_approval_status():
-    print("Change the status of approving the publication with email")
-    print("1. If attestation is received")
-    print("2. If rejected")
-    print("3. To leave as is, no reply yet from the user")
-    inp = input("Choose 1, 2, 3: ")
-    if inp == "1":
-        return "approved"
-    elif inp == "2":
-        return "rejected"
-    elif inp == "3":
-        return
-    else:
-        return choose_email_approval_status()
-
-
-def update_status_for_email_approval(pub, user_reported_source):
-    email_choice = choose_email_approval_status()
-    if email_choice == "approved":
-        with transaction.atomic():
-            user_reported_source.approved_with = PublicationSource.APPROVED_WITH_EMAIL
-            user_reported_source.save()
-            pub.status = Publication.STATUS_APPROVED
-            pub.save()
-    elif email_choice == "rejected":
-        with transaction.atomic():
-            user_reported_source.approved_with = PublicationSource.APPROVED_WITH_EMAIL
-            user_reported_source.save()
-            pub.status = Publication.STATUS_REJECTED
-            pub.save()
-    else:
-        with transaction.atomic():
-            user_reported_source.approved_with = (
-                PublicationSource.APPROVED_WITH_PENDING_REVIEW
-            )
-            user_reported_source.save()
 
 
 def update_other_sources_status(pub, sources):
@@ -155,12 +117,7 @@ def update_other_sources_status(pub, sources):
         print(f"{source.__repr__()}\n")
     choice = choose_approved_with_option()
     if choice:
-        for source in sources:
-            with transaction.atomic():
-                source.approved_with = choice
-                source.save()
-                print(f"status updated to {source.approved_with}")
-        if choice != PublicationSource.APPROVED_WITH_PENDING_REVIEW:
+        if choice != "DO NOTHING":
             with transaction.atomic():
                 pub.status = Publication.STATUS_APPROVED
                 pub.save()
@@ -188,32 +145,28 @@ def review_imported_publications():
         for source in pub.sources.all():
             print(f"with source: {source.__repr__()}\n")
         approval_needed_sources = pub.sources.filter(
-            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
+            approved_with__is_null=True
         ).exclude(name=PublicationSource.USER_REPORTED)
         user_reported_source = pub.sources.filter(
             name=PublicationSource.USER_REPORTED,
         ).first()
         if user_reported_source:
-            if (
-                user_reported_source.approved_with
-                == PublicationSource.APPROVED_WITH_PENDING_REVIEW
-            ):
+            # update other sources as approved with same method
+            # as the user_reported approved_with
+            if user_reported_source.approved_with:
+                with transaction.atomic():
+                    for other_source in approval_needed_sources:
+                        other_source.approved_with = user_reported_source.approved_with
+                        other_source.save()
+            else:
                 print("User reported publications can be approved from admin interface")
                 print("Skipping publication...")
                 continue
-            # update other sources to same approved status of user_reported source
-            with transaction.atomic():
-                for other_source in approval_needed_sources:
-                    other_source.approved_with = user_reported_source.approved_with
-                    other_source.save()
-
         elif approval_needed_sources:
             print("These sources need review: ")
             update_other_sources_status(pub, approval_needed_sources)
         # if the publication sources are not approved yet, move to next publication
-        if pub.sources.filter(
-            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
-        ).exists():
+        if pub.sources.filter(approved_with__isnull=True).exists():
             continue
         else:
             print("All sources are reviewed")
@@ -225,7 +178,5 @@ def review_imported_publications():
                     for source in pub.sources.all():
                         print("with source: ", source.__repr__())
                         print("")
-                        source.approved_with = (
-                            PublicationSource.APPROVED_WITH_PENDING_REVIEW
-                        )
+                        source.approved_with = None
                         source.save()

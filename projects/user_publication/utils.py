@@ -63,7 +63,7 @@ def update_original_pub_source(original_pub, duplicate_pub):
         if original_pub.status == original_pub.STATUS_APPROVED:
             opub_source.approved_with = opub_source.APPROVED_WITH_PUBLICATION
         else:
-            opub_source.approved_with = opub_source.APPROVED_WITH_PENDING_REVIEW
+            opub_source.approved_with = None
         opub_source.entry_created_date = dpub_source.entry_created_date
         opub_source.save()
 
@@ -82,7 +82,7 @@ def add_source_to_pub(pub, source, dry_run=True):
         if pub.status == pub.STATUS_APPROVED:
             source.approved_with = source.APPROVED_WITH_PUBLICATION
         else:
-            source.approved_with = source.APPROVED_WITH_PENDING_REVIEW
+            source.approved_with = None
         source.save()
 
 
@@ -328,7 +328,7 @@ def save_publication(
             cites_chameleon=cites_chameleon,
             acknowledges_chameleon=acknowledges_chameleon,
         )
-        source.approved_with = source.APPROVED_WITH_PENDING_REVIEW
+        source.approved_with = None
         source.save()
 
 

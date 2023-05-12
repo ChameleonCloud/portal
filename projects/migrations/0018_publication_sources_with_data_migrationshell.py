@@ -102,7 +102,6 @@ class Migration(migrations.Migration):
                             ("publication", "Publication"),
                             ("justification", "Justification"),
                             ("email", "Email"),
-                            ("pending_review", "Review Pending"),
                         ],
                         max_length=30,
                         null=True,
