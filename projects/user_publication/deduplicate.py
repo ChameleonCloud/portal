@@ -102,18 +102,12 @@ def pick_duplicate_from_pubs(dpub, opub):
         )
 
     duplicate_has_preprint = has_preprint(dpub)
-    original_has_preprint = has_preprint(opub)
-
-    if duplicate_has_preprint and original_has_preprint:
-        duplicate_pub = dpub
-        original_pub = opub
-    elif duplicate_has_preprint:
+    if duplicate_has_preprint:
         duplicate_pub = dpub
         original_pub = opub
     else:
         duplicate_pub = opub
         original_pub = dpub
-
     return duplicate_pub, original_pub
 
 
