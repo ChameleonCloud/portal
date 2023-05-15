@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from projects.models import Invitation, Publication, Funding, ChameleonPublication, PublicationSource
+from projects.models import Invitation, Publication, Funding, ChameleonPublication
 
 
 class ProjectFields:
@@ -103,4 +103,3 @@ admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation)
 admin.site.register(Funding, FundingAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
-admin.site.register(PublicationSource, PublicationSourceAdmin)

@@ -17,7 +17,6 @@ from util.keycloak_client import KeycloakClient
 LOG = logging.getLogger(__name__)
 
 PUBLICATION_REPORT_KEYS = [
-    "id",
     "title",
     "publication_type",
     "forum",
@@ -152,6 +151,45 @@ def format_author_name(author):
         return names[0]
 
 
+def get_pub_type(types, forum):
+    """Return the type of publication
+
+    Args:
+        types (list): (semantic scholar) Journal Article, Conference, Review, etc.
+        forum (str): EntryType - https://www.bibtex.com/e/entry-types/
+
+    Returns:
+        str : publication type - conference, thesis, report, etc.
+    """
+    if not forum:
+        forum = ""
+    forum = forum.lower()
+    if not types:
+        types = []
+    types = [t.lower() for t in types]
+
+    if "arxiv" in forum:
+        return "preprint"
+    if "poster" in forum:
+        return "poster"
+    if "thesis" in forum:
+        if "ms" in forum or "master thesis" in forum:
+            return "ms thesis"
+        if "phd" in forum:
+            return "phd thesis"
+        return "thesis"
+    if "github" in forum:
+        return "github"
+    if "techreport" in forum or "tech report" in forum or "internal report" in forum:
+        return "tech report"
+    if "journalarticle" in types:
+        return "journal article"
+    if "conference" in types or "proceeding" in forum or "conference" in forum:
+        return "conference paper"
+
+    return "other"
+
+
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
@@ -219,6 +257,7 @@ class PublicationUtils:
         bibtex_types = bibtex_entry.get("ENTRYTYPE", "").lower()
         bibtex_entry.pop("abstract", None)
         bibtex_as_str = str(bibtex_entry).lower()
+
         if "arxiv" in bibtex_as_str:
             return "preprint"
         if "poster" in bibtex_as_str:

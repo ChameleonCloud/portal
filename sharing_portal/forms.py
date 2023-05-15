@@ -16,8 +16,9 @@ class ArtifactForm(forms.Form):
     title = forms.CharField(label="Title")
     short_description = forms.CharField(label="Short Description")
     long_description = forms.CharField(
-        label="Long Description", widget=forms.Textarea()
+        label="Long Description", widget=forms.Textarea(), required=False
     )
+    prefix = "artifact"
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request")
@@ -44,6 +45,7 @@ class AuthorForm(forms.Form):
     full_name = forms.CharField(label="Full Name")
     email = forms.CharField(label="Email")
     affiliation = forms.CharField(label="Affiliation", required=False)
+    prefix = "author"
 
     def __init__(self, *args, **kwargs):
         author = kwargs.pop("initial", None)
@@ -61,6 +63,33 @@ AuthorFormset = forms.formset_factory(
 
 AuthorCreateFormset = forms.formset_factory(
     form=AuthorForm, can_delete=False, extra=2, min_num=1
+)
+
+
+class RolesForm(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        required=True,
+    )
+    roles = forms.MultipleChoiceField(
+        label="Roles",
+        widget=CheckboxSelectMultiple,
+        required=False,
+        choices=[(role, role) for role in ("collaborator", "administrator")],
+    )
+    prefix = "role"
+
+    def __init__(self, *args, **kwargs):
+        roles = kwargs.pop("initial", None)
+        super().__init__(*args, **kwargs)
+
+        if roles:
+            self.fields["email"].initial = roles["email"]
+            self.fields["roles"].initial = roles["roles"]
+
+
+RoleFormset = forms.formset_factory(
+    form=RolesForm, can_delete=False, extra=2, min_num=1
 )
 
 

@@ -17,7 +17,7 @@ else
 	NODE_IMG = node
 endif
 
-PY_VER ?= 3.7.9-stretch
+PY_VER ?= 3.7.16
 NODE_VER ?= lts
 
 .env:

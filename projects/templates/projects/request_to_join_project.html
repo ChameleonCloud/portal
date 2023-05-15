@@ -1,0 +1,27 @@
+{% extends "layout/user.html" %}
+
+{% block title %}Join Project{% endblock %}
+
+{% block content %}
+
+<div>
+  <h1>Request to join project</h1>
+  <span style="text-align: center; font-size: x-large">
+    <b>
+      You are joining {{ project.charge_code }} — {{ project.title }}
+    </b>
+  </span>
+  <br><br>
+  A request to join this project will be sent to the project's PI. Do you wish to continue?
+  <br><br>
+</div>
+
+<div>
+  <form class="form-group" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-default" name="cancel_join_project_request">Cancel</button>
+    <button type="submit" class="btn btn-success" name="confirm_join_project_request">Confirm</button>
+  </form>
+</div>
+
+{% endblock %}

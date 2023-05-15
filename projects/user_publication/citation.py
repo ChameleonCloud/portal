@@ -1,24 +1,17 @@
 """
 Fill in the latest citation numbers for all publication
 """
-import logging
-import re
-import time
-
-import requests
 from django.conf import settings
-from django.db import transaction
-from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
-from pybliometrics.scopus.exception import Scopus404Error
+import logging
+from pybliometrics.scopus import ScopusSearch
+from pybliometrics.scopus import AbstractRetrieval
+import re
+import requests
 
 from projects.models import Publication
-from projects.user_publication.gscholar import GoogleScholarHandler
 from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
-
-DOI_RE = r"(10.\d{4,9}\/[-._;()\/:\w]+)"
-SEMANTIC_CITATION_RETRIES = 100
 
 
 def update_scopus_citation(pub, dry_run=True):
@@ -38,7 +31,6 @@ def update_scopus_citation(pub, dry_run=True):
         whitespace = re.compile(r"\s+")
         search_title = no_words.sub("", pub.title)
         search_title = whitespace.sub(" ", search_title)
-        search_title = whitespace.sub(" ", search_title)
         search_title = search_title.strip().lower()
         search = ScopusSearch(f"TITLE ( {search_title} )")
         search_results = []
@@ -48,6 +40,7 @@ def update_scopus_citation(pub, dry_run=True):
                     search_results.append(x)
         if (len(search_results)) > 0:
             scopus_pub = search_results[0]
+
     if scopus_pub:
         # Returns a tuple of (object, created)
         existing_scopus_source = pub.sources.get_or_create(name=Publication.SCOPUS)[0]
@@ -97,19 +90,25 @@ def update_semantic_scholar_citation(pub, dry_run=True):
     semantic_scholar_pub = None
     if pub.doi:
         url = f"https://api.semanticscholar.org/graph/v1/paper/DOI:{pub.doi}"
-        params = {"fields": "title,citationCount"}
-        headers = {"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY}
-        semantic_scholar_pub = make_semantic_call(url, params, headers)
+        response = requests.get(
+            url,
+            params={"fields": "title,citationCount"},
+            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+        )
+        semantic_scholar_pub = response.json()
     if not semantic_scholar_pub:
         url = "https://api.semanticscholar.org/graph/v1/paper/search"
         fields = [
             "title",
             "citationCount",
         ]
-        params = {"query": pub.title, "limit": 1, "fields": ",".join(fields)}
-        headers = {"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY}
-        result = make_semantic_call(url, params, headers)
-        result = result["data"]
+        response = requests.get(
+            url,
+            params={"query": pub.title, "limit": 1, "fields": ",".join(fields)},
+            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+        )
+
+        result = response.json()["data"]
         if len(result) > 0:
             result = result[0]
             sc_title = result.get("title")
@@ -139,7 +138,6 @@ def update_semantic_scholar_citation(pub, dry_run=True):
 
 
 def update_citation_numbers(dry_run=True):
-    gscholar = GoogleScholarHandler()
     for pub in Publication.objects.all():
         try:
             update_scopus_citation(pub, dry_run)

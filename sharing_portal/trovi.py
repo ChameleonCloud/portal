@@ -329,6 +329,24 @@ def increment_metric_count(
         LOG.exception(e)
 
 
+def add_role(token, artifact_id, user, role):
+    json_data = {"user": user, "role": role}
+    res = requests.post(
+        url_with_token(f"/artifacts/{artifact_id}/roles/", token), json=json_data
+    )
+    check_status(res, requests.codes.no_content)
+    return None
+
+
+def remove_role(token, artifact_id, user, role):
+    res = requests.delete(
+        url_with_token(f"/artifacts/{artifact_id}/roles", token)
+        + f"&user={user}&role={role}"
+    )
+    check_status(res, requests.codes.no_content)
+    return None
+
+
 def parse_project_urn(project_urn):
     provider, project_id = project_urn.split(":", 4)[3:]
     return {
@@ -351,6 +369,10 @@ def parse_contents_urn(contents_urn):
         "provider": provider,
         "id": contents_id,
     }
+
+
+def get_user_info(user_urn):
+    return user_urn.split(":", 4)[-1]
 
 
 def get_contents_url_info(token, contents_urn, sharing_key=None):
@@ -408,3 +430,7 @@ def migrate_to_zenodo(token, artifact_uuid, slug):
     )
     check_status(res, requests.codes.accepted)
     return res.json()
+
+
+def to_user_urn(username):
+    return f"urn:trovi:user:chameleon:{username}"

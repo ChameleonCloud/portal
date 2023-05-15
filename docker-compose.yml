@@ -38,6 +38,8 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:

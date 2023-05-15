@@ -9,6 +9,7 @@ urlpatterns = [
     path("new/", views.create_project, name="create_project"),
     path("<int:project_id>/", views.view_project, name="view_project"),
     path("join/<str:invite_code>/", views.accept_invite, name="accept_invite"),
+    path("join/request/<str:secret>/", views.request_to_join, name="reqeust_to_join"),
     path(
         "<int:project_id>/allocation/",
         views.create_allocation,

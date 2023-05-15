@@ -1,16 +1,14 @@
-import datetime
 import logging
 import re
+from datetime import datetime
 
 from django.conf import settings
-from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import (ChameleonPublication, Publication,
                              PublicationSource)
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,7 @@ class GoogleScholarHandler(object):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
+                    logger.info(f"Using Free proxy - {True if self.proxy.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
@@ -92,13 +91,13 @@ class GoogleScholarHandler(object):
             pub_id, year_low=year_low, year_high=year_high
         )
         citations = []
-        cite_count = 0
+        cit_count = 0
         while True:
             try:
-                cited_pub = self.fill(self._get_next_cite(cites_gen))
+                cited_pub = self._get_bib(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
-                cite_count += 1
-                logger.info(f"Got {cite_count} / {num_citations}")
+                cit_count += 1
+                logger.info(f"Got {len(cit_count)} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
@@ -108,13 +107,10 @@ class GoogleScholarHandler(object):
         return next(cites_gen)
 
     @_handle_proxy_reload
-    def fill(self, pub):
-        """fills the publication object with details from bibtex
-
-        Args:
-            pub (dict): scholarly return of the publication
-        """
-        return self.scholarly.fill(pub)
+    def _update_with_bibtex(self, pub):
+        bibt = self.scholarly.bibtex(pub)
+        pub.update({"bibtex": bibt})
+        return pub
 
     def get_authors(self, pub):
         """returns a list of authors in a publication
@@ -138,15 +134,13 @@ class GoogleScholarHandler(object):
         return parsed_authors
 
     def get_pub_model(self, pub):
-        forum = PublicationUtils.get_forum(pub['bib'])
-        pub_type = PublicationUtils.get_pub_type(pub['bib'])
-        pub_model = Publication(
+        return Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
             author=" and ".join(self.get_authors(pub)),
             entry_created_date=datetime.date.today(),
-            publication_type=pub_type,
-            bibtex_source=pub['bib'],
+            publication_type=utils.get_pub_type(pub["bib"]["ENTRYTYPE"]),
+            bibtex_source="{}",
             added_by_username="admin",
             forum=forum,
             link=pub.get("pub_url", ''),
@@ -198,7 +192,7 @@ def pub_import(
     gscholar = GoogleScholarHandler()
     pubs = []
     if not year_high:
-        year_high = datetime.date.today().year
+        year_high = datetime.now().year
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)

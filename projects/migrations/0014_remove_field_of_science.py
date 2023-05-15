@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             model_name="invitation",
             name="date_expires",
             field=models.DateTimeField(
-                default=projects.models.Invitation._generate_expiration
+                default=projects.models._generate_expiration
             ),
         ),
         migrations.AlterField(
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
             model_name="invitation",
             name="email_code",
             field=models.CharField(
-                default=projects.models.Invitation._generate_secret,
+                default=projects.models._generate_secret,
                 editable=False,
                 max_length=26,
                 null=True,
