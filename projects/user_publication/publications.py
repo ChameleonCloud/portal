@@ -8,14 +8,19 @@ from projects.models import (
     PublicationSource,
 )
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
-from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 
-def import_pubs(dry_run=True, file_name="", source="all"):
+def import_pubs(dry_run=True, source="all"):
+    """Invoke import_pubs() interactively in django manage.py shell
+
+    Args:
+        dry_run (bool, optional): False means stores the publications in DB. Defaults to True.
+        source (str, optional): scopus, semantic_scholar, gscholar as options. Defaults to "all".
+    """
     pubs = []
 
     # Import publications from different sources based on the input argument
@@ -28,6 +33,11 @@ def import_pubs(dry_run=True, file_name="", source="all"):
 
     # Process each publication
     for source, pub in pubs:
+        same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
+        if same_pubs.exists():
+            for same_pub in same_pubs:
+                utils.add_source_to_pub(same_pub, source)
+            continue
         authors = [author.strip() for author in pub.author.split("and")]
         projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
 
@@ -45,23 +55,14 @@ def import_pubs(dry_run=True, file_name="", source="all"):
         author_usernames = [
             utils.get_usernames_for_author(author) for author in authors
         ]
-        report_file_name = f"publications_run_{date.today()}.csv"
+        report_file_name = f"publications_run_{date.today()}_{source}.csv"
 
-        duplicates = get_duplicate_pubs(pubs=[pub])
-
-        # Check if there are valid projects and if the publication already exists
+        # Check if there are valid projects and if is a chameleon publication
         if (
             not valid_projects
             or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
         ):
             reason_for_report = "Skipping: no valid projects"
-
-        # Check if publication is marked as duplicate
-        elif pub.status == Publication.STATUS_DUPLICATE:
-            logger.info(
-                "Found publication as duplicate. Run review_duplicates() to review"
-            )
-            reason_for_report = f"Saving: Found Duplicates {duplicates[pub]}"
 
         # If all conditions are met, import the publication
         else:
@@ -93,19 +94,37 @@ def choose_approved_with_option():
             "if email is already sent then choose this option to input the confirmation"
         )
     )
-    print("4. To leave the status as is. Choose this")
-    inp = input("Choose 1, 2, 3 or 4")
+    print("4. If the publication did not use chameleon")
+    print("5. To leave the status as is. Choose this")
+    inp = input("Choose 1, 2, 3 or 4: ")
     if inp == "1":
         return PublicationSource.APPROVED_WITH_PUBLICATION
     elif inp == "2":
-        print("You chose two")
         return PublicationSource.APPROVED_WITH_JUSTIFICATION
     elif inp == "3":
         return PublicationSource.APPROVED_WITH_EMAIL
     elif inp == "4":
         return
+    elif inp == "5":
+        return "DO NOTHING"
     else:
         return choose_approved_with_option()
+
+
+def update_other_sources_status(pub, sources):
+    print("Choose the appropriate approval for other sources")
+    for source in sources:
+        print(f"{source.__repr__()}\n")
+    choice = choose_approved_with_option()
+    if choice:
+        if choice != "DO NOTHING":
+            with transaction.atomic():
+                pub.status = Publication.STATUS_APPROVED
+                pub.save()
+    else:
+        with transaction.atomic():
+            pub.status = Publication.STATUS_REJECTED
+            pub.save()
 
 
 def review_imported_publications():
@@ -114,27 +133,50 @@ def review_imported_publications():
     go through all the flagged duplicates that are pending a review
     """
     pubs_to_review = Publication.objects.filter(
-        status=Publication.STATUS_SUBMITTED, reviewed=False
-    )
+        status=Publication.STATUS_SUBMITTED
+    ).order_by("id")
+    pubs_count = pubs_to_review.count()
+    print("Found publications to review: {pubs_count}")
+    review_counter = 0
     for pub in pubs_to_review:
-        print("Found publication to review: ")
-        print("Publication: ", pub.__repr__())
-        for source in pub.sources.exclude(
-            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
-        ):
-            print("with source: ", source.__repr__())
+        review_counter += 1
+        print(f"Publication to review {review_counter} of {pubs_count}")
+        print(f"Publication: \n {pub.__repr__()}\n")
+        for source in pub.sources.all():
+            print(f"with source: {source.__repr__()}\n")
         approval_needed_sources = pub.sources.filter(
-            approved_with=PublicationSource.APPROVED_WITH_PENDING_REVIEW
-        )
-        if approval_needed_sources:
+            approved_with__is_null=True
+        ).exclude(name=PublicationSource.USER_REPORTED)
+        user_reported_source = pub.sources.filter(
+            name=PublicationSource.USER_REPORTED,
+        ).first()
+        if user_reported_source:
+            # update other sources as approved with same method
+            # as the user_reported approved_with
+            if user_reported_source.approved_with:
+                with transaction.atomic():
+                    for other_source in approval_needed_sources:
+                        other_source.approved_with = user_reported_source.approved_with
+                        other_source.save()
+            else:
+                print("User reported publications can be approved from admin interface")
+                print("Skipping publication...")
+                continue
+        elif approval_needed_sources:
             print("These sources need review: ")
-            for source in approval_needed_sources:
-                print(source.__repr__())
-                choice = choose_approved_with_option
-                if choice:
-                    if choice == PublicationSource.APPROVED_WITH_EMAIL:
+            update_other_sources_status(pub, approval_needed_sources)
+        # if the publication sources are not approved yet, move to next publication
+        if pub.sources.filter(approved_with__isnull=True).exists():
+            continue
+        else:
+            print("All sources are reviewed")
+            if pub.status in [Publication.STATUS_APPROVED, Publication.STATUS_REJECTED]:
+                print("Publication is reviewed")
+            else:
+                print("Publication is not reviewed: \n", pub.__repr__())
+                with transaction.atomic():
+                    for source in pub.sources.all():
+                        print("with source: ", source.__repr__())
                         print("")
-                    with transaction.atomic():
-                        source.approved_with = choice
+                        source.approved_with = None
                         source.save()
-                        print(f"status updated to {source.approved_with}")

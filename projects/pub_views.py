@@ -58,7 +58,9 @@ def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
         f"""
         <li>{pub.__repr__()} <br>Found duplicate for <br>
         {duplicate_pubs[pub]} <br><br></li>"
-        """.replace("\n", "<br>")
+        """.replace(
+            "\n", "<br>"
+        )
         for pub in duplicate_pubs
     ]
     formatted_duplicate_pubs = formatted_duplicate_pubs
@@ -167,13 +169,15 @@ def add_publications(request, project_id):
 
 
 def view_chameleon_used_in_research_publications(request):
-    pubs = Publication.objects.filter(
-        reviewed=True, status=Publication.STATUS_APPROVED
-    ).order_by('-year', 'title').annotate(
-        max_cites_from_all_sources=Max('sources__citation_count')
+    pubs = (
+        Publication.objects.filter(
+            checked_for_duplicates=True, status=Publication.STATUS_APPROVED
+        )
+        .order_by("-year", "title")
+        .annotate(max_cites_from_all_sources=Max("sources__citation_count"))
     )
     return render(
         request,
         "projects/chameleon_used_in_research.html",
-        {'pubs': pubs},
+        {"pubs": pubs},
     )
