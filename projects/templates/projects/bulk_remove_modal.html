@@ -1,0 +1,22 @@
+{% load bootstrap3 %}
+<div id="bulk_remove_popup" class="modal fade" role="dialog" style="padding-top: 5%">
+  <div class="modal-dialog" style="width: 40%">
+    <div class="modal-content">
+      <form class="form" role="form" method="post">
+        <div class="modal-body">
+          <p>
+            This will remove all users from your project who do not have the "Manager" role.
+            Are you sure you want to do this?
+          </p>
+          {% csrf_token %}
+        </div>
+        <div class="modal-footer">
+          <div class="form-group">
+            <button type="button" class="btn btn-default" data-dismiss="modal">No, Cancel</button>
+            <button type="submit" class="btn btn-danger" name="remove_bulk_users">Yes, Remove</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

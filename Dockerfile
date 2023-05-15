@@ -1,7 +1,7 @@
 ARG NODE_IMG=node
 ARG NODE_VER_NAME=lts-gallium
 ARG PY_IMG=python
-ARG PY_VER=3.7.9-stretch
+ARG PY_VER=3.7.16
 
 FROM ${NODE_IMG}:${NODE_VER_NAME} as client
 WORKDIR /project
@@ -22,10 +22,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   curl \
   build-essential \
   nodejs \
-  ruby-sass \
-  ruby-compass \
+  ruby \
+  ruby-dev \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  # Install SASS requirements
+  # These are pinned because compass is decommissioned and thus tricky to get working.
+  # These versions were chosen because they were used
+  # in the latest functioning portal image at the time of this edit.
+  && gem install sass --version 3.4.23 \
+  && gem install compass --version 1.0.3
 
 # install python dependencies
 WORKDIR /setup
@@ -46,7 +52,7 @@ RUN pip install --upgrade pip && \
 
 COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false
-RUN poetry install --no-dev --no-root
+RUN poetry install --no-root --only main
 
 RUN mkdir /var/log/django
 VOLUME ["/media"]

@@ -30,12 +30,24 @@
           </div>
         </header>
 
-        {% bootstrap_form artifact_form %}
+        <fieldset prefix="artifact">
+          {% bootstrap_form artifact_form %}
+        </fieldset>
 
         <h4>Authors</h4>
         {{ authors_formset.management_form }}
         {% for form in authors_formset.forms %}
-        <fieldset class="form-group form-inline">
+        <fieldset class="form-group form-inline" prefix="author">
+          {% bootstrap_form form show_label=False layout='inline' %}
+        </fieldset>
+        {% endfor %}
+        <h4>Roles</h4>
+        Assign roles to various users, allowing them to collaborate on this artifact. <br>
+        For more information on roles, see
+        <a href="https://chameleoncloud.readthedocs.io/en/latest/technical/sharing.html#assigning-roles-to-other-users" target="_blank">our documentation</a>.<br><br>
+        {{ roles_formset.management_form }}
+        {% for form in roles_formset.forms %}
+        <fieldset class="form-group form-inline" prefix="role">
           {% bootstrap_form form show_label=False layout='inline' %}
         </fieldset>
         {% endfor %}
