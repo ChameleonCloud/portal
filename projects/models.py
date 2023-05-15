@@ -339,6 +339,7 @@ class Publication(models.Model):
         "bibtex_source",
         "link",
         "doi",
+        "status",
     ]
 
     tas_project_id = models.IntegerField(null=True)
@@ -357,7 +358,7 @@ class Publication(models.Model):
     doi = models.CharField(max_length=500, null=True, blank=True)
     source = models.CharField(max_length=100, null=False)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
-    reviewed = models.BooleanField(default=False, null=False)
+    checked_for_duplicates = models.BooleanField(default=False, null=False)
 
     def __str__(self) -> str:
         return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"
@@ -393,6 +394,7 @@ class Funding(models.Model):
 
 class PublicationSource(models.Model):
     """Model to hold information about source of publication and number of citations"""
+
     USER_REPORTED = "user_reported"
     SCOPUS = "scopus"
     SEMANTIC_SCHOLAR = "semantic_scholar"
@@ -408,13 +410,11 @@ class PublicationSource(models.Model):
     APPROVED_WITH_PUBLICATION = "publication"
     APPROVED_WITH_JUSTIFICATION = "justification"
     APPROVED_WITH_EMAIL = "email"
-    APPROVED_WITH_PENDING_REVIEW = "pending_review"
 
     APPROVED_WITH = [
         (APPROVED_WITH_PUBLICATION, "Publication"),
         (APPROVED_WITH_JUSTIFICATION, "Justification"),
         (APPROVED_WITH_EMAIL, "Email"),
-        (APPROVED_WITH_PENDING_REVIEW, "Review Pending")
     ]
 
     SOURCE_REPORT_FIELDS = [
@@ -422,10 +422,12 @@ class PublicationSource(models.Model):
         "is_found_by_algorithm",
         "cites_chameleon",
         "acknowledges_chameleon",
-        "approved_with"
+        "approved_with",
     ]
 
-    publication = models.ForeignKey(Publication, related_name="sources", on_delete=models.CASCADE)
+    publication = models.ForeignKey(
+        Publication, related_name="sources", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=30, choices=SOURCES)
     citation_count = models.IntegerField(default=0, null=False)
     # auto_add_now does not allow to insert with a custom datetime
@@ -438,16 +440,28 @@ class PublicationSource(models.Model):
     approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(
-            fields=["publication", "name"],
-            name='Unique source for a publication'
-        )]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["publication", "name"], name="Unique source for a publication"
+            ),
+            models.CheckConstraint(
+                # if the publication is approved then approved_with must have a value
+                check=(
+                    models.Q(
+                        publication__status=Publication.STATUS_APPROVED,
+                        approved_with__isnull=False,
+                    )
+                    | ~models.Q(publication__status=Publication.STATUS_APPROVED)
+                ),
+                name="valid_approved_with_for_approved_status",
+            ),
+        ]
 
     def __str__(self):
         return self.name
 
     def __repr__(self) -> str:
-        line_format = "{0:18} : {1}"
+        line_format = "{0:24} : {1}"
         lines = [
             line_format.format(ck, getattr(self, ck))
             for ck in self.SOURCE_REPORT_FIELDS
@@ -457,11 +471,18 @@ class PublicationSource(models.Model):
 
 class PublicationDuplicate(models.Model):
     """Model to hold information about duplicate publications"""
-    duplicate = models.ForeignKey(Publication, related_name="duplicate_of", on_delete=models.CASCADE)
-    original = models.ForeignKey(Publication, related_name="duplicates", on_delete=models.CASCADE)
+
+    duplicate = models.ForeignKey(
+        Publication, related_name="duplicate_of", on_delete=models.CASCADE
+    )
+    original = models.ForeignKey(
+        Publication, related_name="duplicates", on_delete=models.CASCADE
+    )
 
     class Meta:
-        constraints = [models.UniqueConstraint(
-            fields=["duplicate", "original"],
-            name='Unique duplicate to its duplicate of publication'
-        )]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["duplicate", "original"],
+                name="Unique duplicate to its duplicate of publication",
+            )
+        ]

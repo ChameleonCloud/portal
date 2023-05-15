@@ -74,6 +74,10 @@ def pub_import(dry_run=True):
         authors = [
             utils.format_author_name(author) for author in author_names.split(";")
         ]
+        doi = raw_pub.doi if raw_pub.doi else ""
+        link = ""
+        if doi:
+            link = f"https://www.doi.org/{doi}"
         pub_model = Publication(
             title=title,
             year=year,
@@ -85,12 +89,9 @@ def pub_import(dry_run=True):
             bibtex_source="{}",
             added_by_username="admin",
             forum=raw_pub.publicationName,
-            doi=raw_pub.doi,
-            link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
+            doi=doi,
+            link=link,
             status=Publication.STATUS_SUBMITTED,
         )
-        same_pub = utils.get_publication_with_same_attributes(pub_model, Publication)
-        if same_pub.exists():
-            utils.add_source_to_pub(same_pub.get(), PublicationSource.SCOPUS)
         publications.append((PublicationSource.SCOPUS, pub_model))
     return publications
