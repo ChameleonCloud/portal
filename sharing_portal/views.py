@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib import messages
@@ -24,6 +25,7 @@ from .forms import (
     ZenodoPublishFormset,
     RequestDaypassForm,
     ReviewDaypassForm,
+    RoleFormset,
 )
 from .models import Artifact, DaypassRequest, DaypassProject
 from . import trovi
@@ -119,7 +121,10 @@ def handle_trovi_errors(view_func):
 
 
 def can_edit(request, artifact):
-    return _owns_artifact(request.user, artifact)
+    return any(
+        role["user"] == trovi.to_user_urn(request.user.username)
+        for role in artifact["roles"]
+    )
 
 
 def handle_get_artifact(request, uuid, sharing_key=None):
@@ -270,13 +275,30 @@ def _delete_artifact_version(request, version):
         return False
 
 
+def _convert_artifact_roles_to_formset_roles(roles):
+    role_formset_data = defaultdict(list)
+    for role in roles:
+        role_formset_data[role["user"]].append(role["role"])
+    return [
+        {"email": trovi.get_user_info(user), "roles": role_formset_data[user]}
+        for user in role_formset_data
+    ]
+
+
 @login_required
 @handle_trovi_errors
 @with_trovi_token
 @check_edit_permission
 def edit_artifact(request, artifact):
     if request.method == "POST":
-        authors_formset = AuthorFormset(request.POST, initial=artifact["authors"])
+        authors_formset = AuthorFormset(
+            request.POST, initial=artifact["authors"], prefix="author"
+        )
+        roles_formset = RoleFormset(
+            request.POST,
+            initial=_convert_artifact_roles_to_formset_roles(artifact["roles"]),
+            prefix="role",
+        )
 
         form = ArtifactForm(request.POST, artifact=artifact, request=request)
 
@@ -327,21 +349,33 @@ def edit_artifact(request, artifact):
             # Return to Trovi home page
             return HttpResponseRedirect(reverse("sharing_portal:index_all"))
 
-        artifact = _handle_artifact_forms(
-            request, form, artifact=artifact, authors_formset=authors_formset
+        saved = _handle_artifact_forms(
+            request,
+            form,
+            artifact=artifact,
+            authors_formset=authors_formset,
+            roles_formset=roles_formset,
         )
-        messages.add_message(request, messages.SUCCESS, "Successfully saved artifact.")
+        if saved:
+            messages.add_message(
+                request, messages.SUCCESS, "Successfully saved artifact."
+            )
         return HttpResponseRedirect(
             reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )
 
-    authors_formset = AuthorFormset(initial=artifact["authors"])
-    form = ArtifactForm(artifact=artifact, request=request)
+    authors_formset = AuthorFormset(initial=artifact["authors"], prefix="author")
+    roles_formset = RoleFormset(
+        initial=_convert_artifact_roles_to_formset_roles(artifact["roles"]),
+        prefix="role",
+    )
+    form = ArtifactForm(artifact=artifact, request=request, prefix="artifact")
     template = loader.get_template("sharing_portal/edit.html")
     context = {
         "artifact_form": form,
         "artifact": artifact,
         "authors_formset": authors_formset,
+        "roles_formset": roles_formset,
     }
 
     return HttpResponse(template.render(context, request))
@@ -353,7 +387,6 @@ def edit_artifact(request, artifact):
 @login_required
 def share_artifact(request, artifact):
     if request.method == "POST":
-
         form = ShareArtifactForm(request, request.POST)
         z_form = ZenodoPublishFormset(
             request.POST, artifact_versions=artifact["versions"]
@@ -941,37 +974,92 @@ def _artifact_version(artifact, version_slug=None):
     return None
 
 
-def _handle_artifact_forms(request, artifact_form, authors_formset=None, artifact=None):
+def _handle_artifact_forms(
+    request, artifact_form, authors_formset=None, roles_formset=None, artifact=None
+):
+    patches = []
+    form_errors = []
     if artifact_form.is_valid():
-        patches = []
         keys = ["title", "short_description", "long_description", "title", "tags"]
         for key in keys:
             value = artifact_form.cleaned_data[key]
             if artifact.get(key) != value:
-                patches.append({"op": "replace", "path": f"/{key}", "value": value})
+                if value == "":
+                    patches.append({"op": "remove", "path": f"/{key}"})
+                else:
+                    patches.append({"op": "replace", "path": f"/{key}", "value": value})
 
-        if authors_formset:
-            if authors_formset.is_valid():
-                authors = []
-                for author in authors_formset.cleaned_data:
-                    if author and not author["DELETE"]:
-                        del author["DELETE"]
-                        authors.append(author)
-                if authors and authors != artifact["authors"]:
-                    patches.append(
-                        {"op": "replace", "path": "/authors", "value": authors}
-                    )
+    if authors_formset:
+        if not authors_formset.is_valid():
+            form_errors += list(authors_formset.errors)
+        else:
+            authors = []
+            for author in authors_formset.cleaned_data:
+                if author and not author["DELETE"]:
+                    del author["DELETE"]
+                    authors.append(author)
+            if authors and authors != artifact["authors"]:
+                patches.append({"op": "replace", "path": "/authors", "value": authors})
+
+        add_roles = []
+        remove_roles = []
+        if roles_formset:
+            if not roles_formset.is_valid():
+                form_errors += list(roles_formset.errors)
             else:
-                for error in authors_formset.errors:
+                # Map roles on the existing artifact by email -> list of roles
+                artifact_roles = {
+                    r["email"]: r["roles"]
+                    for r in _convert_artifact_roles_to_formset_roles(artifact["roles"])
+                }
+                new_roles = roles_formset.cleaned_data
+                for user_roles in [role for role in new_roles if role]:
+                    user = user_roles["email"]
+                    for role in user_roles["roles"]:
+                        # If any of the newly defined roles for the user are not already
+                        # on the artifact, that means the user wants to assign a new
+                        # role to a user
+                        if role not in artifact_roles.get(user, []):
+                            add_roles.append(
+                                {"user": trovi.to_user_urn(user), "role": role}
+                            )
+                    for role in artifact_roles.get(user, []):
+                        # If any of the roles on the existing artifact are not in the
+                        # newly defined roles, it means the user wants to unassign
+                        # the role from the user
+                        if role not in user_roles["roles"]:
+                            remove_roles.append(
+                                {"user": trovi.to_user_urn(user), "role": role}
+                            )
+
+        if form_errors:
+            for error in form_errors:
+                if error:
                     messages.error(request, error)
-                return artifact
+            return False
 
         if patches:
             trovi.patch_artifact(
                 request.session.get("trovi_token"), artifact["uuid"], patches
             )
 
-    return artifact
+        for role in add_roles:
+            trovi.add_role(
+                request.session.get("trovi_token"),
+                artifact["uuid"],
+                role["user"],
+                role["role"],
+            )
+
+        for role in remove_roles:
+            trovi.remove_role(
+                request.session.get("trovi_token"),
+                artifact["uuid"],
+                role["user"],
+                role["role"],
+            )
+
+    return True
 
 
 def _request_artifact_dois(request, artifact, request_forms=[]):

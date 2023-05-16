@@ -97,3 +97,6 @@ class Charge(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
     hourly_cost = models.FloatField()
+
+    def __str__(self):
+        return f"{self.allocation.project}: {self.start_time}-{self.end_time}"

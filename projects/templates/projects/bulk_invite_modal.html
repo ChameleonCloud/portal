@@ -5,15 +5,19 @@
       <form class="form" role="form" method="post">
         <div class="modal-body">
           <p>
-          Please enter usernames or emails below, one per line. For example
+            Please enter usernames or emails below, one per line. For example
           <pre>user1
 user2@uchicago.edu
 user3</pre>
           </p>
-            {% csrf_token %}
-            <div>
+          <p>
+            Alternatively, you can send this link to users which will allow them to request to join your project.<br>
+            <a href="{{ join_link }}">{{ join_link }}</a>
+          </p>
+          {% csrf_token %}
+          <div>
             {% bootstrap_field bulk_user_form.username_csv layout='block' %}
-            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <div class="form-group">
