@@ -1,13 +1,15 @@
+import datetime
 import logging
 import re
-from datetime import datetime
 
 from django.conf import settings
+from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -34,17 +36,19 @@ class GoogleScholarHandler(object):
         def inner_f(self, *args, **kwargs):
             while self.retries < MAX_RETRIES:
                 try:
-                    logger.info(f"Using Free proxy - {True if self.proxy.has_proxy() else False}")
                     resp = func(self, *args, **kwargs)
                 except MaxTriesExceededException:
                     # this occurs if Google blocks IP
-                    logger.info(f"New free proxy retries : {self.retries} / {MAX_RETRIES}")
+                    logger.info(
+                        f"New free proxy retries : {self.retries} / {MAX_RETRIES}"
+                    )
                     self.retries += 1
                     self.new_proxy()
                 else:
                     self.retries = 0
                     break
             return resp
+
         return inner_f
 
     def _publication_id(self, pub: dict):
@@ -76,27 +80,27 @@ class GoogleScholarHandler(object):
         Args:
             pub (dict): return of the search_single_pub method
             year_low (int, optional): year to query from. Defaults to 2014
-            year_high (int, optional): yaar to query till. Defaults to datetime.now().year
+            year_high (int, optional): year to query till. Defaults to datetime.now().year
 
         Returns:
             list: list of publications that cited arg:pub
         """
         if not year_high:
-            year_high = datetime.now().year
+            year_high = datetime.datetime.now().year
         pub_id = self._publication_id(pub)
         logger.info(f"Getting citations for {pub['bib']['title']}")
-        num_citations = pub['num_citations']
+        num_citations = pub["num_citations"]
         cites_gen = self.scholarly.search_citedby(
             pub_id, year_low=year_low, year_high=year_high
         )
         citations = []
-        cit_count = 0
+        cite_count = 0
         while True:
             try:
-                cited_pub = self._get_bib(self._get_next_cite(cites_gen))
+                cited_pub = self.fill(self._get_next_cite(cites_gen))
                 citations.append(cited_pub)
-                cit_count += 1
-                logger.info(f"Got {len(cit_count)} / {num_citations}")
+                cite_count += 1
+                logger.info(f"Got {cite_count} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
@@ -106,10 +110,13 @@ class GoogleScholarHandler(object):
         return next(cites_gen)
 
     @_handle_proxy_reload
-    def _update_with_bibtex(self, pub):
-        bibt = self.scholarly.bibtex(pub)
-        pub.update({"bibtex": bibt})
-        return pub
+    def fill(self, pub):
+        """fills the publication object with details from bibtex
+
+        Args:
+            pub (dict): scholarly return of the publication
+        """
+        return self.scholarly.fill(pub)
 
     def get_authors(self, pub):
         """returns a list of authors in a publication
@@ -120,39 +127,69 @@ class GoogleScholarHandler(object):
         Returns:
             list: list of authors in ["firstname lastname",] format
         """
-        bibt = pub['bibtex']
-        bibt = utils.decode_unicode_text(bibt)
-        match = re.search(r'author\s*=\s*\{([\w\s-,]+)\}', bibt)
-        if match:
-            authors_match = match.groups()[0]
-        else:
-            # this mostly never happens - if it does - log it
-            logger.info(f"cannot parse bibtex, so ignoring - {bibt}")
-            return
-        authors = authors_match.split(" and ")
-        parsed_authors = [utils.parse_author(author) for author in authors]
+        authors = utils.decode_unicode_text(pub["bib"]["author"])
+        # few authors have unicode characters encoded to ascii
+        # for example Lo{\"}c
+        # substitute all character from text except
+        # ',' , \w word character, \s whitespace character
+        # - any other character
+        # inspired from django.utils.text.slugify
+        authors = re.sub(r"[^\,\w\s-]", "", authors)
+        authors = authors.split(" and ")
+        parsed_authors = [utils.format_author_name(author) for author in authors]
         return parsed_authors
 
     def get_pub_model(self, pub):
-        return Publication(
+        forum = PublicationUtils.get_forum(pub["bib"])
+        pub_type = PublicationUtils.get_pub_type(pub["bib"])
+        pub_model = Publication(
             title=utils.decode_unicode_text(pub["bib"]["title"]),
             year=pub["bib"]["pub_year"],
             author=" and ".join(self.get_authors(pub)),
-            entry_created_date=datetime.date.today(),
-            publication_type=utils.get_pub_type(pub["bib"]["ENTRYTYPE"]),
-            bibtex_source="{}",
+            publication_type=pub_type,
+            bibtex_source=pub["bib"],
             added_by_username="admin",
-            forum=pub["bib"]["booktitle"],
-            link=pub["pub_url"],
-            source="gscholar",
-            status=Publication.STATUS_IMPORTED,
+            forum=forum,
+            link=pub.get("pub_url", ""),
+            status=Publication.STATUS_SUBMITTED,
         )
+        return pub_model
+
+    def update_g_scholar_citation(self, pub, dry_run=False):
+        """Updates number of google scholar citations
+        in publication model instance
+
+        Args:
+            pub (models.Publication): Publication model instance
+            dry_run (bool, optional): to not save in DB. Defaults to False.
+        """
+        result_pub = self.get_one_pub(pub.title)
+        if not PublicationUtils.is_similar_str(
+            result_pub["bib"]["title"].lower(), pub.title.lower()
+        ):
+            return
+
+        g_citations = result_pub.get("num_citations", 0)
+        # Returns a tuple of (object, created)
+        existing_g_source = pub.sources.get_or_create(name=Publication.G_SCHOLAR)[0]
+        existing_citation_count = existing_g_source.citation_count
+        if not dry_run:
+            with transaction.atomic():
+                existing_g_source.citation_count = g_citations
+                existing_g_source.save()
+        logger.info(
+            (
+                f"update Google citation number for "
+                f"{pub.title} (id: {pub.id}) "
+                f"from {existing_citation_count} "
+                f"to {g_citations}"
+            )
+        )
+        return
 
 
-def pub_import(
-    dry_run=True, year_low=2014, year_high=None
-):
-    """Returns Publication models of all publicationls that ref chameleon
+def pub_import(dry_run=True, year_low=2014, year_high=None):
+    """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
 
@@ -164,28 +201,16 @@ def pub_import(
     gscholar = GoogleScholarHandler()
     pubs = []
     if not year_high:
-        year_high = datetime.now().year
+        year_high = datetime.date.today().year
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
-            authors = gscholar.get_authors(cited_pub)
-            cited_pub_title = cited_pub['bib']['title']
-            if not authors:
+            pub_model = gscholar.get_pub_model(cited_pub)
+            try:
+                pub_model.year = int(pub_model.year)
+            except ValueError:
+                logger.warning(f"Skipping: {pub_model.title} does not have an year")
                 continue
-            proj = utils.guess_project_for_publication(
-                authors, cited_pub["bib"]["pub_year"]
-            )
-            if not proj:
-                continue
-            if ChameleonPublication.objects.filter(title__iexact=cited_pub_title).exists():
-                logger.info(f"{cited_pub_title} is a chameleon publication - ignoring")
-                continue
-            # this is to find if there is a publication already in database matching to
-            # this title and project however this needs to be changed after looking
-            # at some examples and how to better handle these dumplicates
-            if Publication.objects.filter(title=cited_pub_title, project_id=proj).exists():
-                logger.info(f"{cited_pub_title} is already in Publications table - This check might be outdated.")
-                continue
-            pubs.append(gscholar.get_pub_model(cited_pub))
+            pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
     return pubs

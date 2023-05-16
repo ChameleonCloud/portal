@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from projects.models import Invitation, Publication, Funding, ChameleonPublication
+from projects.models import (
+    Invitation,
+    Publication,
+    Funding,
+    ChameleonPublication,
+    PublicationSource,
+)
 
 
 class ProjectFields:
@@ -10,14 +16,17 @@ class ProjectFields:
         return getattr(project, "charge_code", None)
 
 
+class PublicationSourceInline(admin.TabularInline):
+    model = PublicationSource
+    extra = 0
+
+
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
+    inlines = (PublicationSourceInline,)
 
     readonly_fields = [
         "project_charge_code",
         "added_by_username",
-        "entry_created_date",
-        "scopus_citations",
-        "semantic_scholar_citations",
     ]
 
     fields = (
@@ -32,16 +41,15 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "doi",
         "link",
         "added_by_username",
-        "entry_created_date",
-        "source",
         "status",
-        "approved_with",
-        "scopus_citations",
-        "semantic_scholar_citations",
+        "checked_for_duplicates",
     )
-
-    ordering = ["project__charge_code", "-year", "-entry_created_date"]
-    list_display = ("title", "project_charge_code", "year", "entry_created_date")
+    ordering = ["project__charge_code", "-year"]
+    list_display = (
+        "title",
+        "project_charge_code",
+        "year",
+    )
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
@@ -72,7 +80,43 @@ class FundingAdmin(ProjectFields, admin.ModelAdmin):
         return form
 
 
+class PublicationFields:
+    def publication_id(self, model):
+        """Obtain the publication id attribute from the `publication` relation"""
+        publication = getattr(model, "publication", None)
+        return getattr(publication, "id", None)
+
+    def publication_title(self, model):
+        """Obtain the publication title attribute from the `publication` relation"""
+        publication = getattr(model, "publication", None)
+        return getattr(publication, "title", None)
+
+
+class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
+    readonly_fields = [
+        "citation_count",
+    ]
+
+    fields = (
+        "name",
+        "publication",
+        "citation_count",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "entry_created_date",
+    )
+
+    list_display = (
+        "name",
+        "citation_count",
+        "publication",
+        "entry_created_date",
+    )
+
+
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation)
 admin.site.register(Funding, FundingAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
+admin.site.register(PublicationSource, PublicationSourceAdmin)

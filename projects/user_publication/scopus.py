@@ -5,8 +5,9 @@ import re
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import ChameleonPublication, Publication
+from projects.models import Publication, PublicationSource
 from projects.user_publication import utils
+from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
@@ -28,17 +29,6 @@ CHAMELEON_REFS_REGEX = [
 
 def _get_references(a):
     return a.references if a.references else []
-
-
-
-
-
-def _get_pub_type(scopus_pub_type):
-    if scopus_pub_type == "Conference Paper":
-        return "conference full paper"
-    if scopus_pub_type == "Article" or scopus_pub_type == "Review":
-        return "journal article"
-    return scopus_pub_type
 
 
 def _publication_references_chameleon(references):
@@ -73,43 +63,36 @@ def pub_import(dry_run=True):
         # then consider the publication a lost cause
         if not references:
             continue
-
         if not _publication_references_chameleon(references):
+            print(raw_pub.title, "Does not referece chameleon")
             continue
-
         title = utils.decode_unicode_text(raw_pub.title)
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
         year = published_on.year
+        # get the author names with decoded unicode characters
         author_names = utils.decode_unicode_text(raw_pub.author_names)
-        authors = [utils.parse_author(author) for author in author_names.split(";")]
-        proj = utils.guess_project_for_publication(authors, year)
-        if not proj:
-            continue
-
-        if (
-            not proj
-            or ChameleonPublication.objects.filter(title__iexact=title).exists()
-            or Publication.objects.filter(title=title, project_id=proj).exists()
-        ):
-            continue
-
+        # authors as a list of strings "firstname lastname" format
+        authors = [
+            utils.format_author_name(author) for author in author_names.split(";")
+        ]
+        doi = raw_pub.doi if raw_pub.doi else ""
+        link = ""
+        if doi:
+            link = f"https://www.doi.org/{doi}"
         pub_model = Publication(
             title=title,
             year=year,
             month=published_on.month,
             author=" and ".join(authors),
-            entry_created_date=datetime.date.today(),
-            project=proj,
-            publication_type=_get_pub_type(raw_pub.subtypeDescription),
+            publication_type=PublicationUtils.get_pub_type(
+                {"ENTRYTYPE": raw_pub.subtypeDescription}
+            ),
             bibtex_source="{}",
             added_by_username="admin",
             forum=raw_pub.publicationName,
-            doi=raw_pub.doi,
-            link=f"https://www.doi.org/{raw_pub.doi}" if raw_pub.doi else None,
-            source="scopus",
-            status=Publication.STATUS_IMPORTED,
+            doi=doi,
+            link=link,
+            status=Publication.STATUS_SUBMITTED,
         )
-        publications.append(pub_model)
-        if dry_run:
-            logger.info(f"import {str(pub_model)}")
+        publications.append((PublicationSource.SCOPUS, pub_model))
     return publications
