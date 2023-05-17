@@ -309,7 +309,6 @@ class PublicationManager(models.Manager):
         pub.forum = PublicationUtils.get_forum(bibtex_entry)
         pub.link = PublicationUtils.get_link(bibtex_entry)
         pub.doi = bibtex_entry.get("doi")
-        pub.source = source
         pub.status = status
 
         pub.save()
@@ -356,7 +355,6 @@ class Publication(models.Model):
     link = models.CharField(max_length=500, null=True, blank=True)
     added_by_username = models.CharField(max_length=100)
     doi = models.CharField(max_length=500, null=True, blank=True)
-    source = models.CharField(max_length=100, null=False)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
     checked_for_duplicates = models.BooleanField(default=False, null=False)
 
@@ -443,18 +441,7 @@ class PublicationSource(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["publication", "name"], name="Unique source for a publication"
-            ),
-            models.CheckConstraint(
-                # if the publication is approved then approved_with must have a value
-                check=(
-                    models.Q(
-                        publication__status=Publication.STATUS_APPROVED,
-                        approved_with__isnull=False,
-                    )
-                    | ~models.Q(publication__status=Publication.STATUS_APPROVED)
-                ),
-                name="valid_approved_with_for_approved_status",
-            ),
+            )
         ]
 
     def __str__(self):

@@ -44,7 +44,7 @@ def migrate_date_to_sources(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("projects", "0017_add_chameleon_publications_and_pi_aliases"),
+        ("projects", "0018_add_join_link_request"),
     ]
 
     operations = [
