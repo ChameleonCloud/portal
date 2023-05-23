@@ -102,8 +102,9 @@ def handle_too_many_daypass_users(artifact_uuid):
     admin_token = trovi.get_client_admin_token()
     artifact = trovi.get_artifact(admin_token, artifact_uuid)
     artifact_title = artifact["title"]
-    project = trovi.get_linked_project(artifact)
-    managers = [u.email for u in get_project_membership_managers(project)]
+    admin_usernames = trovi.get_administrators(artifact)
+    keycloak_client = KeycloakClient()
+    admin_users = [keycloak_client.get_user_by_username(u) for u in admin_usernames]
 
     subject = "Pause on daypass requests"
     help_url = "https://chameleoncloud.org/user/help/"
@@ -126,7 +127,7 @@ def handle_too_many_daypass_users(artifact_uuid):
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=managers,
+        recipient_list=[u["email"] for u in admin_users],
         message=strip_tags(body),
         html_message=body,
     )
