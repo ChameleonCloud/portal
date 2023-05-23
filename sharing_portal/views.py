@@ -792,7 +792,7 @@ def review_daypass(request, request_id, **kwargs):
         trovi.get_client_admin_token(),
         daypass_request.artifact_uuid,
     )
-    if not request.user.username in trovi.get_administrators(artifact):
+    if request.user.username not in trovi.get_administrators(artifact):
         raise PermissionDenied("You do not have permission to view that page")
 
     if daypass_request.status != DaypassRequest.STATUS_PENDING:
