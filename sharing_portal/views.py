@@ -23,6 +23,8 @@ from projects.views import (
     add_project_invitation,
     get_invite_url,
     manage_membership_in_scope,
+    get_project_membership_managers,
+    is_membership_manager,
 )
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -416,7 +418,7 @@ def share_artifact(request, artifact):
             if form.cleaned_data["project"]:
                 try:
                     portal_project = Project.objects.get(
-                        charge_code=form.cleaned_data["project"]
+                        charge_code=form.cleaned_data.get("project")
                     )
                     # If the user is a member of this project
                     if any(
@@ -594,10 +596,9 @@ def artifact(request, artifact, version_slug=None):
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
-    template = loader.get_template("sharing_portal/detail.html")
-
     context = {
         "artifact": artifact,
+        "linked_project": trovi.get_linked_project(artifact),
         "doi_info": _parse_doi(version),
         "version": version,
         "launch_url": launch_url,
@@ -763,13 +764,15 @@ def send_request_mail(request, daypass_request, artifact):
     <p>Thanks,</p>
     <p>Chameleon Team</p>
     """
-    admin_usernames = trovi.get_administrators(artifact)
-    keycloak_client = KeycloakClient()
-    admin_users = [keycloak_client.get_user_by_username(u) for u in admin_usernames]
+    project = trovi.get_linked_project(artifact)
+    if not project:
+        LOG.error("Daypass request was made for artifact without linked project!")
+        return
+    managers = [u.email for u in get_project_membership_managers(project)]
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[u["email"] for u in admin_users],
+        recipient_list=managers,
         message=strip_tags(body),
         html_message=body,
     )
@@ -792,7 +795,10 @@ def review_daypass(request, request_id, **kwargs):
         trovi.get_client_admin_token(),
         daypass_request.artifact_uuid,
     )
-    if request.user.username not in trovi.get_administrators(artifact):
+    project = trovi.get_linked_project(artifact)
+    if not project:
+        raise Http404("Project linked to this artifact does not exist.")
+    if not is_membership_manager(project, request.user.username):
         raise PermissionDenied("You do not have permission to view that page")
 
     if daypass_request.status != DaypassRequest.STATUS_PENDING:
@@ -809,12 +815,29 @@ def review_daypass(request, request_id, **kwargs):
             request,
         )
         if form.is_valid():
+            try:
+                daypass_project = DaypassProject.objects.get(
+                    artifact_uuid=artifact["uuid"]
+                )
+            except DaypassProject.DoesNotExist:
+                messages.error(
+                    request,
+                    "A daypass project for this artifact does not exist. "
+                    "Try disabling and re-enabling reproducibility requests "
+                    "in the share menu.",
+                )
+                return HttpResponseRedirect(
+                    reverse(
+                        "sharing_portal:review_daypass",
+                        args=[artifact["uuid"], request_id],
+                    )
+                )
             status = form.cleaned_data["status"]
             daypass_request.status = status
             daypass_request.decision_at = timezone.now()
             daypass_request.decision_by = request.user
             daypass_request.save()
-            send_request_decision_mail(request, daypass_request)
+            send_request_decision_mail(request, daypass_request, daypass_project)
             messages.add_message(request, messages.SUCCESS, f"Request status: {status}")
             return HttpResponseRedirect(
                 reverse("sharing_portal:detail", args=[daypass_request.artifact_uuid])
@@ -851,16 +874,16 @@ def list_daypass_requests(request, **kwargs):
     ]
     trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
     trovi_artifacts_map = {}
-    # Create a map of all artifacts this user is an admin for
+    # Create a map of all artifacts assigned to projects this user has perms on
     for artifact in trovi_artifacts:
-        admin_users = trovi.get_administrators(artifact)
-        if request.user.username in admin_users:
+        linked_project = trovi.get_linked_project(artifact)
+        if linked_project and linked_project.charge_code in projects:
             trovi_artifacts_map[artifact["uuid"]] = artifact
 
     pending_requests = (
         DaypassRequest.objects.all()
         .filter(
-            artifact_uuid__in=trovi_artifacts_map.keys(),
+            artifact_uuid__in=trovi_artifacts_map,
             status=DaypassRequest.STATUS_PENDING,
         )
         .order_by("-created_at")
@@ -889,14 +912,13 @@ def list_daypass_requests(request, **kwargs):
 
 @handle_trovi_errors
 @with_trovi_token
-def send_request_decision_mail(request, daypass_request):
+def send_request_decision_mail(request, daypass_request, daypass_project):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     artifact = trovi.get_artifact_by_trovi_uuid(
         trovi.get_client_admin_token(), daypass_request.artifact_uuid
     )
     artifact_title = artifact["title"]
-    daypass_project = DaypassProject.objects.get(artifact_uuid=artifact["uuid"])
     reproducibility_project = daypass_project.project
     if daypass_request.status == DaypassRequest.STATUS_APPROVED:
         invite = add_project_invitation(
