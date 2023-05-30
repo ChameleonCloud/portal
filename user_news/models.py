@@ -1,10 +1,11 @@
-from django.conf import settings
-from django.db import models
-from ckeditor.fields import RichTextField
-from django.template.defaultfilters import slugify
-from django.contrib import messages
-from cms.models.pluginmodel import CMSPlugin
 import re
+
+from ckeditor.fields import RichTextField
+from cms.models.pluginmodel import CMSPlugin
+from django.conf import settings
+from django.contrib import messages
+from django.db import models
+from django.template.defaultfilters import slugify
 
 
 class NewsTag(models.Model):
@@ -82,7 +83,6 @@ Implementation for System Outages
 
 
 class Outage(News):
-
     start_date = models.DateTimeField("start of outage")
     end_date = models.DateTimeField("expected end of outage")
     resolved = models.BooleanField("resolved", default=False)

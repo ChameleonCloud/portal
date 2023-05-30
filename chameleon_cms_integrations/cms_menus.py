@@ -6,7 +6,6 @@ from menus.menu_pool import menu_pool
 
 
 class UserMenu(CMSAttachMenu):
-
     name = _("User Menu")
 
     def get_nodes(self, request):

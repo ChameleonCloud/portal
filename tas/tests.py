@@ -1,8 +1,9 @@
-from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.test import TestCase
-from tas.forms import *
 import mock
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.urls import reverse
+
+from tas.forms import *
 
 
 def test_user_fixture():
@@ -58,7 +59,6 @@ class RegisterViewTests(TestCase):
         mock_get_department_choices,
         mock_get_country_choices,
     ):
-
         mock_get_institution_choices.return_value = (
             (1, "The University of Texas at Austin"),
         )
@@ -88,7 +88,6 @@ class RegisterViewTests(TestCase):
         mock_create_ticket_for_pi_request,
         mock_tas_save_user,
     ):
-
         mock_get_institution_choices.return_value = (
             (1, "The University of Texas at Austin"),
         )
@@ -116,7 +115,6 @@ class RegisterViewTests(TestCase):
         mock_create_ticket_for_pi_request,
         mock_tas_save_user,
     ):
-
         mock_get_institution_choices.return_value = (
             (1, "The University of Texas at Austin"),
         )
@@ -378,7 +376,6 @@ class PasswordResetConfirmFormTests(TestCase):
     def test_password_reset_form_success(
         self, mock_tas_get_user, mock_tas_confirm_password_reset
     ):
-
         mock_tas_get_user.return_value = test_user_fixture()
         mock_tas_confirm_password_reset.return_value = True
 

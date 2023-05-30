@@ -1,12 +1,13 @@
 import logging
 
-from captcha.fields import ReCaptchaField, ReCaptchaV2Checkbox, ReCaptchaV3
+from captcha.fields import ReCaptchaField, ReCaptchaV2Checkbox
 from django import forms
 from django.core.validators import validate_email
 
 from .models import TicketCategories
 
 logger = logging.getLogger(__name__)
+
 
 # This was pulled from : https://docs.djangoproject.com/en/1.7/ref/forms/validation/
 class MultiEmailField(forms.Field):

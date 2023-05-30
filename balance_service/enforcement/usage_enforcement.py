@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import collections
+import datetime
 import logging
-import pytz
 
+import pytz
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+
+from allocations.models import Charge
 from balance_service.enforcement import exceptions
 from balance_service.utils import su_calculators
 from projects.models import Project
-from allocations.models import Charge
 
 LOG = logging.getLogger(__name__)
 
@@ -298,7 +299,6 @@ class UsageEnforcer(object):
                     charge.save()
 
     def __get_billrate(self, resource, resource_type=None):
-
         su_factor = resource.get("su_factor")
 
         if su_factor:
@@ -310,7 +310,6 @@ class UsageEnforcer(object):
         return sum(self.__get_billrate(a, resource_type) for a in allocations)
 
     def _total_su_factor(self, lease_values):
-
         total_su_factor = 0
 
         for reservation in lease_values["reservations"]:

@@ -10,9 +10,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import re
 
-from django.utils.translation import gettext_lazy as _
-
 from celery.schedules import crontab
+from django.utils.translation import gettext_lazy as _
 
 gettext = lambda s: s
 
@@ -855,7 +854,7 @@ CSP_SCRIPT_SRC = [
     "https://www.google-analytics.com",
     "https://www.google.com/recaptcha/",
     "https://www.gstatic.com/recaptcha/",
-    "https://cdnjs.cloudflare.com/ajax/libs/ace/1.9.6/ace.js", # snippet editor
+    "https://cdnjs.cloudflare.com/ajax/libs/ace/1.9.6/ace.js",  # snippet editor
     "'unsafe-inline'",
 ]
 CSP_CONNECT_SRC = [

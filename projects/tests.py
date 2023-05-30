@@ -1,9 +1,10 @@
-from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.test import TestCase, modify_settings, override_settings
-from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
-import mock
 import json
+
+import mock
+from django.contrib.auth import get_user_model
+from django.test import TestCase, modify_settings, override_settings
+from django.urls import reverse
+from termsandconditions.models import TermsAndConditions, UserTermsAndConditions
 
 
 @modify_settings(
@@ -17,7 +18,6 @@ import json
     AUTHENTICATION_BACKENDS=("django.contrib.auth.backends.ModelBackend",)
 )
 class ProjectViewTests(TestCase):
-
     fixtures = ["termsandconditions.json"]
 
     def setUp(self):

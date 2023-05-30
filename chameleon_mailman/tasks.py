@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+
 import pytz
-
 from celery.decorators import task
-
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.html import strip_tags
+
 from user_news.models import Outage
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,6 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
             continue
 
         if send_window_min < outage.start_date < send_window_max:
-
             subject = "Outage Reminder: {}".format(outage.title)
             body = "<b>Outage Start:</b> {}<br /><br />".format(
                 outage.start_date.strftime("%Y-%m-%d %H:%M")
