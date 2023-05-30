@@ -91,7 +91,7 @@
       </p>
     {% endif %}
 
-    {% if artifact.reproducibility.enable_requests %}
+    {% if artifact.reproducibility.enable_requests and linked_project %}
       <a class="artifactLaunchButton btn btn-primary" href="{{ request_daypass_url }}">Request daypass</a>
       <p class="artifactLaunchButton_details">
         If you do not have an active Chameleon allocation, or would prefer to not

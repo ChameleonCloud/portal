@@ -355,12 +355,24 @@ def parse_project_urn(project_urn):
     }
 
 
-def parse_owner_urn(owner_urn):
-    provider, project_id = owner_urn.split(":", 4)[3:]
+def parse_user_urn(owner_urn):
+    provider, username = owner_urn.split(":", 4)[3:]
     return {
         "provider": provider,
-        "id": project_id,
+        "id": username,
     }
+
+
+def get_administrators(artifact):
+    admin_roles = [
+        role
+        for role in artifact.get("roles", {})
+        if role.get("role") == "administrator"
+    ]
+    admin_urns = [role.get("user") for role in admin_roles]
+    admin_parsed = [parse_user_urn(urn) for urn in admin_urns]
+    admin_usernames = [p["id"] for p in admin_parsed if p["provider"] == "chameleon"]
+    return admin_usernames
 
 
 def parse_contents_urn(contents_urn):

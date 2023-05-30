@@ -103,6 +103,8 @@ def handle_too_many_daypass_users(artifact_uuid):
     artifact = trovi.get_artifact(admin_token, artifact_uuid)
     artifact_title = artifact["title"]
     project = trovi.get_linked_project(artifact)
+    if not project:
+        return
     managers = [u.email for u in get_project_membership_managers(project)]
 
     subject = "Pause on daypass requests"

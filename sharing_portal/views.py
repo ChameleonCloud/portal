@@ -1,22 +1,34 @@
 import json
+import logging
+import subprocess
 from collections import defaultdict
+from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
-from django.urls import reverse
-from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.template import loader
-from django.utils.html import strip_tags
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import strip_tags
+
 from projects.models import Project
 from projects.util import get_project_members
-from util.project_allocation_mapper import ProjectAllocationMapper
+from projects.views import (
+    add_project_invitation,
+    get_invite_url,
+    manage_membership_in_scope,
+    get_project_membership_managers,
+    is_membership_manager,
+)
 from util.keycloak_client import KeycloakClient
-
+from util.project_allocation_mapper import ProjectAllocationMapper
+from . import trovi
 from .forms import (
     ArtifactForm,
     AuthorFormset,
@@ -28,21 +40,7 @@ from .forms import (
     RoleFormset,
 )
 from .models import Artifact, DaypassRequest, DaypassProject
-from . import trovi
-from projects.views import (
-    add_project_invitation,
-    get_invite_url,
-    get_project_membership_managers,
-    is_membership_manager,
-    manage_membership_in_scope,
-)
 from .zenodo import ZenodoClient
-
-from urllib.parse import urlencode
-
-import logging
-from datetime import datetime, timedelta
-import subprocess
 
 LOG = logging.getLogger(__name__)
 
@@ -204,7 +202,7 @@ def _compute_artifact_fields(artifact):
 
 
 def _owns_artifact(user, artifact):
-    owner_urn = trovi.parse_owner_urn(artifact["owner_urn"])
+    owner_urn = trovi.parse_user_urn(artifact["owner_urn"])
     return (
         owner_urn["id"] == user.username
         and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
@@ -420,7 +418,7 @@ def share_artifact(request, artifact):
             if form.cleaned_data["project"]:
                 try:
                     portal_project = Project.objects.get(
-                        charge_code=form.cleaned_data["project"]
+                        charge_code=form.cleaned_data.get("project")
                     )
                     # If the user is a member of this project
                     if any(
@@ -598,10 +596,9 @@ def artifact(request, artifact, version_slug=None):
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
-    template = loader.get_template("sharing_portal/detail.html")
-
     context = {
         "artifact": artifact,
+        "linked_project": trovi.get_linked_project(artifact),
         "doi_info": _parse_doi(version),
         "version": version,
         "launch_url": launch_url,
@@ -704,7 +701,7 @@ def request_daypass(request, artifact, **kwargs):
                 created_by=request.user,
                 status=DaypassRequest.STATUS_PENDING,
             )
-            send_request_mail(daypass_request, request, artifact)
+            send_request_mail(request, daypass_request, artifact)
 
             messages.add_message(request, messages.SUCCESS, "Request submitted")
             return HttpResponseRedirect(
@@ -738,14 +735,16 @@ def request_daypass(request, artifact, **kwargs):
     return HttpResponse(template.render(context, request))
 
 
-def send_request_mail(daypass_request, request, artifact):
+def send_request_mail(request, daypass_request, artifact):
     LOG.info("sending request mail")
     url = request.build_absolute_uri(
-        reverse("sharing_portal:review_daypass", args=[daypass_request.id])
+        reverse(
+            "sharing_portal:review_daypass", args=[artifact["uuid"], daypass_request.id]
+        )
     )
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     list_url = request.build_absolute_uri(
-        reverse("sharing_portal:list_daypass_requests")
+        reverse("sharing_portal:list_daypass_requests", args=[artifact["uuid"]])
     )
     artifact_title = artifact["title"]
     subject = f'Daypass request for "{artifact_title}"'
@@ -765,7 +764,10 @@ def send_request_mail(daypass_request, request, artifact):
     <p>Thanks,</p>
     <p>Chameleon Team</p>
     """
-    project = Project.objects.get(charge_code=trovi.get_linked_project(artifact))
+    project = trovi.get_linked_project(artifact)
+    if not project:
+        LOG.error("Daypass request was made for artifact without linked project!")
+        return
     managers = [u.email for u in get_project_membership_managers(project)]
     send_mail(
         subject=subject,
@@ -794,7 +796,9 @@ def review_daypass(request, request_id, **kwargs):
         daypass_request.artifact_uuid,
     )
     project = trovi.get_linked_project(artifact)
-    if not project or not is_membership_manager(project, request.user.username):
+    if not project:
+        raise Http404("Project linked to this artifact does not exist.")
+    if not is_membership_manager(project, request.user.username):
         raise PermissionDenied("You do not have permission to view that page")
 
     if daypass_request.status != DaypassRequest.STATUS_PENDING:
@@ -811,12 +815,29 @@ def review_daypass(request, request_id, **kwargs):
             request,
         )
         if form.is_valid():
+            try:
+                daypass_project = DaypassProject.objects.get(
+                    artifact_uuid=artifact["uuid"]
+                )
+            except DaypassProject.DoesNotExist:
+                messages.error(
+                    request,
+                    "A daypass project for this artifact does not exist. "
+                    "Try disabling and re-enabling reproducibility requests "
+                    "in the share menu.",
+                )
+                return HttpResponseRedirect(
+                    reverse(
+                        "sharing_portal:review_daypass",
+                        args=[artifact["uuid"], request_id],
+                    )
+                )
             status = form.cleaned_data["status"]
             daypass_request.status = status
             daypass_request.decision_at = timezone.now()
             daypass_request.decision_by = request.user
             daypass_request.save()
-            send_request_decision_mail(daypass_request, request)
+            send_request_decision_mail(request, daypass_request, daypass_project)
             messages.add_message(request, messages.SUCCESS, f"Request status: {status}")
             return HttpResponseRedirect(
                 reverse("sharing_portal:detail", args=[daypass_request.artifact_uuid])
@@ -826,7 +847,9 @@ def review_daypass(request, request_id, **kwargs):
                 for e in form.errors:
                     messages.add_message(request, messages.ERROR, e)
             return HttpResponseRedirect(
-                reverse("sharing_portal:review_daypass", args=[request_id])
+                reverse(
+                    "sharing_portal:review_daypass", args=[artifact["uuid"], request_id]
+                )
             )
 
     form = ReviewDaypassForm()
@@ -860,14 +883,15 @@ def list_daypass_requests(request, **kwargs):
     pending_requests = (
         DaypassRequest.objects.all()
         .filter(
-            artifact_uuid__in=trovi_artifacts_map.keys(),
+            artifact_uuid__in=trovi_artifacts_map,
             status=DaypassRequest.STATUS_PENDING,
         )
         .order_by("-created_at")
     )
     for daypass_request in pending_requests:
         daypass_request.url = reverse(
-            "sharing_portal:review_daypass", args=[daypass_request.id]
+            "sharing_portal:review_daypass",
+            args=[daypass_request.artifact_uuid, daypass_request.id],
         )
         daypass_request.artifact = trovi_artifacts_map[daypass_request.artifact_uuid]
     reviewed_requests = (
@@ -888,14 +912,13 @@ def list_daypass_requests(request, **kwargs):
 
 @handle_trovi_errors
 @with_trovi_token
-def send_request_decision_mail(daypass_request, request):
+def send_request_decision_mail(request, daypass_request, daypass_project):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     artifact = trovi.get_artifact_by_trovi_uuid(
         trovi.get_client_admin_token(), daypass_request.artifact_uuid
     )
     artifact_title = artifact["title"]
-    daypass_project = DaypassProject.objects.get(artifact_uuid=artifact["uuid"])
     reproducibility_project = daypass_project.project
     if daypass_request.status == DaypassRequest.STATUS_APPROVED:
         invite = add_project_invitation(

@@ -14,8 +14,8 @@ urlpatterns = [
     path("<pk>/launch", views.launch, name="launch"),
     path("<pk>/download", views.download, name="download"),
     path("<pk>/request", views.request_daypass, name="request_daypass"),
-    path("requests/", views.list_daypass_requests, name="list_daypass_requests"),
-    path("requests/<int:request_id>", views.review_daypass, name="review_daypass"),
+    path("<pk>/requests/", views.list_daypass_requests, name="list_daypass_requests"),
+    path("<pk>/requests/<int:request_id>", views.review_daypass, name="review_daypass"),
     path(
         "<pk>/version/<version_slug>",
         views.artifact,
