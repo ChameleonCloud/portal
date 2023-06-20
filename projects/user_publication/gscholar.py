@@ -48,7 +48,6 @@ class GoogleScholarHandler(object):
                     self.retries = 0
                     break
             return resp
-
         return inner_f
 
     def _publication_id(self, pub: dict):
