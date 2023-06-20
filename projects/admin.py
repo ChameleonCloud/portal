@@ -58,7 +58,6 @@ class ChameleonPublicationAdmin(admin.ModelAdmin):
 
 
 class FundingAdmin(ProjectFields, admin.ModelAdmin):
-
     readonly_fields = [
         "project_charge_code",
     ]

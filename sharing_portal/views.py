@@ -127,9 +127,9 @@ def can_edit(request, artifact):
 
 def handle_get_artifact(request, uuid, sharing_key=None):
     try:
-        return trovi.get_artifact_by_trovi_uuid(uuid,
-                                                request.session.get("trovi_token"),
-                                                sharing_key=sharing_key)
+        return trovi.get_artifact_by_trovi_uuid(
+            uuid, request.session.get("trovi_token"), sharing_key=sharing_key
+        )
     except trovi.TroviException as e:
         if e.code == 404:
             raise Http404("That artifact does not exist, or is private")
@@ -793,8 +793,9 @@ def review_daypass(request, request_id, **kwargs):
     except DaypassRequest.DoesNotExist:
         raise Http404("That daypass request does not exist")
 
-    artifact = trovi.get_artifact_by_trovi_uuid(daypass_request.artifact_uuid,
-                                                trovi.get_client_admin_token())
+    artifact = trovi.get_artifact_by_trovi_uuid(
+        daypass_request.artifact_uuid, trovi.get_client_admin_token()
+    )
     project = trovi.get_linked_project(artifact)
     if not project:
         raise Http404("Project linked to this artifact does not exist.")
@@ -915,8 +916,9 @@ def list_daypass_requests(request, **kwargs):
 def send_request_decision_mail(request, daypass_request, daypass_project):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
-    artifact = trovi.get_artifact_by_trovi_uuid(daypass_request.artifact_uuid,
-                                                trovi.get_client_admin_token())
+    artifact = trovi.get_artifact_by_trovi_uuid(
+        daypass_request.artifact_uuid, trovi.get_client_admin_token()
+    )
     artifact_title = artifact["title"]
     reproducibility_project = daypass_project.project
     if daypass_request.status == DaypassRequest.STATUS_APPROVED:
