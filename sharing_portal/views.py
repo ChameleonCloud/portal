@@ -794,7 +794,12 @@ def review_daypass(request, request_id, **kwargs):
         raise Http404("That daypass request does not exist")
 
     artifact = trovi.get_artifact_by_trovi_uuid(
-        daypass_request.artifact_uuid, trovi.get_client_admin_token()
+        daypass_request.artifact_uuid,
+        # We use the admin token for this, because the PI is approving a Chameleon
+        # allocation for an artifact that they may not own. Therefore, they won't be
+        # able to view it. We should not expose any details about this artifact
+        # to the PI at any point because of this.
+        trovi.get_client_admin_token(),
     )
     project = trovi.get_linked_project(artifact)
     if not project:
