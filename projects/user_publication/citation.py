@@ -11,14 +11,14 @@ from django.db import transaction
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from pybliometrics.scopus.exception import Scopus404Error
 
-from projects.models import Publication
+from projects.models import Publication, PublicationSource
 from projects.user_publication.gscholar import GoogleScholarHandler
 from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger("projects")
 
 DOI_RE = r"(10.\d{4,9}\/[-._;()\/:\w]+)"
-SEMANTIC_CITATION_RETRIES = 100
+SEMANTIC_CITATION_RETRIES = 10
 
 
 def update_scopus_citation(pub, dry_run=True):
@@ -50,7 +50,7 @@ def update_scopus_citation(pub, dry_run=True):
             scopus_pub = search_results[0]
     if scopus_pub:
         # Returns a tuple of (object, created)
-        existing_scopus_source = pub.sources.get_or_create(name=Publication.SCOPUS)[0]
+        existing_scopus_source = pub.sources.get_or_create(name=PublicationSource.SCOPUS)[0]
         logger.info(
             f"update scopus citation number for "
             f"{pub.title} (id: {pub.id}) "
@@ -117,12 +117,11 @@ def update_semantic_scholar_citation(pub, dry_run=True):
                 sc_title.lower(), pub.title.lower()
             ):
                 semantic_scholar_pub = result
-
     if semantic_scholar_pub:
         citation_cnt = semantic_scholar_pub.get("citationCount", 0)
         # Returns a tuple of (object, created)
         existing_sem_source = pub.sources.get_or_create(
-            name=Publication.SEMANTIC_SCHOLAR
+            name=PublicationSource.SEMANTIC_SCHOLAR
         )[0]
         logger.info(
             (
@@ -139,8 +138,8 @@ def update_semantic_scholar_citation(pub, dry_run=True):
 
 
 def update_citation_numbers(dry_run=True):
-    gscholar = GoogleScholarHandler()
-    for pub in Publication.objects.all():
+    gscholar = GoogleScholarHandlerr()
+    for pub in Publication.objects.filter(status=Publication.STATUS_APPROVED):
         try:
             update_scopus_citation(pub, dry_run)
         except Exception:

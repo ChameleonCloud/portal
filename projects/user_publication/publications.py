@@ -1,3 +1,6 @@
+# Contains functions to import publications for various sources
+# Also contains functions to review imported publications
+
 import logging
 from datetime import date
 
@@ -121,6 +124,10 @@ def update_other_sources_status(pub, sources):
             with transaction.atomic():
                 pub.status = Publication.STATUS_APPROVED
                 pub.save()
+                for source in pub.sources.all():
+                    source.approved_with = choice
+                    source.cites_chameleon = True
+                    source.save()
     else:
         with transaction.atomic():
             pub.status = Publication.STATUS_REJECTED
@@ -141,11 +148,11 @@ def review_imported_publications():
     for pub in pubs_to_review:
         review_counter += 1
         print(f"Publication to review {review_counter} of {pubs_count}")
-        print(f"Publication: \n {pub.__repr__()}\n")
+        print(f"Publication: {pub.id} \n {pub.__repr__()}\n")
         for source in pub.sources.all():
             print(f"with source: {source.__repr__()}\n")
         approval_needed_sources = pub.sources.filter(
-            approved_with__is_null=True
+            approved_with__isnull=True
         ).exclude(name=PublicationSource.USER_REPORTED)
         user_reported_source = pub.sources.filter(
             name=PublicationSource.USER_REPORTED,
@@ -161,7 +168,6 @@ def review_imported_publications():
             else:
                 print("User reported publications can be approved from admin interface")
                 print("Skipping publication...")
-                continue
         elif approval_needed_sources:
             print("These sources need review: ")
             update_other_sources_status(pub, approval_needed_sources)
