@@ -228,7 +228,7 @@ def get_artifact(token, artifact_id):
     return res.json()
 
 
-def get_artifact_by_trovi_uuid(token, artifact_id, sharing_key=None):
+def get_artifact_by_trovi_uuid(artifact_id, token=None, sharing_key=None):
     if sharing_key:
         url = url_with_token(
             f"/artifacts/{artifact_id}/", token, query=dict(sharing_key=sharing_key)

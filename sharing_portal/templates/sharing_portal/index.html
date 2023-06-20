@@ -17,36 +17,75 @@
 {% block content %}
 <div class="layoutGrid">
   <div class="layoutGrid__main">
-    <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter" />
+    <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter"/>
 
-    {% for artifact in artifacts %}
-    <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
-      <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
-        <h5 class="cardItem__title">
-          <span class="cardTitleTitle">{{ artifact.title }}</span>
-          <span class="cardTitlePrivate">
+    <h3>Featured Artifacts</h3>
+
+    <div>
+      {% for artifact in featured_artifacts %}
+      <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
+        <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
+          <h5 class="cardItem__title">
+            <span class="cardTitleTitle">{{ artifact.title }}</span>
+            <span class="cardTitlePrivate">
           {% if artifact.is_private %}
-            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top" title="This artifact is only visible for those chosen by the author"></i>
+            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
+               title="This artifact is only visible for those chosen by the author"></i>
           {% endif %}
           </span>
-        </h5>
-        <div class="cardItem__body">
-          {% if artifact.short_description %}
-          <p class="artifactGridItem__description">
-            {{ artifact.short_description }}
-          </p>
-          {% endif %}
+          </h5>
+          <div class="cardItem__body">
+            {% if artifact.short_description %}
+            <p class="artifactGridItem__description">
+              {{ artifact.short_description }}
+            </p>
+            {% endif %}
+          </div>
+        </a>
+        <div class="cardItem__footer">
+          {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
         </div>
-      </a>
-      <div class="cardItem__footer">
-        {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
       </div>
+      {% empty %}
+      <div class="cardEmpty">
+        <p>No results found.</p>
+      </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <div class="cardEmpty">
-      <p>No results found.</p>
+
+    <h3>All Artifacts</h3>
+
+    <div>
+      {% for artifact in artifacts %}
+      <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
+        <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
+          <h5 class="cardItem__title">
+            <span class="cardTitleTitle">{{ artifact.title }}</span>
+            <span class="cardTitlePrivate">
+          {% if artifact.is_private %}
+            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
+               title="This artifact is only visible for those chosen by the author"></i>
+          {% endif %}
+          </span>
+          </h5>
+          <div class="cardItem__body">
+            {% if artifact.short_description %}
+            <p class="artifactGridItem__description">
+              {{ artifact.short_description }}
+            </p>
+            {% endif %}
+          </div>
+        </a>
+        <div class="cardItem__footer">
+          {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="cardEmpty">
+        <p>No results found.</p>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
 
   <div class="layoutGrid__side">
@@ -62,11 +101,11 @@
 
     <ul class="sidebarNav">
       <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_all' %}active{% endif %}"><a
-          href="{% url 'sharing_portal:index_all' %}"><i class="fa fa-circle-o"></i> All</a></li>
+        href="{% url 'sharing_portal:index_all' %}"><i class="fa fa-circle-o"></i> All</a></li>
       <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_public' %}active{% endif %}"><a
-          href="{% url 'sharing_portal:index_public' %}"><i class="fa fa-globe"></i> Public</a></li>
+        href="{% url 'sharing_portal:index_public' %}"><i class="fa fa-globe"></i> Public</a></li>
       <li class="sidebarNav__item {% if request.resolver_match.url_name == 'index_mine' %}active{% endif %}"><a
-          href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
+        href="{% url 'sharing_portal:index_mine' %}"><i class="fa fa-user"></i> My library</a></li>
     </ul>
 
     <a href="{% url 'sharing_portal:create_artifact' %}">
