@@ -1,5 +1,4 @@
 import re
-from urllib.parse import urlencode
 import uuid
 
 from django.conf import settings
@@ -273,3 +272,24 @@ class DaypassProject(models.Model):
 
     artifact_uuid = models.CharField(max_length=36, primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+
+class FeaturedArtifact(models.Model):
+    """
+    Stores a link to an artifact in the Trovi API which is intended to be featured
+    at the top of the Trovi page
+    """
+
+    artifact_uuid = models.UUIDField()
+
+    def __repr__(self):
+        from sharing_portal import trovi
+
+        try:
+            artifact = trovi.get_artifact_by_trovi_uuid(str(self.artifact_uuid))
+        except trovi.TroviException:
+            return f"Unknown artifact ({str(self.artifact_uuid)})"
+        return f"{artifact['title']} ({artifact['uuid']})"
+
+    def __str__(self):
+        return repr(self)

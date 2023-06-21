@@ -39,7 +39,7 @@ from .forms import (
     ReviewDaypassForm,
     RoleFormset,
 )
-from .models import Artifact, DaypassRequest, DaypassProject
+from .models import Artifact, DaypassRequest, DaypassProject, FeaturedArtifact
 from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ def can_edit(request, artifact):
 def handle_get_artifact(request, uuid, sharing_key=None):
     try:
         return trovi.get_artifact_by_trovi_uuid(
-            request.session.get("trovi_token"), uuid, sharing_key=sharing_key
+            uuid, request.session.get("trovi_token"), sharing_key=sharing_key
         )
     except trovi.TroviException as e:
         if e.code == 404:
@@ -180,9 +180,15 @@ def get_artifact(func):
 
 def _render_list(request, artifacts):
     template = loader.get_template("sharing_portal/index.html")
+
+    featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
+    featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
+    other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
+
     context = {
         "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        "artifacts": artifacts,
+        "artifacts": other_artifacts,
+        "featured_artifacts": featured_artifacts,
     }
 
     return HttpResponse(template.render(context, request))
@@ -788,12 +794,12 @@ def review_daypass(request, request_id, **kwargs):
         raise Http404("That daypass request does not exist")
 
     artifact = trovi.get_artifact_by_trovi_uuid(
+        daypass_request.artifact_uuid,
         # We use the admin token for this, because the PI is approving a Chameleon
         # allocation for an artifact that they may not own. Therefore, they won't be
         # able to view it. We should not expose any details about this artifact
         # to the PI at any point because of this.
         trovi.get_client_admin_token(),
-        daypass_request.artifact_uuid,
     )
     project = trovi.get_linked_project(artifact)
     if not project:
@@ -916,7 +922,7 @@ def send_request_decision_mail(request, daypass_request, daypass_project):
     subject = f"Daypass request has been reviewed: {daypass_request.status}"
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     artifact = trovi.get_artifact_by_trovi_uuid(
-        trovi.get_client_admin_token(), daypass_request.artifact_uuid
+        daypass_request.artifact_uuid, trovi.get_client_admin_token()
     )
     artifact_title = artifact["title"]
     reproducibility_project = daypass_project.project
