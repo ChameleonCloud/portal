@@ -92,10 +92,13 @@
     <div class="sidebarHeading">
       <h1>Trovi</h1>
       <p>
-        A collection of shared artifacts you can launch on Chameleon.
-        <a href="https://chameleoncloud.readthedocs.io/en/latest/technical/sharing.html" rel="noopener noreferrer">
-          Learn how to contribute on the docs.
-        </a>
+        This page is powered by <a href="https://chameleoncloud.gitbook.io/trovi/" target="_blank">Trovi</a>,
+        an open platform for practical reproducibility. These artifacts are packaged experimental environments
+        which are ready for reproduction at the click of a button. For more information on how to use Trovi,
+        please refer to our
+        <a href="https://chameleoncloud.readthedocs.io/en/latest/technical/sharing.html" target="_blank">documentation</a>
+        or
+        <a href="https://chameleoncloud.org/blog/2022/06/01/sharing-experiments-with-trovi/" target="_blank">blog</a>.
       </p>
     </div>
 
@@ -111,6 +114,14 @@
     <a href="{% url 'sharing_portal:create_artifact' %}">
       <button class="btn btn-success">Import Artifact</button>
     </a>
+    <div class="sidebarNav__separator">
+      <h4>Tags</h4>
+      {% for tag in tags %}
+      <div class="sidebarNav__tags">
+        <a href="{% url 'sharing_portal:index_all' %}?filter=tag:{{ tag|urlencode }}">{{ tag }}</a>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
 {% endblock %}

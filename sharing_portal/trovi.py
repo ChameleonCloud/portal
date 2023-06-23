@@ -100,7 +100,7 @@ def list_artifacts(token, sort_by="updated_at"):
     return res.json()["artifacts"]
 
 
-def list_tags(token):
+def list_tags(token=None):
     res = requests.get(url_with_token("/meta/tags/", token))
     check_status(res, requests.codes.ok)
     return res.json()["tags"]
