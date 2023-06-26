@@ -189,6 +189,7 @@ def _render_list(request, artifacts):
         "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
         "artifacts": other_artifacts,
         "featured_artifacts": featured_artifacts,
+        "tags": [t["tag"] for t in trovi.list_tags()],
     }
 
     return HttpResponse(template.render(context, request))

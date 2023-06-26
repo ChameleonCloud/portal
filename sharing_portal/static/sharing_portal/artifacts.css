@@ -162,6 +162,32 @@
     color: var(--grey-dark);
 }
 
+.sidebarNav__separator {
+    border-top: 2px solid var(--grey-light);
+    margin-top: 11px;
+} .sidebarNav__separator h4 {
+    color: var(--accent-primary);
+}
+
+.sidebarNav__tags {
+    flex: 1;
+    text-align: left;
+    margin-bottom: 0.5rem;
+} .sidebarNav__tags > a {
+    display: inline-block;
+    background: var(--grey-light);
+    text-decoration: none !important;
+    color: inherit !important;
+    border-radius: 0.5rem;
+    font-size: 1.4rem;
+    padding: 0.2rem 1rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+} .sidebarNav__tags > a:last-child {
+    margin-right: 0;
+}
+
+
 .artifactDetail {
     background: #ffffff;
     padding: 1.5rem;
