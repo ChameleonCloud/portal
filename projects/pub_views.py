@@ -22,14 +22,6 @@ from .forms import AddBibtexPublicationForm
 logger = logging.getLogger("projects")
 
 
-def can_add_publications(user, project):
-    if is_admin_or_superuser(user):
-        return True
-    if user.username == project.pi.username:
-        return True
-    return False
-
-
 def _send_publication_notification(charge_code, pubs):
     subject = f"Project {charge_code} added new publications"
     formatted_pubs = [
@@ -124,9 +116,7 @@ def add_publications(request, project_id):
     mapper = ProjectAllocationMapper(request)
     try:
         project = mapper.get_project(project_id)
-        if project.source != "Chameleon" or not can_add_publications(
-            request.user, project
-        ):
+        if project.source != "Chameleon":
             raise Http404("The requested project does not exist!")
     except Exception as e:
         logger.error(e)
