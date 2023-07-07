@@ -37,11 +37,23 @@
 </div>
 
 <form method="post">
-        {% csrf_token %}
-        {% bootstrap_form pubs_form %}
-        <div class="form-group">
-          <button type="submit" class="btn btn-success">Add</button>
-        </div>
-      </form>
+  {% csrf_token %}
+
+  <h4>1. Publications BibTeX Format:</h4>
+  <p>Please enter your publication(s) in BibTeX format in the field below. If available, include a link to the publication using the <code>note</code> or <code>howpublished</code> field with the <a href="https://ctan.org/pkg/url">url package</a>.</p>
+  {% bootstrap_form pubs_form %}
+  <h4>2. Guidelines for Submission:</h4>
+  <ul>
+    <li>Please ensure that the publications you upload are directly related to research or projects that have utilized Chameleon resources.</li>
+    <li>Avoid duplicate submissions by checking if your publication is already listed.</li>
+    <li>In addition, it helps us a lot when you cite the Chameleon paper. Please refer <a href="https://chameleoncloud.org/learn/frequently-asked-questions/#toc-how-should-i-acknowledge-chameleon-">this FAQ</a> on how to acknowledge and cite Chameleon</li>
+  </ul>
+
+  <p>Your cooperation in adhering to these guidelines is appreciated as it helps maintain the integrity and relevance of the publications section
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-success">Add</button>
+  </div>
+</form>
 
 {% endblock %}

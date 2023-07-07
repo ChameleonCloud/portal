@@ -236,11 +236,6 @@ class ProjectAddUserForm(forms.Form):
 class AddBibtexPublicationForm(forms.Form):
     project_id = forms.CharField(widget=forms.HiddenInput())
     bibtex_string = forms.CharField(
-        label="Publication(s) in BibTeX format",
-        help_text=(
-            "Please enter publications in BibTex Format. If you can provide "
-            "a link, please enter in note or howpublished using the url package."
-        ),
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "@article{..."}),
     )
