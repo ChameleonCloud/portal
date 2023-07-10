@@ -11,10 +11,12 @@ from django.db.models import Max
 from django.http import Http404
 from django.shortcuts import render
 from django.utils.html import strip_tags
+from django.core.exceptions import PermissionDenied
 
 from projects.models import Publication
 from projects.user_publication.deduplicate import get_duplicate_pubs
-from projects.views import is_admin_or_superuser
+from projects.util import get_project_members
+from projects.views import project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .forms import AddBibtexPublicationForm
@@ -121,6 +123,9 @@ def add_publications(request, project_id):
     except Exception as e:
         logger.error(e)
         raise Http404("The requested project does not exist!")
+    users = get_project_members(project)
+    if not project_member_or_admin_or_superuser(request.user, project, users):
+        raise PermissionDenied
     if request.POST:
         pubs_form = AddBibtexPublicationForm(request.POST)
         if pubs_form.is_valid():
