@@ -11,23 +11,17 @@ from django.db.models import Max
 from django.http import Http404
 from django.shortcuts import render
 from django.utils.html import strip_tags
+from django.core.exceptions import PermissionDenied
 
 from projects.models import Publication
 from projects.user_publication.deduplicate import get_duplicate_pubs
-from projects.views import is_admin_or_superuser
+from projects.util import get_project_members
+from projects.views import project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .forms import AddBibtexPublicationForm
 
 logger = logging.getLogger("projects")
-
-
-def can_add_publications(user, project):
-    if is_admin_or_superuser(user):
-        return True
-    if user.username == project.pi.username:
-        return True
-    return False
 
 
 def _send_publication_notification(charge_code, pubs):
@@ -124,13 +118,14 @@ def add_publications(request, project_id):
     mapper = ProjectAllocationMapper(request)
     try:
         project = mapper.get_project(project_id)
-        if project.source != "Chameleon" or not can_add_publications(
-            request.user, project
-        ):
+        if project.source != "Chameleon":
             raise Http404("The requested project does not exist!")
     except Exception as e:
         logger.error(e)
         raise Http404("The requested project does not exist!")
+    users = get_project_members(project)
+    if not project_member_or_admin_or_superuser(request.user, project, users):
+        raise PermissionDenied
     if request.POST:
         pubs_form = AddBibtexPublicationForm(request.POST)
         if pubs_form.is_valid():
