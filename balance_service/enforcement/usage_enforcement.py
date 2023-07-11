@@ -332,6 +332,8 @@ class UsageEnforcer(object):
         lease_end = self._convert_to_localtime(
             self._date_from_string(lease["end_date"])
         )
+        LOG.info(f"Allocation dates {lease} {lease['end']}, {alloc.expiration_date}")
+        LOG.info(f"is approved alloc - {approved_alloc}")
         if (approved_alloc and lease_end > approved_alloc.expiration_date) or (
             not approved_alloc and lease_end > alloc.expiration_date
         ):
