@@ -15,7 +15,8 @@ class EnforcementException(Exception):
 
     def __init__(self, message=None, **kwargs):
         self.kwargs = kwargs
-        self.message = message
+        if message:
+            self.message = message
 
         if "code" not in self.kwargs:
             self.kwargs["code"] = self.code
