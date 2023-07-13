@@ -21,7 +21,7 @@ class EnforcementException(Exception):
         if "code" not in self.kwargs:
             self.kwargs["code"] = self.code
 
-        if not message:
+        if not self.message:
             try:
                 self.message = self.msg_fmt % kwargs
             except KeyError:
@@ -33,7 +33,7 @@ class EnforcementException(Exception):
 
                 self.message = self.msg_fmt
 
-        super(EnforcementException, self).__init__(message)
+        super(EnforcementException, self).__init__(self.message)
 
 
 class BillingError(EnforcementException):
