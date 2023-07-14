@@ -5,7 +5,6 @@ LOG = logging.getLogger(__name__)
 
 class EnforcementException(Exception):
     """Base enforcement Exception.
-
     To correctly use this class, inherit from it and define
     a 'msg_fmt' and 'code' properties.
     """
@@ -15,33 +14,22 @@ class EnforcementException(Exception):
 
     def __init__(self, message=None, **kwargs):
         self.kwargs = kwargs
-        if message:
-            self.message = message
-
-        if "code" not in self.kwargs:
-            self.kwargs["code"] = self.code
-
-        if not self.message:
-            try:
-                self.message = self.msg_fmt % kwargs
-            except KeyError:
-                # kwargs doesn't match a variable in the message
-                # log the issue and the kwargs
-                LOG.exception("Exception in string format operation")
-                for name, value in kwargs.items():
-                    LOG.error("%(name)s: %(value)s", {"name": name, "value": value})
-
-                self.message = self.msg_fmt
-
-        super(EnforcementException, self).__init__(self.message)
+        self.kwargs.setdefault("code", self.code)
+        try:
+            self.message = message or self.msg_fmt % kwargs
+        except KeyError:
+            # kwargs doesn't match a variable in the message
+            # log the issue and the kwargs
+            LOG.exception("Exception in string format operation")
+            for name, value in self.kwargs.items():
+                LOG.error("%(name)s: %(value)s", {"name": name, "value": value})
+            self.message = self.msg_fmt
+        super().__init__(self.message)
 
 
 class BillingError(EnforcementException):
     msg_fmt = "Not authorized"
-    code = 403
 
 
 class LeasePastExpirationError(EnforcementException):
-    msg_fmt = "Not authorized"
-    code = 403
-    message = "Cannot create reservation beyond allocation expiration date"
+    msg_fmt = "Cannot create reservation beyond allocation expiration date"
