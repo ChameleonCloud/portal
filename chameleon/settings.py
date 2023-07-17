@@ -910,7 +910,7 @@ if DEBUG:
 # Balance Service
 ########
 ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
-    "ALLOWED_OPENSTACK_SERVICE_USERS", ["blazar", "portal"]
+    "ALLOWED_OPENSTACK_SERVICE_USERS", ["blazar", "portal", "smoke-tests"]
 )
 
 ########
