@@ -19,12 +19,13 @@ class KeystoneAPI:
     @classmethod
     def load_from_request(cls, request):
         keystone_auth_token = request.headers.get("X-Auth-Token")
-        if request.method == 'POST':
+        if request.method == "POST":
             context = json.loads(request.body).get("context", {})
             auth_url = context.get("auth_url")
-        else:
+        elif request.method == "GET":
             auth_url = request.headers.get("X-Auth-URL")
-
+        else:
+            raise ValueError("Unsupported HTTP method")
         return cls(keystone_auth_token, auth_url=auth_url)
 
     def verify_auth_url(self, auth_url):
@@ -38,8 +39,8 @@ class KeystoneAPI:
         if auth_url[-3:] != "/v3":
             auth_url += "/v3"
 
-        # if auth_url not in allowed_auth_urls:
-        #     raise exceptions.AuthURLException(auth_url)
+        if auth_url not in allowed_auth_urls:
+            raise exceptions.AuthURLException(auth_url)
 
         return auth_url
 
@@ -54,14 +55,13 @@ class KeystoneAPI:
         }
 
         resp = requests.post(url, headers=self.headers, json=data)
-        print(resp.text)
 
         if resp.status_code in [200, 201]:
             user_name = resp.json()["token"]["user"]["name"]
             if user_name not in auth_users:
                 raise exceptions.AuthUserException(user_name)
 
-            return 'smoke-tests'
+            return user_name
         else:
             resp.raise_for_status()
 
