@@ -19,13 +19,7 @@ class KeystoneAPI:
     @classmethod
     def load_from_request(cls, request):
         keystone_auth_token = request.headers.get("X-Auth-Token")
-
-        try:
-            context = json.loads(request.body).get("context", {})
-            auth_url = context.get("auth_url")
-        except Exception as e:
-            LOG.exception(e)
-            auth_url = None
+        auth_url = request.headers.get("X-Auth-URL")
 
         return cls(keystone_auth_token, auth_url=auth_url)
 

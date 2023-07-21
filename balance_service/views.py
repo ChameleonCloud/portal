@@ -7,6 +7,8 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponse,
+    JsonResponse,
+    HttpResponseServerError,
 )
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -60,7 +62,14 @@ def batch_get_project_allocations(keystone_api, request):
 @require_http_methods(["GET"])
 @authenticate
 def get_project_allocation(keystone_api, request, project_id):
-    return su_calculators.project_balances([project_id])[0]
+    try:
+        balance = su_calculators.project_balances([project_id])[0]
+    except IndexError:
+        # if project ID is not found
+        balance = {}
+    except Exception:
+        return HttpResponseServerError("Unexpected Error")
+    return JsonResponse(balance)
 
 
 # Usage Enforcement API
