@@ -7,8 +7,9 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponse,
-    JsonResponse,
     HttpResponseServerError,
+    HttpResponseNotFound,
+    JsonResponse,
 )
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -66,7 +67,7 @@ def get_project_allocation(keystone_api, request, project_id):
         balance = su_calculators.project_balances([project_id])[0]
     except IndexError:
         # if project ID is not found
-        balance = {}
+        return HttpResponseNotFound("Project ID not found")
     except Exception:
         return HttpResponseServerError("Unexpected Error")
     return JsonResponse(balance)
