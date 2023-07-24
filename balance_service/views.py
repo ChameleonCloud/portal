@@ -113,7 +113,7 @@ def _process(enforcer, request, fun_v2):
     # balance service v2
     try:
         fun_v2(data)
-    except ue_exceptions.BillingError as e:
+    except ue_exceptions.EnforcementException as e:
         logger.exception(e)
         check = e
     except Exception as e:
