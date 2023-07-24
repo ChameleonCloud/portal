@@ -19,14 +19,13 @@ class KeystoneAPI:
     @classmethod
     def load_from_request(cls, request):
         keystone_auth_token = request.headers.get("X-Auth-Token")
-
-        try:
+        if request.method == "POST":
             context = json.loads(request.body).get("context", {})
             auth_url = context.get("auth_url")
-        except Exception as e:
-            LOG.exception(e)
-            auth_url = None
-
+        elif request.method == "GET":
+            auth_url = request.headers.get("X-Auth-URL")
+        else:
+            raise ValueError("Unsupported HTTP method")
         return cls(keystone_auth_token, auth_url=auth_url)
 
     def verify_auth_url(self, auth_url):
