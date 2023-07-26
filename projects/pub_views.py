@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.core.exceptions import PermissionDenied
 
-from projects.models import Publication
+from projects.models import Publication, PublicationSource
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.util import get_project_members
 from projects.views import project_member_or_admin_or_superuser
@@ -140,6 +140,8 @@ def add_publications(request, project_id):
                         "user_reported",
                         Publication.STATUS_SUBMITTED,
                     )
+                    pub_source = PublicationSource(publication=new_pub)
+                    pub_source.name = PublicationSource.USER_REPORTED
                     new_pubs.append(new_pub)
             messages.success(request, "Publication(s) added successfully")
             _send_publication_notification(project.chargeCode, new_pubs)
