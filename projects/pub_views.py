@@ -142,6 +142,7 @@ def add_publications(request, project_id):
                     )
                     pub_source = PublicationSource(publication=new_pub)
                     pub_source.name = PublicationSource.USER_REPORTED
+                    pub_source.save()
                     new_pubs.append(new_pub)
             messages.success(request, "Publication(s) added successfully")
             _send_publication_notification(project.chargeCode, new_pubs)
