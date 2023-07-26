@@ -46,6 +46,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     )
     ordering = ["project__charge_code", "-year"]
     list_display = (
+        "id",
         "title",
         "project_charge_code",
         "year",
