@@ -86,11 +86,10 @@ class ArtifactBadge(models.Model):
     """
     Represents artifact badges
     """
+
     artifact_uuid = models.CharField(max_length=36, null=True)
     BADGE_REPRODUCIBLE_IN_TROVI = "Reproducible"
-    BADGE = (
-        (BADGE_REPRODUCIBLE_IN_TROVI, "Reproducible"),
-    )
+    BADGE = ((BADGE_REPRODUCIBLE_IN_TROVI, "Reproducible"),)
     badge_name = models.CharField(max_length=50, blank=False, choices=BADGE)
     STATUS_PENDING = "pending"
     STATUS_REJECTED = "rejected"
@@ -110,7 +109,6 @@ class ArtifactBadge(models.Model):
     decision_at = models.DateTimeField(null=True)
     decision_summary = models.TextField(blank=True, null=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
-
 
 
 class Artifact(models.Model):

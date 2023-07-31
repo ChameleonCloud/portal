@@ -39,7 +39,13 @@ from .forms import (
     ReviewDaypassForm,
     RoleFormset,
 )
-from .models import Artifact, ArtifactBadge, DaypassRequest, DaypassProject, FeaturedArtifact
+from .models import (
+    Artifact,
+    ArtifactBadge,
+    DaypassRequest,
+    DaypassProject,
+    FeaturedArtifact,
+)
 from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
@@ -190,7 +196,9 @@ def _render_list(request, artifacts):
         "artifacts": other_artifacts,
         "featured_artifacts": featured_artifacts,
         "tags": [t["tag"] for t in trovi.list_tags()],
-        "badges": list(ArtifactBadge.objects.values_list('badge_name', flat=True).distinct()),
+        "badges": list(
+            ArtifactBadge.objects.values_list("badge_name", flat=True).distinct()
+        ),
     }
 
     return HttpResponse(template.render(context, request))
@@ -200,7 +208,7 @@ def _compute_artifact_fields(artifact):
     artifact["has_reproducible_badge"] = ArtifactBadge.objects.filter(
         artifact_uuid=artifact["uuid"],
         badge_name=ArtifactBadge.BADGE_REPRODUCIBLE_IN_TROVI,
-        status=ArtifactBadge.STATUS_APPROVED
+        status=ArtifactBadge.STATUS_APPROVED,
     ).exists()
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
