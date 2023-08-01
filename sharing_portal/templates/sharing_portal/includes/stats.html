@@ -39,12 +39,12 @@
     {% endfor %}
     {% if artifact.is_chameleon_supported %}
     <a href="{% url 'sharing_portal:index_all' %}?filter=tag:chameleon" class="artifactStats__chameleonSupported" title="This artifact is supported by the Chameleon team">
-      <img src="{% static 'images/logo-small.png' %}" alt="Small Chameleon logo">
+      <img src="{% static 'images/chameleon-logo-small.png' %}" alt="Small Chameleon logo">
     </a>
     {% endif %}
     {% if artifact.has_reproducible_badge %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:reproducible" class="artifactStats__chameleonSupported" title="This artifact is practically reproducible">
-      <img src="{% static 'images/repeto-logo-small2.png' %}" alt="Small Repeto logo">
+    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:reproducible" class="artifactStats__chameleonSupported" title="This artifact is reproducible experiment">
+      <img src="{% static 'images/reproducible-logo-small.png' %}" alt="Small repeto logo">
     </a>
     {% endif %}
 

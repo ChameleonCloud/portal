@@ -125,11 +125,19 @@
     <div class="sidebarNav__separator">
       <h4>Badges</h4>
       {% for badge in badges %}
-      <div class="sidebarNav__tags">
-        <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge|urlencode }}">{{badge}}
-            <img src="{% static 'images/repeto-logo-small2.png' %}" alt="Small Repeto logo">
+
+      <span>
+        <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.name|urlencode }}">
+          {% with 'images/'|add:badge.name|add:'-logo-small.png' as logo_static %}
+            <img src="{% static logo_static %}" alt="Small {{badge.name}} logo">
+          {% endwith %}
         </a>
-      </div>
+          {% if badge.redirect_link %}
+            <a target="_blank" href="{{ badge.redirect_link }}">{{badge.description}}</a>
+          {% else %}
+            <p style="display:inline;">{{badge.description}}</p>
+          {% endif %}
+        </span>
       {% endfor %}
     </div>
   </div>

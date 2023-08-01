@@ -42,6 +42,7 @@ from .forms import (
 from .models import (
     Artifact,
     ArtifactBadge,
+    Badge,
     DaypassRequest,
     DaypassProject,
     FeaturedArtifact,
@@ -197,7 +198,7 @@ def _render_list(request, artifacts):
         "featured_artifacts": featured_artifacts,
         "tags": [t["tag"] for t in trovi.list_tags()],
         "badges": list(
-            ArtifactBadge.objects.values_list("badge_name", flat=True).distinct()
+            Badge.objects.all()
         ),
     }
 
@@ -207,7 +208,7 @@ def _render_list(request, artifacts):
 def _compute_artifact_fields(artifact):
     artifact["has_reproducible_badge"] = ArtifactBadge.objects.filter(
         artifact_uuid=artifact["uuid"],
-        badge_name=ArtifactBadge.BADGE_REPRODUCIBLE_IN_TROVI,
+        badge__name=Badge.BADGE_REPRODUCIBLE_IN_TROVI,
         status=ArtifactBadge.STATUS_APPROVED,
     ).exists()
     terms = artifact["title"].lower().split()

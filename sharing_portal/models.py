@@ -82,15 +82,32 @@ class Label(models.Model):
         return self.label
 
 
+class Badge(models.Model):
+    """
+    Holds all the badges and their details
+    """
+
+    BADGE_REPRODUCIBLE_IN_TROVI = "reproducible"
+    BADGE_SUPPORTED_BY_CHAMELEON = "chameleon"
+    BADGE = (
+        (BADGE_REPRODUCIBLE_IN_TROVI, "reproducible"),
+        (BADGE_SUPPORTED_BY_CHAMELEON, "chameleon"),
+    )
+    name = models.CharField(max_length=50, blank=False, choices=BADGE)
+    description = models.CharField(max_length=300, blank=False)
+    redirect_link = models.URLField(max_length=200, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class ArtifactBadge(models.Model):
     """
     Represents artifact badges
     """
 
     artifact_uuid = models.CharField(max_length=36, null=True)
-    BADGE_REPRODUCIBLE_IN_TROVI = "Reproducible"
-    BADGE = ((BADGE_REPRODUCIBLE_IN_TROVI, "Reproducible"),)
-    badge_name = models.CharField(max_length=50, blank=False, choices=BADGE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     STATUS_PENDING = "pending"
     STATUS_REJECTED = "rejected"
     STATUS_APPROVED = "approved"
