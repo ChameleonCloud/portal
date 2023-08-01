@@ -197,9 +197,7 @@ def _render_list(request, artifacts):
         "artifacts": other_artifacts,
         "featured_artifacts": featured_artifacts,
         "tags": [t["tag"] for t in trovi.list_tags()],
-        "badges": list(
-            Badge.objects.all()
-        ),
+        "badges": list(Badge.objects.all()),
     }
 
     return HttpResponse(template.render(context, request))
