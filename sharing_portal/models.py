@@ -82,6 +82,52 @@ class Label(models.Model):
         return self.label
 
 
+class Badge(models.Model):
+    """
+    Holds all the badges and their details
+    """
+
+    BADGE_REPRODUCIBLE_IN_TROVI = "reproducible"
+    BADGE_SUPPORTED_BY_CHAMELEON = "chameleon"
+    BADGE = (
+        (BADGE_REPRODUCIBLE_IN_TROVI, "reproducible"),
+        (BADGE_SUPPORTED_BY_CHAMELEON, "chameleon"),
+    )
+    name = models.CharField(max_length=50, blank=False, choices=BADGE)
+    description = models.CharField(max_length=300, blank=False)
+    redirect_link = models.URLField(max_length=200, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ArtifactBadge(models.Model):
+    """
+    Represents artifact badges
+    """
+
+    artifact_uuid = models.CharField(max_length=36, null=True)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    STATUS_PENDING = "pending"
+    STATUS_REJECTED = "rejected"
+    STATUS_APPROVED = "approved"
+    STATUS_DELETED = "deleted"
+    STATUS = (
+        (STATUS_PENDING, "pending"),
+        (STATUS_REJECTED, "rejected"),
+        (STATUS_APPROVED, "approved"),
+        (STATUS_APPROVED, "deleted"),
+    )
+    status = models.CharField(max_length=50, blank=False, choices=STATUS)
+    requested_on = models.DateTimeField(auto_now_add=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE
+    )
+    decision_at = models.DateTimeField(null=True)
+    decision_summary = models.TextField(blank=True, null=True)
+    deleted_at = models.DateTimeField(blank=True, null=True)
+
+
 class Artifact(models.Model):
     """
     Represents artifacts

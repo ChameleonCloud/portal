@@ -39,7 +39,14 @@ from .forms import (
     ReviewDaypassForm,
     RoleFormset,
 )
-from .models import Artifact, DaypassRequest, DaypassProject, FeaturedArtifact
+from .models import (
+    Artifact,
+    ArtifactBadge,
+    Badge,
+    DaypassRequest,
+    DaypassProject,
+    FeaturedArtifact,
+)
 from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
@@ -190,16 +197,24 @@ def _render_list(request, artifacts):
         "artifacts": other_artifacts,
         "featured_artifacts": featured_artifacts,
         "tags": [t["tag"] for t in trovi.list_tags()],
+        "badges": list(Badge.objects.all()),
     }
 
     return HttpResponse(template.render(context, request))
 
 
 def _compute_artifact_fields(artifact):
+    artifact["has_reproducible_badge"] = ArtifactBadge.objects.filter(
+        artifact_uuid=artifact["uuid"],
+        badge__name=Badge.BADGE_REPRODUCIBLE_IN_TROVI,
+        status=ArtifactBadge.STATUS_APPROVED,
+    ).exists()
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
     for name in [author["full_name"] for author in artifact["authors"]]:
         terms.extend(name.lower().split(" "))
+    if artifact["has_reproducible_badge"]:
+        terms.extend(["badge:reproducible"])
     artifact["search_terms"] = terms
     artifact["is_chameleon_supported"] = any(
         label == "chameleon" for label in artifact["tags"]
@@ -603,6 +618,8 @@ def artifact(request, artifact, version_slug=None):
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
+    # has_reproducible_badge, is_chameleon_supported needs to be populated
+    artifact = _compute_artifact_fields(artifact)
     context = {
         "artifact": artifact,
         "linked_project": trovi.get_linked_project(artifact),

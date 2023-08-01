@@ -122,6 +122,24 @@
       </div>
       {% endfor %}
     </div>
+    <div class="sidebarNav__separator">
+      <h4>Badges</h4>
+      {% for badge in badges %}
+
+      <span>
+        <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.name|urlencode }}">
+          {% with 'images/'|add:badge.name|add:'-logo-small.png' as logo_static %}
+            <img src="{% static logo_static %}" alt="Small {{badge.name}} logo">
+          {% endwith %}
+        </a>
+          {% if badge.redirect_link %}
+            <a target="_blank" href="{{ badge.redirect_link }}">{{badge.description}}</a>
+          {% else %}
+            <p style="display:inline;">{{badge.description}}</p>
+          {% endif %}
+        </span>
+      {% endfor %}
+    </div>
   </div>
 </div>
 {% endblock %}
