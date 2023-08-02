@@ -13,8 +13,8 @@ LOG = logging.getLogger(__name__)
 
 
 class ArtifactForm(forms.Form):
-    title = forms.CharField(label="Title")
-    short_description = forms.CharField(label="Short Description")
+    title = forms.CharField(label="Title", max_length=140)
+    short_description = forms.CharField(label="Short Description", max_length=200)
     long_description = forms.CharField(
         label="Long Description", widget=forms.Textarea(), required=False
     )
