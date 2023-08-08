@@ -616,6 +616,9 @@ def artifact(request, artifact, version_slug=None):
             messages.error(request, message)
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
+    if len(git_content) > 0:
+        # git repository is /<repository>.git format
+        feedback_url = git_content[0]['remote'].replace(".git", "/issues")
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
     # has_reproducible_badge, is_chameleon_supported needs to be populated
@@ -632,6 +635,7 @@ def artifact(request, artifact, version_slug=None):
         "show_launch": show_launch,
         "git_content": git_content,
         "http_content": http_content,
+        "feedback_url": feedback_url,
     }
     template = loader.get_template("sharing_portal/detail.html")
     return HttpResponse(template.render(context, request))
