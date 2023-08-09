@@ -616,9 +616,10 @@ def artifact(request, artifact, version_slug=None):
             messages.error(request, message)
 
     git_content = [method for method in access_methods if method["protocol"] == "git"]
+    feedback_url = ""
     if len(git_content) > 0:
         # git repository is /<repository>.git format
-        feedback_url = git_content[0]['remote'].replace(".git", "/issues")
+        feedback_url = git_content[0]["remote"].replace(".git", "/issues")
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
     # has_reproducible_badge, is_chameleon_supported needs to be populated
