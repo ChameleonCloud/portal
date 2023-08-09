@@ -144,7 +144,9 @@ def _deactivate_allocation(alloc):
     else:
         balance = balance[0]
         alloc.su_used = balance["used"]
-    LOG.info(f"Deactivating allocation {alloc.id} for project {alloc.project.charge_code}")
+    LOG.info(
+        f"Deactivating allocation {alloc.id} for project {alloc.project.charge_code}"
+    )
     alloc.status = "inactive"
     alloc.save()
     keycloak_client = KeycloakClient()
@@ -254,9 +256,7 @@ def active_approved_allocations():
                     for c in allocation_charges:
                         if c.end_time > now:
                             _fork_charge(c, now, alloc)
-                LOG.info(
-                    f"Activating allocation {alloc.id} for project {charge_code}"
-                )
+                LOG.info(f"Activating allocation {alloc.id} for project {charge_code}")
                 alloc.status = "active"
                 alloc.save()
                 keycloak_client = KeycloakClient()
