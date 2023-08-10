@@ -16,6 +16,7 @@ from django.utils.html import strip_tags
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
 from balance_service.enforcement.usage_enforcement import TMP_RESOURCE_ID_PREFIX
+from projects.models import Project
 from util.keycloak_client import KeycloakClient
 
 from . import utils
@@ -330,10 +331,7 @@ def check_keycloak_consistency():
         alloc.project.charge_code
         for alloc in Allocation.objects.filter(status="active")
     }
-    inactive_projects = {
-        alloc.project.charge_code
-        for alloc in Allocation.objects.filter(~Q(status="active"))
-    }
+    inactive_projects = set(Project.objects.filter(~Q(charge_code__in=active_projects)))
 
     LOG.info(f"CONSISTENCY: {len(active_projects)} active allocations")
     LOG.info(f"CONSISTENCY: {len(inactive_projects)} inactive allocations")
@@ -347,12 +345,12 @@ def check_keycloak_consistency():
     active_groups = {
         group.get("name")
         for group in groups._client.get(url=groups_url, briefRepresentation=False)
-        if group.get("attributes", {}).get("has_active_allocation") == "true"
+        if "true" in group.get("attributes", {}).get("has_active_allocation", [])
     }
     inactive_groups = {
         group.get("name")
         for group in groups._client.get(url=groups_url, briefRepresentation=False)
-        if group.get("attributes", {}).get("has_active_allocation") == "false"
+        if "false" in group.get("attributes", {}).get("has_active_allocation", [])
     }
 
     LOG.info(f"CONSISTENCY: {len(active_groups)} active groups in Keycloak")

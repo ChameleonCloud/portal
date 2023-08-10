@@ -75,7 +75,7 @@ class KeycloakClient:
                 url=keycloakproject._client.get_full_url(
                     keycloakproject.get_path("collection", realm=self.realm_name)
                 ),
-                name=name,
+                briefRepresentation=False,
             )
             if u["name"] == name
         ]
