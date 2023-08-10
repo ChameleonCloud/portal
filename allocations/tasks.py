@@ -144,10 +144,19 @@ def _deactivate_allocation(alloc):
     else:
         balance = balance[0]
         alloc.su_used = balance["used"]
+    LOG.info(
+        f"Deactivating allocation {alloc.id} for project {alloc.project.charge_code}"
+    )
     alloc.status = "inactive"
     alloc.save()
-    KeycloakClient().update_project(
+    keycloak_client = KeycloakClient()
+    keycloak_client.update_project(
         alloc.project.charge_code, has_active_allocation="false"
+    )
+    updated_project = keycloak_client._lookup_group(alloc.project.charge_code)
+    LOG.info(
+        f"Project {alloc.project.charge_code} should NOT have active allocation in Keycloak: "
+        f"{updated_project.get('attributes')}"
     )
 
 
@@ -247,10 +256,18 @@ def active_approved_allocations():
                     for c in allocation_charges:
                         if c.end_time > now:
                             _fork_charge(c, now, alloc)
+                LOG.info(f"Activating allocation {alloc.id} for project {charge_code}")
                 alloc.status = "active"
                 alloc.save()
-                KeycloakClient().update_project(
+                keycloak_client = KeycloakClient()
+                keycloak_client.update_project(
                     charge_code, has_active_allocation="true"
+                )
+
+                updated_project = keycloak_client._lookup_group(charge_code)
+                LOG.info(
+                    f"Project {charge_code} should have active allocation in Keycloak: "
+                    f"{updated_project.get('attributes')}"
                 )
 
                 activated_alloc_count = activated_alloc_count + 1
