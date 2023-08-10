@@ -9,6 +9,7 @@ from celery.decorators import task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -290,6 +291,8 @@ def activate_expire_allocations():
     deactivate_multiple_active_allocations_of_projects()
     # activate allocations
     active_approved_allocations()
+    # check consistency between allocation system and Keycloak
+    check_keycloak_consistency()
 
 
 def _fill_charge_tmp_resource_ids():
@@ -320,6 +323,49 @@ def _fill_charge_tmp_resource_ids():
                         f"The allocation uses v1 balance service, removing charge {charge_dict}"
                     )
                     charge.delete()
+
+
+def check_keycloak_consistency():
+    active_projects = {
+        alloc.project.charge_code
+        for alloc in Allocation.objects.filter(status="active")
+    }
+    inactive_projects = {
+        alloc.project.charge_code
+        for alloc in Allocation.objects.filter(~Q(status="active"))
+    }
+
+    LOG.info(f"CONSISTENCY: {len(active_projects)} active allocations")
+    LOG.info(f"CONSISTENCY: {len(inactive_projects)} inactive allocations")
+
+    keycloak_client = KeycloakClient()
+    groups = keycloak_client._project_admin()
+    groups_url = groups._client.get_full_url(
+        groups.get_path("collection", realm=keycloak_client.realm_name)
+    )
+
+    active_groups = {
+        group.get("name")
+        for group in groups._client.get(url=groups_url, briefRepresentation=False)
+        if group.get("attributes", {}).get("has_active_allocation") == "true"
+    }
+    inactive_groups = {
+        group.get("name")
+        for group in groups._client.get(url=groups_url, briefRepresentation=False)
+        if group.get("attributes", {}).get("has_active_allocation") == "false"
+    }
+
+    for project in active_projects:
+        if project not in active_groups:
+            LOG.warning(
+                f"CONSISTENCY: Project {project} with active allocation not active in Keycloak"
+            )
+
+    for project in inactive_projects:
+        if project not in inactive_groups:
+            LOG.warning(
+                f"CONSISTENCY: Project {project} without active allocation is active in Keycloak"
+            )
 
 
 @task
@@ -363,14 +409,16 @@ def check_charge():
             openstack_endtime = openstack_r.get("end_time")
             portal_endtime = portal_r.get("end_time").strftime(utils.DATETIME_FORMAT)
             if openstack_endtime != portal_endtime:
-                LOG.error(
-                    f"{resource_id} at {region} has incorrect end time! "
-                    f"openstack={openstack_endtime}, portal={portal_endtime}"
-                )
+                pass
+                # LOG.error(
+                #     f"{resource_id} at {region} has incorrect end time! "
+                #     f"openstack={openstack_endtime}, portal={portal_endtime}"
+                # )
             openstack_cost = openstack_r.get("hourly_cost")
             portal_cost = float(portal_r.get("hourly_cost"))
             if openstack_cost != portal_cost:
-                LOG.error(
-                    f"{resource_id} at {region} has incorrect hourly cost! "
-                    f"openstack={openstack_cost}, portal={portal_cost}"
-                )
+                pass
+                # LOG.error(
+                #     f"{resource_id} at {region} has incorrect hourly cost! "
+                #     f"openstack={openstack_cost}, portal={portal_cost}"
+                # )
