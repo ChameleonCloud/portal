@@ -329,11 +329,13 @@ def check_keycloak_consistency():
 
     active_groups = {
         group.get("name")
-        for group in groups._client.get(url=groups_url, has_active_allocation="true")
+        for group in groups._client.get(url=groups_url, briefRepresentation=False)
+        if group.get("attributes", {}).get("has_active_allocation") == "true"
     }
     inactive_groups = {
         group.get("name")
-        for group in groups._client.get(url=groups_url, has_active_allocation="false")
+        for group in groups._client.get(url=groups_url, briefRepresentation=False)
+        if group.get("attributes", {}).get("has_active_allocation") == "false"
     }
 
     for project in active_projects:
