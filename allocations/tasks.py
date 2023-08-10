@@ -366,7 +366,7 @@ def check_keycloak_consistency():
             )
 
     for project in inactive_projects:
-        if project not in inactive_groups:
+        if project in active_groups:
             LOG.warning(
                 f"CONSISTENCY: Project {project} without active allocation is active in Keycloak"
             )
