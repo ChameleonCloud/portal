@@ -331,7 +331,10 @@ def check_keycloak_consistency():
         alloc.project.charge_code
         for alloc in Allocation.objects.filter(status="active")
     }
-    inactive_projects = set(Project.objects.filter(~Q(charge_code__in=active_projects)))
+    inactive_projects = set(
+        project.charge_code
+        for project in Project.objects.filter(~Q(charge_code__in=active_projects))
+    )
 
     LOG.info(f"CONSISTENCY: {len(active_projects)} active allocations")
     LOG.info(f"CONSISTENCY: {len(inactive_projects)} inactive allocations")
