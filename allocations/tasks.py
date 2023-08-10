@@ -355,6 +355,9 @@ def check_keycloak_consistency():
         if group.get("attributes", {}).get("has_active_allocation") == "false"
     }
 
+    LOG.info(f"CONSISTENCY: {len(active_groups)} active groups in Keycloak")
+    LOG.info(f"CONSISTENCY: {len(inactive_groups)} inactive groups in Keycloak")
+
     for project in active_projects:
         if project not in active_groups:
             LOG.warning(
