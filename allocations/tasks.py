@@ -13,6 +13,8 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
+from keycloak.exceptions import KeycloakClientError
+
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
 from balance_service.enforcement.usage_enforcement import TMP_RESOURCE_ID_PREFIX
@@ -348,28 +350,47 @@ def check_keycloak_consistency():
     active_groups = {
         group.get("name")
         for group in groups._client.get(url=groups_url, briefRepresentation=False)
+        # Filter for any groups with have `has_active_allocation` == "true"
         if "true" in group.get("attributes", {}).get("has_active_allocation", [])
     }
     inactive_groups = {
         group.get("name")
         for group in groups._client.get(url=groups_url, briefRepresentation=False)
-        if "false" in group.get("attributes", {}).get("has_active_allocation", [])
+        # Filter for any groups with have `has_active_allocation` == "false" or None
+        if any(
+            inactive in group.get("attributes", {}).get("has_active_allocation", [])
+            for inactive in ("false", None)
+        )
     }
 
     LOG.info(f"CONSISTENCY: {len(active_groups)} active groups in Keycloak")
     LOG.info(f"CONSISTENCY: {len(inactive_groups)} inactive groups in Keycloak")
 
     for project in active_projects:
-        if project not in active_groups:
+        if project in inactive_groups:
             LOG.warning(
                 f"CONSISTENCY: Project {project} with active allocation not active in Keycloak"
             )
+            try:
+                keycloak_client.update_project(project, has_active_allocation="true")
+            except KeycloakClientError:
+                # If there are many errors to correct, the client may expire
+                LOG.warning(f"Failed to update project {project} in Keycloak. Retrying")
+                keycloak_client = KeycloakClient()
+                keycloak_client.update_project(project, has_active_allocation="true")
 
     for project in inactive_projects:
         if project in active_groups:
             LOG.warning(
                 f"CONSISTENCY: Project {project} without active allocation is active in Keycloak"
             )
+            try:
+                keycloak_client.update_project(project, has_active_allocation="false")
+            except KeycloakClientError:
+                # If there are many errors to correct, the client may expire
+                LOG.warning(f"Failed to update project {project} in Keycloak. Retrying")
+                keycloak_client = KeycloakClient()
+                keycloak_client.update_project(project, has_active_allocation="false")
 
 
 @task
