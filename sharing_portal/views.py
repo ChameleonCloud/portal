@@ -204,9 +204,8 @@ def _render_list(request, artifacts):
 
 
 def _compute_artifact_fields(artifact):
-    artifact['badges'] = ArtifactBadge.objects.filter(
-        artifact_uuid=artifact["uuid"],
-        status=ArtifactBadge.STATUS_APPROVED
+    artifact["badges"] = ArtifactBadge.objects.filter(
+        artifact_uuid=artifact["uuid"], status=ArtifactBadge.STATUS_APPROVED
     )
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
