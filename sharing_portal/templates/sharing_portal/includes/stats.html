@@ -38,7 +38,7 @@
     <a href="{% url 'sharing_portal:index_all' %}?filter=tag:{{ label|urlencode }}">{{ label }}</a>
     {% endfor %}
     {% for badge in artifact.badges %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge|urlencode }}" class="artifactStats__chameleonSupported" title="This artifact is supported by the Chameleon team">
+    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.badge.name|urlencode }}" class="artifactStats__chameleonSupported" title="This artifact is supported by the Chameleon team">
       {% with 'images/'|add:badge.badge.name|add:'-logo-small.png' as logo_static %}
         <img src="{% static logo_static %}" alt="Small {{badge.badge.name}} logo">
       {% endwith %}
