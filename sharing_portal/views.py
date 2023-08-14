@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import subprocess
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -52,6 +53,57 @@ from .zenodo import ZenodoClient
 LOG = logging.getLogger(__name__)
 
 SHARING_KEY_PARAM = "s"
+
+
+class GitUrlParser:
+    """
+    Parse & rewrite git urls (supports GitHub and Gitlab)
+    inspired from - https://github.com/nephila/giturlparse
+    """
+    PATTERNS = {
+        "https": (
+            r"((?P<protocol>https))://(?P<domain>[^:/]+)"
+            r"(?P<pathname>/(?P<owner>[^/]+?)/"
+            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
+            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
+        ),
+        "ssh": (
+            r"((?P<protocol>ssh))?(://)?(?P<_user>.+?)@(?P<domain>[^:/]+)(:)"
+            r"(?P<pathname>/?(?P<owner>[^/]+)/"
+            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
+            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
+        ),
+        "git": (
+            r"((?P<protocol>git))://(?P<domain>[^:/]+)"
+            r"(?P<pathname>/(?P<owner>[^/]+?)/"
+            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
+            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
+        ),
+    }
+
+    def __init__(self):
+        self.COMPILED_PATTERNS = {
+            proto: re.compile(regex, re.IGNORECASE)
+            for proto, regex in self.PATTERNS.items()
+        }
+
+    def parse(self, url):
+        parsed_info = defaultdict(lambda: "")
+        platform = self
+        for protocol, regex in platform.COMPILED_PATTERNS.items():
+            match = regex.match(url)
+            if not match:
+                continue
+            matches = match.groupdict(default="")
+            # Update info with matches
+            parsed_info.update(matches)
+            parsed_info.update(
+                {
+                    "url": url,
+                    "protocol": protocol,
+                }
+            )
+        return parsed_info
 
 
 def with_trovi_token(view_func):
@@ -560,6 +612,24 @@ def _parse_doi(version):
     return None
 
 
+def construct_issues_url(url):
+    gp = GitUrlParser()
+    parsed_info = gp.parse(url)
+    if parsed_info['domain'] == 'github.com':
+        issue_page_url = (
+            f"https://{parsed_info['domain'].lower()}/"
+            f"{parsed_info['owner']}/{parsed_info['repo']}/issues"
+        )
+    elif parsed_info['domain'] == 'gitlab.com':
+        issue_page_url = (
+            f"https://{parsed_info['domain'].lower()}/"
+            f"{parsed_info['owner']}/{parsed_info['repo']}/-/issues"
+        )
+    else:
+        issue_page_url = ""
+    return issue_page_url
+
+
 @handle_trovi_errors
 @with_trovi_token
 @get_artifact
@@ -618,8 +688,7 @@ def artifact(request, artifact, version_slug=None):
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     feedback_url = ""
     if len(git_content) > 0:
-        # git repository is /<repository>.git format
-        feedback_url = git_content[0]["remote"].replace(".git", "/issues")
+        feedback_url = construct_issues_url(git_content[0]["remote"])
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
     # has_reproducible_badge, is_chameleon_supported needs to be populated
