@@ -1,3 +1,6 @@
+# Tests for git url parsing, the below command should work
+# python manage.py test sharing_portal.tests.test_git_parser
+
 from django.test import SimpleTestCase
 from ..views import GitUrlParser, construct_issues_url
 
@@ -27,7 +30,7 @@ class GitParserTest(SimpleTestCase):
 
     def test_gitlab_urls(self):
         gp = GitUrlParser()
-        for url in github_urls:
+        for url in gitlab_urls:
             parsed_info = gp.parse(url)
             self.assertEqual(parsed_info["domain"], "gitlab.com")
             self.assertEqual(parsed_info["owner"], "fdroid")
