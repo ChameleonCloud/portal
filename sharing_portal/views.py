@@ -204,22 +204,15 @@ def _render_list(request, artifacts):
 
 
 def _compute_artifact_fields(artifact):
-    artifact["has_reproducible_badge"] = ArtifactBadge.objects.filter(
+    artifact['badges'] = ArtifactBadge.objects.filter(
         artifact_uuid=artifact["uuid"],
-        badge__name=Badge.BADGE_REPRODUCIBLE_IN_TROVI,
-        status=ArtifactBadge.STATUS_APPROVED,
-    ).exists()
-    artifact["is_chameleon_supported"] = ArtifactBadge.objects.filter(
-        artifact_uuid=artifact["uuid"],
-        badge__name=Badge.BADGE_SUPPORTED_BY_CHAMELEON,
-        status=ArtifactBadge.STATUS_APPROVED,
-    ).exists()
+        status=ArtifactBadge.STATUS_APPROVED
+    )
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
     for name in [author["full_name"] for author in artifact["authors"]]:
         terms.extend(name.lower().split(" "))
-    if artifact["has_reproducible_badge"]:
-        terms.extend(["badge:reproducible"])
+    terms.extend([f"badge:{badge.badge.name}" for badge in artifact["badges"]])
     artifact["search_terms"] = terms
     artifact["is_private"] = artifact["visibility"] == "private"
     return artifact
@@ -620,7 +613,6 @@ def artifact(request, artifact, version_slug=None):
     git_content = [method for method in access_methods if method["protocol"] == "git"]
     http_content = [method for method in access_methods if method["protocol"] == "http"]
 
-    # has_reproducible_badge, is_chameleon_supported needs to be populated
     artifact = _compute_artifact_fields(artifact)
     context = {
         "artifact": artifact,
