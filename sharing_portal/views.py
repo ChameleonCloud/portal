@@ -209,6 +209,11 @@ def _compute_artifact_fields(artifact):
         badge__name=Badge.BADGE_REPRODUCIBLE_IN_TROVI,
         status=ArtifactBadge.STATUS_APPROVED,
     ).exists()
+    artifact["is_chameleon_supported"] = ArtifactBadge.objects.filter(
+        artifact_uuid=artifact["uuid"],
+        badge__name=Badge.BADGE_SUPPORTED_BY_CHAMELEON,
+        status=ArtifactBadge.STATUS_APPROVED,
+    ).exists()
     terms = artifact["title"].lower().split()
     terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
     for name in [author["full_name"] for author in artifact["authors"]]:
@@ -216,9 +221,6 @@ def _compute_artifact_fields(artifact):
     if artifact["has_reproducible_badge"]:
         terms.extend(["badge:reproducible"])
     artifact["search_terms"] = terms
-    artifact["is_chameleon_supported"] = any(
-        label == "chameleon" for label in artifact["tags"]
-    )
     artifact["is_private"] = artifact["visibility"] == "private"
     return artifact
 
