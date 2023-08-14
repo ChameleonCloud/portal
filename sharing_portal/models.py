@@ -89,11 +89,9 @@ class Badge(models.Model):
 
     BADGE_REPRODUCIBLE_IN_TROVI = "reproducible"
     BADGE_SUPPORTED_BY_CHAMELEON = "chameleon"
-    BADGE_EDUCATIONAL_ARTIFACT = "educational"
     BADGE = (
         (BADGE_REPRODUCIBLE_IN_TROVI, "reproducible"),
         (BADGE_SUPPORTED_BY_CHAMELEON, "chameleon"),
-        (BADGE_EDUCATIONAL_ARTIFACT, "educational"),
     )
     name = models.CharField(max_length=50, blank=False, choices=BADGE)
     description = models.CharField(max_length=300, blank=False)
@@ -118,7 +116,7 @@ class ArtifactBadge(models.Model):
         (STATUS_PENDING, "pending"),
         (STATUS_REJECTED, "rejected"),
         (STATUS_APPROVED, "approved"),
-        (STATUS_APPROVED, "deleted"),
+        (STATUS_DELETED, "deleted"),
     )
     status = models.CharField(max_length=50, blank=False, choices=STATUS)
     requested_on = models.DateTimeField(auto_now_add=True)
