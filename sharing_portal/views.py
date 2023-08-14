@@ -60,6 +60,7 @@ class GitUrlParser:
     Parse & rewrite git urls (supports GitHub and Gitlab)
     inspired from - https://github.com/nephila/giturlparse
     """
+
     PATTERNS = {
         "https": (
             r"((?P<protocol>https))://(?P<domain>[^:/]+)"
@@ -615,12 +616,12 @@ def _parse_doi(version):
 def construct_issues_url(url):
     gp = GitUrlParser()
     parsed_info = gp.parse(url)
-    if parsed_info['domain'] == 'github.com':
+    if parsed_info["domain"] == "github.com":
         issue_page_url = (
             f"https://{parsed_info['domain'].lower()}/"
             f"{parsed_info['owner']}/{parsed_info['repo']}/issues"
         )
-    elif parsed_info['domain'] == 'gitlab.com':
+    elif parsed_info["domain"] == "gitlab.com":
         issue_page_url = (
             f"https://{parsed_info['domain'].lower()}/"
             f"{parsed_info['owner']}/{parsed_info['repo']}/-/issues"
