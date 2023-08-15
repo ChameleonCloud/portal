@@ -100,6 +100,18 @@ APP=app_name_here make migrations
 git add '*/migrations/*.py'
 ```
 
+### Testing
+
+Unit tests can be written using django's powerful testing framework that makes [writing unit tests a breeze](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#writing-tests)
+
+Running unit tests is by using test command - `python manage.py test`
+
+A specific test of an app can also be executed - `python manage.py test sharing_portal`
+
+Or a specific test case can also be executed - `python manage.py test sharing_portal.tests.test_git_parser`
+
+Todo: Currently, running test cases that require a DB connection does not work. This needs to be fixed
+
 ## Deployment
 
 The production deployment of Portal is managed via [portal-camino](https://github.com/ChameleonCloud/portal-camino).
