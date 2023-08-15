@@ -125,6 +125,12 @@
 git checkout {{git_method.ref}}</code></pre>
 </div>
     {% endfor %}
+    {% if feedback_url %}
+    <a class="btn btn-success" href="{{ feedback_url }}" target="_blank">Feedback</a>
+    <p class="artifactLaunchButton_details">
+      Submit feedback through GitHub issues
+    </p>
+    {% endif %}
 
     <div class="artifactVersions">
       <h4><i class="fa fa-files-o"></i> Versions</h4>
