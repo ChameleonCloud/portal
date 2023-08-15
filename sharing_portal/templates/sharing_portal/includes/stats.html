@@ -37,16 +37,13 @@
     {% for label in artifact.tags %}
     <a href="{% url 'sharing_portal:index_all' %}?filter=tag:{{ label|urlencode }}">{{ label }}</a>
     {% endfor %}
-    {% if artifact.is_chameleon_supported %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=tag:chameleon" class="artifactStats__chameleonSupported" title="This artifact is supported by the Chameleon team">
-      <img src="{% static 'images/chameleon-logo-small.png' %}" alt="Small Chameleon logo">
+    {% for badge in artifact.badges %}
+    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.badge.name|urlencode }}" class="artifactStats__chameleonSupported" title="This artifact is supported by the Chameleon team">
+      {% with 'images/'|add:badge.badge.name|add:'-logo-small.png' as logo_static %}
+        <img src="{% static logo_static %}" alt="Small {{badge.badge.name}} logo">
+      {% endwith %}
     </a>
-    {% endif %}
-    {% if artifact.has_reproducible_badge %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:reproducible" class="artifactStats__chameleonSupported" title="This artifact is reproducible experiment">
-      <img src="{% static 'images/reproducible-logo-small.png' %}" alt="Small repeto logo">
-    </a>
-    {% endif %}
+    {% endfor %}
 
   </div>
 </div>

@@ -118,7 +118,7 @@ class ArtifactBadge(models.Model):
         (STATUS_PENDING, "pending"),
         (STATUS_REJECTED, "rejected"),
         (STATUS_APPROVED, "approved"),
-        (STATUS_APPROVED, "deleted"),
+        (STATUS_DELETED, "deleted"),
     )
     status = models.CharField(max_length=50, blank=False, choices=STATUS)
     requested_on = models.DateTimeField(auto_now_add=True)
