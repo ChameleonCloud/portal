@@ -89,9 +89,11 @@ class Badge(models.Model):
 
     BADGE_REPRODUCIBLE_IN_TROVI = "reproducible"
     BADGE_SUPPORTED_BY_CHAMELEON = "chameleon"
+    BADGE_EDUCATIONAL_ARTIFACT = "educational"
     BADGE = (
         (BADGE_REPRODUCIBLE_IN_TROVI, "reproducible"),
         (BADGE_SUPPORTED_BY_CHAMELEON, "chameleon"),
+        (BADGE_EDUCATIONAL_ARTIFACT, "educational"),
     )
     name = models.CharField(max_length=50, blank=False, choices=BADGE)
     description = models.CharField(max_length=300, blank=False)
