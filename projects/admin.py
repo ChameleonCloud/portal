@@ -44,12 +44,13 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "status",
         "checked_for_duplicates",
     )
-    ordering = ["project__charge_code", "-year"]
+    ordering = ["-status", "-id", "-year"]
     list_display = (
         "id",
         "title",
         "project_charge_code",
         "year",
+        "status",
     )
 
 
