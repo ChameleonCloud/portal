@@ -320,12 +320,14 @@ class Publication(models.Model):
     STATUS_APPROVED = "APPROVED"
     STATUS_DUPLICATE = "DUPLICATE"
     STATUS_REJECTED = "REJECTED"
+    STATUS_DELETED = "DELETED"
 
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
         (STATUS_DUPLICATE, "Duplicate"),
         (STATUS_REJECTED, "Rejected"),
+        (STATUS_DELETED, "Deleted"),
     ]
 
     # keys to report in __repr__
@@ -368,6 +370,10 @@ class Publication(models.Model):
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
         return "\n" + "\n".join(lines)
+
+    def delete(self, using=None, keep_parents=False):
+        self.status = self.STATUS_DELETED
+        self.save()
 
     objects = PublicationManager()
 
@@ -435,7 +441,9 @@ class PublicationSource(models.Model):
     is_found_by_algorithm = models.BooleanField(default=False, null=False)
     cites_chameleon = models.BooleanField(default=False, null=False)
     acknowledges_chameleon = models.BooleanField(default=False, null=False)
-    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True)
+    approved_with = models.CharField(
+        choices=APPROVED_WITH, max_length=30, null=True, blank=True
+    )
 
     class Meta:
         constraints = [

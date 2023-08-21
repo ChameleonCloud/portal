@@ -108,6 +108,7 @@ def user_publications(request):
                     "year": pub.year,
                     "nickname": project.nickname,
                     "chargeCode": project.charge_code,
+                    "status": pub.status,
                 }
             )
     return render(request, "projects/view_publications.html", context)
