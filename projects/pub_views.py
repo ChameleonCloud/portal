@@ -89,7 +89,9 @@ def user_publications(request):
                 "to remove this publication. Please try again",
             )
     context["publications"] = []
-    pubs = Publication.objects.filter(added_by_username=request.user.username)
+    pubs = Publication.objects.filter(added_by_username=request.user.username).exclude(
+        status=Publication.STATUS_DELETED
+    )
     for pub in pubs:
         project = ProjectAllocationMapper.get_publication_project(pub)
         if project:
