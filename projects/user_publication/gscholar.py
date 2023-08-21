@@ -48,6 +48,7 @@ class GoogleScholarHandler(object):
                     self.retries = 0
                     break
             return resp
+
         return inner_f
 
     def _publication_id(self, pub: dict):
@@ -169,7 +170,9 @@ class GoogleScholarHandler(object):
             return
         g_citations = result_pub.get("num_citations", 0)
         # Returns a tuple of (object, created)
-        existing_g_source = pub.sources.get_or_create(name=PublicationSource.GOOGLE_SCHOLAR)[0]
+        existing_g_source = pub.sources.get_or_create(
+            name=PublicationSource.GOOGLE_SCHOLAR
+        )[0]
         existing_citation_count = existing_g_source.citation_count
         if not dry_run:
             with transaction.atomic():

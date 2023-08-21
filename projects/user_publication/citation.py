@@ -50,7 +50,9 @@ def update_scopus_citation(pub, dry_run=True):
             scopus_pub = search_results[0]
     if scopus_pub:
         # Returns a tuple of (object, created)
-        existing_scopus_source = pub.sources.get_or_create(name=PublicationSource.SCOPUS)[0]
+        existing_scopus_source = pub.sources.get_or_create(
+            name=PublicationSource.SCOPUS
+        )[0]
         logger.info(
             f"update scopus citation number for "
             f"{pub.title} (id: {pub.id}) "

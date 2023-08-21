@@ -294,7 +294,7 @@ class PublicationUtils:
         Returns:
             boolean
         """
-        if pub1.year != pub2.year:
+        if str(pub1.year) != str(pub2.year):
             return False
         if (
             PublicationUtils.how_similar(pub1.title, pub2.title)

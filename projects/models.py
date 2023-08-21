@@ -332,6 +332,7 @@ class Publication(models.Model):
 
     # keys to report in __repr__
     PUBLICATION_REPORT_FIELDS = [
+        "id",
         "title",
         "author",
         "year",
