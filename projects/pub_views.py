@@ -56,12 +56,14 @@ def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
         for pub in duplicate_pubs
     ]
     formatted_duplicate_pubs = formatted_duplicate_pubs
+    logger.error(f"{formatted_duplicate_pubs}")
     body = f"""
     <p>Please review the following publications which are plausible duplicates by
     project {charge_code}:
     <ul>{" ".join(formatted_duplicate_pubs)}</ul>
     </p>
     """
+    logger.error(body)
     send_mail(
         subject=subject,
         from_email=settings.DEFAULT_FROM_EMAIL,
