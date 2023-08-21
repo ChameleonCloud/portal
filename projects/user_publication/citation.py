@@ -138,7 +138,7 @@ def update_semantic_scholar_citation(pub, dry_run=True):
 
 
 def update_citation_numbers(dry_run=True):
-    gscholar = GoogleScholarHandlerr()
+    gscholar = GoogleScholarHandler()
     for pub in Publication.objects.filter(status=Publication.STATUS_APPROVED):
         try:
             update_scopus_citation(pub, dry_run)
