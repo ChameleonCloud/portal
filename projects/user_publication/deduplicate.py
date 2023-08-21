@@ -117,7 +117,7 @@ def review_duplicates(dry_run=True):
     Args:
         dry_run (bool, optional):
     """
-    # get all the recent publications that are to be checked for duplicates
+    # get all the publications that are to be checked for duplicates
     pubs_to_check_for_duplicates = Publication.objects.filter(
         checked_for_duplicates=False
     ).order_by("id")
