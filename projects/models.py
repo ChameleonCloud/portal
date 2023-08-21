@@ -371,7 +371,7 @@ class Publication(models.Model):
         ]
         return "\n" + "\n".join(lines)
 
-    def delete(self, using=None, keep_parents=False):
+    def delete_pub(self, using=None, keep_parents=False):
         self.status = self.STATUS_DELETED
         self.save()
 

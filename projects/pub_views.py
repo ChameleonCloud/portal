@@ -80,7 +80,7 @@ def user_publications(request):
         try:
             del_pub_id = request.POST["pub_ref"]
             logger.debug("deleting publication with id {}".format(del_pub_id))
-            Publication.objects.get(pk=del_pub_id).delete()
+            Publication.objects.get(pk=del_pub_id).delete_pub()
         except Exception:
             logger.exception("Failed removing publication")
             messages.error(
