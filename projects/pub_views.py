@@ -80,7 +80,7 @@ def user_publications(request):
         try:
             del_pub_id = request.POST["pub_ref"]
             logger.debug("deleting publication with id {}".format(del_pub_id))
-            Publication.objects.get(pk=del_pub_id).delete()
+            Publication.objects.get(pk=del_pub_id).delete_pub()
         except Exception:
             logger.exception("Failed removing publication")
             messages.error(
@@ -89,7 +89,9 @@ def user_publications(request):
                 "to remove this publication. Please try again",
             )
     context["publications"] = []
-    pubs = Publication.objects.filter(added_by_username=request.user.username)
+    pubs = Publication.objects.filter(added_by_username=request.user.username).exclude(
+        status=Publication.STATUS_DELETED
+    )
     for pub in pubs:
         project = ProjectAllocationMapper.get_publication_project(pub)
         if project:
@@ -108,6 +110,7 @@ def user_publications(request):
                     "year": pub.year,
                     "nickname": project.nickname,
                     "chargeCode": project.charge_code,
+                    "status": pub.status,
                 }
             )
     return render(request, "projects/view_publications.html", context)

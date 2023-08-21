@@ -13,6 +13,7 @@
   <button type="submit" class="btn btn-xs btn-link" name="del_pub"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove publication</span></button>
 </form>
 <small>[{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}]</small>
+<small>[{{p.status}}]</small>
 <a href="{{ p.link }}">{{ p.title }}</a>, {{ p.author }} In <i>{{ p.forum }}</i>. {{ p.month }} {{ p.year }}
 </p>
 
