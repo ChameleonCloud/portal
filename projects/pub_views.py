@@ -49,12 +49,10 @@ def _send_publication_notification(charge_code, pubs):
 def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
     subject = "Project {charge_code} plausible duplicate uploaded"
     formatted_duplicate_pubs = [
-        f"""
-        <li>{pub.__repr__()} <br>Found duplicate for <br>
-        {duplicate_pubs[pub]} <br><br></li>"
-        """.replace(
-            "\n", "<br>"
-        )
+        (
+            f"<li>{pub.__repr__()} <br>Found duplicate for <br>"
+            f"{duplicate_pubs[pub]} <br><br></li>"
+        ).replace("\n", "<br>")
         for pub in duplicate_pubs
     ]
     formatted_duplicate_pubs = formatted_duplicate_pubs
@@ -150,7 +148,8 @@ def add_publications(request, project_id):
             messages.success(request, "Publication(s) added successfully")
             _send_publication_notification(project.chargeCode, new_pubs)
             duplicate_pubs = get_duplicate_pubs(new_pubs)
-            if duplicate_pubs:
+            # if any of the pubs have duplicates
+            if any(v for v in duplicate_pubs.values()):
                 _send_duplicate_pubs_notification(project.chargeCode, duplicate_pubs)
         else:
             messages.error(request, "Error adding publication(s)")
