@@ -37,12 +37,18 @@ PUBLICATION_REPORT_KEYS = [
 
 def get_publications_with_same_attributes(pub, publication_model_class):
     # return publications with exact title, forum, author and year
-    return publication_model_class.objects.filter(
+    similar_pub = publication_model_class.objects.filter(
         title__iexact=pub.title,
         forum__iexact=pub.forum,
         author__iexact=pub.author,
         year=pub.year,
     )
+    if not similar_pub:
+        similar_pub = publication_model_class.objects.filter(
+            doi=pub.doi,
+            status=publication_model_class.STATUS_APPROVED
+        )
+    return similar_pub
 
 
 def update_original_pub_source(original_pub, duplicate_pub):
