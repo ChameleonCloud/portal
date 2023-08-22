@@ -95,19 +95,23 @@ def _get_pub_model(publication, dry_run=True):
         authors.add(author_detail["name"])
         if author_detail["aliases"]:
             authors.update(set(author_detail["aliases"]))
-    journal = publication.get("journal")
+    journal = publication.get("journal", {})
     if journal:
-        forum = journal.get("name")
+        forum = journal.get("name", "")
     else:
-        forum = publication.get("venue")
-    doi = publication.get("externalIds", {}).get("DOI", "")
+        forum = publication.get("venue", "")
+    external_ids = publication.get("externalIds", {})
+    doi = ""
+    # externalIds can be a None
+    if external_ids:
+        doi = external_ids.get("DOI", "")
     entry_type = ""
     if publication["publicationTypes"]:
         entry_type = ",".join(publication["publicationTypes"])
-    doi = doi if doi else publication.get("url", "")
-    link = ""
     if doi:
         link = f"https://www.doi.org/{doi}"
+    else:
+        link = publication.get("url", "")
     pub_model = Publication(
         title=title,
         year=year,
@@ -130,6 +134,8 @@ def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
+            if not cc:
+                continue
             pub = _get_pub_model(cc, dry_run)
             if pub:
                 publications.append((PublicationSource.SEMANTIC_SCHOLAR, pub))
