@@ -37,41 +37,45 @@ def _get_references(pid):
 
 
 def _get_citations(pid):
-    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
+    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/citations"
     fields = [
-        "citations.externalIds",
-        "citations.url",
-        "citations.title",
-        "citations.venue",
-        "citations.year",
-        "citations.citationCount",
-        "citations.fieldsOfStudy",
-        "citations.publicationTypes",
-        "citations.publicationDate",
-        "citations.citationStyles",
-        "citations.journal",
-        "citations.authors",
-        "citations.abstract",
+        "paperId",
+        "externalIds",
+        "url",
+        "title",
+        "venue",
+        "year",
+        "citationCount",
+        "fieldsOfStudy",
+        "publicationTypes",
+        "publicationDate",
+        "citationStyles",
+        "journal",
+        "authors",
+        "abstract",
     ]
-    response = requests.get(
-        url,
-        params={"fields": ",".join(fields)},
-        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-    )
-    return response.json().get("citations", [])
+    limit = 1000
+    all_citations = []
+    offset = 0
+    while True:
+        params = {"fields": ",".join(fields), "offset": offset, "limit": limit}
 
-
-def _get_authors(aids):
-    url = "https://api.semanticscholar.org/graph/v1/author/batch"
-    fields = ["name", "aliases"]
-    data = {"ids": aids}
-    response = requests.post(
-        url,
-        json=data,
-        params={"fields": ",".join(fields)},
-        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-    )
-    return response.json()
+        response = requests.get(
+            url,
+            params=params,
+            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+        )
+        if response.status_code == 200:
+            data = response.json()
+            citations = data.get("data", [])
+            if not citations:
+                break
+            all_citations.extend(citations)
+            offset += limit
+        else:
+            print(f"Request failed with status code: {response.status_code}")
+            break
+    return all_citations
 
 
 def _get_pub_model(publication, dry_run=True):
@@ -86,34 +90,33 @@ def _get_pub_model(publication, dry_run=True):
         month = None
     if not year:
         return None
-    author_ids = [a["authorId"] for a in publication.get("authors", [])]
-    author_details = _get_authors(author_ids)
-    authors = set()
-    for author_detail in author_details:
-        if not author_detail:
-            continue
-        authors.add(author_detail["name"])
-        if author_detail["aliases"]:
-            authors.update(set(author_detail["aliases"]))
-    journal = publication.get("journal")
+    journal = publication.get("journal", {})
     if journal:
-        forum = journal.get("name")
+        forum = journal.get("name", "")
     else:
-        forum = publication.get("venue")
-    doi = publication.get("externalIds", {}).get("DOI", "")
+        forum = publication.get("venue", "")
+    external_ids = publication.get("externalIds", {})
+    doi = ""
+    # externalIds can be a None
+    if external_ids:
+        doi = external_ids.get("DOI", "")
     entry_type = ""
     if publication["publicationTypes"]:
         entry_type = ",".join(publication["publicationTypes"])
-    doi = doi if doi else publication.get("url", "")
-    link = ""
     if doi:
         link = f"https://www.doi.org/{doi}"
+    else:
+        link = publication.get("url", "")
+    bibtex_source = publication.get("citationStyles", {})
+    # "citationStyles" may have None in it
+    if not bibtex_source:
+        bibtex_source = {}
     pub_model = Publication(
         title=title,
         year=year,
         month=month,
         author=" and ".join(a["name"] for a in publication.get("authors", [])),
-        bibtex_source=publication.get("citationStyles", {}),
+        bibtex_source=bibtex_source,
         added_by_username="admin",
         forum=forum,
         doi=doi,
@@ -130,7 +133,10 @@ def pub_import(dry_run=True):
     publications = []
     for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
         for cc in _get_citations(chameleon_pub.ref):
-            pub = _get_pub_model(cc, dry_run)
+            citing_paper = cc.get("citingPaper", {})
+            if not citing_paper:
+                continue
+            pub = _get_pub_model(citing_paper, dry_run)
             if pub:
                 publications.append((PublicationSource.SEMANTIC_SCHOLAR, pub))
     return publications
