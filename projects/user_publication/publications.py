@@ -117,21 +117,19 @@ def choose_approved_with_option():
 
 
 def update_other_sources_status(pub, sources):
+    print("This publication can be reviewed from admin interface")
+    path = reverse(
+        f"admin:{pub._meta.app_label}_{pub._meta.model_name}_change", args=[pub.pk]
+    )
+    site = Site.objects.get_current()
+    domain = site.domain if site else ""
+    print(f"\t https://{domain}{path} \n")
     print("Choose the appropriate approval for other sources")
     for source in sources:
         print(f"{source.__repr__()}\n")
     choice = choose_approved_with_option()
     if choice:
-        if choice == "DO NOTHING":
-            print("This publication can be reviewed from admin interface")
-            path = reverse(
-                f"admin:{pub._meta.app_label}_{pub._meta.model_name}_change",
-                args=[pub.pk]
-            )
-            site = Site.objects.get_current()
-            domain = site.domain if site else ""
-            print(f"\t https://{domain}/{path}")
-        else:
+        if choice != "DO NOTHING":
             with transaction.atomic():
                 pub.status = Publication.STATUS_APPROVED
                 pub.save()
@@ -139,7 +137,7 @@ def update_other_sources_status(pub, sources):
                     source.approved_with = choice
                     source.cites_chameleon = True
                     source.save()
-            
+
     else:
         with transaction.atomic():
             pub.status = Publication.STATUS_REJECTED

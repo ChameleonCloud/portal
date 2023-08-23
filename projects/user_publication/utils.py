@@ -45,8 +45,7 @@ def get_publications_with_same_attributes(pub, publication_model_class):
     )
     if not similar_pub:
         similar_pub = publication_model_class.objects.filter(
-            doi=pub.doi,
-            status=publication_model_class.STATUS_APPROVED
+            doi=pub.doi, status=publication_model_class.STATUS_APPROVED
         )
     return similar_pub
 

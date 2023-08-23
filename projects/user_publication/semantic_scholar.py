@@ -58,11 +58,7 @@ def _get_citations(pid):
     all_citations = []
     offset = 0
     while True:
-        params = {
-            "fields": ",".join(fields),
-            "offset": offset,
-            "limit": limit
-        }
+        params = {"fields": ",".join(fields), "offset": offset, "limit": limit}
 
         response = requests.get(
             url,
