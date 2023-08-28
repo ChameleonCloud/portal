@@ -13,8 +13,6 @@ from projects.models import (
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.utils import PublicationUtils
 from django.db import transaction
-from django.urls import reverse
-from django.contrib.sites.models import Site
 
 logger = logging.getLogger(__name__)
 
@@ -117,13 +115,6 @@ def choose_approved_with_option():
 
 
 def update_other_sources_status(pub, sources):
-    print("This publication can be reviewed from admin interface")
-    path = reverse(
-        f"admin:{pub._meta.app_label}_{pub._meta.model_name}_change", args=[pub.pk]
-    )
-    site = Site.objects.get_current()
-    domain = site.domain if site else ""
-    print(f"\t https://{domain}{path} \n")
     print("Choose the appropriate approval for other sources")
     for source in sources:
         print(f"{source.__repr__()}\n")
@@ -137,7 +128,6 @@ def update_other_sources_status(pub, sources):
                     source.approved_with = choice
                     source.cites_chameleon = True
                     source.save()
-
     else:
         with transaction.atomic():
             pub.status = Publication.STATUS_REJECTED

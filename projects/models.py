@@ -11,6 +11,7 @@ from django.db import models, transaction, DataError
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.contrib.sites.models import Site
 
 from projects.user_publication.utils import PublicationUtils
 
@@ -370,11 +371,21 @@ class Publication(models.Model):
             line_format.format(ck, getattr(self, ck))
             for ck in self.PUBLICATION_REPORT_FIELDS
         ]
+        lines.append(line_format.format("Admin page", self.pub_admin_page()))
         return "\n" + "\n".join(lines)
 
     def delete_pub(self, using=None, keep_parents=False):
         self.status = self.STATUS_DELETED
         self.save()
+
+    def pub_admin_page(self):
+        path = reverse(
+            f"admin:{self._meta.app_label}_{self._meta.model_name}_change",
+            args=[self.pk],
+        )
+        site = Site.objects.get_current()
+        domain = site.domain if site else ""
+        return f"https://{domain}{path}"
 
     objects = PublicationManager()
 
