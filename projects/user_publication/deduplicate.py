@@ -87,26 +87,18 @@ def flag_duplicate_in_whole_db():
 
 
 def pick_duplicate_from_pubs(dpub, opub):
-    # decide which publication should be categorized as duplicate
-    # this logic can further extend, currently its for if publication is preprint
-    def has_preprint(publication):
-        return (
-            "preprint" in publication.forum.lower()
-            if publication.forum
-            else ""
-            or "preprint" in publication.bibtex_source.lower()
-            or "arxiv" in publication.doi.lower()
-            if publication.doi
-            else "" or "preprint" in publication.publication_type.lower()
-        )
-
-    duplicate_has_preprint = has_preprint(dpub)
-    if duplicate_has_preprint:
+    print("Pick a duplicate from Pub 1 and Pub 2")
+    print("1. If Pub 1 is a duplicate of Pub 2")
+    print("2. If Pub 2 is a duplicate of Pub 1")
+    inp = input("Choose 1 or 2")
+    if inp == "1":
         duplicate_pub = dpub
         original_pub = opub
-    else:
+    elif inp == "2":
         duplicate_pub = opub
         original_pub = dpub
+    else:
+        return pick_duplicate_from_pubs(dpub, opub)
     return duplicate_pub, original_pub
 
 
@@ -148,7 +140,11 @@ def review_duplicates(dry_run=True):
                 f"\nChecking publication: {pub_checked} count out of {len(pubs_to_check_for_duplicates)}"
             )
             print(f"Publication 1: \n {pub1.__repr__()}\n")
+            for source in pub1.sources.all():
+                print(f"{source.__repr__()}\n")
             print(f"Publication 2: \n {opub.__repr__()}\n")
+            for source in opub.sources.all():
+                print(f"{source.__repr__()}\n")
 
             print("\nAuthors")
             print(f"{pub1.author}")
@@ -157,7 +153,7 @@ def review_duplicates(dry_run=True):
             print(f"{pub1.forum}")
             print(f"{opub.forum}")
             is_duplicate = input(
-                "Is Publication 1 a duplicate? (y/n/c): use 'c' to cancel:"
+                "Is any of these publications duplicate? (y/n/c): use 'c' to cancel:"
             )
             print()
             if dry_run:
@@ -165,9 +161,14 @@ def review_duplicates(dry_run=True):
             with transaction.atomic():
                 if is_duplicate == "n":
                     pub1.checked_for_duplicates = True
+                    pub1.save()
                 elif is_duplicate == "y":
                     duplicate_pub, original_pub = pick_duplicate_from_pubs(pub1, opub)
                     duplicate_pub.status = Publication.STATUS_DUPLICATE
+                    duplicate_pub.checked_for_duplicates = True
+                    original_pub.checked_for_duplicates = True
+                    duplicate_pub.save()
+                    original_pub.save()
                     update_original_pub_source(original_pub, duplicate_pub)
                     PublicationDuplicate.objects.create(
                         duplicate=duplicate_pub, original=original_pub
@@ -178,5 +179,3 @@ def review_duplicates(dry_run=True):
                     )
                 else:
                     continue
-                pub1.checked_for_duplicates = True
-                pub1.save()
