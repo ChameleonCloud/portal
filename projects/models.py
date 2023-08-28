@@ -11,7 +11,6 @@ from django.db import models, transaction, DataError
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.urls import reverse
 from django.contrib.sites.models import Site
 
 from projects.user_publication.utils import PublicationUtils
@@ -381,7 +380,8 @@ class Publication(models.Model):
 
     def pub_admin_page(self):
         path = reverse(
-            f"admin:{self._meta.app_label}_{self._meta.model_name}_change", args=[self.pk]
+            f"admin:{self._meta.app_label}_{self._meta.model_name}_change",
+            args=[self.pk],
         )
         site = Site.objects.get_current()
         domain = site.domain if site else ""
@@ -453,7 +453,9 @@ class PublicationSource(models.Model):
     is_found_by_algorithm = models.BooleanField(default=False, null=False)
     cites_chameleon = models.BooleanField(default=False, null=False)
     acknowledges_chameleon = models.BooleanField(default=False, null=False)
-    approved_with = models.CharField(choices=APPROVED_WITH, max_length=30, null=True, blank=True)
+    approved_with = models.CharField(
+        choices=APPROVED_WITH, max_length=30, null=True, blank=True
+    )
 
     class Meta:
         constraints = [
