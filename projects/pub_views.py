@@ -152,7 +152,7 @@ def add_publications(request, project_id):
             if any(v for v in duplicate_pubs.values()):
                 _send_duplicate_pubs_notification(project.chargeCode, duplicate_pubs)
         else:
-            messages.error(request, "Error adding publication(s)")
+            messages.error(request, f"Error adding publication(s). {pubs_form.bibtex_error}")
     pubs_form = AddBibtexPublicationForm(initial={"project_id": project.id})
 
     return render(
