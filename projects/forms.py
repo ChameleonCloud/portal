@@ -258,11 +258,15 @@ class AddBibtexPublicationForm(forms.Form):
         if bib_database and bib_database.entries:
             missing_fields = []
             for entry in bib_database.entries:
-                missing = [field for field in self.mandatory_fields if field not in entry]
+                missing = [
+                    field for field in self.mandatory_fields if field not in entry
+                ]
                 missing_fields.extend(missing)
 
             if missing_fields:
-                self.bibtex_error = f"Missing mandatory fields: {', '.join(missing_fields)}"
+                self.bibtex_error = (
+                    f"Missing mandatory fields: {', '.join(missing_fields)}"
+                )
                 return False
         else:
             return False
