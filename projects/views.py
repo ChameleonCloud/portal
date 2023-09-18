@@ -783,11 +783,16 @@ def _remove_fundings(before_list, after_list):
 def create_allocation(request, project_id, allocation_id=-1):
     mapper = ProjectAllocationMapper(request)
 
-    user = mapper.get_user(request.user.username)
-    if user["piEligibility"].lower() != "eligible":
+    project = mapper.get_project(project_id)
+
+    keycloak_client = KeycloakClient()
+    _, can_manage_project = get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
+    if not can_manage_project:
         messages.error(
             request,
-            "Only PI Eligible users can request allocations. If you would "
+            "Only PI Eligible users and Managers can request allocations. If you would "
             "like to request PI Eligibility, please "
             '<a href="/user/profile/edit/">submit a PI Eligibility '
             "request</a>.",
