@@ -239,25 +239,37 @@ class AddBibtexPublicationForm(forms.Form):
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "@article{..."}),
     )
+    bibtex_error = ""
+
+    mandatory_fields = ["title", "year", "author"]
+
+    def parse_bibtex(self, bibtex_string):
+        try:
+            return bibtexparser.loads(bibtex_string)
+        except bibtexparser.bibdatabase.UndefinedString as e:
+            self.bibtex_error = f"{e} not a valid string"
+            return None
 
     def is_valid(self):
-        if not super(AddBibtexPublicationForm, self).is_valid():
+        if not super().is_valid():
             return False
 
-        bib_database = bibtexparser.loads(self.cleaned_data["bibtex_string"])
-        logger.debug(bib_database.entries)
+        bib_database = self.parse_bibtex(self.cleaned_data["bibtex_string"])
+        if bib_database and bib_database.entries:
+            missing_fields = []
+            for entry in bib_database.entries:
+                missing = [
+                    field for field in self.mandatory_fields if field not in entry
+                ]
+                missing_fields.extend(missing)
 
-        if not bib_database.entries:
-            self.add_error(
-                "bibtex_string",
-                (
-                    "Invalid formatting or missing one of required fields, "
-                    "publication/journal/booktitle, title, year, author in BibTeX "
-                    "entry"
-                ),
-            )
+            if missing_fields:
+                self.bibtex_error = (
+                    f"Missing mandatory fields: {', '.join(missing_fields)}"
+                )
+                return False
+        else:
             return False
-
         return True
 
 
