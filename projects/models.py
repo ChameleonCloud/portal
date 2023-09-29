@@ -210,6 +210,23 @@ class Invitation(models.Model):
     def _is_expired(self):
         return self.date_expires < timezone.now()
 
+    def get_invite_url(self, request=None):
+        """Returns invitation URL
+
+        Args:
+            request (HttpRequest, optional): Returns absolute URL if the invitation.
+                Defaults to None.
+
+        Returns:
+            str
+        """
+        relative_url = reverse(
+            "projects:accept_invite", kwargs={"invite_code": self.email_code}
+        )
+        if request:
+            return request.build_absolute_uri(relative_url)
+        return relative_url
+
 
 class JoinLink(models.Model):
     """
