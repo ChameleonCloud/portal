@@ -281,12 +281,6 @@ def format_timedelta(timedelta_instance):
     return str(timedelta_instance).split(".")[0]
 
 
-def get_invite_url(request, code):
-    return request.build_absolute_uri(
-        reverse("projects:accept_invite", kwargs={"invite_code": code})
-    )
-
-
 def notify_join_request_user(django_request, join_request):
     project = join_request.join_link.project
     link = django_request.build_absolute_uri(
@@ -698,7 +692,7 @@ def add_project_invitation(
 def send_invitation_email(invitation, request):
     project_title = invitation.project.title
     project_charge_code = invitation.project.charge_code
-    url = get_invite_url(request, invitation.email_code)
+    url = invitation.get_invite_url(request)
     help_url = request.build_absolute_uri(reverse("djangoRT:mytickets"))
     subject = f'Invitation for project "{project_title}" ({project_charge_code})'
     body = f"""

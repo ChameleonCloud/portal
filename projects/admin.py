@@ -1,12 +1,10 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 
-from projects.models import (
-    Invitation,
-    Publication,
-    Funding,
-    ChameleonPublication,
-    PublicationSource,
-)
+from projects.models import (ChameleonPublication, Funding, Invitation,
+                             Publication, PublicationSource)
+from projects.views import resend_invitation
 
 
 class ProjectFields:
@@ -116,8 +114,54 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
     )
 
 
+class InvitationAdmin(admin.ModelAdmin):
+    list_display = ["email_address", "status", "date_issued", "expiry_list_display"]
+    fields = [
+        "project",
+        "email_address",
+        "status",
+        "invite_link",
+        "user_issued",
+        "date_issued",
+        "user_accepted",
+        "date_accepted",
+        "date_expires",
+        "duration",
+    ]
+    readonly_fields = [
+        "invite_link",
+        "user_issued",
+        "date_issued",
+        "email_address",
+        "user_accepted",
+        "date_accepted",
+        "status",
+    ]
+    actions = ['resend_invitation']
+
+    def invite_link(self, obj):
+        if obj.status == Invitation.STATUS_ISSUED:
+            url = obj.get_invite_url()
+            return format_html(
+                f'<a href="{url}" target="_blank">Invite Link</a>'
+            )
+        return ""
+
+    @admin.display(description="Expiry")
+    def expiry_list_display(self, obj):
+        return f"{'EXPIRED' if obj._is_expired() else obj.date_expires}"
+
+    def resend_invitation(self, request, invitations):
+        user_issued = request.user
+        for invitation in invitations:
+            resend_invitation(invitation.id, user_issued, request)
+            self.message_user(request, f"Invitations resent by {user_issued}.")
+
+    resend_invitation.short_description = "Resend Invitations"
+
+
 admin.site.register(Publication, PublicationAdmin)
-admin.site.register(Invitation)
+admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(Funding, FundingAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 admin.site.register(PublicationSource, PublicationSourceAdmin)
