@@ -2,8 +2,13 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from projects.models import (ChameleonPublication, Funding, Invitation,
-                             Publication, PublicationSource)
+from projects.models import (
+    ChameleonPublication,
+    Funding,
+    Invitation,
+    Publication,
+    PublicationSource,
+)
 from projects.views import resend_invitation
 
 
@@ -137,14 +142,12 @@ class InvitationAdmin(admin.ModelAdmin):
         "date_accepted",
         "status",
     ]
-    actions = ['resend_invitation']
+    actions = ["resend_invitation"]
 
     def invite_link(self, obj):
         if obj.status == Invitation.STATUS_ISSUED:
             url = obj.get_invite_url()
-            return format_html(
-                f'<a href="{url}" target="_blank">Invite Link</a>'
-            )
+            return format_html(f'<a href="{url}" target="_blank">Invite Link</a>')
         return ""
 
     @admin.display(description="Expiry")

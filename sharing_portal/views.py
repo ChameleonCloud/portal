@@ -22,7 +22,6 @@ from projects.models import Project
 from projects.util import get_project_members
 from projects.views import (
     add_project_invitation,
-    get_invite_url,
     manage_membership_in_scope,
     get_project_membership_managers,
     is_membership_manager,
@@ -1023,7 +1022,7 @@ def send_request_decision_mail(request, daypass_request, daypass_project):
         )
         daypass_request.invitation = invite
         daypass_request.save()
-        url = get_invite_url(request, invite.email_code)
+        url = invite.get_invite_url(request)
         artifact_url = request.build_absolute_uri(
             reverse("sharing_portal:detail", args=[artifact["uuid"]])
         )

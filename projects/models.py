@@ -221,8 +221,7 @@ class Invitation(models.Model):
             str
         """
         relative_url = reverse(
-            "projects:accept_invite",
-            kwargs={"invite_code": self.email_code}
+            "projects:accept_invite", kwargs={"invite_code": self.email_code}
         )
         if request:
             return request.build_absolute_uri(relative_url)
