@@ -29,9 +29,11 @@
       -
     {% endif %}
     </span>
-    <span data-toggle="tooltip" data-placement="top" title="Versions - number of published versions"><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
     {% load trovi_filters %}
-    <span class="artifactStats__updated">{{ artifact.updated_at | trovi_date_format }}</span>
+    {% if not version %}
+    <span data-toggle="tooltip" data-placement="top" title="Versions - number of published versions"><i class="fa fa-files-o"></i> {{ artifact.versions | length }}</span>
+      <span data-toggle="tooltip" data-placement="top" title="Last Updated" class="artifactStats__updated">{{ artifact.updated_at | trovi_date_format }}</span>
+    {% endif %}
   </div>
   {% if not sidebar %}
     <div class="artifactStats__labels">
