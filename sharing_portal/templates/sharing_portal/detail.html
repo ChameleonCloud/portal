@@ -47,10 +47,7 @@
           {{ artifact.long_description|markdown|safe }}
         </section>
 
-        <section class="artifactBody__authors">
-          <h4>Artifact stats</h4>
-          {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=None %}
-        </section>
+        {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=None %}
 
         {% if artifact.authors %}
         <section class="artifactBody__authors">
