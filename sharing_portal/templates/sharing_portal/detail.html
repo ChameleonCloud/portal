@@ -47,7 +47,10 @@
           {{ artifact.long_description|markdown|safe }}
         </section>
 
-        {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=version %}
+        <section class="artifactBody__authors">
+          <h4>Artifact stats</h4>
+          {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=None %}
+        </section>
 
         {% if artifact.authors %}
         <section class="artifactBody__authors">
@@ -145,6 +148,10 @@ git checkout {{git_method.ref}}</code></pre>
         </li>
         {% endfor %}
       </ol>
+    </div>
+    <h4>Version Stats</h4>
+    <div style="margin-left: 0.5em">
+      {% include 'sharing_portal/includes/stats.html' with artifact=artifact version=version sidebar=True %}
     </div>
   </div>
 </div>

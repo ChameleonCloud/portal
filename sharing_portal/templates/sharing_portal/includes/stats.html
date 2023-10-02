@@ -33,17 +33,19 @@
     {% load trovi_filters %}
     <span class="artifactStats__updated">{{ artifact.updated_at | trovi_date_format }}</span>
   </div>
-  <div class="artifactStats__labels">
-    {% for label in artifact.tags %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=tag:{{ label|urlencode }}">{{ label }}</a>
-    {% endfor %}
-    {% for badge in artifact.badges %}
-    <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.badge.name|urlencode }}" class="artifactStats__chameleonSupported" title="{{badge.badge.description}}">
-      {% with 'images/'|add:badge.badge.name|add:'-logo-small.png' as logo_static %}
-        <img src="{% static logo_static %}" alt="Small {{badge.badge.name}} logo">
-      {% endwith %}
-    </a>
-    {% endfor %}
+  {% if not sidebar %}
+    <div class="artifactStats__labels">
+      {% for label in artifact.tags %}
+      <a href="{% url 'sharing_portal:index_all' %}?filter=tag:{{ label|urlencode }}">{{ label }}</a>
+      {% endfor %}
+      {% for badge in artifact.badges %}
+      <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.badge.name|urlencode }}" class="artifactStats__chameleonSupported" title="{{badge.badge.description}}">
+        {% with 'images/'|add:badge.badge.name|add:'-logo-small.png' as logo_static %}
+          <img src="{% static logo_static %}" alt="Small {{badge.badge.name}} logo">
+        {% endwith %}
+      </a>
+      {% endfor %}
 
-  </div>
+    </div>
+  {% endif %}
 </div>
