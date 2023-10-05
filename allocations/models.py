@@ -10,6 +10,7 @@ logger = logging.getLogger("allocations")
 def _format_date(dateobj):
     return dateobj.strftime(allocation.JSON_DATE_FORMAT) if dateobj else None
 
+
 class Allocation(models.Model):
     STATUS = (
         ("inactive", "expired or overused"),
