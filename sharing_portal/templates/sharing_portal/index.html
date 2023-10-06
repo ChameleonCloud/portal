@@ -28,7 +28,7 @@
           <h5 class="cardItem__title">
             <span class="cardTitleTitle">{{ artifact.title }}</span>
             <span class="cardTitlePrivate">
-          {% if artifact.is_private %}
+          {% if artifact.is_private and not artifact.has_doi %}
             <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
                title="This artifact is only visible for those chosen by the author"></i>
           {% endif %}
@@ -62,7 +62,7 @@
           <h5 class="cardItem__title">
             <span class="cardTitleTitle">{{ artifact.title }}</span>
             <span class="cardTitlePrivate">
-          {% if artifact.is_private %}
+              {% if artifact.is_private and not artifact.has_doi %}
             <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
                title="This artifact is only visible for those chosen by the author"></i>
           {% endif %}

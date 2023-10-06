@@ -266,6 +266,7 @@ def _compute_artifact_fields(artifact):
     terms.extend([f"badge:{badge.badge.name}" for badge in artifact["badges"]])
     artifact["search_terms"] = terms
     artifact["is_private"] = artifact["visibility"] == "private"
+    artifact["has_doi"] = any([_parse_doi(version) for version in artifact["versions"]])
     return artifact
 
 
