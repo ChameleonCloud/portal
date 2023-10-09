@@ -119,6 +119,7 @@ class TicketGuestForm(BaseTicketForm):
 
     Adds a CAPTCHA to reduce spam submissions.
     """
+
     # label="" to not show the "Captcha" label in webpage
     captcha = ReCaptchaField(widget=ReCaptchaV3, label="")
 
