@@ -1,6 +1,6 @@
 import logging
 
-from captcha.fields import ReCaptchaField, ReCaptchaV2Checkbox
+from captcha.fields import ReCaptchaField, ReCaptchaV3
 from django import forms
 from django.core.validators import validate_email
 
@@ -120,7 +120,8 @@ class TicketGuestForm(BaseTicketForm):
     Adds a CAPTCHA to reduce spam submissions.
     """
 
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox)
+    # label="" to not show the "Captcha" label in webpage
+    captcha = ReCaptchaField(widget=ReCaptchaV3, label="")
 
 
 class ReplyForm(forms.Form):
