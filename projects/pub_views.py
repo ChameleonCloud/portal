@@ -26,10 +26,7 @@ logger = logging.getLogger("projects")
 
 def _send_publication_notification(charge_code, pubs):
     subject = f"Project {charge_code} added new publications"
-    formatted_pubs = [
-        f"<li>{pub}<br><br></li>"
-        for pub in pubs
-    ]
+    formatted_pubs = [f"<li>{pub.__repr__()}<br><br></li>" for pub in pubs]
     body = f"""
     <p>Please review the following publications added by
     project {charge_code}:
