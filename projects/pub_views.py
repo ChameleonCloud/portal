@@ -28,7 +28,7 @@ def _send_publication_notification(charge_code, pubs):
     subject = f"Project {charge_code} added new publications"
     formatted_pubs = [
         f"<li>{pub.title}, {pub.author}, \
-        In <i>{pub.forum}</i>. {pub.year}.</li>"
+        In <i>{pub.forum}</i>. {pub.year}.</li> - {pub.pub_admin_page()}"
         for pub in pubs
     ]
     body = f"""
