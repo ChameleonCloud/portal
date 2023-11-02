@@ -27,8 +27,7 @@ logger = logging.getLogger("projects")
 def _send_publication_notification(charge_code, pubs):
     subject = f"Project {charge_code} added new publications"
     formatted_pubs = [
-        f"<li>{pub.title}, {pub.author}, \
-        In <i>{pub.forum}</i>. {pub.year}.</li> - {pub.pub_admin_page()}"
+        f"<li>{pub}<br><br></li>"
         for pub in pubs
     ]
     body = f"""
