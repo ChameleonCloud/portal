@@ -145,7 +145,7 @@ INSTALLED_APPS = (
     "djangocms_picture",
     "djangocms_snippet",
     "djangocms_video",
-    "reversion",
+    # "reversion",
     ##
     # contrib
     #
@@ -257,6 +257,9 @@ if os.environ.get("DB_NAME"):
             "PORT": os.environ.get("DB_PORT"),
             "USER": os.environ.get("DB_USER"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "TEST": {
+                'NAME': os.environ.get("DB_NAME") + "_test",
+            },
         },
     }
 else:
@@ -918,3 +921,4 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
+
