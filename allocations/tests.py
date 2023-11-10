@@ -15,7 +15,7 @@ from allocations.models import Allocation
 
 
 LOG = logging.getLogger(__name__)
-
+    
 
 class StatusTests(TestCase):
     def setUp(self):
@@ -27,18 +27,18 @@ class StatusTests(TestCase):
         )
         
         self.test_reviewer = User.objects.create_user(
-            username="test_reviewer",  # Replace with the desired username
-            password="test_password",  # Replace with the desired password
+            username="test_reviewer",  
+            password="test_password",  
         )
                 
         self.test_project = Project(
-            tag=None,  # You can set the tag if necessary
+            tag=None,  
             automatically_tagged=False,
             description="This is a test project for allocations.",
-            pi=self.test_requestor,  # Replace my_user with an actual User instance
+            pi=self.test_requestor,  
             title="Test Project",
             nickname="test_project",
-            charge_code="TEST123"  # You can set a unique charge code
+            charge_code="TEST123"  
         )
         
         self.test_project.save()
@@ -48,10 +48,15 @@ class StatusTests(TestCase):
         self.test_reviewer.delete()
         self.test_project.delete()
         
+    
+    
     @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": 
         {"has_active_allocation":False}})    
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_deactivate_active_allocation(self, update_project_mock, lookup_group_mock):
+        """ Tests whether deactivate_active_allocation() 
+        updates an active allocation's status to inactive
+        """
         test_active_allocation = Allocation(
             project=self.test_project,  
             status="active",  
@@ -80,11 +85,14 @@ class StatusTests(TestCase):
         )
         
         self.assertEqual(test_active_allocation.status, "inactive")
-        
+    
     @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": 
         {"has_active_allocation":False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_deactivate_inactive_allocation(self, update_project_mock, lookup_group_mock):
+        """Tests whether deactivate_active_allocation() does not update 
+        an inactive allocation's status
+        """
         test_inactive_allocation = Allocation(
             project=self.test_project,  
             status="inactive",  
@@ -115,6 +123,9 @@ class StatusTests(TestCase):
         self.assertEqual(test_inactive_allocation.status, "inactive")
 
     def test_deactivate_multiple_allocations_of_projects(self):
+        """Tests whether deactivate_multiple_active_allocations_of_projects() 
+        deactivates all allocations but the latest expiry date one
+        """
         test_project_multiple_alloc = Project(
             tag=None,  # You can set the tag if necessary
             automatically_tagged=False,
@@ -187,6 +198,9 @@ class StatusTests(TestCase):
         {"has_active_allocation":True}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_active_approved_allocations(self, update_project_mock, lookup_group_mock):
+        """Tests that active_approved_allocations() changes the status of 
+        approved allocations to active
+        """
         test_approved_allocation = Allocation(
             project=self.test_project,  
             status="approved",  
@@ -227,6 +241,9 @@ class StatusTests(TestCase):
         {"has_active_allocation":False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_nonapproved_active_approved_allocation(self, update_project_mock, lookup_group_mock):
+        """Tests that active_approved_allocations() does not change 
+        the status of non-approved allocations
+        """
         test_nonapproved_allocation = Allocation(
             project=self.test_project,  
             status="pending",  
@@ -295,6 +312,9 @@ class ExpireTests(TestCase):
         {"has_active_allocation":False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_expire_expired_alloc_allocations(self, update_project_mock, lookup_group_mock):
+        """Tests that expore_allocations() changes the status 
+        of all expired allocations to inactive
+        """
         test_expired_allocation = Allocation(
             project=self.test_project,  
             status="active",  
@@ -337,6 +357,9 @@ class ExpireTests(TestCase):
         {"has_active_allocation":False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_expire_non_expired_alloc_allocations(self, update_project_mock, lookup_group_mock):
+        """Tests that expore_allocations() does not change the status 
+        of unexpired allocations
+        """
         test_expired_allocation = Allocation(
             project=self.test_project,  
             status="active",  
