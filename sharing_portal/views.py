@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
-from projects.models import Project
+from projects.models import Project, Tag
 from projects.util import get_project_members
 from projects.views import (
     add_project_invitation,
@@ -1248,6 +1248,8 @@ def create_supplemental_project_if_needed(request, artifact, project):
         # allocation.save()
 
         created_project = Project.objects.get(id=created_tas_project["id"])
+        daypss_tag_id = Tag.objects.get(name="Daypass")
+        mapper.update_project_tag(created_project.id, daypss_tag_id)
         daypass_project = DaypassProject(
             artifact_uuid=artifact["uuid"], project=created_project
         )
