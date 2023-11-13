@@ -36,3 +36,10 @@
     }
   }
 })();
+
+function filter_artifacts(badge_filter) {
+  const filterInput = document.getElementById('cardFilter');
+  filterInput.value = ""; // reset the value in field
+  filterInput.value = badge_filter;
+  filterInput.dispatchEvent(new KeyboardEvent('keyup')); // trigger a keyup to apply filter
+}

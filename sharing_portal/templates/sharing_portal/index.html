@@ -118,11 +118,12 @@
       <h4>Badges</h4>
       {% for badge in badges %}
         <div>
-          <a href="{% url 'sharing_portal:index_all' %}?filter=badge:{{ badge.name|urlencode }}">
+          <button onclick="filter_artifacts('badge:{{ badge.name|urlencode }}')"
+          style="border:0.5px; padding-bottom:1 px; background-color: transparent;">
             {% with 'images/'|add:badge.name|add:'-logo-small.png' as logo_static %}
               <img src="{% static logo_static %}" alt="Small {{badge.name}} logo">
             {% endwith %}
-          </a>
+          </button>
           {% if badge.redirect_link %}
             <a target="_blank" href="{{ badge.redirect_link }}">{{badge.description}}</a>
           {% else %}
@@ -131,7 +132,7 @@
         </div>
       {% endfor %}
     </div>
-    
+
     <div class="sidebarNav__separator">
       <h4>Tags</h4>
       {% for tag in tags %}
@@ -140,7 +141,7 @@
       </div>
       {% endfor %}
     </div>
-    
+
   </div>
 </div>
 {% endblock %}
