@@ -851,6 +851,7 @@ BLOG_PLUGIN_TEMPLATE_FOLDERS = (
 CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
 CSP_SCRIPT_SRC = [
     "'self'",
+    "https://www.googletagmanager.com",
     "https://www.google-analytics.com",
     "https://www.google.com/recaptcha/",
     "https://www.gstatic.com/recaptcha/",
