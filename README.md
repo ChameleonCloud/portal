@@ -110,7 +110,26 @@ A specific test of an app can also be executed - `python manage.py test sharing_
 
 Or a specific test case can also be executed - `python manage.py test sharing_portal.tests.test_git_parser`
 
-Todo: Currently, running test cases that require a DB connection does not work. This needs to be fixed
+
+
+#### Writing tests that require a DB connection
+
+Currently, automatic setup and teardown of the test DB is not supported. To run tests that require a DB connection, we are required to manually manage
+
+To guarantee the idempotence of DB tests, any tests that save records to the DB should delete the records gracefully upon finishing execution to avoid spillover into the results of the next tests.
+
+#### Deploying tests that require a DB connection
+
+Upon running test cases, Django tries to create a test DB with an identical schema to the production DB; Django however encounters migrations issues and fails the creation. To circumvent this issue, we manually create and mantain the test DB as follows:
+- Create a dump of the production dev DB by running the following command in the DB deployment container:
+  - `mysqldump -u chameleon_dev -p*specifypasswordhere* PROD_DB_NAME > PROD_DB_NAME_TODAYSDATETIME.sql`
+- Create a new test DB by appending "_test" to the prod DB name and load the prod DB dump onto the newly created test DB:
+  - `mysql --user chameleon_dev -p*specifypasswordhere* CREATE DATABASE *PROD_DB_NAME*_test`
+  - `mysqldump -u chameleon_dev -p*specifypasswordhere* TEST_DB_NAME < PROD_DB_NAME_TODAYSDATETIME.sql`
+- Ensure all migrations run properly on the test DB using:
+  - `./manage.py migrate --database TEST_DB_NAME`
+- **(Important)** Run **ALL** db tests tests with the --keepdb flag as follows to prevent Django's auto setup and teardown of the test DB:
+  - `sudo docker exec portal ./manage.py test allocations.tests --keepdb`
 
 ## Deployment
 
