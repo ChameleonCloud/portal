@@ -47,7 +47,7 @@ class StatusTests(TestCase):
         self.test_reviewer.delete()
         self.test_project.delete()
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":False}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_deactivate_active_allocation(self, update_project_mock, lookup_group_mock):
         """ Tests whether deactivate_active_allocation()
@@ -82,7 +82,7 @@ class StatusTests(TestCase):
 
         self.assertEqual(test_active_allocation.status, "inactive")
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":False}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_deactivate_inactive_allocation(self, update_project_mock, lookup_group_mock):
         """Tests whether deactivate_active_allocation() does not update
@@ -189,7 +189,7 @@ class StatusTests(TestCase):
 
         self.assertEqual(passed_assertions, 2)
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":True}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": True}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_active_approved_allocations(self, update_project_mock, lookup_group_mock):
         """Tests that active_approved_allocations() changes the status of
@@ -231,7 +231,7 @@ class StatusTests(TestCase):
 
         test_approved_allocation.delete()
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":False}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_nonapproved_active_approved_allocation(self, update_project_mock, lookup_group_mock):
         """Tests that active_approved_allocations() does not change
@@ -301,7 +301,7 @@ class ExpireTests(TestCase):
         self.test_reviewer.delete()
         self.test_project.delete()
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":False}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_expire_expired_alloc_allocations(self, update_project_mock, lookup_group_mock):
         """Tests that expore_allocations() changes the status
@@ -345,7 +345,7 @@ class ExpireTests(TestCase):
             self.assertTrue(alloc.status, "inactive")
             alloc.delete()
 
-    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation":False}})
+    @mock.patch.object(KeycloakClient, '_lookup_group', return_value={"attributes": {"has_active_allocation": False}})
     @mock.patch.object(KeycloakClient, 'update_project', return_value=None)
     def test_expire_non_expired_alloc_allocations(self, update_project_mock, lookup_group_mock):
         """Tests that expore_allocations() does not change the status
