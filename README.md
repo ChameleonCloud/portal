@@ -130,7 +130,7 @@ Upon running test cases, Django tries to create a test DB with an identical sche
   - `./manage.py migrate --database TEST_DB_NAME`
 - **(Important)** Run **ALL** db tests tests with the --keepdb flag as follows to prevent Django's auto setup and teardown of the test DB:
   - `sudo docker exec portal ./manage.py test allocations.tests --keepdb`
-
+      
 ## Deployment
 
 The production deployment of Portal is managed via [portal-camino](https://github.com/ChameleonCloud/portal-camino).

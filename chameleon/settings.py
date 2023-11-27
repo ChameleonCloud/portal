@@ -145,7 +145,7 @@ INSTALLED_APPS = (
     "djangocms_picture",
     "djangocms_snippet",
     "djangocms_video",
-    # "reversion",
+    "reversion",
     ##
     # contrib
     #
