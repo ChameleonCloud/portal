@@ -6,7 +6,7 @@ class AllocationAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
-    list_display= (
+    list_display = (
         'project',
         'status',
         'date_requested',
