@@ -23,7 +23,7 @@ class UserMenu(CMSAttachMenu):
             _("Help Desk"),
             reverse("djangoRT:mytickets"),
             menu_id,
-            attr={"visible_for_anonymous": False, "class": "navbar-btn-alt"},
+            attr={"visible_for_anonymous": True, "class": "navbar-btn-alt"},
         )
         nodes.append(n)
 
