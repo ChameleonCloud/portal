@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib import admin
 
 from util.keycloak_client import KeycloakClient
