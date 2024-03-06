@@ -157,6 +157,7 @@
     <th>Last Name</th>
     <th>Email</th>
     <th>Role</th>
+    <th>Edit</th>
     <th></th>
   </tr>
   {% for join_request in join_requests %}
@@ -193,39 +194,41 @@
     <td>{{ u.first_name }}</td>
     <td>{{ u.last_name }}</td>
     <td>{{ u.email }}</td>
+    {% if can_manage_project_membership %}
+      <td>
+        <form role="form" method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="user_ref" value="{{ u.username }}">
+          <select id="role_{{ u.id }}" name="user_role" class="form-select role_selector" data-initial="{{ u.role }}" disabled>
+            {% for role in roles %}
+              <option value="{{ role }}" {% if role == u.role %}selected disabled{% endif %}>{{ role }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" id="submit_role_{{ u.id }}" class="btn btn-xs btn-primary" name="change_role" style="display:none;">Submit</button>
+          <button type="button" onclick="resetRole('role_{{ u.id }}')" id="cancel_role_{{ u.id }}" class="btn btn-xs btn-danger" style="display:none;">Cancel</button>
+        </form>
+      </td>
+    {% else %}
+      <td>{{u.role}}</td>
+    {% endif %}
     <td>
-       <form role="form" method="post" style="display:inline">
-         {% csrf_token %}
-         <input type="hidden" name="user_ref" value="{{ u.username }}">
-         <select id="role_{{ u.id }}" name="user_role" class="form-select role_selector" data-initial="{{ u.role }}" disabled>
-           {% for role in roles %}
-             <option value="{{ role }}" {% if role == u.role %}selected disabled{% endif %}>{{ role }}</option>
-           {% endfor %}
-         </select>
-         <button type="submit" id="submit_role_{{ u.id }}" class="btn btn-xs btn-primary" name="change_role" style="display:none;">Submit</button>
-         <button type="button" onclick="resetRole('role_{{ u.id }}')" id="cancel_role_{{ u.id }}" class="btn btn-xs btn-danger" style="display:none;">Cancel</button>
-       </form>
-    </td>
-    <td>
-      {% if u.username != request.user.username %}
+    {% if u.username == request.user.username or can_manage_project_membership  %}
       <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" {% if not can_manage_project_membership %}disabled{%endif%}>
-          <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Manage Member</span>
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-gear text-info dropbtn" title="Manage Member"></i>
         </button>
         <div class="dropdown-menu dropdown-content" aria-labelledby="dropdownMenuButton">
           {% if can_manage_project %}
           <button onclick="enableChangeRole('{{ u.id }}')" class="btn btn-xs btn-block">Change Role</button>
           {% endif %}
-          {% if can_manage_project_membership %}
           <form role="form" method="post" style="display:inline">
             {% csrf_token %}
             <input type="hidden" name="user_ref" value="{{ u.username }}">
             <button type="submit" class="btn btn-xs btn-danger btn-block" name="del_user">Remove user</button>
           </form>
-          {% endif %}
         </div>
       </div>
-      {% endif %}
+    {% endif %}
     </td>
     <td>{% if u.daypass %} Daypass: {{ u.daypass }} remain {% endif %}</td>
   </tr>
