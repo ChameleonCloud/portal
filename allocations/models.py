@@ -1,6 +1,10 @@
-from django.db import models
 import logging
+
 from django.conf import settings
+from django.db import models
+from django.db.models import ExpressionWrapper, F, Sum, functions
+
+from balance_service.utils import su_calculators
 from projects.models import Project
 from util.consts import allocation
 
@@ -100,3 +104,49 @@ class Charge(models.Model):
 
     def __str__(self):
         return f"{self.allocation.project}: {self.start_time}-{self.end_time}"
+
+
+class ChargeBudget(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="projectbudgets",
+        on_delete=models.CASCADE,
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE
+    )
+    su_budget = models.IntegerField(default=0)
+    enforced_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = ('user', 'project',)
+
+    def current_usage(self):
+        """
+        Calculate the current charge usage for the user on this project
+        """
+        allocation = su_calculators.get_active_allocation(self.project)
+        if not allocation:
+            return 0
+
+        charges = Charge.objects.filter(allocation=allocation, user=self.user)
+
+        # Avoid doing the calculation if there are no charges
+        if not charges.exists():
+            return 0
+        microseconds_per_hour = 1_000_000 * 3600
+        return charges.annotate(
+            charge_duration=ExpressionWrapper(
+                F('end_time') - F('start_time'), output_field=models.FloatField()
+            )
+        ).annotate(
+            charge_cost=F('charge_duration') / microseconds_per_hour * F('hourly_cost')
+        ).aggregate(
+            total_cost=functions.Coalesce(Sum('charge_cost'), 0.0, output_field=models.IntegerField())
+        )['total_cost']
+
+    def su_left(self):
+        return self.su_budget - self.current_usage()

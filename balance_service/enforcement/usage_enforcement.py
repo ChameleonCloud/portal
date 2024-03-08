@@ -21,7 +21,7 @@ import pytz
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from allocations.models import Charge
+from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
 from balance_service.utils import su_calculators
 from projects.models import Project
@@ -132,6 +132,19 @@ class UsageEnforcer(object):
         else:
             return 2
 
+    def _check_usage_against_user_budget(self, user, allocation, new_charge):
+        user_budget = ChargeBudget.objects.get(user=user, project=allocation.project)
+        left = user_budget.su_left()
+        if left - new_charge < 0:
+            raise exceptions.BillingError(
+                message=(
+                    "Reservation for user {} would spend {:.2f} SUs, "
+                    "only {:.2f} left in user budget".format(
+                        user.username, new_charge, left
+                    )
+                )
+            )
+
     def check_usage_against_allocation(self, data):
         """Check if we have enough available SUs for this reservation
 
@@ -156,6 +169,9 @@ class UsageEnforcer(object):
             )
 
         alloc = su_calculators.get_active_allocation(lease_eval.project)
+        self._check_usage_against_user_budget(
+            lease_eval.user, alloc, lease_eval.amount
+        )
         approved_alloc = su_calculators.get_consecutive_approved_allocation(
             lease_eval.project, alloc
         )

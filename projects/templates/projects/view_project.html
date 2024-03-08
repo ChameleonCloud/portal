@@ -146,92 +146,174 @@
 </form>
 {% include "projects/bulk_invite_modal.html" %}
 {% include "projects/bulk_remove_modal.html" %}
+<br>
+<div class="budget-setting">
+  <form class="form-inline" role="form" method="post" >
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="defaultSUbudget">Set Default SU Budget for All Members:</label>
+      <input type="number" class="form-control" id="defaultSUbudget" name="default_su_budget" placeholder="">
+      <button type="submit" class="btn btn-default">Set Default Budget</button>
+    </div>
+  </form>
+</div>
 {% endif %}
 
 <br>
 <br>
-<table width=100%>
-  <tr>
-    <th>Username</th>
-    <th>First Name</th>
-    <th>Last Name</th>
-    <th>Email</th>
-    <th>Role</th>
-    <th>Edit</th>
-    <th></th>
-  </tr>
-  {% for join_request in join_requests %}
-  <tr>
-    <td>{{ join_request.user.username }}</td>
-    <td>{{ join_request.user.first_name }}</td>
-    <td>{{ join_request.user.last_name }}</td>
-    <td>{{ join_request.user.email }}</td>
-    <td>
-      <i>Requested to join</i>
-    </td>
-    <td>
-      {% if can_manage_project_membership %}
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="joinRequestDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Respond to Request</span>
-        </button>
-        <div class="dropdown-menu dropdown-content" aria-labelledby="joinRequestDropdown">
-          <form method="post" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="join_request" value="{{ join_request.id }}">
-            <button type="submit" class="btn btn-xs btn-success btn-block" name="accept_join_request">Accept</button>
-            <button type="submit" class="btn btn-xs btn-danger btn-block" name="reject_join_request">Reject</button>
-          </form>
+
+{% for u in users %}
+  <div class="panel panel-default" style="background-color: transparent">
+    <div class="panel-heading" style="background-color: #d9edf7;">
+      <div class="row" align="center">
+        <div class="col-xs-4 col-sm-4">
+          {{ u.username }}
         </div>
-      </div>
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
-  {% for u in users %}
-  <tr>
-    <td>{{ u.username }}</td>
-    <td>{{ u.first_name }}</td>
-    <td>{{ u.last_name }}</td>
-    <td>{{ u.email }}</td>
-    {% if can_manage_project_membership %}
-      <td>
-        <form role="form" method="post" style="display:inline">
-          {% csrf_token %}
-          <input type="hidden" name="user_ref" value="{{ u.username }}">
-          <select id="role_{{ u.id }}" name="user_role" class="form-select role_selector" data-initial="{{ u.role }}" disabled>
-            {% for role in roles %}
-              <option value="{{ role }}" {% if role == u.role %}selected disabled{% endif %}>{{ role }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit" id="submit_role_{{ u.id }}" class="btn btn-xs btn-primary" name="change_role" style="display:none;">Submit</button>
-          <button type="button" onclick="resetRole('role_{{ u.id }}')" id="cancel_role_{{ u.id }}" class="btn btn-xs btn-danger" style="display:none;">Cancel</button>
-        </form>
-      </td>
-    {% else %}
-      <td>{{u.role}}</td>
-    {% endif %}
-    <td>
-    {% if u.username == request.user.username or can_manage_project_membership  %}
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-gear text-info dropbtn" title="Manage Member"></i>
-        </button>
-        <div class="dropdown-menu dropdown-content" aria-labelledby="dropdownMenuButton">
-          {% if can_manage_project %}
-          <button onclick="enableChangeRole('{{ u.id }}')" class="btn btn-xs btn-block">Change Role</button>
+        <div class="col-xs-4 col-sm-4">
+          {{ u.first_name }}, {{ u.last_name }}
+        </div>
+        <div class="col-xs-2 col-sm-2">
+        </div>
+        <div class="col-xs-2 col-sm-2">
+          {% if u.username == request.user.username or can_manage_project_membership  %}
+            <form class="pull-right" role="form" method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="user_ref" value="{{ u.username }}">
+              <button
+              type="submit"
+              class="btn btn-danger btn-xs pull-right"
+              onclick="return confirm('Removes user from project, are you sure?');"
+              name="del_user">Remove user</button>
+            </form>
           {% endif %}
-          <form role="form" method="post" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="user_ref" value="{{ u.username }}">
-            <button type="submit" class="btn btn-xs btn-danger btn-block" name="del_user">Remove user</button>
-          </form>
         </div>
       </div>
-    {% endif %}
-    </td>
-    <td>{% if u.daypass %} Daypass: {{ u.daypass }} remain {% endif %}</td>
-  </tr>
+    </div>
+    <div class="panel-body">
+      <div class="row" align="center">
+        <div class="col-xs-4 col-sm-4">
+          <b>Email</b>: {{ u.email }}
+        </div>
+        <div class="col-xs-4 col-sm-4">
+          <div class="row" align="center">
+            <div
+              class="col-xs-{% if can_manage_project_membership %}2{% else %}6{% endif %} col-sm-{% if can_manage_project_membership %}2{% else %}6{% endif %} col-lg-{% if can_manage_project_membership %}2{% else %}6{% endif %}"
+              align="right">
+              <b>Role: </b>
+            </div>
+            <div
+              class="col-xs-{% if can_manage_project_membership %}3{% else %}6{% endif %} col-sm-{% if can_manage_project_membership %}3{% else %}6{% endif %} col-lg-{% if can_manage_project_membership %}3{% else %}6{% endif %}"
+              align="left">
+              {% if can_manage_project_membership %}
+                <form role="form" method="post" style="display:inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="user_ref" value="{{ u.username }}">
+                  <select id="role_{{ u.id }}" name="user_role" class="form-select role_selector" data-initial="{{ u.role }}">
+                    {% for role in roles %}
+                      <option value="{{ role }}" {% if role == u.role %}selected disabled{% endif %}>{{ role }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              {% else %}
+                {{u.role}}
+              {% endif %}
+            </div>
+            {% if can_manage_project_membership %}
+              <div class="col-xs-2 col-sm-2 col-lg-2">
+                <button type="submit" id="submit_role_{{ u.id }}" class="btn btn-xs btn-primary" name="change_role">Submit</button>
+              </div>
+            {% endif %}
+            {% if can_manage_project_membership %}
+              <div class="col-xs-2 col-sm-2 col-lg-2">
+                    <button type="button" onclick="resetRole('role_{{ u.id }}')" id="cancel_role_{{ u.id }}" class="btn btn-xs btn-danger" >Cancel</button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% if can_manage_project_membership %}
+          <form role="form" method="post">
+            {% csrf_token %}
+            <div class="col-xs-4 col-sm-4 col-lg-4">
+              <div class="row">
+                <div class="col-xs-5 col-sm-5 col-lg-5">
+                  <b>Usage</b>: <p style="display: inline-block">{{u.su_used}}/</p>
+                  <p class="su-budget-display" style="display: inline-block">{{ u.su_budget }}</p>
+                </div>
+                <div class="col-xs-5 col-sm-5 col-lg-5">
+                  <input
+                  style="width:100%; display: inline-block"
+                  type="range"
+                  value="{{ u.su_budget }}"
+                  min="{{u.su_used}}"
+                  max="{{ su_allocated }}"
+                  step="1000"
+                  name="su_budget_user"
+                  oninput="this.parentNode.previousElementSibling.querySelector('.su-budget-display').innerHTML = this.value;">
+                </div>
+                <div class="col-xs-2 col-sm-2 col-lg-2">
+                  <input type="hidden" name="user_ref" value="{{ u.username }}">
+                  <button class="btn btn-xs btn-primary" type="submit">Set</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        {% else %}
+          <div class="col-xs-4 col-sm-4 col-lg-4">
+            <b>Budget</b>: <p class="su-budget-display" style="display: inline-block">{{ u.su_budget }}</p>
+          </div>
+        {% endif %}
+      </div>
+      <div class="row" align="center">
+        <div class="col-xs-4 col-sm-4 col-lg-4">
+        </div>
+        <div class="col-xs-4 col-sm-4 col-lg-4">
+          {% if u.daypass %} Daypass: {{ u.daypass }} remain {% endif %}
+        </div>
+        <div class="col-xs-4 col-sm-4 col-lg-4">
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+{% if join_requests or invitations %}
+  <table width=100%>
+    <tr>
+      <th>Username</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Edit</th>
+      <th></th>
+    </tr>
+{% endif %}
+  {% for join_request in join_requests %}
+    <tr>
+      <td>{{ join_request.user.username }}</td>
+      <td>{{ join_request.user.first_name }}</td>
+      <td>{{ join_request.user.last_name }}</td>
+      <td>{{ join_request.user.email }}</td>
+      <td>
+        <i>Requested to join</i>
+      </td>
+      <td>
+        {% if can_manage_project_membership %}
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="joinRequestDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Respond to Request</span>
+          </button>
+          <div class="dropdown-menu dropdown-content" aria-labelledby="joinRequestDropdown">
+            <form method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="join_request" value="{{ join_request.id }}">
+              <button type="submit" class="btn btn-xs btn-success btn-block" name="accept_join_request">Accept</button>
+              <button type="submit" class="btn btn-xs btn-danger btn-block" name="reject_join_request">Reject</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      </td>
+    </tr>
   {% endfor %}
   {% for i in invitations %}
   <tr>
@@ -266,7 +348,10 @@
     </td>
   </tr>
   {% endfor %}
-</table>
+{% if join_requests or invitations %}
+  </table>
+{% endif %}
+
 <br>
 <br>
 
