@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.db import models
 from django.db.models import ExpressionWrapper, F, Sum, functions
-
+from django.core.validators import MinValueValidator
 from balance_service.utils import su_calculators
 from projects.models import Project
 from util.consts import allocation
@@ -115,11 +115,7 @@ class ChargeBudget(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE
     )
-    su_budget = models.IntegerField(default=0)
-    enforced_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
+    su_budget = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     class Meta:
         unique_together = ('user', 'project',)
@@ -138,13 +134,22 @@ class ChargeBudget(models.Model):
         if not charges.exists():
             return 0
         microseconds_per_hour = 1_000_000 * 3600
-        return charges.annotate(
+        # could've used output field as DurationField and further annotate with
+        # Extract('charge_duration', 'hour') to get the duration in hours but
+        # Extract requires native DurationField database support.
+        charges_with_duration_in_ms = charges.annotate(
             charge_duration=ExpressionWrapper(
                 F('end_time') - F('start_time'), output_field=models.FloatField()
             )
-        ).annotate(
+        )
+        # Calculate cost of each charge in SUs by converting ms to hours
+        charges_with_actual_cost = charges_with_duration_in_ms.annotate(
             charge_cost=F('charge_duration') / microseconds_per_hour * F('hourly_cost')
-        ).aggregate(
+        )
+        # calculates the total cost of charges for the user on the project
+        # by summing up the charge_cost values calculated for each charge.
+        # If there are no charges, it returns 0.0
+        return charges_with_actual_cost.aggregate(
             total_cost=functions.Coalesce(Sum('charge_cost'), 0.0, output_field=models.IntegerField())
         )['total_cost']
 

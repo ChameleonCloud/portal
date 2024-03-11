@@ -25,6 +25,7 @@ from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
 from balance_service.utils import su_calculators
 from projects.models import Project
+from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
 
@@ -132,10 +133,25 @@ class UsageEnforcer(object):
         else:
             return 2
 
-    def _check_usage_against_user_budget(self, user, allocation, new_charge):
-        user_budget = ChargeBudget.objects.get(user=user, project=allocation.project)
+    def _check_usage_against_user_budget(self, user, project, new_charge):
+        """Raises error if user charges exceed allocated budget
+
+        Raises:
+            exceptions.BillingError:
+        """
+        try:
+            user_budget = ChargeBudget.objects.get(user=user, project=project)
+        except ChargeBudget.DoesNotExist:
+            # if the default SU budget for project is 0, then there are no limits
+            if project.default_su_budget == 0:
+                return
+            else:
+                user_budget = ChargeBudget(
+                    user=user, project=project, su_budget=project.default_su_budget
+                )
+                user_budget.save()
         left = user_budget.su_left()
-        if left - new_charge < 0:
+        if left < new_charge:
             raise exceptions.BillingError(
                 message=(
                     "Reservation for user {} would spend {:.2f} SUs, "
@@ -169,9 +185,14 @@ class UsageEnforcer(object):
             )
 
         alloc = su_calculators.get_active_allocation(lease_eval.project)
-        self._check_usage_against_user_budget(
-            lease_eval.user, alloc, lease_eval.amount
+        keycloak_client = KeycloakClient()
+        role, scopes = keycloak_client.get_user_project_role_scopes(
+            lease_eval.user.username, lease_eval.project.charge_code
         )
+        if role == 'member':
+            self._check_usage_against_user_budget(
+                lease_eval.user, lease_eval.project, lease_eval.amount
+            )
         approved_alloc = su_calculators.get_consecutive_approved_allocation(
             lease_eval.project, alloc
         )

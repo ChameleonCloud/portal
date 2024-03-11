@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.sites.models import Site
+from django.core.validators import MinValueValidator
 
 from projects.user_publication.utils import PublicationUtils
 
@@ -47,6 +48,7 @@ class Project(models.Model):
     title = models.TextField(blank=False)
     nickname = models.CharField(max_length=255, blank=False, unique=True)
     charge_code = models.CharField(max_length=50, blank=False, unique=True)
+    default_su_budget = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     def __str__(self) -> str:
         return self.charge_code

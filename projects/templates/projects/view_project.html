@@ -147,16 +147,12 @@
 {% include "projects/bulk_invite_modal.html" %}
 {% include "projects/bulk_remove_modal.html" %}
 <br>
-<div class="budget-setting">
-  <form class="form-inline" role="form" method="post" >
-    {% csrf_token %}
-    <div class="form-group">
-      <label for="defaultSUbudget">Set Default SU Budget for All Members:</label>
-      <input type="number" class="form-control" id="defaultSUbudget" name="default_su_budget" placeholder="">
-      <button type="submit" class="btn btn-default">Set Default Budget</button>
-    </div>
-  </form>
-</div>
+<form class="form-inline" role="form" method="post" >
+  {% csrf_token %}
+    <label for="defaultSUbudget">Set Default SU Budget for All Members:</label>
+    <input style="width: 15%;"type="number" class="form-control" id="defaultSUbudget" name="default_su_budget" placeholder="{{ project_default_su }}" min="0" max="{{ su_allocated }}">
+    <button type="submit" class="btn btn-default">Set Default Budget</button>
+</form>
 {% endif %}
 
 <br>
@@ -230,36 +226,55 @@
             {% endif %}
           </div>
         </div>
-        {% if can_manage_project_membership %}
+        {% if can_manage_project_membership and u.role == 'Member' %}
           <form role="form" method="post">
             {% csrf_token %}
             <div class="col-xs-4 col-sm-4 col-lg-4">
               <div class="row">
-                <div class="col-xs-5 col-sm-5 col-lg-5">
-                  <b>Usage</b>: <p style="display: inline-block">{{u.su_used}}/</p>
-                  <p class="su-budget-display" style="display: inline-block">{{ u.su_budget }}</p>
+                <div class="col-xs-4 col-sm-4 col-lg-4">
+                  <b>Used SU</b>: <p style="display: inline-block;">{{u.su_used}}</p>
                 </div>
-                <div class="col-xs-5 col-sm-5 col-lg-5">
+                <div class="col-xs-8 col-sm-8 col-lg-8">
+                  <b>SU Budget</b>:
                   <input
-                  style="width:100%; display: inline-block"
+                  type="number"
+                  class="su-budget-display"
+                  style="display: inline-block; height:100%"
+                  placeholder=""
+                  min="{{u.su_used}}"
+                  max="{{ su_allocated }}"
+                  step="100"
+                  value="{{ u.su_budget }}"
+                  oninput="this.parentNode.parentNode.nextElementSibling.querySelector('.su-budget-slider').value = this.value;">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xs-9 col-sm-9 col-lg-9" style="padding-top: 5px">
+                  <input
+                  class="su-budget-slider"
                   type="range"
                   value="{{ u.su_budget }}"
                   min="{{u.su_used}}"
                   max="{{ su_allocated }}"
-                  step="1000"
+                  step="100"
                   name="su_budget_user"
-                  oninput="this.parentNode.previousElementSibling.querySelector('.su-budget-display').innerHTML = this.value;">
+                  oninput="this.parentNode.parentNode.previousElementSibling.querySelector('.su-budget-display').value = this.value;">
                 </div>
-                <div class="col-xs-2 col-sm-2 col-lg-2">
+                <div class="col-xs-1 col-sm-1 col-lg-1">
                   <input type="hidden" name="user_ref" value="{{ u.username }}">
                   <button class="btn btn-xs btn-primary" type="submit">Set</button>
+                </div>
+                <div class="col-xs-2 col-sm-2 col-lg-2">
                 </div>
               </div>
             </div>
           </form>
-        {% else %}
-          <div class="col-xs-4 col-sm-4 col-lg-4">
-            <b>Budget</b>: <p class="su-budget-display" style="display: inline-block">{{ u.su_budget }}</p>
+        {% elif can_manage_project_membership or u.username == request.user.username%}
+          <div class="col-xs-2 col-sm-2 col-lg-2">
+            <b>Used SU</b>: {{u.su_used}}
+          </div>
+          <div class="col-xs-2 col-sm-2 col-lg-2">
+            <b>SU Budget</b>: <p class="su-budget-display" style="display: inline-block">{{ u.su_budget }}</p>
           </div>
         {% endif %}
       </div>

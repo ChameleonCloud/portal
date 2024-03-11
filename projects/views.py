@@ -312,13 +312,16 @@ def notify_join_request_user(django_request, join_request):
         )
 
 
-def set_budget_for_user_in_project(user, project, target_budget, enforced_by):
+def set_budget_for_user_in_project(user, project, target_budget):
+    # Creates SU budget for (user, project), deletes budget if target_budget==0
     charge_budget, created = ChargeBudget.objects.get_or_create(
-        user=user, project=project, enforced_by=enforced_by
+        user=user, project=project
     )
+    if target_budget == 0:
+        charge_budget.delete()
+        return
     charge_budget.su_budget = target_budget
     charge_budget.save()
-    return charge_budget
 
 
 @login_required
@@ -328,6 +331,7 @@ def view_project(request, project_id):
 
     try:
         project = mapper.get_project(project_id)
+        portal_project = Project.objects.get(id=project.id)
     except Exception as e:
         logger.error(e)
         raise Http404("The requested project does not exist!")
@@ -417,28 +421,26 @@ def view_project(request, project_id):
                 )
         elif "su_budget_user" in request.POST:
             budget_user = User.objects.get(username=request.POST["user_ref"])
-            budget_user_project = Project.objects.get(id=project.id)
-            enforced_by = User.objects.get(username=request.user.username)
-            charge_budget = set_budget_for_user_in_project(
-                budget_user, budget_user_project, request.POST["su_budget_user"], enforced_by
+            set_budget_for_user_in_project(
+                budget_user, portal_project, request.POST["su_budget_user"]
             )
             messages.success(
                 request,
                 (
                     f"SU budget for user {budget_user.username} "
-                    f"is currently set to {charge_budget.su_budget}"
+                    f"is currently set to {request.POST['su_budget_user']}"
                 )
             )
         elif "default_su_budget" in request.POST:
-            budget_user_project = Project.objects.get(id=project.id)
+            portal_project.default_su_budget = request.POST["default_su_budget"]
+            portal_project.save()
             for u in users:
                 u_role = user_roles.get(u.username, "member")
                 logger.warning(f"user role is {u_role}, {u}")
                 if u_role in ["manager", "admin"]:
                     continue
-                enforced_by = User.objects.get(username=request.user.username)
-                charge_budget = set_budget_for_user_in_project(
-                    u, budget_user_project, request.POST["default_su_budget"], enforced_by
+                set_budget_for_user_in_project(
+                    u, portal_project, portal_project.default_su_budget
                 )
             messages.success(request, "Updated SU budget for all non-manager users")
         elif "del_invite" in request.POST:
@@ -578,7 +580,7 @@ def view_project(request, project_id):
                 su_budget_value = current_allocation_su_allocated
             else:
                 su_budget_value = su_budget.su_budget
-            user["su_budget"] = su_budget_value
+            user["su_budget"] = int(su_budget_value)
             user["su_used"] = ChargeBudget(
                 user=portal_user, project=budget_project
             ).current_usage()
@@ -635,6 +637,7 @@ def view_project(request, project_id):
             "roles": ROLES,
             "host": request.get_host(),
             "su_allocated": current_allocation_su_allocated,
+            "project_default_su": portal_project.default_su_budget,
         },
     )
 
