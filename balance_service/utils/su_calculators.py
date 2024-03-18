@@ -1,6 +1,9 @@
 from django.utils import timezone
+from django.db import models
+from django.db.models import ExpressionWrapper, F, Sum, functions
 
 from projects.models import Project
+from allocations.models import Charge
 
 
 def get_used_sus(charge):
@@ -76,3 +79,37 @@ def project_balances(project_ids) -> "list[dict]":
             }
         )
     return project_balances
+
+
+def calculate_user_total_su_usage(user, project):
+    """
+    Calculate the current SU usage for the args:user in args:project
+    """
+    allocation = get_active_allocation(project)
+    if not allocation:
+        return 0
+
+    charges = Charge.objects.filter(allocation=allocation, user=user)
+
+    # Avoid doing the calculation if there are no charges
+    if not charges.exists():
+        return 0
+    microseconds_per_hour = 1_000_000 * 3600
+    # could've used output field as DurationField and further annotate with
+    # Extract('charge_duration', 'hour') to get the duration in hours but
+    # Extract requires native DurationField database support.
+    charges_with_duration_in_ms = charges.annotate(
+        charge_duration=ExpressionWrapper(
+            F('end_time') - F('start_time'), output_field=models.FloatField()
+        )
+    )
+    # Calculate cost of each charge in SUs by converting ms to hours
+    charges_with_actual_cost = charges_with_duration_in_ms.annotate(
+        charge_cost=F('charge_duration') / microseconds_per_hour * F('hourly_cost')
+    )
+    # calculates the total cost of charges for the user on the project
+    # by summing up the charge_cost values calculated for each charge.
+    # If there are no charges, it returns 0.0
+    return charges_with_actual_cost.aggregate(
+        total_cost=functions.Coalesce(Sum('charge_cost'), 0.0, output_field=models.IntegerField())
+    )['total_cost']

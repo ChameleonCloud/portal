@@ -21,10 +21,11 @@ import pytz
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from allocations.models import Charge
+from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
 from balance_service.utils import su_calculators
 from projects.models import Project
+from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
 
@@ -132,6 +133,34 @@ class UsageEnforcer(object):
         else:
             return 2
 
+    def _check_usage_against_user_budget(self, user, project, new_charge):
+        """Raises error if user charges exceed allocated budget
+
+        Raises:
+            exceptions.BillingError:
+        """
+        try:
+            user_budget = ChargeBudget.objects.get(user=user, project=project)
+        except ChargeBudget.DoesNotExist:
+            # if the default SU budget for project is 0, then there are no limits
+            if project.default_su_budget == 0:
+                return
+            else:
+                user_budget = ChargeBudget(
+                    user=user, project=project, su_budget=project.default_su_budget
+                )
+                user_budget.save()
+        left = user_budget.su_budget - su_calculators.calculate_user_total_su_usage(user, project)
+        if left < new_charge:
+            raise exceptions.BillingError(
+                message=(
+                    "Reservation for user {} would spend {:.2f} SUs, "
+                    "only {:.2f} left in user budget".format(
+                        user.username, new_charge, left
+                    )
+                )
+            )
+
     def check_usage_against_allocation(self, data):
         """Check if we have enough available SUs for this reservation
 
@@ -156,6 +185,14 @@ class UsageEnforcer(object):
             )
 
         alloc = su_calculators.get_active_allocation(lease_eval.project)
+        keycloak_client = KeycloakClient()
+        role, scopes = keycloak_client.get_user_project_role_scopes(
+            lease_eval.user.username, lease_eval.project.charge_code
+        )
+        if role == 'member':
+            self._check_usage_against_user_budget(
+                lease_eval.user, lease_eval.project, lease_eval.amount
+            )
         approved_alloc = su_calculators.get_consecutive_approved_allocation(
             lease_eval.project, alloc
         )

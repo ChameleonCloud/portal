@@ -25,7 +25,7 @@ from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
 from keycloak.exceptions import KeycloakClientError
 
-from allocations.models import Allocation, Charge
+from allocations.models import Allocation, Charge, ChargeBudget
 from balance_service.utils import su_calculators
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
@@ -312,6 +312,18 @@ def notify_join_request_user(django_request, join_request):
         )
 
 
+def set_budget_for_user_in_project(user, project, target_budget):
+    # Creates SU budget for (user, project), deletes budget if target_budget==0
+    charge_budget, created = ChargeBudget.objects.get_or_create(
+        user=user, project=project
+    )
+    if target_budget == 0:
+        charge_budget.delete()
+        return
+    charge_budget.su_budget = target_budget
+    charge_budget.save()
+
+
 @login_required
 def view_project(request, project_id):
     mapper = ProjectAllocationMapper(request)
@@ -319,6 +331,7 @@ def view_project(request, project_id):
 
     try:
         project = mapper.get_project(project_id)
+        portal_project = Project.objects.get(id=project.id)
     except Exception as e:
         logger.error(e)
         raise Http404("The requested project does not exist!")
@@ -334,6 +347,11 @@ def view_project(request, project_id):
     user_roles = keycloak_client.get_roles_for_all_project_members(
         get_charge_code(project)
     )
+    users = get_project_members(project)
+    if project.active_allocations:
+        current_allocation_su_allocated = project.active_allocations[0].computeAllocated
+    else:
+        current_allocation_su_allocated = 0
     can_manage_project_membership, can_manage_project = get_user_permissions(
         keycloak_client, request.user.username, project
     )
@@ -394,6 +412,12 @@ def view_project(request, project_id):
                 keycloak_client.set_user_project_role(
                     role_username, get_charge_code(project), role_name
                 )
+                if role_name == 'manager':
+                    # delete user budgets for the user if they are manager
+                    user = User.objects.get(username=role_username)
+                    user_budget = ChargeBudget.objects.get(user=user, project=portal_project)
+                    if user_budget:
+                        user_budget.delete()
             except Exception:
                 logger.exception("Failed to change user role")
                 messages.error(
@@ -401,6 +425,30 @@ def view_project(request, project_id):
                     "An unexpected error occurred while attempting "
                     "to change role for this user. Please try again",
                 )
+        elif "su_budget_user" in request.POST:
+            budget_user = User.objects.get(username=request.POST["user_ref"])
+            set_budget_for_user_in_project(
+                budget_user, portal_project, request.POST["su_budget_user"]
+            )
+            messages.success(
+                request,
+                (
+                    f"SU budget for user {budget_user.username} "
+                    f"is currently set to {request.POST['su_budget_user']}"
+                )
+            )
+        elif "default_su_budget" in request.POST:
+            portal_project.default_su_budget = request.POST["default_su_budget"]
+            portal_project.save()
+            for u in users:
+                u_role = user_roles.get(u.username, "member")
+                logger.warning(f"user role is {u_role}, {u}")
+                if u_role in ["manager", "admin"]:
+                    continue
+                set_budget_for_user_in_project(
+                    u, portal_project, portal_project.default_su_budget
+                )
+            messages.success(request, "Updated SU budget for all non-manager users")
         elif "del_invite" in request.POST:
             try:
                 invite_id = request.POST["invite_id"]
@@ -510,11 +558,11 @@ def view_project(request, project_id):
             if isinstance(a.end, str):
                 a.end = datetime.strptime(a.end, "%Y-%m-%dT%H:%M:%SZ")
 
-    users = get_project_members(project)
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
 
     users_mashup = []
+    budget_project = Project.objects.get(charge_code=get_charge_code(project))
 
     for u in users:
         if u.username == project.pi.username:
@@ -530,6 +578,18 @@ def view_project(request, project_id):
             user["email"] = portal_user.email
             user["first_name"] = portal_user.first_name
             user["last_name"] = portal_user.last_name
+            try:
+                su_budget = ChargeBudget.objects.get(
+                    user=portal_user, project=budget_project
+                )
+            except ChargeBudget.DoesNotExist:
+                su_budget_value = current_allocation_su_allocated
+            else:
+                su_budget_value = su_budget.su_budget
+            user["su_budget"] = int(su_budget_value)
+            user["su_used"] = su_calculators.calculate_user_total_su_usage(
+                portal_user, budget_project
+            )
             # Add if the user is on a daypass
             existing_daypass = get_daypass(portal_user.id, project_id)
             if existing_daypass:
@@ -582,6 +642,8 @@ def view_project(request, project_id):
             "bulk_user_form": bulk_user_form,
             "roles": ROLES,
             "host": request.get_host(),
+            "su_allocated": current_allocation_su_allocated,
+            "project_default_su": portal_project.default_su_budget,
         },
     )
 
@@ -635,7 +697,7 @@ def _add_users_to_project(request, project, project_id, user_refs):
                 )
         except Exception:
             logger.exception(f"Failed adding user '{user_ref}'")
-            error_messages.append("Unable to add user '{user_ref}'. Please try again.")
+            error_messages.append(f"Unable to add user '{user_ref}'. Please try again.")
 
     if not error_messages:
         # If only successes, then either show the message or merge them together

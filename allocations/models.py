@@ -1,6 +1,8 @@
-from django.db import models
 import logging
+
 from django.conf import settings
+from django.db import models
+from django.core.validators import MinValueValidator
 from projects.models import Project
 from util.consts import allocation
 
@@ -100,3 +102,18 @@ class Charge(models.Model):
 
     def __str__(self):
         return f"{self.allocation.project}: {self.start_time}-{self.end_time}"
+
+
+class ChargeBudget(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="projectbudgets",
+        on_delete=models.CASCADE,
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE
+    )
+    su_budget = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+
+    class Meta:
+        unique_together = ('user', 'project',)
