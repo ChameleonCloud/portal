@@ -209,7 +209,6 @@
                       <option value="{{ role }}" {% if role == u.role %}selected disabled{% endif %}>{{ role }}</option>
                     {% endfor %}
                   </select>
-                </form>
               {% else %}
                 {{u.role}}
               {% endif %}
@@ -223,6 +222,7 @@
               <div class="col-xs-2 col-sm-2 col-lg-2">
                     <button type="button" onclick="resetRole('role_{{ u.id }}')" id="cancel_role_{{ u.id }}" class="btn btn-xs btn-danger" >Cancel</button>
               </div>
+            </form>
             {% endif %}
           </div>
         </div>

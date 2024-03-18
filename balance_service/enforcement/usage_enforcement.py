@@ -150,7 +150,7 @@ class UsageEnforcer(object):
                     user=user, project=project, su_budget=project.default_su_budget
                 )
                 user_budget.save()
-        left = user_budget.su_left()
+        left = user_budget.su_budget - su_calculators.calculate_user_total_su_usage(user, project)
         if left < new_charge:
             raise exceptions.BillingError(
                 message=(

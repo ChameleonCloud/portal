@@ -2,9 +2,7 @@ import logging
 
 from django.conf import settings
 from django.db import models
-from django.db.models import ExpressionWrapper, F, Sum, functions
 from django.core.validators import MinValueValidator
-from balance_service.utils import su_calculators
 from projects.models import Project
 from util.consts import allocation
 
@@ -119,39 +117,3 @@ class ChargeBudget(models.Model):
 
     class Meta:
         unique_together = ('user', 'project',)
-
-    def current_usage(self):
-        """
-        Calculate the current charge usage for the user on this project
-        """
-        allocation = su_calculators.get_active_allocation(self.project)
-        if not allocation:
-            return 0
-
-        charges = Charge.objects.filter(allocation=allocation, user=self.user)
-
-        # Avoid doing the calculation if there are no charges
-        if not charges.exists():
-            return 0
-        microseconds_per_hour = 1_000_000 * 3600
-        # could've used output field as DurationField and further annotate with
-        # Extract('charge_duration', 'hour') to get the duration in hours but
-        # Extract requires native DurationField database support.
-        charges_with_duration_in_ms = charges.annotate(
-            charge_duration=ExpressionWrapper(
-                F('end_time') - F('start_time'), output_field=models.FloatField()
-            )
-        )
-        # Calculate cost of each charge in SUs by converting ms to hours
-        charges_with_actual_cost = charges_with_duration_in_ms.annotate(
-            charge_cost=F('charge_duration') / microseconds_per_hour * F('hourly_cost')
-        )
-        # calculates the total cost of charges for the user on the project
-        # by summing up the charge_cost values calculated for each charge.
-        # If there are no charges, it returns 0.0
-        return charges_with_actual_cost.aggregate(
-            total_cost=functions.Coalesce(Sum('charge_cost'), 0.0, output_field=models.IntegerField())
-        )['total_cost']
-
-    def su_left(self):
-        return self.su_budget - self.current_usage()

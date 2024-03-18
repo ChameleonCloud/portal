@@ -412,6 +412,12 @@ def view_project(request, project_id):
                 keycloak_client.set_user_project_role(
                     role_username, get_charge_code(project), role_name
                 )
+                if role_name == 'manager':
+                    # delete user budgets for the user if they are manager
+                    user = User.objects.get(username=role_username)
+                    user_budget = ChargeBudget.objects.get(user=user, project=portal_project)
+                    if user_budget:
+                        user_budget.delete()
             except Exception:
                 logger.exception("Failed to change user role")
                 messages.error(
@@ -581,9 +587,9 @@ def view_project(request, project_id):
             else:
                 su_budget_value = su_budget.su_budget
             user["su_budget"] = int(su_budget_value)
-            user["su_used"] = ChargeBudget(
-                user=portal_user, project=budget_project
-            ).current_usage()
+            user["su_used"] = su_calculators.calculate_user_total_su_usage(
+                portal_user, budget_project
+            )
             # Add if the user is on a daypass
             existing_daypass = get_daypass(portal_user.id, project_id)
             if existing_daypass:
@@ -691,7 +697,7 @@ def _add_users_to_project(request, project, project_id, user_refs):
                 )
         except Exception:
             logger.exception(f"Failed adding user '{user_ref}'")
-            error_messages.append("Unable to add user '{user_ref}'. Please try again.")
+            error_messages.append(f"Unable to add user '{user_ref}'. Please try again.")
 
     if not error_messages:
         # If only successes, then either show the message or merge them together
