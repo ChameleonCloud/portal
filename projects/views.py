@@ -415,8 +415,12 @@ def view_project(request, project_id):
                 if role_name == 'manager':
                     # delete user budgets for the user if they are manager
                     user = User.objects.get(username=role_username)
-                    user_budget = ChargeBudget.objects.get(user=user, project=portal_project)
-                    if user_budget:
+                    try:
+                        user_budget = ChargeBudget.objects.get(user=user, project=portal_project)
+                    except ChargeBudget.DoesNotExist:
+                        # the user does not have a budget created, no-op
+                        pass
+                    else:
                         user_budget.delete()
             except Exception:
                 logger.exception("Failed to change user role")
