@@ -688,6 +688,12 @@ MULTIPLE_ACTIVE_TERMS = True  # Multiple kinds of T&Cs active at once (like site
 #####
 G5K_API_ROOT = "http://referenceapi:8000"
 
+#####
+#
+# Edge HW Discovery API
+#
+#####
+EDGE_HW_ROOT = "http://host.docker.internal:5000"
 
 #####
 #
@@ -922,4 +928,3 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
-

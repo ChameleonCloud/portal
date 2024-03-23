@@ -1,0 +1,23 @@
+{% extends 'layout/default.html' %}
+
+{% block title %}CHI@Edge Resource Browser{% endblock %}
+
+{% block content %}
+<h1>Hardware Discovery</h1>
+
+<table width=100%>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Owning project</th>
+    </tr>
+    {% for device in devices %}
+    <tr>
+        <td>{{ device.device_name }}</td>
+        <td>{{ device.device_type }}</td>
+        <td>{{ device.owning_project }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock content %}
