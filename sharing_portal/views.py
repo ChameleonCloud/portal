@@ -1248,8 +1248,8 @@ def create_supplemental_project_if_needed(request, artifact, project):
         # allocation.save()
 
         created_project = Project.objects.get(id=created_tas_project["id"])
-        daypss_tag_id = Tag.objects.get(name="Daypass")
-        mapper.update_project_tag(created_project.id, daypss_tag_id)
+        daypass_tag = Tag.objects.get(name="Daypass")
+        mapper.update_project_tag(created_project.id, daypass_tag.id)
         daypass_project = DaypassProject(
             artifact_uuid=artifact["uuid"], project=created_project
         )
