@@ -3,19 +3,27 @@
 {% block title %}CHI@Edge Resource Browser{% endblock %}
 
 {% block content %}
-<h1>Hardware Discovery</h1>
+<h1>CHI@Edge Hardware Discovery</h1>
 
 <table width=100%>
     <tr>
         <th>Name</th>
         <th>Type</th>
         <th>Owning project</th>
+        <th>Device profiles</th>
     </tr>
     {% for device in devices %}
     <tr>
         <td>{{ device.device_name }}</td>
         <td>{{ device.device_type }}</td>
         <td>{{ device.owning_project }}</td>
+        <td>
+            <ul>
+                {% for profile in device.supported_device_profiles %}
+                <li>{{ profile }}</li>
+                {% endfor %}
+            </ul>
+        </td>
     </tr>
     {% endfor %}
 </table>
