@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 
+from chameleon.edge_hw_discovery_api import EDGE_HW_API
 from chameleon.celery import app as celery_app
 from chameleon.keystone_auth import (
     admin_ks_client,
@@ -29,6 +30,7 @@ from .tasks import MigrationError, migrate_project, migrate_user
 
 LOG = logging.getLogger(__name__)
 
+edge_api = EDGE_HW_API()
 
 @login_required
 def dashboard(request):
@@ -71,6 +73,12 @@ class OIDCRegisterView(OIDCAuthenticationRequestView):
     def __init__(self, *args, **kwargs):
         super(OIDCRegisterView, self).__init__(*args, **kwargs)
         self.OIDC_OP_AUTH_ENDPOINT = self.get_settings("OIDC_OP_REGISTRATION_ENDPOINT")
+
+def edge_hardware_discovery(request):
+    """Hardware resource discovery page for CHI@Edge."""
+    # devices = {device['device_name']: device for device in edge_api.get_devices()}
+    devices = {'devices': edge_api.get_devices()}
+    return render(request, "edge-hw-discovery/resources.html", devices)
 
 
 def force_password_login(request):

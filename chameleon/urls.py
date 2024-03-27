@@ -87,6 +87,8 @@ urlpatterns = [
         name="outage_detail",
     ),
     path("hardware/", include("g5k_discovery.urls", namespace="hardware")),
+    # Edge hardware discovery
+    path("edge/hardware/", chameleon_views.edge_hardware_discovery),
     # Unclear if this legacy route still needs to be supported
     path(
         "user/discovery/",
