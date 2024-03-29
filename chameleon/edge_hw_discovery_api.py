@@ -11,7 +11,7 @@ class EDGE_HW_API:
         url = self.make_url("devices")
         logger.info("Requesting %s from Edge HW API ...", url)
         resp = requests.get(url)
-        logger.info("Response received. Parsing         to json ...")
+        logger.info("Response received. Parsing to json ...")
         return resp.json()
 
     def make_url(self, endpoint):
