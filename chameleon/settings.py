@@ -693,7 +693,7 @@ G5K_API_ROOT = "http://referenceapi:8000"
 # Edge HW Discovery API
 #
 #####
-EDGE_HW_ROOT = "http://host.docker.internal:5000"
+EDGE_HW_ROOT = "http://edgehwdiscovery:5000"
 
 #####
 #

@@ -74,9 +74,9 @@ class OIDCRegisterView(OIDCAuthenticationRequestView):
         super(OIDCRegisterView, self).__init__(*args, **kwargs)
         self.OIDC_OP_AUTH_ENDPOINT = self.get_settings("OIDC_OP_REGISTRATION_ENDPOINT")
 
+
 def edge_hardware_discovery(request):
     """Hardware resource discovery page for CHI@Edge."""
-    # devices = {device['device_name']: device for device in edge_api.get_devices()}
     devices = {'devices': edge_api.get_devices()}
     return render(request, "edge-hw-discovery/resources.html", devices)
 
