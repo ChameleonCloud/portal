@@ -64,9 +64,8 @@ services:
     depends_on:
       - mysql
       - redis
-    restart: always
   vue:
-    image: node:lts
+    image: node:16.20.2
     command: sh -c 'yarn && yarn serve'
     working_dir: /project
     volumes:
