@@ -164,6 +164,8 @@ def review_duplicates(dry_run=True):
                     pub1.save()
                 elif is_duplicate == "y":
                     duplicate_pub, original_pub = pick_duplicate_from_pubs(pub1, opub)
+                    if duplicate_pub.status == Publication.STATUS_APPROVED:
+                        original_pub.status = Publication.STATUS_APPROVED
                     duplicate_pub.status = Publication.STATUS_DUPLICATE
                     duplicate_pub.checked_for_duplicates = True
                     original_pub.checked_for_duplicates = True

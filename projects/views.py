@@ -412,11 +412,13 @@ def view_project(request, project_id):
                 keycloak_client.set_user_project_role(
                     role_username, get_charge_code(project), role_name
                 )
-                if role_name == 'manager':
+                if role_name == "manager":
                     # delete user budgets for the user if they are manager
                     user = User.objects.get(username=role_username)
                     try:
-                        user_budget = ChargeBudget.objects.get(user=user, project=portal_project)
+                        user_budget = ChargeBudget.objects.get(
+                            user=user, project=portal_project
+                        )
                     except ChargeBudget.DoesNotExist:
                         # the user does not have a budget created, no-op
                         pass
@@ -439,7 +441,7 @@ def view_project(request, project_id):
                 (
                     f"SU budget for user {budget_user.username} "
                     f"is currently set to {request.POST['su_budget_user']}"
-                )
+                ),
             )
         elif "default_su_budget" in request.POST:
             portal_project.default_su_budget = request.POST["default_su_budget"]
