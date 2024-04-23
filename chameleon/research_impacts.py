@@ -66,25 +66,21 @@ def instituion_report():
             states.add(uni["state"])
     epscor_states = set(s for s in states if s in EPSCOR_STATES)
 
-
     edu_states = set()
     for uni in UNI_STATE_LIST:
         if uni["name"] in edu_insts:
             edu_states.add(uni["state"])
     edu_epscor_states = set(s for s in edu_states if s in EPSCOR_STATES)
 
-
     return {
         "total": len(insts),
         "msi_total": len(msi_found),
         "states": len(states),
         "epscor_states": len(epscor_states),
-
         "edu_total": len(edu_insts),
         "edu_msi_total": len(edu_msi_found),
         "edu_states": len(edu_states),
         "edu_epscor_states": len(edu_epscor_states),
-
     }
 
 
@@ -219,9 +215,11 @@ def get_context():
             tag=computing_education_tag,
         ).distinct()
         active_education_projects_per_academic_year.append(
-            (f"Fall {year} - Spring {year+1}", ay_education_projects_with_active_allocations.count())
+            (
+                f"Fall {year} - Spring {year+1}",
+                ay_education_projects_with_active_allocations.count(),
+            )
         )
-
 
     publications_per_year = publication_information(start_year, end_year)
 
@@ -245,6 +243,7 @@ def get_context():
         "tags": tag_information(),
         "edu_users": len(edu_users),
     }
+
 
 def get_education_users():
     computing_education_tag = Tag.objects.get(name="Computing Education")
@@ -288,13 +287,8 @@ def publication_information(start_year, end_year):
 def citation_report():
     publications = []
     for p in Publication.objects.all():
-        publications.append((
-            p,
-            max(s.citation_count for s in p.sources.all())
-        ))
-    total = sum(
-        p[1] for p in publications
-    )
+        publications.append((p, max(s.citation_count for s in p.sources.all())))
+    total = sum(p[1] for p in publications)
     gt100_unsorted = [
         (f"{p[0].project} - {p[0].title}", p[1]) for p in publications if p[1] >= 100
     ]
