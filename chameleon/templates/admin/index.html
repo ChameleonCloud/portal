@@ -19,6 +19,20 @@
             </tbody>
         </table>
     </div>
+    <div class="research_impacts module">
+        <table>
+            <caption>
+                Research Impacts
+            </caption>
+            <tbody>
+                <tr class="model-row">
+                    <th scope="row"><a href="{% url 'research_impacts' %}">Overview</a></th>
+                    <td>&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     {% endif %} {% if app_list %} {% for app in app_list %}
     <div class="app-{{ app.app_label }} module">
         <table>
