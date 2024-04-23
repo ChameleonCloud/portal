@@ -100,7 +100,7 @@ def extension_information():
     allocation_counts = _allocation_counts(
         Project.objects.filter(allocations__status__in=allocation_statuses)
     )
-    max_allocations = max(allocation_counts)
+    max_allocations = max(allocation_counts, default=0)
     med_allocations = statistics.median(allocation_counts)
     percentage_extended = (
         len(list(ac for ac in allocation_counts if ac > 1))
@@ -113,7 +113,7 @@ def extension_information():
             allocations__status__in=allocation_statuses, tag=computing_education_tag
         )
     )
-    edu_max_allocations = max(education_allocation_counts)
+    edu_max_allocations = max(education_allocation_counts, default=0)
     edu_med_allocations = statistics.median(education_allocation_counts)
     edu_percentage_extended = (
         len(list(ac for ac in education_allocation_counts if ac > 1))
@@ -291,7 +291,7 @@ def publication_information(start_year, end_year):
 def citation_report():
     publications = []
     for p in Publication.objects.all():
-        publications.append((p, max(s.citation_count for s in p.sources.all())))
+        publications.append((p, max((s.citation_count for s in p.sources.all()), default=0)))
     total = sum(p[1] for p in publications)
     gt100_unsorted = [
         (f"{p[0].project} - {p[0].title}", p[1]) for p in publications if p[1] >= 100
