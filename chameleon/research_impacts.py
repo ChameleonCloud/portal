@@ -254,7 +254,7 @@ def get_education_users():
     )
     for p in all_active_edu_projects:
         for u in get_project_members(p):
-            edu_users.add(u.get("username"))
+            edu_users.add(u.username)
     return edu_users
 
 
