@@ -14,6 +14,9 @@ from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 
+
+from . import research_impacts
+
 from chameleon.edge_hw_discovery_api import EDGE_HW_API
 from chameleon.celery import app as celery_app
 from chameleon.keystone_auth import (
@@ -196,3 +199,8 @@ def api_migration_state(request):
     return JsonResponse(
         {"user": legacy_user, "projects": list(all_legacy_projects.values())}
     )
+
+
+@login_required
+def admin_research_impacts(request):
+    return render(request, "admin/research_impacts.html", research_impacts.get_context())

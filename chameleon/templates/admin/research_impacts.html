@@ -1,0 +1,167 @@
+{% extends "admin/base_site.html" %} 
+{% load i18n static bootstrap3 %} 
+
+{% block content %}
+
+<style>
+    .table td {
+        padding: 1rem;
+        border: 1px solid black;
+    }
+</style>
+
+<div id="content-main">
+    <table class="table table-striped table-hover">
+        <tr>
+            <td>Project Count</td>
+            <td>{{project_count}}</td>
+        </tr>
+        <tr>
+        </tr>
+        <tr>
+            <td>SUs by Year</td>
+            <td>
+                <table>
+                    {% for item in su_usage_data %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Total SU usage: {{ total_sus }}
+            </td>
+        </tr>
+        <tr>
+            <td>Active projects by Year</td>
+            <td>
+                <table>
+                    {% for item in active_projects_per_year %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Total active projects: {{ total_active_projects }}
+
+            </td>
+        </tr>
+        <tr>
+            <td>Publications per year</td>
+            <td>
+                <table>
+                    {% for item in publications_per_year %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Total publications: {{ total_publications }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Active education projects 
+            </td>
+            <td>
+                Per calendar year
+                <table>
+                    {% for item in active_education_projects_per_year %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Per academic year
+                <table>
+                    {% for item in active_education_projects_per_academic_year %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Total unique: {{ total_active_education_projects_with_active_allocations }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Institutions
+            </td>
+            <td>
+                <div>Total: {{ institutions.total }}</div>
+                <div>MSI total {{ institutions.msi_total }}</div>
+                <div>Total States: {{ institutions.states }}</div>
+                <div>Total EPSCOR States: {{ institutions.epscor_states }}</div>
+
+                <div>From Education Projects Total: {{ institutions.edu_total }}</div>
+                <div>From Education Projects MSI total {{ institutions.edu_msi_total }}</div>
+                <div>From Education Projects Total States: {{ institutions.edu_states }}</div>
+                <div>From Education Projects Total EPSCOR States: {{ institutions.edu_epscor_states }}</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Project Extensions
+            </td>
+            <td>
+                <div>Max allocations for a project: {{ extensions.max }}</div>
+                <div>Median allocations for a project: {{ extensions.median }}</div>
+                <div>Percent of projects extended at least once: {{extensions.extended_percentage}}</div>
+                <div>Max allocations for an education project: {{ extensions.edu_max }}</div>
+                <div>Median allocations for an education project: {{ extensions.edu_median }}</div>
+                <div>Percent of education projects extended at least once: {{extensions.edu_extended_percentage}}</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                New PIs per year 
+            </td>
+            <td>
+                <table>
+                    {% for item in pis_per_year %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>Top tags</td>
+            <td>
+                <ol>
+                    {% for item in tags.by_count %}
+                    <li>{{item.1}} - {{item.0}}</li>
+                    {% endfor %}
+                </ol>
+            </td>
+        </tr>
+        <tr>
+            <td>Unique users on education projects</td>
+            <td>
+                {{ edu_users }}
+            </td>
+        </tr>
+        <tr>
+            <td>Total Citations</td>
+            <td>{{ citations.total }}</td>
+        </tr>
+        <tr>
+            <td>Pubs with >=100 citations</td>
+            <td>
+                <ul>
+                    {% for p in  citations.gt100 %}
+                    <li>{{ p.1 }} - {{ p.0 }}</li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+
+    </table>
+</div>
+{% endblock %} 

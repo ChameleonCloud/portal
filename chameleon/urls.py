@@ -38,6 +38,12 @@ urlpatterns = [
         "admin/allocations/",
         include("allocations.urls", namespace="allocations_admin"),
     ),
+    path(
+        "admin/research_impacts/",
+        chameleon_views.admin_research_impacts,
+        name="research_impacts",
+    ),
+
     path("admin/", admin.site.urls),
     # contrib urls
     path("oidc/", include("mozilla_django_oidc.urls")),
