@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %} 
+{% load i18n static bootstrap3 %} 
+
+{% block content %}
+
+<style>
+    .table td {
+        padding: 1rem;
+        border: 1px solid black;
+    }
+</style>
+
+<div id="content-main">
+    <table class="table table-striped table-hover">
+        <tr>
+            <td>
+                Institutions
+            </td>
+            <td>
+                <div>Total: {{ institutions.total }}</div>
+                <div>MSI total {{ institutions.msi_total }}</div>
+                <div>Total States: {{ institutions.states }}</div>
+                <div>Total EPSCOR States: {{ institutions.epscor_states }}</div>
+
+                <div>From Education Projects Total: {{ institutions.edu_total }}</div>
+                <div>From Education Projects MSI total {{ institutions.edu_msi_total }}</div>
+                <div>From Education Projects Total States: {{ institutions.edu_states }}</div>
+                <div>From Education Projects Total EPSCOR States: {{ institutions.edu_epscor_states }}</div>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endblock %} 

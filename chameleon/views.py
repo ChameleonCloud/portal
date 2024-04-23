@@ -6,7 +6,7 @@ from uuid import uuid4
 from celery.result import AsyncResult
 from django.conf import settings
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
@@ -201,6 +201,24 @@ def api_migration_state(request):
     )
 
 
+def admin_or_superuser(user):
+    if user:
+        LOG.debug(
+            "If user has allocation admin role: %s",
+            user.groups.filter(name="Allocation Admin").count(),
+        )
+        return (
+            user.groups.filter(name="Allocation Admin").count() == 1
+        ) or user.is_superuser
+    return False
+
+
 @login_required
+@user_passes_test(admin_or_superuser)
 def admin_research_impacts(request):
     return render(request, "admin/research_impacts.html", research_impacts.get_context())
+
+@login_required
+@user_passes_test(admin_or_superuser)
+def admin_research_impacts_institutions(request):
+    return render(request, "admin/research_impacts_institutions.html", research_impacts.get_institution_context())

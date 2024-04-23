@@ -24,7 +24,7 @@ UTC = pytz.UTC
 LOG = logging.getLogger(__name__)
 
 
-def instituion_report():
+def institution_report():
     kcc = KeycloakClient()
     kcc_users = kcc.get_all_users_attributes()
 
@@ -237,11 +237,15 @@ def get_context():
         "active_education_projects_per_year": active_education_projects_per_year,
         "active_education_projects_per_academic_year": active_education_projects_per_academic_year,
         "total_active_education_projects_with_active_allocations": total_active_education_projects_with_active_allocations,
-        "institutions": instituion_report(),
         "extensions": extension_information(),
         "pis_per_year": pi_report(start_year, end_year),
         "tags": tag_information(),
         "edu_users": len(edu_users),
+    }
+
+def get_institution_context():
+    return {
+        "institutions": institution_report(),
     }
 
 
