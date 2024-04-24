@@ -3,10 +3,13 @@ from django.contrib.auth.models import User
 from chameleon.models import PIEligibility
 from projects.models import Project, Publication, Tag
 from datetime import datetime, timedelta
-from django.db.models import Sum, FloatField, Count, Q
+from django.db.models import Sum, FloatField, Count, Q, F, DurationField
+from django.db.models.functions import TruncYear
 from allocations.models import Charge, Allocation
 from util.keycloak_client import KeycloakClient
 from projects.util import get_project_members
+from collections import defaultdict
+import functools
 
 import logging
 
@@ -28,6 +31,7 @@ def institution_report():
     kcc = KeycloakClient()
     kcc_users = kcc.get_all_users_attributes()
 
+    @functools.lru_cache()
     def similarity_score(str1, str2):
         ratio = SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
         return ratio
@@ -46,18 +50,22 @@ def institution_report():
         if user.get("username") in edu_users:
             edu_insts.add(inst.lower())
 
+    MSI_UNI_SET = set(MSI_UNIVERFSITY_LIST)
     msi_found = set()
     for inst in insts:
-        max_score = 0
-        # university names are submitted by users and often contain typos
-        # check if they are 90% similar to the list of MSI institutes
-        for uni in MSI_UNIVERFSITY_LIST:
-            score = similarity_score(inst, uni)
-            if score > max_score:
-                max_score = score
-                match_found = uni
-        if max_score > 0.9:
-            msi_found.add(match_found)
+        if inst in MSI_UNI_SET:
+            msi_found.add(inst)
+        else:
+            max_score = 0
+            # university names are submitted by users and often contain typos
+            # check if they are 90% similar to the list of MSI institutes
+            for uni in MSI_UNIVERFSITY_LIST:
+                score = similarity_score(inst, uni)
+                if score > max_score:
+                    max_score = score
+                    match_found = uni
+            if max_score > 0.9:
+                msi_found.add(match_found)
     edu_msi_found = msi_found.intersection(edu_insts)
 
     states = set()
@@ -82,7 +90,6 @@ def institution_report():
         "edu_states": len(edu_states),
         "edu_epscor_states": len(edu_epscor_states),
     }
-
 
 def _allocation_counts(projects):
     allocation_counts = []
@@ -166,22 +173,26 @@ def tag_information():
 
 def get_context():
     start_year = 2015
-    end_year = datetime.now().year
-
-    su_usage_data = su_information(start_year, end_year)
+    end_year = datetime.now().year + 1
 
     computing_education_tag = Tag.objects.get(name="Computing Education")
+    tags = {
+        "edge": Tag.objects.get(name="Edge Computing"),
+        "education": computing_education_tag,
+    }
+
     active_projects_per_year = []
-    total_active_education_projects_with_active_allocations = (
-        Project.objects.filter(
-            allocations__status__in=allocation_statuses, tag=computing_education_tag
+    total_unique_projects_per_tag = {
+        name: Project.objects.filter(
+            allocations__status__in=allocation_statuses, tag=tag
         )
         .distinct()
         .count()
-    )
-    active_education_projects_per_year = []
+        for name, tag in tags.items()
+    }
+    active_projects_per_year_per_tag = defaultdict(list)
     active_education_projects_per_academic_year = []
-    for year in range(2020, datetime.now().year + 1):
+    for year in range(2020, end_year):
         current_year = datetime(year=year, month=1, day=1)
         current_year = current_year.replace(tzinfo=UTC)
         year_end = current_year.replace(year=year + 1)
@@ -195,15 +206,18 @@ def get_context():
             (year, projects_with_active_allocations.count())
         )
 
-        education_projects_with_active_allocations = Project.objects.filter(
-            allocations__status__in=allocation_statuses,
-            allocations__start_date__lte=year_end,
-            allocations__expiration_date__gte=current_year,
-            tag=computing_education_tag,
-        ).distinct()
-        active_education_projects_per_year.append(
-            (year, education_projects_with_active_allocations.count())
-        )
+        for name, tag in tags.items():
+            active_projects_per_year_per_tag[name].append(
+                (
+                    year, 
+                    Project.objects.filter(
+                        allocations__status__in=allocation_statuses,
+                        allocations__start_date__lte=year_end,
+                        allocations__expiration_date__gte=current_year,
+                        tag=tag,
+                    ).distinct().count()
+                )
+            )
 
         academic_current_year = datetime(year=year, month=7, day=1)
         academic_current_year = academic_current_year.replace(tzinfo=UTC)
@@ -226,27 +240,45 @@ def get_context():
     edu_users = get_education_users()
 
     return {
-        "project_count": Project.objects.all().count(),
-        "total_sus": sum(su_usage_data["SU"]),
-        "su_usage_data": zip(su_usage_data["Year"], su_usage_data["SU"]),
+        "project_count": Project.objects.filter(
+            allocations__status__in=allocation_statuses,
+        ).count(),
         "total_active_projects": sum(a[1] for a in active_projects_per_year),
         "active_projects_per_year": active_projects_per_year,
         "total_publications": sum(a[1] for a in publications_per_year),
         "publications_per_year": publications_per_year,
         "citations": citation_report(),
-        "active_education_projects_per_year": active_education_projects_per_year,
+        "active_projects_per_year_per_tag": active_projects_per_year_per_tag,
         "active_education_projects_per_academic_year": active_education_projects_per_academic_year,
-        "total_active_education_projects_with_active_allocations": total_active_education_projects_with_active_allocations,
+        "total_unique_projects_per_tag": total_unique_projects_per_tag,
         "extensions": extension_information(),
         "pis_per_year": pi_report(start_year, end_year),
         "tags": tag_information(),
         "edu_users": len(edu_users),
     }
 
+
 def get_institution_context():
     return {
         "institutions": institution_report(),
     }
+
+def get_sus_context():
+    start_year = 2015
+    end_year = datetime.now().year + 1
+
+    su_usage_data = su_information(start_year, end_year)
+    new_data = {}
+    all_sum = 0
+    for k, v in su_usage_data.items():
+        new_data[k] = dict(v)
+        for n in v.values():
+            all_sum += n
+    new_data["Total"] = {all_sum : ""}
+    return {
+        "su_usage_data": new_data,
+    }
+
 
 
 def get_education_users():
@@ -263,18 +295,24 @@ def get_education_users():
 
 
 def su_information(start_year, end_year):
-    su_usage_data = {"Year": [], "SU": []}
+    su_usage_data = {}
+
     for year in range(start_year, end_year + 1):
         # Calculate SU usage
-        su_usage = (
+        sus = (
             Charge.objects.filter(start_time__year=year)
-            .values("hourly_cost")
-            .aggregate(total_su=Sum("hourly_cost", output_field=FloatField()))
+            .annotate(duration=F('end_time') - F('start_time'))
+            .values("region_name", "duration", "hourly_cost")
         )
-        total_su = su_usage["total_su"] if su_usage["total_su"] else 0
+        total_su = defaultdict(int)
+        total_su_all = 0
+        for su in sus:
+            cost =  su["duration"].total_seconds()/3600 * su["hourly_cost"]
+            total_su[su["region_name"]] += cost
+            total_su_all += cost
+        total_su["All Sites"] = total_su_all
         # Append data to the dictionary
-        su_usage_data["Year"].append(year)
-        su_usage_data["SU"].append(total_su)
+        su_usage_data[year] = total_su
     return su_usage_data
 
 
@@ -290,8 +328,10 @@ def publication_information(start_year, end_year):
 
 def citation_report():
     publications = []
-    for p in Publication.objects.all():
-        publications.append((p, max((s.citation_count for s in p.sources.all()), default=0)))
+    for p in Publication.objects.filter(status=Publication.STATUS_APPROVED):
+        publications.append(
+            (p, max((s.citation_count for s in p.sources.all()), default=0))
+        )
     total = sum(p[1] for p in publications)
     gt100_unsorted = [
         (f"{p[0].project} - {p[0].title}", p[1]) for p in publications if p[1] >= 100

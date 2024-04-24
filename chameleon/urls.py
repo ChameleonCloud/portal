@@ -48,6 +48,11 @@ urlpatterns = [
         chameleon_views.admin_research_impacts_institutions,
         name="research_impacts_institutions",
     ),
+        path(
+        "admin/research_impacts/sus/",
+        chameleon_views.admin_research_impacts_sus,
+        name="research_impacts_sus",
+    ),
     path("admin/", admin.site.urls),
     # contrib urls
     path("oidc/", include("mozilla_django_oidc.urls")),

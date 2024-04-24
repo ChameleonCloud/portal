@@ -222,3 +222,8 @@ def admin_research_impacts(request):
 @user_passes_test(admin_or_superuser)
 def admin_research_impacts_institutions(request):
     return render(request, "admin/research_impacts_institutions.html", research_impacts.get_institution_context())
+
+@login_required
+@user_passes_test(admin_or_superuser)
+def admin_research_impacts_sus(request):
+    return render(request, "admin/research_impacts_sus.html", research_impacts.get_sus_context())

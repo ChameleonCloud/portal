@@ -19,20 +19,6 @@
         <tr>
         </tr>
         <tr>
-            <td>SUs by Year</td>
-            <td>
-                <table>
-                    {% for item in su_usage_data %}
-                    <tr>
-                        <td>{{item.0 }}</td>
-                        <td>{{item.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-                Total SU usage: {{ total_sus }}
-            </td>
-        </tr>
-        <tr>
             <td>Active projects by Year</td>
             <td>
                 <table>
@@ -68,7 +54,7 @@
             <td>
                 Per calendar year
                 <table>
-                    {% for item in active_education_projects_per_year %}
+                    {% for item in active_projects_per_year_per_tag.education %}
                     <tr>
                         <td>{{item.0 }}</td>
                         <td>{{item.1 }}</td>
@@ -84,9 +70,27 @@
                     </tr>
                     {% endfor %}
                 </table>
-                Total unique: {{ total_active_education_projects_with_active_allocations }}
+                Total unique: {{ total_unique_projects_per_tag.education }}
             </td>
         </tr>
+        <tr>
+            <td>
+                Active edge projects 
+            </td>
+            <td>
+                Per calendar year
+                <table>
+                    {% for item in active_projects_per_year_per_tag.edge %}
+                    <tr>
+                        <td>{{item.0 }}</td>
+                        <td>{{item.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                Total unique: {{ total_unique_projects_per_tag.edge }}
+            </td>
+        </tr>
+
         <tr>
             <td>
                 Project Extensions
