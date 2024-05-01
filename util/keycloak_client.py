@@ -152,7 +152,7 @@ class KeycloakClient:
             url=keycloakproject._client.get_full_url(
                 keycloakproject.get_path("collection", realm=self.realm_name)
             )
-            + "/{id}/members".format(id=group["id"]),
+            + "/{id}/members?max=9999".format(id=group["id"]),
         )
         return [m["username"] for m in members]
 
