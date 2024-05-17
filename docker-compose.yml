@@ -15,7 +15,7 @@ services:
       - ./media:/media
       - static:/static
     ports:
-      - "127.0.0.1:8890:${PORTAL_PORT}"
+      - "8890:${PORTAL_PORT}"
     entrypoint: ["python3", "manage.py"]
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
     depends_on:
@@ -23,7 +23,7 @@ services:
   referenceapi:
     image: docker.chameleoncloud.org/referenceapi:latest
     ports:
-      - "127.0.0.1:8891:8000"
+      - "8891:8000"
   mysql:
     image: mariadb:10
     volumes:
@@ -39,11 +39,11 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "127.0.0.1:3306:3306"
+      - "3306:3306"
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
-      - "127.0.0.1:8889:80"
+      - "8889:80"
     environment:
       - PMA_HOST=mysql
       - PMA_PORT=3306
@@ -71,12 +71,12 @@ services:
     volumes:
       - .:/project
     ports:
-      - "127.0.0.1:9000:9000"
+      - "9000:9000"
   mail:
     image: mailhog/mailhog:latest
     restart: always
     ports:
-    - "127.0.0.1:8025:8025"
+    - "8025:8025"
 
 volumes:
   static:
