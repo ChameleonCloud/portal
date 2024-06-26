@@ -356,6 +356,8 @@ def view_project(request, project_id):
         keycloak_client, request.user.username, project
     )
 
+    # Users list may be stale if we update the membership list
+    users_is_stale = False
     if (
         request.POST
         and can_manage_project_membership
@@ -365,6 +367,7 @@ def view_project(request, project_id):
         if "add_user" in request.POST:
             form = ProjectAddUserForm(request.POST)
             if form.is_valid():
+                users_is_stale = True
                 if _add_users_to_project(
                     request,
                     project,
@@ -382,6 +385,7 @@ def view_project(request, project_id):
                 )
         elif "del_user" in request.POST:
             try:
+                users_is_stale = True
                 del_username = request.POST["user_ref"]
                 # Ensure that it's not possible to remove the PI
                 if del_username in [project.pi.username, project.pi.email]:
@@ -481,6 +485,7 @@ def view_project(request, project_id):
                 )
         elif "accept_join_request" in request.POST:
             try:
+                users_is_stale = True
                 join_request = JoinRequest.objects.get(
                     id=int(request.POST.get("join_request"))
                 )
@@ -522,6 +527,7 @@ def view_project(request, project_id):
         elif "pi_username" in request.POST:
             pi_form = edit_pi(request, project_id)
         elif "add_bulk_users" in request.POST:
+            users_is_stale = True
             bulk_user_form = ProjectAddBulkUserForm(request.POST)
             if bulk_user_form.is_valid():
                 usernames = [
@@ -534,6 +540,7 @@ def view_project(request, project_id):
                 if _add_users_to_project(request, project, project_id, usernames):
                     bulk_user_form = ProjectAddBulkUserForm()
         elif "remove_bulk_users" in request.POST:
+            users_is_stale = True
             non_managers = [
                 user
                 for user in get_project_members(project)
@@ -563,6 +570,9 @@ def view_project(request, project_id):
         if a.end:
             if isinstance(a.end, str):
                 a.end = datetime.strptime(a.end, "%Y-%m-%dT%H:%M:%SZ")
+
+    if users_is_stale:
+        users = get_project_members(project)
 
     if not project_member_or_admin_or_superuser(request.user, project, users):
         raise PermissionDenied
