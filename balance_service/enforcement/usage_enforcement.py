@@ -356,8 +356,13 @@ class UsageEnforcer(object):
 
         return total_su_factor
 
-    def _date_from_string(self, date_string, date_format="%Y-%m-%dT%H:%M:%S"):
-        date = datetime.datetime.strptime(date_string, date_format)
+    def _date_from_string(self, date_string, date_format="%Y-%m-%d %H:%M:%S"):
+        try:
+            date = datetime.datetime.strptime(date_string, date_format)
+        except ValueError:
+            # Blazar introduces a new dateformat
+            new_date_format = "%Y-%m-%dT%H:%M:%S"
+            date = datetime.datetime.strptime(date_string, new_date_format)
         return date
 
     def _convert_to_localtime(self, utctime):
