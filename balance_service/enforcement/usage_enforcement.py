@@ -356,7 +356,7 @@ class UsageEnforcer(object):
 
         return total_su_factor
 
-    def _date_from_string(self, date_string, date_format="%Y-%m-%d %H:%M:%S"):
+    def _date_from_string(self, date_string, date_format="%Y-%m-%dT%H:%M:%S"):
         date = datetime.datetime.strptime(date_string, date_format)
         return date
 
