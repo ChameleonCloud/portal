@@ -27,11 +27,18 @@ class ApplianceAdminForm(forms.ModelForm):
 class ApplianceAdmin(admin.ModelAdmin):
     list_display = (
         "name",
+        "created_date",
         "short_description",
         "author_name",
         "needs_review",
         "project_supported",
     )
+    ordering = [
+        "-created_date"
+    ]
+    list_filter = [
+        "needs_review"
+    ]
     actions = [make_reviewed]
     form = ApplianceAdminForm
 
