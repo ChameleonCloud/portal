@@ -72,9 +72,9 @@ def project_balances(project_ids) -> "list[dict]":
             {
                 "id": project.id,
                 "charge_code": project.charge_code,
-                "used": used_sus, # how much they have used
-                "total": total_sus, # how much they have used + pending use
-                "encumbered": total_sus - used_sus, # pending use
+                "used": used_sus,  # how much they have used
+                "total": total_sus,  # how much they have used + pending use
+                "encumbered": total_sus - used_sus,  # pending use
                 "allocated": allocated_sus,
             }
         )
@@ -100,16 +100,18 @@ def calculate_user_total_su_usage(user, project):
     # Extract requires native DurationField database support.
     charges_with_duration_in_ms = charges.annotate(
         charge_duration=ExpressionWrapper(
-            F('end_time') - F('start_time'), output_field=models.FloatField()
+            F("end_time") - F("start_time"), output_field=models.FloatField()
         )
     )
     # Calculate cost of each charge in SUs by converting ms to hours
     charges_with_actual_cost = charges_with_duration_in_ms.annotate(
-        charge_cost=F('charge_duration') / microseconds_per_hour * F('hourly_cost')
+        charge_cost=F("charge_duration") / microseconds_per_hour * F("hourly_cost")
     )
     # calculates the total cost of charges for the user on the project
     # by summing up the charge_cost values calculated for each charge.
     # If there are no charges, it returns 0.0
     return charges_with_actual_cost.aggregate(
-        total_cost=functions.Coalesce(Sum('charge_cost'), 0.0, output_field=models.IntegerField())
-    )['total_cost']
+        total_cost=functions.Coalesce(
+            Sum("charge_cost"), 0.0, output_field=models.IntegerField()
+        )
+    )["total_cost"]
