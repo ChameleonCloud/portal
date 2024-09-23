@@ -247,7 +247,10 @@ MARKDOWN_DEUX_STYLES = {
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-if os.environ.get("DB_NAME"):
+import sys
+TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
+
+if not TESTING and os.environ.get("DB_NAME"):
     # mysql connection
     DATABASES = {
         "default": {

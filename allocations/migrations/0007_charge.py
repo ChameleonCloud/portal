@@ -70,6 +70,10 @@ def _str_to_localtime(utctimestr):
 
 
 def init_charge_from_openstack_db(apps, schema_editor):
+    # No initial charges in test DB
+    if settings.TESTING:
+        return
+
     portal_db = utils.connect_to_portal_db()
     inserts = []
     for region in settings.REGION_OPENSTACK_DB_CONNECT.keys():
