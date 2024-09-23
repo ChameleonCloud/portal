@@ -5,7 +5,14 @@ from projects.models import Project
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
 
-from .utils.su_calculators import get_used_sus, get_total_sus, get_active_allocation, project_balances, calculate_user_total_su_usage
+from .utils.su_calculators import (
+    get_used_sus,
+    get_total_sus,
+    get_active_allocation,
+    project_balances,
+    calculate_user_total_su_usage,
+)
+
 
 class SUCalculatorsTest(TestCase):
     def setUp(self):
@@ -28,7 +35,7 @@ class SUCalculatorsTest(TestCase):
             pi=self.test_requestor,
             title="Test Project",
             nickname="test_project",
-            charge_code="TEST123"
+            charge_code="TEST123",
         )
         self.allocation = self.project.allocations.create(
             project=self.project,
@@ -78,7 +85,7 @@ class SUCalculatorsTest(TestCase):
             hourly_cost=5.0,
         )
 
-    @patch('django.utils.timezone.now')  # Mocking timezone.now()
+    @patch("django.utils.timezone.now")  # Mocking timezone.now()
     def test_get_used_sus(self, mock_now):
         mock_now.return_value = self.now
         # Test the get_used_sus function
@@ -96,20 +103,20 @@ class SUCalculatorsTest(TestCase):
         self.assertIsNotNone(active_allocation)
         self.assertEqual(active_allocation.status, "active")
 
-    @patch('django.utils.timezone.now')  # Mocking timezone.now()
+    @patch("django.utils.timezone.now")  # Mocking timezone.now()
     def test_project_balances(self, mock_now):
         mock_now.return_value = self.now
         # Test the project_balances function
         balances = project_balances([self.project.id])
         self.assertEqual(len(balances), 1)
         balance = balances[0]
-        self.assertEqual(balance['charge_code'], 'TEST123')
-        self.assertAlmostEqual(balance['used'], 16.0, places=2)
-        self.assertAlmostEqual(balance['total'], 41.0, places=2)
-        self.assertAlmostEqual(balance['allocated'], 50)
-        self.assertAlmostEqual(balance['encumbered'], 25.0, places=2)
+        self.assertEqual(balance["charge_code"], "TEST123")
+        self.assertAlmostEqual(balance["used"], 16.0, places=2)
+        self.assertAlmostEqual(balance["total"], 41.0, places=2)
+        self.assertAlmostEqual(balance["allocated"], 50)
+        self.assertAlmostEqual(balance["encumbered"], 25.0, places=2)
 
-    @patch('django.utils.timezone.now')  # Mocking timezone.now()
+    @patch("django.utils.timezone.now")  # Mocking timezone.now()
     def test_calculate_user_total_su_usage(self, mock_now):
         mock_now.return_value = self.now
         # Test calculate_user_total_su_usage function
