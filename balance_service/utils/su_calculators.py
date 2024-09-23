@@ -72,9 +72,9 @@ def project_balances(project_ids) -> "list[dict]":
             {
                 "id": project.id,
                 "charge_code": project.charge_code,
-                "used": used_sus,
-                "total": total_sus,
-                "encumbered": total_sus - used_sus,
+                "used": used_sus, # how much they have used
+                "total": total_sus, # how much they have used + pending use
+                "encumbered": total_sus - used_sus, # pending use
                 "allocated": allocated_sus,
             }
         )
