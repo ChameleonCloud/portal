@@ -106,7 +106,7 @@ class UsageEnforcer(object):
 
         return dt_hours(end_date - start_date)
 
-    def evaluate_lease(self, context, lease_values):
+    def _evaluate_lease(self, context, lease_values):
         project_charge_code = self._get_project_charge_code(context["project_id"])
         duration = self.get_lease_duration_hrs(lease_values)
         total_su_factor = self._total_su_factor(lease_values)
@@ -150,7 +150,9 @@ class UsageEnforcer(object):
                     user=user, project=project, su_budget=project.default_su_budget
                 )
                 user_budget.save()
-        left = user_budget.su_budget - su_calculators.calculate_user_total_su_usage(user, project)
+        left = user_budget.su_budget - su_calculators.calculate_user_total_su_usage(
+            user, project
+        )
         if left < new_charge:
             raise exceptions.BillingError(
                 message=(
@@ -167,7 +169,7 @@ class UsageEnforcer(object):
         Raises a BillingError if we don't have enough available SUs.
         """
         lease = data["lease"]
-        lease_eval = self.evaluate_lease(data["context"], lease)
+        lease_eval = self._evaluate_lease(data["context"], lease)
 
         LOG.debug(f"Evaluating new lease request: {lease} ({lease_eval})")
         debug_lease_reservations("New reservation", lease)
@@ -189,7 +191,7 @@ class UsageEnforcer(object):
         role, scopes = keycloak_client.get_user_project_role_scopes(
             lease_eval.user.username, lease_eval.project.charge_code
         )
-        if role == 'member':
+        if role == "member":
             self._check_usage_against_user_budget(
                 lease_eval.user, lease_eval.project, lease_eval.amount
             )
@@ -200,17 +202,22 @@ class UsageEnforcer(object):
 
         # create new charges
         for reservation in lease["reservations"]:
-            new_charge = Charge(
-                allocation=alloc,
-                user=lease_eval.user,
-                region_name=lease_eval.region,
-                resource_id=TMP_RESOURCE_ID.format(
+            # Use tmp resource id if not given
+            resource_id = reservation.get(
+                "id",
+                TMP_RESOURCE_ID.format(
                     prefix=TMP_RESOURCE_ID_PREFIX,
                     project_id=lease["project_id"],
                     user_id=lease["user_id"],
                     start_date=lease["start_date"],
                     name=lease["name"],
                 ),
+            )
+            new_charge = Charge(
+                allocation=alloc,
+                user=lease_eval.user,
+                region_name=lease_eval.region,
+                resource_id=resource_id,
                 resource_type=reservation["resource_type"],
                 start_time=self._convert_to_localtime(
                     self._date_from_string(lease["start_date"])
@@ -230,8 +237,8 @@ class UsageEnforcer(object):
         old_lease = data["current_lease"]
         new_lease = data["lease"]
 
-        old_lease_eval = self.evaluate_lease(context, old_lease)
-        new_lease_eval = self.evaluate_lease(context, new_lease)
+        old_lease_eval = self._evaluate_lease(context, old_lease)
+        new_lease_eval = self._evaluate_lease(context, new_lease)
 
         LOG.debug(
             (
@@ -319,7 +326,7 @@ class UsageEnforcer(object):
         context = data["context"]
         lease = data["lease"]
 
-        lease_eval = self.evaluate_lease(context, lease)
+        lease_eval = self._evaluate_lease(context, lease)
 
         LOG.debug(f"Stop charging for lease: {lease} ({lease_eval})")
         debug_lease_reservations("Ending reservation", lease)
