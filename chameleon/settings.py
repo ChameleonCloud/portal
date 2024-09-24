@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import os
 import re
+import sys
 
 from celery.schedules import crontab
 from django.utils.translation import gettext_lazy as _
@@ -244,11 +245,10 @@ MARKDOWN_DEUX_STYLES = {
     },
 }
 
+TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
+
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
-import sys
-TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
 
 if not TESTING and os.environ.get("DB_NAME"):
     # mysql connection
