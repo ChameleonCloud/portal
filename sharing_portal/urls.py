@@ -10,6 +10,7 @@ urlpatterns = [
     path("import/git/<pk>", views.create_git_version, name="create_git_version"),
     path("create", views.create_artifact, name="create_artifact"),
     path("api/git/", views.get_remote_data, name="get_remote_git_data"),
+    path("api/badges", views.badges_api, name="badges"),
     path("<pk>", views.artifact, name="detail"),
     path("<pk>/launch", views.launch, name="launch"),
     path("<pk>/download", views.download, name="download"),
