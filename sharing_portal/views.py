@@ -1393,3 +1393,29 @@ def download(request, artifact, version_slug=None):
     return HttpResponseRedirect(
         reverse("sharing_portal:detail", args=[artifact["uuid"]])
     )
+
+
+def badges_api(request):
+    return HttpResponse(
+        json.dumps({
+            "badges": [
+                {
+                    "name": b.name,
+                    "description": b.description,
+                    "redirect_link": b.redirect_link,
+                }
+                for b in Badge.objects.filter()
+            ],
+            "artifact_badges": [
+                {
+                    "artifact_uuid": a.artifact_uuid,
+                    "badge": a.badge.name,
+                } for a in
+                ArtifactBadge.objects.filter(
+                    status=ArtifactBadge.STATUS_APPROVED,
+                    deleted_at=None
+                )
+            ]
+        }),
+        content_type="application/json",
+    )
