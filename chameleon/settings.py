@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
+
 import os
 import re
 import sys
@@ -245,7 +246,7 @@ MARKDOWN_DEUX_STYLES = {
     },
 }
 
-TESTING = 'test' in sys.argv or 'test_coverage' in sys.argv
+TESTING = "test" in sys.argv or "test_coverage" in sys.argv
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -261,7 +262,7 @@ if not TESTING and os.environ.get("DB_NAME"):
             "USER": os.environ.get("DB_USER"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
             "TEST": {
-                'NAME': os.environ.get("DB_NAME") + "_test",
+                "NAME": os.environ.get("DB_NAME") + "_test",
             },
         },
     }

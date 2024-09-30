@@ -110,10 +110,11 @@ class ChargeBudget(models.Model):
         related_name="projectbudgets",
         on_delete=models.CASCADE,
     )
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE
-    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     su_budget = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     class Meta:
-        unique_together = ('user', 'project',)
+        unique_together = (
+            "user",
+            "project",
+        )

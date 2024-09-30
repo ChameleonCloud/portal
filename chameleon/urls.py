@@ -48,7 +48,7 @@ urlpatterns = [
         chameleon_views.admin_research_impacts_institutions,
         name="research_impacts_institutions",
     ),
-        path(
+    path(
         "admin/research_impacts/sus/",
         chameleon_views.admin_research_impacts_sus,
         name="research_impacts_sus",

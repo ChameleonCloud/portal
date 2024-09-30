@@ -25,32 +25,32 @@ class AllocationAdmin(admin.ModelAdmin):
         keycloak_client = KeycloakClient()
         uname = obj.project.pi.username
         user = keycloak_client.get_user_by_username(uname)
-        return user['attributes'].get('affiliationInstitution', '')
+        return user["attributes"].get("affiliationInstitution", "")
 
     list_display = (
-        'project_title',
-        'project',
-        'status',
-        'date_requested',
-        'date_reviewed',
-        'reviewer',
+        "project_title",
+        "project",
+        "status",
+        "date_requested",
+        "date_reviewed",
+        "reviewer",
     )
     fields = (
-        'pi_name',
-        'pi_email',
-        'pi_institution',
-        'project',
-        'project_title',
-        'project_description',
-        'justification',
-        'status',
-        'requestor',
-        'decision_summary',
-        'reviewer',
-        'date_requested',
-        'date_reviewed',
-        'start_date',
-        'expiration_date',
+        "pi_name",
+        "pi_email",
+        "pi_institution",
+        "project",
+        "project_title",
+        "project_description",
+        "justification",
+        "status",
+        "requestor",
+        "decision_summary",
+        "reviewer",
+        "date_requested",
+        "date_reviewed",
+        "start_date",
+        "expiration_date",
     )
     ordering = ["-date_requested"]
 

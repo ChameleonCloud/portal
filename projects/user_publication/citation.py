@@ -1,6 +1,7 @@
 """
 Fill in the latest citation numbers for all publication
 """
+
 import logging
 import re
 import time

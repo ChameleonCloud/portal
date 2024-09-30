@@ -1,4 +1,5 @@
 """View Decorators for termsandconditions module"""
+
 import urllib.parse
 from functools import wraps
 from django.conf import settings

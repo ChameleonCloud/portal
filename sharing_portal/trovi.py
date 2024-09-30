@@ -159,11 +159,13 @@ def portal_artifact_to_trovi(portal_artifact, prompt_input=False):
         "authors": [
             get_author(author, prompt_input) for author in portal_artifact.authors.all()
         ],
-        "linked_projects": []
-        if not portal_artifact.project
-        else [
-            f"urn:trovi:project:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.project.charge_code}"
-        ],
+        "linked_projects": (
+            []
+            if not portal_artifact.project
+            else [
+                f"urn:trovi:project:{settings.ARTIFACT_OWNER_PROVIDER}:{portal_artifact.project.charge_code}"
+            ]
+        ),
         "reproducibility": {
             "enable_requests": portal_artifact.is_reproducible,
             "access_hours": portal_artifact.reproduce_hours,

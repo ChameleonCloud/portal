@@ -96,10 +96,12 @@ def user_publications(request):
                     "author": pub.author,
                     "link": "" if not pub.link else pub.link,
                     "forum": pub.forum,
-                    "month": ""
-                    if not pub.month
-                    else datetime.datetime.strptime(str(pub.month), "%m").strftime(
-                        "%b"
+                    "month": (
+                        ""
+                        if not pub.month
+                        else datetime.datetime.strptime(str(pub.month), "%m").strftime(
+                            "%b"
+                        )
                     ),
                     "year": pub.year,
                     "nickname": project.nickname,

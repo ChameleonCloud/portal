@@ -33,12 +33,8 @@ class ApplianceAdmin(admin.ModelAdmin):
         "needs_review",
         "project_supported",
     )
-    ordering = [
-        "-created_date"
-    ]
-    list_filter = [
-        "needs_review"
-    ]
+    ordering = ["-created_date"]
+    list_filter = ["needs_review"]
     actions = [make_reviewed]
     form = ApplianceAdminForm
 
