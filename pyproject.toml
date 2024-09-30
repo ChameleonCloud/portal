@@ -52,7 +52,7 @@ ply = "^3.11"
 pybliometrics = "~3.4"
 pydetex = "~0.9"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
-python = "3.7.16"
+python = "3.9.16"
 python-blazarclient = {git = "https://github.com/ChameleonCloud/python-blazarclient", branch = "chameleoncloud/stable/train"}
 python-cinderclient = "^7.2.0"
 python-glanceclient = "2.17.1"
