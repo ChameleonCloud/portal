@@ -91,6 +91,7 @@ def institution_report():
         "edu_epscor_states": len(edu_epscor_states),
     }
 
+
 def _allocation_counts(projects):
     allocation_counts = []
     # For projects that were active at one point
@@ -209,13 +210,15 @@ def get_context():
         for name, tag in tags.items():
             active_projects_per_year_per_tag[name].append(
                 (
-                    year, 
+                    year,
                     Project.objects.filter(
                         allocations__status__in=allocation_statuses,
                         allocations__start_date__lte=year_end,
                         allocations__expiration_date__gte=current_year,
                         tag=tag,
-                    ).distinct().count()
+                    )
+                    .distinct()
+                    .count(),
                 )
             )
 
@@ -263,6 +266,7 @@ def get_institution_context():
         "institutions": institution_report(),
     }
 
+
 def get_sus_context():
     start_year = 2015
     end_year = datetime.now().year + 1
@@ -274,11 +278,10 @@ def get_sus_context():
         new_data[k] = dict(v)
         for n in v.values():
             all_sum += n
-    new_data["Total"] = {all_sum : ""}
+    new_data["Total"] = {all_sum: ""}
     return {
         "su_usage_data": new_data,
     }
-
 
 
 def get_education_users():
@@ -301,13 +304,13 @@ def su_information(start_year, end_year):
         # Calculate SU usage
         sus = (
             Charge.objects.filter(start_time__year=year)
-            .annotate(duration=F('end_time') - F('start_time'))
+            .annotate(duration=F("end_time") - F("start_time"))
             .values("region_name", "duration", "hourly_cost")
         )
         total_su = defaultdict(int)
         total_su_all = 0
         for su in sus:
-            cost =  su["duration"].total_seconds()/3600 * su["hourly_cost"]
+            cost = su["duration"].total_seconds() / 3600 * su["hourly_cost"]
             total_su[su["region_name"]] += cost
             total_su_all += cost
         total_su["All Sites"] = total_su_all
