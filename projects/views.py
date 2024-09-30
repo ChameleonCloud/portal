@@ -10,14 +10,10 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.core.validators import validate_email
-from django.db import transaction, DataError
+from django.db import DataError, transaction
 from django.forms.models import model_to_dict
-from django.http import (
-    Http404,
-    HttpResponseForbidden,
-    HttpResponseRedirect,
-    JsonResponse,
-)
+from django.http import (Http404, HttpResponseForbidden, HttpResponseRedirect,
+                         JsonResponse)
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -33,21 +29,14 @@ from projects.models import Funding, JoinLink, JoinRequest
 from projects.serializer import ProjectExtrasJSONSerializer
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
+
 from . import membership
-from .forms import (
-    AddBibtexPublicationForm,
-    AllocationCreateForm,
-    ConsentForm,
-    EditNicknameForm,
-    EditPIForm,
-    EditTagForm,
-    FundingFormset,
-    ProjectAddUserForm,
-    ProjectAddBulkUserForm,
-    ProjectCreateForm,
-)
+from .forms import (AddBibtexPublicationForm, AllocationCreateForm,
+                    ConsentForm, EditNicknameForm, EditPIForm, EditTagForm,
+                    FundingFormset, ProjectAddBulkUserForm, ProjectAddUserForm,
+                    ProjectCreateForm)
 from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_project_members, get_charge_code
+from .util import email_exists_on_project, get_charge_code, get_project_members
 
 logger = logging.getLogger("projects")
 
@@ -56,6 +45,52 @@ ROLES = ["Manager", "Member"]
 
 class UserNotPIEligible(Exception):
     pass
+
+
+class UserPermissions():
+    manage: bool
+    manage_membership: bool
+
+    def __init__(self, manage, manage_membership):
+        self.manage = manage
+        self.manage_membership = manage_membership
+
+    @staticmethod
+    def _get_user_project_role_scopes(keycloak_client, username, project):
+        role, scopes = keycloak_client.get_user_project_role_scopes(
+            username, get_charge_code(project)
+        )
+        logger.info("SCOPES===")
+        logger.info(role)
+        logger.info(scopes)
+        return role, scopes
+
+    @staticmethod
+    def _parse_scopes(scopes):
+        # NOTE We have these two scopes defined in KC. In implementation,
+        # we do not differentiate between them. See our docs for the specifics
+        # https://chameleoncloud.readthedocs.io/en/latest/user/project.html#user-roles
+        can_manage = "manage" in scopes or "manage-membership" in scopes
+        return UserPermissions(
+            manage=can_manage,  # Can edit project metadata/allocations
+            manage_membership=can_manage,  # Can update members
+        )
+
+    @staticmethod
+    def get_user_permissions(keycloak_client, username, project):
+        _, scopes = UserPermissions._get_user_project_role_scopes(
+            keycloak_client, username, project)
+        return UserPermissions._parse_scopes(scopes)
+
+    @staticmethod
+    def get_manager_projects(keycloak_client, username):
+        """Gets project names for all project this user is a manager of
+        """
+        return [
+            project["groupName"]
+            for project in keycloak_client.get_user_roles(username)
+            if UserPermissions._parse_scopes(project["scopes"]).manage
+        ]
 
 
 def is_admin_or_superuser(user):
@@ -80,26 +115,6 @@ def project_member_or_admin_or_superuser(user, project, project_user):
             return True
 
     return False
-
-
-def get_user_project_role_scopes(keycloak_client, username, project):
-    role, scopes = keycloak_client.get_user_project_role_scopes(
-        username, get_charge_code(project)
-    )
-    return role, scopes
-
-
-def manage_membership_in_scope(scopes):
-    return "manage-membership" in scopes
-
-
-def manage_project_in_scope(scopes):
-    return "manage" in scopes
-
-
-def get_user_permissions(keycloak_client, username, project):
-    role, scopes = get_user_project_role_scopes(keycloak_client, username, project)
-    return manage_membership_in_scope(scopes), manage_project_in_scope(scopes)
 
 
 def is_pi_eligible(user):
@@ -352,7 +367,7 @@ def view_project(request, project_id):
         current_allocation_su_allocated = project.active_allocations[0].computeAllocated
     else:
         current_allocation_su_allocated = 0
-    can_manage_project_membership, can_manage_project = get_user_permissions(
+    user_permission = UserPermissions.get_user_permissions(
         keycloak_client, request.user.username, project
     )
 
@@ -360,7 +375,7 @@ def view_project(request, project_id):
     users_is_stale = False
     if (
         request.POST
-        and can_manage_project_membership
+        and user_permission.manage_membership
         or is_admin_or_superuser(request.user)
     ):
         form = ProjectAddUserForm()
@@ -646,8 +661,8 @@ def view_project(request, project_id):
             "join_requests": join_link.join_requests.filter(
                 status=JoinRequest.Status.PENDING
             ),
-            "can_manage_project_membership": can_manage_project_membership,
-            "can_manage_project": can_manage_project,
+            "can_manage_project_membership": user_permission.manage_membership,
+            "can_manage_project": user_permission.manage,
             "is_admin": request.user.is_superuser,
             "is_on_daypass": is_on_daypass,
             "form": form,
@@ -858,10 +873,10 @@ def create_allocation(request, project_id, allocation_id=-1):
     project = mapper.get_project(project_id)
 
     keycloak_client = KeycloakClient()
-    _, can_manage_project = get_user_permissions(
+    user_permission = UserPermissions.get_user_permissions(
         keycloak_client, request.user.username, project
     )
-    if not can_manage_project:
+    if not user_permission.manage:
         messages.error(
             request,
             "Only PI Eligible users and Managers can request allocations. If you would "
@@ -1088,11 +1103,11 @@ def edit_nickname(request, project_id):
     project = mapper.get_project(project_id)
 
     keycloak_client = KeycloakClient()
-    _, can_manage_project = get_user_permissions(
+    user_permission = UserPermissions.get_user_permissions(
         keycloak_client, request.user.username, project
     )
 
-    if not (can_manage_project or is_admin_or_superuser(request.user)):
+    if not (user_permission.manage or is_admin_or_superuser(request.user)):
         messages.error(request, "Only the project PI can update nickname.")
         return EditNicknameForm()
 
@@ -1212,12 +1227,12 @@ def get_extras(request):
 
 def get_project_membership_managers(project):
     users = get_project_members(project)
-    return [user for user in users if is_membership_manager(project, user.username)]
-
-
-def is_membership_manager(project, username):
     keycloak_client = KeycloakClient()
-    return get_user_permissions(keycloak_client, username, project)[0]
+    return [
+        user for user in users
+        if UserPermissions.get_user_permissions(
+            keycloak_client, user.username, project).manage_membership
+    ]
 
 
 @login_required

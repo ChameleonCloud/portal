@@ -21,10 +21,9 @@ from django.utils.html import strip_tags
 from projects.models import Project, Tag
 from projects.util import get_project_members
 from projects.views import (
+    UserPermissions,
     add_project_invitation,
-    manage_membership_in_scope,
     get_project_membership_managers,
-    is_membership_manager,
 )
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -890,7 +889,9 @@ def review_daypass(request, request_id, **kwargs):
     project = trovi.get_linked_project(artifact)
     if not project:
         raise Http404("Project linked to this artifact does not exist.")
-    if not is_membership_manager(project, request.user.username):
+    keycloak_client = KeycloakClient()
+    user_permission = UserPermissions.get_user_permissions(keycloak_client, request.user.username, project)
+    if not user_permission.manage:
         raise PermissionDenied("You do not have permission to view that page")
 
     if daypass_request.status != DaypassRequest.STATUS_PENDING:
@@ -959,11 +960,7 @@ def review_daypass(request, request_id, **kwargs):
 @with_trovi_token
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
-    projects = [
-        project["groupName"]
-        for project in keycloak_client.get_user_roles(request.user.username)
-        if manage_membership_in_scope(project["scopes"])
-    ]
+    projects = UserPermissions.get_manager_projects(keycloak_client, request.user.username)
     trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
     trovi_artifacts_map = {}
     # Create a map of all artifacts assigned to projects this user has perms on

@@ -58,7 +58,7 @@ def create_pi_aliases(apps, _):
         return
     for alias in PI_ALIASES:
         if get_user_model().objects.filter(pk=alias["pi_id"]).exists():
-            pi_alias_model.objects.create((pi_alias_model(**alias)))
+            pi_alias_model.objects.create(**alias)
 
 
 class Migration(migrations.Migration):
