@@ -1,16 +1,15 @@
 ARG NODE_IMG=node
 ARG NODE_VER_NAME=lts-gallium
 ARG PY_IMG=python
-ARG PY_VER=3.7.16
 
-FROM ${NODE_IMG}:${NODE_VER_NAME} as client
+FROM ${NODE_IMG}:${NODE_VER_NAME} AS client
 WORKDIR /project
 COPY package.json yarn.lock ./
 RUN yarn install --network-timeout 1000000
 COPY . ./
 RUN yarn build --production
 
-FROM ${PY_IMG}:${PY_VER}
+FROM ${PY_IMG}:3.9.16
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
