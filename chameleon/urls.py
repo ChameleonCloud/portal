@@ -33,7 +33,6 @@ class AdminOIDCLogin(View):
 urlpatterns = [
     # admin urls
     path("admin/login/", AdminOIDCLogin.as_view()),
-    re_path(r"^admin/impersonate/(?!impersonationlog/)", include("impersonate.urls")),
     path(
         "admin/allocations/",
         include("allocations.urls", namespace="allocations_admin"),

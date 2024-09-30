@@ -156,7 +156,6 @@ INSTALLED_APPS = (
     "captcha",
     "bootstrap3",
     "termsandconditions",
-    "impersonate",
     "markdown_deux",
     "webpack_loader",
     "rest_framework",
@@ -223,7 +222,6 @@ MIDDLEWARE = (
     "cms.middleware.page.CurrentPageMiddleware",
     "cms.middleware.toolbar.ToolbarMiddleware",
     "cms.middleware.language.LanguageCookieMiddleware",
-    "impersonate.middleware.ImpersonateMiddleware",
     "mozilla_django_oidc.middleware.RefreshOIDCAccessToken",
 )
 
@@ -698,16 +696,6 @@ G5K_API_ROOT = "http://referenceapi:8000"
 #
 #####
 EDGE_HW_ROOT = "http://edgehwdiscovery:5000"
-
-#####
-#
-# Django Impersonate
-#
-#####
-IMPERSONATE = {
-    "REQUIRE_SUPERUSER": True,
-}
-
 
 #####
 #
