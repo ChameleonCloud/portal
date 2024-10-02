@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   nodejs \
   ruby \
   ruby-dev \
+  default-mysql-client \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
   # Install SASS requirements

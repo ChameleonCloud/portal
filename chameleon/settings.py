@@ -147,13 +147,12 @@ INSTALLED_APPS = (
     "djangocms_picture",
     "djangocms_snippet",
     "djangocms_video",
-    "reversion",
     ##
     # contrib
     #
     "ckeditor",
     "pipeline",
-    "captcha",
+    "django_recaptcha",
     "bootstrap3",
     "termsandconditions",
     "markdown_deux",
@@ -181,7 +180,6 @@ INSTALLED_APPS = (
     # djangocms-blog
     "filer",
     "easy_thumbnails",
-    "mptt",
     "aldryn_apphooks_config",
     "parler",
     "taggit",
@@ -272,6 +270,8 @@ else:
             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
         },
     }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -920,3 +920,5 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
+
+SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
