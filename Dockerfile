@@ -9,7 +9,7 @@ RUN yarn install --network-timeout 1000000
 COPY . ./
 RUN yarn build --production
 
-FROM ${PY_IMG}:3.9.16
+FROM ${PY_IMG}:3.10.11
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
