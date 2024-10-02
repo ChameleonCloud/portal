@@ -271,7 +271,7 @@ else:
         },
     }
 
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -921,4 +921,4 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
 
-SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
+SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
