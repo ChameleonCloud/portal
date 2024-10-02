@@ -1,6 +1,6 @@
 import logging
 
-from captcha.fields import ReCaptchaField, ReCaptchaV3
+from django_recaptcha.fields import ReCaptchaField, ReCaptchaV3
 from django import forms
 from django.core.validators import validate_email
 

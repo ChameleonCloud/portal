@@ -48,7 +48,10 @@ module.exports = {
 
     config
       .plugin('BundleTracker')
-      .use(BundleTracker, [{filename: 'webpack-stats.json'}]);
+      .use(BundleTracker, [{
+        path: '/project',
+        filename: 'webpack-stats.json'
+      }]);
 
     config.resolve.alias
       .set('__STATIC__', 'static');
