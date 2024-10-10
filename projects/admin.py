@@ -1,19 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
 
 from allocations.models import Allocation
 from projects.models import (
     ChameleonPublication,
     Funding,
     Invitation,
-    JoinLink,
     Project,
     Publication,
     PublicationSource,
 )
 from projects.views import resend_invitation
-from sharing_portal.models import DaypassProject
 
 
 class ProjectFields:
