@@ -1,14 +1,19 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.urls import reverse
 
+from allocations.models import Allocation
 from projects.models import (
     ChameleonPublication,
     Funding,
     Invitation,
+    JoinLink,
+    Project,
     Publication,
     PublicationSource,
 )
 from projects.views import resend_invitation
+from sharing_portal.models import DaypassProject
 
 
 class ProjectFields:
@@ -54,33 +59,13 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "year",
         "status",
     )
+    list_filter = ["status", "year", "checked_for_duplicates", "publication_type"]
+    search_fields = ["title", "project_charge_code", "author", "forum"]
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
     fields = ("title", "ref")
     list_display = ("title", "ref")
-
-
-class FundingAdmin(ProjectFields, admin.ModelAdmin):
-    readonly_fields = [
-        "project_charge_code",
-    ]
-
-    fields = (
-        "project_charge_code",
-        "is_active",
-        "agency",
-        "award",
-        "grant_name",
-    )
-
-    ordering = ["project__charge_code"]
-    list_display = ("project_charge_code", "agency", "award", "grant_name")
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(FundingAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields["award"].required = False
-        return form
 
 
 class PublicationFields:
@@ -141,6 +126,8 @@ class InvitationAdmin(admin.ModelAdmin):
         "date_accepted",
         "status",
     ]
+    list_filter = ["status", "date_issued"]
+    search_fields = ["project__charge_code"]
     actions = ["resend_invitation"]
 
     def invite_link(self, obj):
@@ -161,9 +148,98 @@ class InvitationAdmin(admin.ModelAdmin):
 
     resend_invitation.short_description = "Resend Invitations"
 
+    def has_add_permission(self, request, obj=None):
+        return False
 
+
+class ProjectPublicationInline(admin.TabularInline):
+    model = Publication
+    exclude = ["tas_project_id"]
+    extra = 1
+
+
+class FundingInline(admin.TabularInline):
+    model = Funding
+    extra = 1
+
+
+class InvitationInline(admin.TabularInline):
+    model = Invitation
+    readonly_fields = [
+        "email_address",
+        "status",
+        "invite_link",
+        "user_issued",
+        "date_issued",
+        "user_accepted",
+        "date_accepted",
+        "date_expires",
+        "duration",
+    ]
+
+    def invite_link(self, obj):
+        if obj.status == Invitation.STATUS_ISSUED:
+            url = obj.get_invite_url()
+            return format_html(f'<a href="{url}" target="_blank">Invite Link</a>')
+        return ""
+
+    def has_add_permission(self, req, obj):
+        return False
+
+
+class AllocationInline(admin.TabularInline):
+    model = Allocation
+    fields = [
+        "date_requested",
+        "status",
+        "start_date",
+        "expiration_date",
+        "su_used",
+        "su_allocated",
+    ]
+    readonly_fields = [
+        "date_requested",
+        "status",
+        "start_date",
+        "expiration_date",
+        "su_used",
+        "su_allocated",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ["charge_code", "pi", "nickname", "title"]
+    search_fields = ["charge_code", "pi__username", "pi__email", "nickname", "title"]
+    list_filter = ["tag"]
+    readonly_fields = ["charge_code", "automatically_tagged", "join_url"]
+
+    def join_url(self, obj):
+        return format_html(
+            f'<a href="{obj.join_link.get_url()}" target="_blank">Join Link</a>'
+        )
+
+    inlines = [
+        ProjectPublicationInline,
+        FundingInline,
+        InvitationInline,
+        AllocationInline,
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(Project, ProjectAdmin)
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Invitation, InvitationAdmin)
-admin.site.register(Funding, FundingAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 admin.site.register(PublicationSource, PublicationSourceAdmin)
