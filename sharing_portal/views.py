@@ -890,7 +890,9 @@ def review_daypass(request, request_id, **kwargs):
     if not project:
         raise Http404("Project linked to this artifact does not exist.")
     keycloak_client = KeycloakClient()
-    user_permission = UserPermissions.get_user_permissions(keycloak_client, request.user.username, project)
+    user_permission = UserPermissions.get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
     if not user_permission.manage:
         raise PermissionDenied("You do not have permission to view that page")
 
@@ -960,7 +962,9 @@ def review_daypass(request, request_id, **kwargs):
 @with_trovi_token
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
-    projects = UserPermissions.get_manager_projects(keycloak_client, request.user.username)
+    projects = UserPermissions.get_manager_projects(
+        keycloak_client, request.user.username
+    )
     trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
     trovi_artifacts_map = {}
     # Create a map of all artifacts assigned to projects this user has perms on
@@ -1394,25 +1398,26 @@ def download(request, artifact, version_slug=None):
 
 def badges_api(request):
     return HttpResponse(
-        json.dumps({
-            "badges": [
-                {
-                    "name": b.name,
-                    "description": b.description,
-                    "redirect_link": b.redirect_link,
-                }
-                for b in Badge.objects.filter()
-            ],
-            "artifact_badges": [
-                {
-                    "artifact_uuid": a.artifact_uuid,
-                    "badge": a.badge.name,
-                } for a in
-                ArtifactBadge.objects.filter(
-                    status=ArtifactBadge.STATUS_APPROVED,
-                    deleted_at=None
-                )
-            ]
-        }),
+        json.dumps(
+            {
+                "badges": [
+                    {
+                        "name": b.name,
+                        "description": b.description,
+                        "redirect_link": b.redirect_link,
+                    }
+                    for b in Badge.objects.filter()
+                ],
+                "artifact_badges": [
+                    {
+                        "artifact_uuid": a.artifact_uuid,
+                        "badge": a.badge.name,
+                    }
+                    for a in ArtifactBadge.objects.filter(
+                        status=ArtifactBadge.STATUS_APPROVED, deleted_at=None
+                    )
+                ],
+            }
+        ),
         content_type="application/json",
     )
