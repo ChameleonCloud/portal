@@ -12,8 +12,12 @@ from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.db import DataError, transaction
 from django.forms.models import model_to_dict
-from django.http import (Http404, HttpResponseForbidden, HttpResponseRedirect,
-                         JsonResponse)
+from django.http import (
+    Http404,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -31,10 +35,18 @@ from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from . import membership
-from .forms import (AddBibtexPublicationForm, AllocationCreateForm,
-                    ConsentForm, EditNicknameForm, EditPIForm, EditTagForm,
-                    FundingFormset, ProjectAddBulkUserForm, ProjectAddUserForm,
-                    ProjectCreateForm)
+from .forms import (
+    AddBibtexPublicationForm,
+    AllocationCreateForm,
+    ConsentForm,
+    EditNicknameForm,
+    EditPIForm,
+    EditTagForm,
+    FundingFormset,
+    ProjectAddBulkUserForm,
+    ProjectAddUserForm,
+    ProjectCreateForm,
+)
 from .models import Invitation, Project, ProjectExtras
 from .util import email_exists_on_project, get_charge_code, get_project_members
 
@@ -47,7 +59,7 @@ class UserNotPIEligible(Exception):
     pass
 
 
-class UserPermissions():
+class UserPermissions:
     manage: bool
     manage_membership: bool
 
@@ -60,9 +72,6 @@ class UserPermissions():
         role, scopes = keycloak_client.get_user_project_role_scopes(
             username, get_charge_code(project)
         )
-        logger.info("SCOPES===")
-        logger.info(role)
-        logger.info(scopes)
         return role, scopes
 
     @staticmethod
@@ -79,13 +88,13 @@ class UserPermissions():
     @staticmethod
     def get_user_permissions(keycloak_client, username, project):
         _, scopes = UserPermissions._get_user_project_role_scopes(
-            keycloak_client, username, project)
+            keycloak_client, username, project
+        )
         return UserPermissions._parse_scopes(scopes)
 
     @staticmethod
     def get_manager_projects(keycloak_client, username):
-        """Gets project names for all project this user is a manager of
-        """
+        """Gets project names for all project this user is a manager of"""
         return [
             project["groupName"]
             for project in keycloak_client.get_user_roles(username)
@@ -1229,9 +1238,11 @@ def get_project_membership_managers(project):
     users = get_project_members(project)
     keycloak_client = KeycloakClient()
     return [
-        user for user in users
+        user
+        for user in users
         if UserPermissions.get_user_permissions(
-            keycloak_client, user.username, project).manage_membership
+            keycloak_client, user.username, project
+        ).manage_membership
     ]
 
 

@@ -243,10 +243,11 @@ class JoinLink(models.Model):
     )
     secret = models.CharField(max_length=26, default=_generate_secret, unique=True)
 
-    def get_url(self, request):
-        return request.build_absolute_uri(
-            reverse("projects:reqeust_to_join", args=[self.secret])
-        )
+    def get_url(self, request=None):
+        rel_url = reverse("projects:reqeust_to_join", args=[self.secret])
+        if request:
+            return request.build_absolute_uri(rel_url)
+        return rel_url
 
     def has_join_request(self, user):
         return self.join_requests.filter(user=user).exists()

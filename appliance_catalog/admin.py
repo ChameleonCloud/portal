@@ -24,6 +24,10 @@ class ApplianceAdminForm(forms.ModelForm):
             return None
 
 
+class ApplianceTaggingInline(admin.TabularInline):
+    model = ApplianceTagging
+
+
 class ApplianceAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -34,8 +38,9 @@ class ApplianceAdmin(admin.ModelAdmin):
         "project_supported",
     )
     ordering = ["-created_date"]
-    list_filter = ["needs_review"]
+    list_filter = ["needs_review", "project_supported"]
     actions = [make_reviewed]
+    inlines = [ApplianceTaggingInline]
     form = ApplianceAdminForm
 
 
@@ -49,4 +54,3 @@ class ApplianceTaggingAdmin(admin.ModelAdmin):
 
 admin.site.register(Keyword, KeywordAdmin)
 admin.site.register(Appliance, ApplianceAdmin)
-admin.site.register(ApplianceTagging, ApplianceTaggingAdmin)

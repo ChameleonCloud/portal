@@ -13,6 +13,9 @@ class EventAdmin(NewsAdmin):
 
 class OutageAdmin(NewsAdmin):
     form = OutageForm
+    list_display = ["title", "author", "severity", "start_date", "end_date", "resolved"]
+    list_filter = ["resolved", "severity", "created", "tags"]
+    search_fields = ["title", "author", "body", "summary"]
 
 
 admin.site.register(NewsTag)

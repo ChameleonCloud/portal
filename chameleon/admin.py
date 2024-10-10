@@ -74,7 +74,7 @@ class PIEligibilityAdmin(ModelAdmin):
     ordering = ["-status", "-request_date", "-review_date"]
 
     list_display = ("requestor", "status", "request_date")
-    list_filter = ("status",)
+    list_filter = ("status", "request_date")
     search_fields = ["requestor__username"]
 
     def _notify_user(self, pi_request, host):

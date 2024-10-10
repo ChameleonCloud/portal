@@ -5,10 +5,13 @@ from util.keycloak_client import KeycloakClient
 from .models import Allocation, Charge
 
 
-class AllocationAdmin(admin.ModelAdmin):
-    def has_change_permission(self, request, obj=None):
-        return False
+class ChargeInline(admin.TabularInline):
+    model = Charge
+    extra = 1
+    fields = ["region_name", "user"]
 
+
+class AllocationAdmin(admin.ModelAdmin):
     def project_description(self, obj):
         return str(obj.project.description)
 
@@ -25,7 +28,7 @@ class AllocationAdmin(admin.ModelAdmin):
         keycloak_client = KeycloakClient()
         uname = obj.project.pi.username
         user = keycloak_client.get_user_by_username(uname)
-        return user["attributes"].get("affiliationInstitution", "")
+        return user.get("attributes", {}).get("affiliationInstitution", "")
 
     list_display = (
         "project_title",
@@ -51,9 +54,31 @@ class AllocationAdmin(admin.ModelAdmin):
         "date_reviewed",
         "start_date",
         "expiration_date",
+        "su_allocated",
     )
+    readonly_fields = [
+        "pi_name",
+        "pi_email",
+        "pi_institution",
+        "project",
+        "project_title",
+        "project_description",
+        "justification",
+        "status",
+        "requestor",
+        "decision_summary",
+        "reviewer",
+        "date_requested",
+        "date_reviewed",
+    ]
     ordering = ["-date_requested"]
+    search_fields = [
+        "project__charge_code",
+        "project__pi__first_name",
+        "project__pi__last_name",
+    ]
+    list_filter = ["status", "date_requested"]
+    inlines = [ChargeInline]
 
 
-admin.site.register(Charge)
 admin.site.register(Allocation, AllocationAdmin)
