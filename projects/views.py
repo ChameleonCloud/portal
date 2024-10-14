@@ -193,7 +193,7 @@ def request_to_join(request, secret):
 
     if request.POST:
         # User has submitted a response to the project join page
-        if join_link.has_join_request(user):
+        if join_link.has_pending_join_request(user):
             # If user manages to click the confirm button twice
             messages.error(
                 request,
@@ -202,6 +202,7 @@ def request_to_join(request, secret):
         elif "confirm_join_project_request" in request.POST:
             # User clicked confirm
             join_request = JoinRequest.objects.create(join_link=join_link, user=user)
+            # TODO create new invite here...
             project_url = request.build_absolute_uri(
                 reverse("projects:view_project", args=[project.id])
             )
@@ -242,33 +243,13 @@ def request_to_join(request, secret):
         messages.success(request, "You are already a member of this project!")
         return HttpResponseRedirect(reverse("projects:view_project", args=[project.id]))
 
-    if join_link.has_join_request(user):
-        join_request = join_link.join_requests.get(user=user)
-        if join_request.is_accepted():
-            # If the user is not a project member, but has an accepted join request,
-            # then something went wrong
-            messages.error(
-                request,
-                "Your join request has been accepted, "
-                "but you are not a member of this project. "
-                "Please reach out to the PI and have them add you manually.",
-            )
-            return HttpResponseRedirect(reverse("projects:user_projects"))
-        elif join_request.is_rejected():
-            # If user has been rejected from the project, let them know
-            messages.error(
-                request,
-                f"Your request to join {project.charge_code} "
-                f"was rejected by the project's PI.",
-            )
-            return HttpResponseRedirect(reverse("projects:user_projects"))
-        else:
-            # If the user hasn't been rejected or accepted, their request is pending
-            messages.warning(
-                request,
-                f"Your request to join project {project.charge_code} is still pending.",
-            )
-            return HttpResponseRedirect(reverse("projects:user_projects"))
+    if join_link.has_pending_join_request(user):
+        # If the user hasn't been rejected or accepted, their request is pending
+        messages.warning(
+            request,
+            f"Your request to join project {project.charge_code} is still pending.",
+        )
+        return HttpResponseRedirect(reverse("projects:user_projects"))
 
     # If the user is not a member and has no join request,
     return render(
