@@ -250,7 +250,9 @@ class JoinLink(models.Model):
         return rel_url
 
     def has_pending_join_request(self, user):
-        return self.join_requests.filter(user=user, status=JoinRequest.Status.PENDING).exists()
+        return self.join_requests.filter(
+            user=user, status=JoinRequest.Status.PENDING
+        ).exists()
 
 
 class JoinRequest(models.Model):
