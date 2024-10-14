@@ -19,13 +19,22 @@ class UserMenu(CMSAttachMenu):
         # n = NavigationNode(_('Help Desk'), reverse('djangoRT:ticketcreateguest'), menu_id, attr={'visible_for_authenticated': False, 'class': 'navbar-btn-alt'})
         # nodes.append(n)
         menu_id += 1
-        n = NavigationNode(
-            _("Help Desk"),
-            reverse("djangoRT:ticketcreateguest"),
-            menu_id,
-            attr={"visible_for_anonymous": True, "class": "navbar-btn-alt"},
-        )
-        nodes.append(n)
+        if request.user.is_authenticated:
+            n = NavigationNode(
+                _("Help Desk"),
+                reverse("djangoRT:mytickets"),
+                menu_id,
+                attr={"visible_for_anonymous": True, "class": "navbar-btn-alt"},
+            )
+            nodes.append(n)
+        else:
+            n = NavigationNode(
+                _("Help Desk"),
+                reverse("djangoRT:ticketcreateguest"),
+                menu_id,
+                attr={"visible_for_anonymous": True, "class": "navbar-btn-alt"},
+            )
+            nodes.append(n)
 
         menu_id += 1
         n = NavigationNode(
