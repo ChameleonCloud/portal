@@ -29,12 +29,12 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     inlines = (PublicationSourceInline,)
 
     readonly_fields = [
-        "project_charge_code",
+        "project",
         "added_by_username",
     ]
 
     fields = (
-        "project_charge_code",
+        "project",
         "publication_type",
         "forum",
         "title",
@@ -52,12 +52,12 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     list_display = (
         "id",
         "title",
-        "project_charge_code",
+        "project",
         "year",
         "status",
     )
     list_filter = ["status", "year", "checked_for_duplicates", "publication_type"]
-    search_fields = ["title", "project_charge_code", "author", "forum"]
+    search_fields = ["title", "project__charge_code", "author", "forum"]
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
