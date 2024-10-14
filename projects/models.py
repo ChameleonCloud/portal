@@ -249,22 +249,14 @@ class JoinLink(models.Model):
             return request.build_absolute_uri(rel_url)
         return rel_url
 
-    def has_join_request(self, user):
-        return self.join_requests.filter(user=user).exists()
+    def has_pending_join_request(self, user):
+        return self.join_requests.filter(user=user, status=JoinRequest.Status.PENDING).exists()
 
 
 class JoinRequest(models.Model):
     """
     Represents a "click" on a JoinLink
     """
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["join_link", "user"],
-                name="join_request_user_link_unique_constraint",
-            )
-        ]
 
     class Status(models.TextChoices):
         PENDING = _("pending")
