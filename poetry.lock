@@ -2754,13 +2754,13 @@ files = [
 
 [[package]]
 name = "pydetex"
-version = "0.9.9"
+version = "1.0.8"
 description = "An application that transforms LaTeX code to plain text"
 optional = false
 python-versions = ">=3.7, <4"
 files = [
-    {file = "pydetex-0.9.9-py3-none-any.whl", hash = "sha256:2e7f220f87af47eee887a2a0d03ebf7722635a26640339ad884ef11964964089"},
-    {file = "pydetex-0.9.9.tar.gz", hash = "sha256:717d919ca62a574bb015c8103befeb2332118512ee428eb6984a33e3c4d26d09"},
+    {file = "pydetex-1.0.8-py3-none-any.whl", hash = "sha256:5ec5bf5a3764184be22480d363763dab4a652eea04b9272c79d9f526a8490274"},
+    {file = "pydetex-1.0.8.tar.gz", hash = "sha256:ff0f6b1477f0cef201345385d3e8c7dda7bbc5644e7107774797d0482b140031"},
 ]
 
 [package.dependencies]
@@ -2769,15 +2769,15 @@ flatlatex = ">=0.15"
 langdetect = ">=1.0.9"
 nltk = ">=3.7"
 outdated = ">=0.2.2"
-PyMultiDictionary = ">=1.2.0"
+PyMultiDictionary = ">=1.2.3"
 pyperclip = ">=1.8.2"
 requests = ">=2.28.1"
 tkmacosx = ">=1.0.5"
 
 [package.extras]
-docs = ["sphinx", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme"]
+docs = ["sphinx (<7)", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme"]
 installer = ["pyinstaller (==4.10)"]
-test = ["codecov", "nose2"]
+test = ["nose2[coverage-plugin]"]
 
 [[package]]
 name = "pydocstyle"
@@ -4378,4 +4378,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "76689839190ba492bf8271fb6e7288a828c4ab1720dbb44e5dcf6b1458a9547e"
+content-hash = "6d45806738b4e5dea1485ac7db94e2d25c1491ea8b1cdc8425ec54013aee265b"
