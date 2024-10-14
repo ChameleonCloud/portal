@@ -2716,19 +2716,19 @@ files = [
 
 [[package]]
 name = "pybliometrics"
-version = "3.4.0"
+version = "4.1"
 description = "Python-based API-Wrapper to access Scopus"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pybliometrics-3.4.0.tar.gz", hash = "sha256:7e1c16ca7d120f98b6212c269238f120fbac1996ca8375543c8f18003fc87498"},
+    {file = "pybliometrics-4.1-py2.py3-none-any.whl", hash = "sha256:80d03b107b90408fc15dea217b3aa10b9ee94d8f9c45002bddf60a08f67cc3ef"},
+    {file = "pybliometrics-4.1.tar.gz", hash = "sha256:4af9b7584b2caae3a53d4c8e2a7d4395c26189352440356744b57660ed0348e4"},
 ]
 
 [package.dependencies]
-pbr = "*"
 requests = "*"
-simplejson = "*"
 tqdm = "*"
+urllib3 = "*"
 
 [[package]]
 name = "pycodestyle"
@@ -4378,4 +4378,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "4d32976d3b9e1e94632ef41bd693e33e712758e37cdfebefc19c3c38c1bbabac"
+content-hash = "76689839190ba492bf8271fb6e7288a828c4ab1720dbb44e5dcf6b1458a9547e"
