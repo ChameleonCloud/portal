@@ -21,7 +21,7 @@ class UserMenu(CMSAttachMenu):
         menu_id += 1
         n = NavigationNode(
             _("Help Desk"),
-            reverse("djangoRT:mytickets"),
+            reverse("djangoRT:ticketcreateguest"),
             menu_id,
             attr={"visible_for_anonymous": True, "class": "navbar-btn-alt"},
         )
