@@ -1397,7 +1397,7 @@ def download(request, artifact, version_slug=None):
 
 
 def badges_api(request):
-    return HttpResponse(
+    response = HttpResponse(
         json.dumps(
             {
                 "badges": [
@@ -1421,3 +1421,6 @@ def badges_api(request):
         ),
         content_type="application/json",
     )
+    # Allow any origin to access this badge for API access
+    response["Access-Control-Allow-Origin"] = "*"
+    return response
