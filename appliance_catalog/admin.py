@@ -14,14 +14,17 @@ class ApplianceAdminForm(forms.ModelForm):
     def clean_chi_tacc_appliance_id(self):
         if self.cleaned_data["chi_tacc_appliance_id"] == "":
             return None
+        return self.cleaned_data["chi_tacc_appliance_id"]
 
     def clean_chi_uc_appliance_id(self):
         if self.cleaned_data["chi_uc_appliance_id"] == "":
             return None
+        return self.cleaned_data["chi_uc_appliance_id"]
 
     def clean_kvm_tacc_appliance_id(self):
         if self.cleaned_data["kvm_tacc_appliance_id"] == "":
             return None
+        return self.cleaned_data["kvm_tacc_appliance_id"]
 
 
 class ApplianceTaggingInline(admin.TabularInline):
