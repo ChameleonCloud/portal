@@ -36,12 +36,12 @@ def send_outage_notification(sender, instance, using, **kwargs):
 
     body = (
         "<b>Outage Start:</b> "
-        + instance.start_date.strftime("%Y-%m-%d %H:%M")
+        + instance.formatted_start_date()
         + "<br /><br />"
     )
     body += (
         "<b>Outage End:</b> "
-        + instance.end_date.strftime("%Y-%m-%d %H:%M")
+        + instance.formatted_end_date()
         + "<br /><br />"
     )
     body += instance.body

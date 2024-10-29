@@ -1,4 +1,5 @@
 import re
+from zoneinfo import ZoneInfo
 
 from ckeditor.fields import RichTextField
 from cms.models.pluginmodel import CMSPlugin
@@ -98,6 +99,20 @@ class Outage(News):
     severity = models.CharField(
         choices=SEVERITY_LEVEL, blank=False, default="", max_length=50
     )
+
+    def _date_format(self, date):
+        """Format the given date as a nice string for users.
+        """
+        utc_str = date.strftime("%H:%M %Z")
+        ct_date = date.astimezone(ZoneInfo("America/Chicago"))
+        ct_str = ct_date.strftime("%Y-%m-%d %H:%M %Z")
+        return f"{ct_str} ({utc_str})"
+
+    def formatted_end_date(self):
+        return self._date_format(self.end_date)
+
+    def formatted_start_date(self):
+        return self._date_format(self.start_date)
 
     def save(self):
         if not self.slug:
