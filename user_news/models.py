@@ -101,8 +101,7 @@ class Outage(News):
     )
 
     def _date_format(self, date):
-        """Format the given date as a nice string for users.
-        """
+        """Format the given date as a nice string for users."""
         utc_str = date.strftime("%H:%M %Z")
         ct_date = date.astimezone(ZoneInfo("America/Chicago"))
         ct_str = ct_date.strftime("%Y-%m-%d %H:%M %Z")
