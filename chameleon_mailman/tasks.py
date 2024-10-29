@@ -31,10 +31,10 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
         if send_window_min < outage.start_date < send_window_max:
             subject = "Outage Reminder: {}".format(outage.title)
             body = "<b>Outage Start:</b> {}<br /><br />".format(
-                outage.start_date.strftime("%Y-%m-%d %H:%M")
+                outage.formatted_start_date()
             )
             body += "<b>Outage End:</b> {}<br /><br />".format(
-                outage.end_date.strftime("%Y-%m-%d %H:%M")
+                outage.formatted_end_date()
             )
             body += outage.body
             sender = settings.DEFAULT_FROM_EMAIL
