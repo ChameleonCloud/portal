@@ -3036,23 +3036,22 @@ resolved_reference = "dd5d52c01c053463435060d928a3a77d1e996427"
 
 [[package]]
 name = "python-cinderclient"
-version = "7.4.1"
+version = "9.6.0"
 description = "OpenStack Block Storage API Client Library"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "python-cinderclient-7.4.1.tar.gz", hash = "sha256:cb375c63a5f5f7a387e730b128152bf619753c37e69b95662cb45b2e79a8edc2"},
-    {file = "python_cinderclient-7.4.1-py3-none-any.whl", hash = "sha256:ada81f35d3baf48eb156e65b3423cdbf4d70d9aa8f5e8b148be73e270c402fbc"},
+    {file = "python-cinderclient-9.6.0.tar.gz", hash = "sha256:3fefde268252e52e30fe2773f658227a78c6dee378fcb132d31c86e6ec9ba238"},
+    {file = "python_cinderclient-9.6.0-py3-none-any.whl", hash = "sha256:3a8a3a3eded306fd3051797398556ca174c8ddb51f6f8c6d8d14fc83fa2f8d54"},
 ]
 
 [package.dependencies]
-keystoneauth1 = ">=4.3.1"
+keystoneauth1 = ">=5.0.0"
 "oslo.i18n" = ">=5.0.1"
 "oslo.utils" = ">=4.8.0"
 pbr = ">=5.5.0"
 PrettyTable = ">=0.7.2"
 requests = ">=2.25.1"
-simplejson = ">=3.5.1"
 stevedore = ">=3.3.0"
 
 [[package]]
@@ -4378,4 +4377,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "6d45806738b4e5dea1485ac7db94e2d25c1491ea8b1cdc8425ec54013aee265b"
+content-hash = "6e3f0c4e958cbe55f692aebfb99d1a16c5235b474f9de2082e07ee721214137d"
