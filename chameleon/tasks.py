@@ -297,7 +297,6 @@ def update_institutions():
             continue
         institution = kc_user.get("attributes", {}).get("affiliationInstitution")
         if institution:
-            # TODO issues: Temple University is subset of TN Temple University, e.g.
             inst_obj = Institution.objects.filter(
                 Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
             ).first()
