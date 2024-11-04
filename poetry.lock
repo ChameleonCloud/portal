@@ -3577,22 +3577,22 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "rt"
-version = "2.2.2"
+version = "3.3.0"
 description = "Python interface to Request Tracker API"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.9"
 files = [
-    {file = "rt-2.2.2-py3-none-any.whl", hash = "sha256:88f046dac788ca1b4ace2d2b5ddf40838f43251d991f0464071965894b309157"},
-    {file = "rt-2.2.2.tar.gz", hash = "sha256:79e4f7a101e2ed1bd9dc851aafa3f388cb6abaf861e3c10f96382dbaed54949f"},
+    {file = "rt-3.3.0-py3-none-any.whl", hash = "sha256:00f8b24571c99c38188dd0510180e2ffbbdf84047bb04a5291ed56b9741ae424"},
 ]
 
 [package.dependencies]
+httpx = "*"
 requests = "*"
 
 [package.extras]
-dev = ["flake8", "flake8-bandit", "flake8-comprehensions", "flake8-docstrings", "mypy", "pep8-naming", "pycodestyle", "pylint", "types-requests"]
-docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
-test = ["codecov", "coveralls", "nose"]
+dev = ["bandit", "codespell", "mypy", "ruff", "types-requests"]
+docs = ["furo", "sphinx", "sphinx-autodoc-typehints", "sphinx-copybutton", "sphinx-rtd-theme"]
+test = ["coverage", "pytest (>=8.3)", "pytest-asyncio (>=0.24)"]
 
 [[package]]
 name = "scholarly"
@@ -4378,4 +4378,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "6d45806738b4e5dea1485ac7db94e2d25c1491ea8b1cdc8425ec54013aee265b"
+content-hash = "a7944555bc30ea4abd3c01a7bba04ddf538d109b2e8a8cb41c633b4a17ccea08"
