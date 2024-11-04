@@ -68,3 +68,26 @@ class PIEligibility(models.Model):
             pass
         # if we're here, this is a new request and no open requests exist, go ahead and create one
         return super(PIEligibility, self).save(*args, **kwargs)
+
+
+class Institution(models.Model):
+    name = models.CharField(max_length=500)
+    state = models.CharField(max_length=100)
+    minority_serving_institution = models.BooleanField()
+    epscor_state = models.BooleanField()
+
+
+class InstitutionAlias(models.Model):
+    institution = models.ForeignKey(
+        Institution, on_delete=models.CASCADE, related_name="aliases"
+    )
+    alias = models.CharField(max_length=500)
+
+
+class UserInstitution(models.Model):
+    institution = models.ForeignKey(
+        Institution, on_delete=models.CASCADE, related_name="users"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="institutions",
+    )

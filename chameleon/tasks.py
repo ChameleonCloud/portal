@@ -3,9 +3,13 @@ from datetime import datetime, timezone
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.db.models import Q
+from chameleon.models import Institution, InstitutionAlias, UserInstitution
 from cinderclient.v3 import client as cinder_client
 import glanceclient
 import novaclient
+from util.keycloak_client import KeycloakClient
 
 from .keystone_auth import (
     admin_session,
@@ -278,3 +282,48 @@ def _do_federated_login(region, access_token):
     """
     sess = unscoped_user_session(region, access_token=access_token)
     return sess.get_user_id()
+
+
+@task()
+def update_institutions():
+    """Intended to be run manually via the CLI on occasion. Edited in tandem
+    with the institution admin site.
+    """
+    for user in User.objects.filter(institutions__isnull=True):
+        keycloak_client = KeycloakClient()
+        kc_user = keycloak_client.get_user_by_username(user.username)
+        if not kc_user:
+            # Legacy user, no login since fed. identity
+            continue
+        institution = kc_user.get("attributes", {}).get("affiliationInstitution")
+        if institution:
+            # TODO issues: Temple University is subset of TN Temple University, e.g.
+            inst_obj = Institution.objects.filter(
+                Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
+            ).first()
+
+            if not inst_obj:
+                # Ask for institution from alias
+                inst_input = input(f"Institution for '{institution}'?").strip()
+                if not len(inst_input):
+                    # Check if the DB was manually updated with this new institution
+                    inst_obj = Institution.objects.filter(
+                        Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
+                    ).first()
+                    if not inst_obj:
+                        print(user.username, "skipping: at", institution)
+                        continue
+                else:
+                    # Otherwise, insert new alias
+                    inst_obj = Institution.objects.filter(
+                        Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
+                    ).first()
+                    InstitutionAlias.objects.create(
+                        alias=institution,
+                        institution=inst_obj,
+                    )
+            print(user.username, "is with", inst_obj.name)
+            UserInstitution.objects.create(
+                user=user,
+                institution=inst_obj,
+            )

@@ -3,13 +3,17 @@
 import datetime
 import re
 
-from chameleon.models import PIEligibility
+from chameleon.models import Institution, InstitutionAlias, PIEligibility, UserInstitution
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
+from django.utils.http import urlencode
+from django.urls import reverse
+from django.shortcuts import redirect
+from django.db.models import Count
 from django.utils.html import (
     format_html_join,
     mark_safe,
@@ -190,3 +194,61 @@ class PIEligibilityAdmin(ModelAdmin):
 
 
 admin.site.register(PIEligibility, PIEligibilityAdmin)
+
+
+class AliasInline(admin.TabularInline):
+    model = InstitutionAlias
+    fields = ["alias"]
+
+
+class UserInline(admin.TabularInline):
+    model = UserInstitution
+    extra = 0
+    fields = ["user"]
+    # user must be readonly, otherwise dropdown form is huge!
+    readonly_fields = ["user"]
+
+
+class HasUsersFilter(admin.SimpleListFilter):
+    title = 'has users'
+    parameter_name = 'has_users'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(users__isnull=False).distinct()
+        elif self.value() == 'no':
+            return queryset.filter(users__isnull=True)
+        return queryset
+
+
+class InstitutionAdmin(ModelAdmin):
+    list_filter = [HasUsersFilter, "minority_serving_institution", "epscor_state", "state"]
+    list_display = ["name", "user_count", "state", "minority_serving_institution", "epscor_state"]
+    readonly_fields = ["user_count"]
+    search_fields = ["name"]
+    inlines = [AliasInline, UserInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(user_count=Count('users', distinct=True)).order_by('-user_count', "name")
+
+    def user_count(self, obj):
+        return obj.user_count
+
+    user_count.short_description = '# of users'
+    user_count.admin_order_field = 'user_count'
+
+    def changelist_view(self, request, extra_context=None):
+        if 'has_users' not in request.GET:
+            query_string = urlencode({'has_users': 'yes'})
+            return redirect(f"{request.path}?{query_string}")
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+admin.site.register(Institution, InstitutionAdmin)
