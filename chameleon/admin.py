@@ -16,7 +16,6 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils.http import urlencode
-from django.urls import reverse
 from django.shortcuts import redirect
 from django.db.models import Count
 from django.utils.html import (
