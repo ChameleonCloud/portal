@@ -307,7 +307,8 @@ def update_institutions():
                 if not len(inst_input):
                     # Check if the DB was manually updated with this new institution
                     inst_obj = Institution.objects.filter(
-                        Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
+                        Q(name__iexact=institution)
+                        | Q(aliases__alias__iexact=institution)
                     ).first()
                     if not inst_obj:
                         print(user.username, "skipping: at", institution)
@@ -315,7 +316,8 @@ def update_institutions():
                 else:
                     # Otherwise, insert new alias
                     inst_obj = Institution.objects.filter(
-                        Q(name__iexact=institution) | Q(aliases__alias__iexact=institution)
+                        Q(name__iexact=institution)
+                        | Q(aliases__alias__iexact=institution)
                     ).first()
                     InstitutionAlias.objects.create(
                         alias=institution,

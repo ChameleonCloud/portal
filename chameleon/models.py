@@ -89,5 +89,7 @@ class UserInstitution(models.Model):
         Institution, on_delete=models.CASCADE, related_name="users"
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="institutions",
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="institutions",
     )
