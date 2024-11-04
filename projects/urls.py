@@ -33,4 +33,9 @@ urlpatterns = [
         pub_views.view_chameleon_used_in_research_publications,
         name="chameleon_used_research",
     ),
+    path(
+        "<int:project_id>/project-member-export/",
+        views.project_member_export,
+        name="project_member_export",
+    ),
 ]

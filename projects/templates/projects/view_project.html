@@ -142,6 +142,11 @@
     <button type="submit" class="btn btn-default" name="add_user">Add user</button>
     <button class="btn btn-default" name="add_bulk_users_popup">Add multiple users</button>
     <button class="btn btn-danger" name="remove_bulk_users_popup">Remove multiple users</button>
+    <a href="/user/projects/{{ project.id }}/project-member-export" target="_blank">
+      <button class="btn" type="button" name="export_user_data">
+        Export user data
+      </button>
+    </a>
   </div>
 </form>
 {% include "projects/bulk_invite_modal.html" %}

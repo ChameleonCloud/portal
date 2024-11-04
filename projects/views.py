@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+import csv
 import json
 import logging
 from datetime import datetime
@@ -16,6 +18,7 @@ from django.http import (
     Http404,
     HttpResponseForbidden,
     HttpResponseRedirect,
+    HttpResponse,
     JsonResponse,
 )
 from django.shortcuts import render
@@ -1244,3 +1247,45 @@ def view_charge(request, allocation_id):
         "projects/charge.html",
         {"charges": charges, "balance_service_version": alloc.balance_service_version},
     )
+
+
+@login_required
+def project_member_export(request, project_id):
+    keycloak_client = KeycloakClient()
+    mapper = ProjectAllocationMapper(request)
+    project = mapper.get_project(project_id)
+    user_permission = UserPermissions.get_user_permissions(
+        keycloak_client, request.user.username, project
+    )
+    if not user_permission.manage:
+        return HttpResponseForbidden()
+
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{project.title}.csv"'},
+    )
+    futures = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        for user in get_project_members(project):
+            logger.info(user)
+
+            def task(user):
+                user_permission = UserPermissions.get_user_permissions(
+                    keycloak_client, user.username, project
+                )
+                role = "manager" if user_permission.manage else "member"
+                return [role, user.username, user.email]
+
+            futures.append(executor.submit(task, user))
+
+    members = []
+    for future in futures:
+        members.append(future.result())
+
+    writer = csv.writer(response)
+    writer.writerow(["role", "username", "email"])
+    # Sort by (role, email)
+    for m in sorted(members, key=lambda x: (x[0], x[2])):
+        writer.writerow(m)
+
+    return response
