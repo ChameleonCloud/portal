@@ -285,7 +285,7 @@ def _do_federated_login(region, access_token):
 
 
 @task()
-def update_institutions():
+def update_institutions(interactive=True):
     """Intended to be run manually via the CLI on occasion. Edited in tandem
     with the institution admin site.
     """
@@ -302,6 +302,10 @@ def update_institutions():
             ).first()
 
             if not inst_obj:
+                # Skip this iteration if not interactive
+                if not interactive:
+                    continue
+
                 # Ask for institution from alias
                 inst_input = input(f"Institution for '{institution}'?").strip()
                 if not len(inst_input):
