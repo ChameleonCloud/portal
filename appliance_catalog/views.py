@@ -10,7 +10,8 @@ from django.utils.decorators import method_decorator
 from django.views.generic.edit import DeleteView
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+
+from djangoRT import rtModels, rtUtil
 from .forms import ApplianceForm, ApplianceShareForm
 from .models import Appliance, Keyword, ApplianceTagging
 from .serializers import ApplianceJSONSerializer, KeywordJSONSerializer
@@ -261,14 +262,14 @@ def app_create(request):
                     + str(appliance.id)
                 )
                 try:
-                    send_mail(
-                        message,
-                        body,
-                        "noreply@chameleoncloud.org",
-                        ("systems@chameleoncloud.org",),
-                        fail_silently=False,
+                    rt = rtUtil.DjangoRt()
+                    ticket = rtModels.Ticket(
+                        subject=message,
+                        problem_description=body,
+                        requestor="us@tacc.utexas.edu",
                     )
-                except SMTPException as e:
+                    rt.createTicket(ticket)
+                except Exception as e:
                     logger.error("Error sending appliance catalog email ", e)
 
             logger.debug("New appliance successfully created. Adding keywords...")
@@ -329,14 +330,14 @@ def app_create_image(request):
                     + str(appliance.id)
                 )
                 try:
-                    send_mail(
-                        message,
-                        body,
-                        "noreply@chameleoncloud.org",
-                        ("systems@chameleoncloud.org",),
-                        fail_silently=False,
+                    rt = rtUtil.DjangoRt()
+                    ticket = rtModels.Ticket(
+                        subject=message,
+                        problem_description=body,
+                        requestor="us@tacc.utexas.edu",
                     )
-                except SMTPException as e:
+                    rt.createTicket(ticket)
+                except Exception as e:
                     logger.error("Error sending appliance catalog email ", e)
 
             logger.debug("New appliance successfully created. Adding keywords...")

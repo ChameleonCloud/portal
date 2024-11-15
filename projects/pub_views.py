@@ -5,7 +5,6 @@ import bibtexparser
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
@@ -13,6 +12,7 @@ from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.core.exceptions import PermissionDenied
 
+from djangoRT import rtModels, rtUtil
 from projects.models import Publication, PublicationSource
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.util import get_project_members
@@ -33,13 +33,13 @@ def _send_publication_notification(charge_code, pubs):
     <ul>{" ".join(formatted_pubs)}</ul>
     </p>
     """
-    send_mail(
+    rt = rtUtil.DjangoRt()
+    ticket = rtModels.Ticket(
         subject=subject,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[settings.PENDING_ALLOCATION_NOTIFICATION_EMAIL],
-        message=strip_tags(body),
-        html_message=body,
+        problem_description=body,
+        requestor="us@tacc.utexas.edu",
     )
+    rt.createTicket(ticket)
 
 
 def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
@@ -58,13 +58,13 @@ def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
     <ul>{" ".join(formatted_duplicate_pubs)}</ul>
     </p>
     """
-    send_mail(
+    rt = rtUtil.DjangoRt()
+    ticket = rtModels.Ticket(
         subject=subject,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[settings.PENDING_ALLOCATION_NOTIFICATION_EMAIL],
-        message=strip_tags(body),
-        html_message=body,
+        problem_description=body,
+        requestor="us@tacc.utexas.edu",
     )
+    rt.createTicket(ticket)
 
 
 @login_required

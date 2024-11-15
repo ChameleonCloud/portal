@@ -43,13 +43,13 @@ class ProjectAllocationMapper:
         <p>Please review the pending allocation request for project {charge_code}
         at <a href="https://{host}/admin/allocations/">admin page</a>.</p>
         """
-        send_mail(
+        rt = rtUtil.DjangoRt()
+        ticket = rtModels.Ticket(
             subject=subject,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.PENDING_ALLOCATION_NOTIFICATION_EMAIL],
-            message=strip_tags(body),
-            html_message=body,
+            problem_description=body,
+            requestor="us@tacc.utexas.edu",
         )
+        rt.createTicket(ticket)
 
     def _send_allocation_decision_notification(
         self, charge_code, requestor_id, status, decision_summary, host
