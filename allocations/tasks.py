@@ -215,9 +215,7 @@ def warn_user_for_low_allocations():
         # If we successfully sent mail, log it in the database
         if mail_sent:
             emails_sent += 1
-            LOG.info(
-                f"Warned PI about low allocation {alloc.id}"
-            )
+            LOG.info(f"Warned PI about low allocation {alloc.id}")
             try:
                 with transaction.atomic():
                     alloc.low_allocation_warning_issued = datetime.now(timezone.utc)
