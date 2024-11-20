@@ -834,6 +834,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "allocations.tasks.warn_user_for_expiring_allocation",
         "schedule": crontab(minute=0, hour=7),
     },
+    "warn-user-for-low-allocation": {
+        "task": "allocations.tasks.warn_user_for_low_allocations",
+        "schedule": crontab(minute=30, hour=7),
+    },
     "check_charge": {
         "task": "allocations.tasks.check_charge",
         "schedule": crontab(

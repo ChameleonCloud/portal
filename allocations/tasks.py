@@ -142,6 +142,96 @@ def warn_user_for_expiring_allocation():
     )
 
 
+def _send_low_allocation_warning(alloc, percent_used):
+    charge_code = alloc.project.charge_code
+    project_url = f'https://chameleoncloud.org{reverse("projects:view_project", args=[alloc.project.id])}'
+    docs_url = (
+        "https://chameleoncloud.readthedocs.io/en/latest/user/project.html"
+        "#recharge-or-extend-your-allocation "
+    )
+    email_body = f"""
+            <p>
+                The allocation for project <a href="{project_url}"><b>{charge_code}</b></a>
+                has used <b>{percent_used}%</b> of allocated SUs. See our
+                <a href={docs_url}>Documentation</a>
+                on how to recharge or extend your allocation.
+            </p>
+            """
+
+    mail_sent = None
+    email = alloc.project.pi.email
+    if not email:
+        LOG.warning(
+            f"PI for project {charge_code} has no email; "
+            "cannot send low usage warning"
+        )
+        return None
+    try:
+        mail_sent = send_mail(
+            subject=f"NOTICE: Your allocation for project {charge_code} has used "
+            f"{percent_used}% of allocated SUs!",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            message=strip_tags(" ".join(email_body.split()).strip()),
+            html_message=email_body,
+        )
+    except Exception:
+        pass
+
+    return mail_sent
+
+
+@task
+def warn_user_for_low_allocations():
+    """
+    Sends an email to users when their allocation is 90% utilized
+    """
+    # Find allocations that are expiring between today and 1 month,
+    # and have not been warned of their impending doom
+    active_allocations = Allocation.objects.filter(
+        status="active",
+        low_allocation_warning_issued__isnull=True,
+    )
+
+    emails_sent = 0
+    # Iterate over all active allocations that haven't been issued warnings
+    for alloc in active_allocations:
+        # Calculate the percentage of used SUs
+        balances = project_balances([alloc.project.id])[0]
+        # Skip edge cases
+        if balances["used"] is None:
+            continue
+        percentage_used = round(100.0 * balances["used"] / balances["allocated"], 2)
+
+        # Ignore if allocation hasn't used 90% of SUs.
+        if percentage_used < 90:
+            continue
+        print(balances)
+        # Otherwise send warning mail
+        mail_sent = _send_low_allocation_warning(alloc, percentage_used)
+        charge_code = alloc.project.charge_code
+
+        # If we successfully sent mail, log it in the database
+        if mail_sent:
+            emails_sent += 1
+            LOG.info(
+                f"Warned PI about low allocation {alloc.id}"
+            )
+            try:
+                with transaction.atomic():
+                    alloc.low_allocation_warning_issued = datetime.now(timezone.utc)
+                    alloc.save()
+            except Exception:
+                LOG.error(
+                    f"Failed to update ORM with low warning timestamp "
+                    f"for project {charge_code}."
+                )
+        else:
+            LOG.error(
+                f"Failed to send expiration warning email for project {charge_code}"
+            )
+
+
 def _deactivate_allocation(alloc):
     balance = project_balances([alloc.project.id])
     if not balance:
