@@ -49,6 +49,7 @@ class Allocation(models.Model):
     su_allocated = models.FloatField(null=True)
     su_used = models.FloatField(null=True)
     balance_service_version = models.IntegerField(default=2, null=False)
+    low_allocation_warning_issued = models.DateTimeField(null=True)
 
     def as_dict(self):
         return Allocation.to_dict(self)
