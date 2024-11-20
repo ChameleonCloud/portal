@@ -186,11 +186,13 @@ def warn_user_for_low_allocations():
     """
     Sends an email to users when their allocation is 90% utilized
     """
-    # Find allocations that are expiring between today and 1 month,
-    # and have not been warned of their impending doom
+    # NOTE this avoids sending a low allocation email if we've already
+    # sent an expiration warning email, as if the allocation is soon expiring
+    # low remaining SUs does not matter.
     active_allocations = Allocation.objects.filter(
         status="active",
         low_allocation_warning_issued__isnull=True,
+        expiration_warning_issued__isnull=True,
     )
 
     emails_sent = 0
@@ -199,14 +201,13 @@ def warn_user_for_low_allocations():
         # Calculate the percentage of used SUs
         balances = project_balances([alloc.project.id])[0]
         # Skip edge cases
-        if balances["used"] is None:
+        if balances["total"] is None:
             continue
-        percentage_used = round(100.0 * balances["used"] / balances["allocated"], 2)
+        percentage_used = round(100.0 * balances["total"] / balances["allocated"], 2)
 
         # Ignore if allocation hasn't used 90% of SUs.
         if percentage_used < 90:
             continue
-        print(balances)
         # Otherwise send warning mail
         mail_sent = _send_low_allocation_warning(alloc, percentage_used)
         charge_code = alloc.project.charge_code
