@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.urls import reverse
 from keycloak.exceptions import KeycloakClientError
 
 from allocations.models import Allocation, Charge
@@ -60,13 +61,14 @@ def _send_expiration_warning_mail(alloc, today):
             f"day{'s' if time_until_expiration.days != 1 else ''}"
         )
 
+    project_url = f'https://chameleoncloud.org{reverse("projects:view_project", args=[alloc.project.id])}'
     docs_url = (
         "https://chameleoncloud.readthedocs.io/en/latest/user/project.html"
         "#recharge-or-extend-your-allocation "
     )
     email_body = f"""
             <p>
-                The allocation for project <b>{charge_code}</b>
+                The allocation for project <a href="{project_url}"><b>{charge_code}</b></a>
                 will expire <b>{time_description}.</b> See our
                 <a href={docs_url}>Documentation</a>
                 on how to recharge or extend your allocation.
