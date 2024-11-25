@@ -30,7 +30,7 @@ django-polymorphic = "~3.0.0"
 django-sekizai = "^4.1.0"
 django-termsandconditions = "^2.0.12"
 django-webpack-loader = "^3.1.1"
-djangocms-attributes-field = "^3.0.0"
+djangocms-attributes-field = "^4.0.0"
 djangocms-blog = {git = "https://github.com/ChameleonCloud/djangocms-blog", rev = "chameleon/2.0.x"}
 djangocms-column = "^2.1.0"
 djangocms-file = "^3.0.1"
