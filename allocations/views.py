@@ -136,9 +136,6 @@ def approval(request):
         logger.info("Allocation approval requested by admin: %s", request.user)
         logger.info("Allocation approval request data: %s", json.dumps(data))
         validate_datestring = validators.RegexValidator(r"^\d{4}-\d{2}-\d{2}$")
-        validate_datetimestring = validators.RegexValidator(
-            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
-        )
         if not data["decisionSummary"]:
             errors["decisionSummary"] = "Decision Summary is required."
 
@@ -184,44 +181,6 @@ def approval(request):
             except ValueError:
                 errors["computeAllocated"] = "Compute Allocated must be a number."
 
-        if data["computeRequested"]:
-            try:
-                data["computeRequested"] = int(data["computeRequested"])
-            except ValueError:
-                errors["computeRequested"] = "Compute Requested must be a number."
-
-        if data["storageAllocated"]:
-            try:
-                data["storageAllocated"] = int(data["storageAllocated"])
-            except ValueError:
-                errors["storageAllocated"] = "Storage Allocated must be a number."
-
-        if data["storageRequested"]:
-            try:
-                data["storageRequested"] = int(data["storageRequested"])
-            except ValueError:
-                errors["storageRequested"] = "Storage Requested must be a number."
-
-        if data["memoryAllocated"]:
-            try:
-                data["memoryAllocated"] = int(data["memoryAllocated"])
-            except ValueError:
-                errors["memoryAllocated"] = "Memory Allocated must be a number."
-
-        if data["memoryRequested"]:
-            try:
-                data["memoryRequested"] = int(data["memoryRequested"])
-            except ValueError:
-                errors["memoryRequested"] = "Memory Requested must be a number."
-
-        if data["projectId"]:
-            try:
-                data["projectId"] = int(data["projectId"])
-            except ValueError:
-                errors["projectId"] = "Project id must be number."
-        else:
-            errors["projectId"] = "Project id is required."
-
         if not data["project"]:
             errors["project"] = "Project charge code is required."
 
@@ -232,19 +191,6 @@ def approval(request):
                 errors["reviewerId"] = "Reviewer id must be number."
         else:
             errors["reviewerId"] = "Reviewer id is required."
-
-        if not data["reviewer"]:
-            errors["reviewer"] = "Reviewer username is required."
-
-        if data["dateRequested"]:
-            try:
-                validate_datetimestring(data["dateRequested"])
-            except ValidationError:
-                errors["dateRequested"] = (
-                    'Requested date must be a valid date string e.g. "2015-05-20T05:00:00Z" .'
-                )
-        # else:
-        #     errors['dateRequested'] = 'Requested date is required.'
 
         if data["dateReviewed"]:
             try:
