@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -29,7 +28,8 @@ class AllocationAdmin(admin.ModelAdmin):
         institution = kc_user.get("attributes", {}).get("affiliationInstitution")
         country = kc_user.get("attributes", {}).get("country")
 
-        return mark_safe(f"""<table>
+        return mark_safe(
+            f"""<table>
         <tr>
             <td><b>Name</b></td>
             <td>{obj.project.pi.first_name} {obj.project.pi.last_name}</td>
@@ -47,10 +47,12 @@ class AllocationAdmin(admin.ModelAdmin):
             <td><b>Country</b></td><td>{country}</td>
         </tr>
         </table>
-        """)
+        """
+        )
 
     def project_info(self, obj):
-        return mark_safe(f"""<table>
+        return mark_safe(
+            f"""<table>
             <tr>
                 <td><b>Charge Code</b></td><td>{obj.project.charge_code}</td>
             </tr>
@@ -63,14 +65,16 @@ class AllocationAdmin(admin.ModelAdmin):
             <tr>
                 <td><b>Tag</b></td><td>{obj.project.tag.name} - {obj.project.tag.description}</td>
             </tr>
-        <table>""")
+        <table>"""
+        )
 
     def allocation_status(self, obj):
         if obj.status not in ["pending", "waiting"]:
             return f"This allocation is {obj.status}."
 
         rows = []
-        rows.append(f"""<tr>
+        rows.append(
+            f"""<tr>
             <td>{obj.id}</td>
             <td>{obj.requestor}</td>
             <td>{obj.date_requested.date()}</td>
@@ -88,7 +92,8 @@ class AllocationAdmin(admin.ModelAdmin):
                     Contact PI
                 </button>
             </td>
-        </tr>""")
+        </tr>"""
+        )
 
         styles = """
         <style>
@@ -209,7 +214,8 @@ class AllocationAdmin(admin.ModelAdmin):
         </div>
         """
 
-        return mark_safe(f"""
+        return mark_safe(
+            f"""
         <table>
             <thead>
                 <tr>
@@ -230,12 +236,18 @@ class AllocationAdmin(admin.ModelAdmin):
         {approve_modal}
         {reject_modal}
         {contact_modal}
-        """)
+        """
+        )
 
     def previous_allocations(self, obj):
         rows = []
-        for alloc in sorted(obj.project.allocations.exclude(status="pending"), reverse=True, key=lambda x: x.date_requested):
-            rows.append(f"""<tr>
+        for alloc in sorted(
+            obj.project.allocations.exclude(status="pending"),
+            reverse=True,
+            key=lambda x: x.date_requested,
+        ):
+            rows.append(
+                f"""<tr>
                 <td><a href="{reverse("admin:allocations_allocation_change", args=[alloc.id])}">{alloc.id}</a></td>
                 <td>{alloc.requestor}</td>
                 <td>{alloc.date_requested.date()}</td>
@@ -256,8 +268,10 @@ class AllocationAdmin(admin.ModelAdmin):
                     </ul>
                     </details>
                 </td>
-            </tr>""")
-        return mark_safe(f"""
+            </tr>"""
+            )
+        return mark_safe(
+            f"""
         <table>
             <thead>
                 <tr>
@@ -278,7 +292,8 @@ class AllocationAdmin(admin.ModelAdmin):
             {"</tr><tr>".join(rows)}
             </tr>
         </table>
-        """)
+        """
+        )
 
     list_display = (
         "project",
@@ -288,17 +303,20 @@ class AllocationAdmin(admin.ModelAdmin):
         "reviewer",
     )
     fieldsets = (
-        (None, {
-            "fields": (
-                "project_info",
-                "pi_info",
-                "allocation_status",
-                "previous_allocations",
-                "status",
-                "start_date",
-                "expiration_date",
-            ),
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "project_info",
+                    "pi_info",
+                    "allocation_status",
+                    "previous_allocations",
+                    "status",
+                    "start_date",
+                    "expiration_date",
+                ),
+            },
+        ),
         # TODO other allocations
     )
     readonly_fields = [
@@ -318,12 +336,9 @@ class AllocationAdmin(admin.ModelAdmin):
     # form = ReviewAllocationForm
 
     class Media:
-        css = {
-            "all": ("/static/allocations/css/admin.css",),
-        }
         js = (
-            '/static/allocations/js/admin.js',
-            '/static/scripts/cannedresponses.js',
+            "/static/allocations/js/admin.js",
+            "/static/scripts/cannedresponses.js",
         )
 
 
