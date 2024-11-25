@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
+from balance_service.utils import su_calculators
 from util.keycloak_client import KeycloakClient
 
 from .models import Allocation, Charge
@@ -79,7 +80,6 @@ class AllocationAdmin(admin.ModelAdmin):
             <td>{obj.requestor}</td>
             <td>{obj.date_requested.date()}</td>
             <td><input id="allocationStatus" disabled value="{obj.status}"/></td>
-            <td>{obj.su_requested}</td>
             <td style="min-width: 50ch;">{obj.justification}</td>
             <td>
                 <button id="approve-btn" type="button" class="btn btn-success">
@@ -223,13 +223,12 @@ class AllocationAdmin(admin.ModelAdmin):
                     <th>Requestor</th>
                     <th>Date Requested</th>
                     <th>Status</th>
-                    <th>SU Requested</th>
                     <th>Justification</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tr>
-            {"</tr><tr>".join(rows)}
+            {"".join(rows)}
             </tr>
         </table>
         {styles}
@@ -246,6 +245,10 @@ class AllocationAdmin(admin.ModelAdmin):
             reverse=True,
             key=lambda x: x.date_requested,
         ):
+            real_su_used = alloc.su_used if alloc.su_used else ""
+            if not real_su_used:
+                balance = su_calculators.project_balances([alloc.project.id])[0]
+                real_su_used = balance["total"]
             rows.append(
                 f"""<tr>
                 <td><a href="{reverse("admin:allocations_allocation_change", args=[alloc.id])}">{alloc.id}</a></td>
@@ -254,13 +257,21 @@ class AllocationAdmin(admin.ModelAdmin):
                 <td>{alloc.status}</td>
                 <td>{alloc.start_date.date() if alloc.start_date else ""}</td>
                 <td>{alloc.expiration_date.date() if alloc.expiration_date else ""}</td>
-                <td>{alloc.su_used if alloc.su_used else ""}</td>
-                <td>{alloc.su_allocated if alloc.su_allocated else ""}</td>
-                <td>{alloc.su_requested}</td>
-                <td style="min-width: 50ch;"><details {"open" if alloc.status == "pending" else ""}><summary>Expand</summary>{alloc.justification}</details></td>
-                <td style="min-width: 50ch;">
+                <td>
+                    <div>
+                        <label>
+                            {real_su_used} / {alloc.su_allocated if alloc.su_allocated else ""}
+                        </label>
+                    </div>
+                    <progress value="{real_su_used}" max="{alloc.su_allocated}">{real_su_used}</progress>
+                </td>
+            </tr>
+            <tr>
+            <td colspan="2"></td>
+                <td colspan="4" style="min-width: 50ch;"><details {"open" if alloc.status == "pending" else ""}><summary>Justification (expand)</summary>{alloc.justification}</details></td>
+                <td colspan="4" style="min-width: 50ch;">
                     <details {"open" if alloc.status == "pending" else ""}>
-                    <summary>Expand</summary>
+                    <summary>Decision Summary (expand)</summary>
                     <ul>
                     <li>Reviewer - {alloc.reviewer if alloc.reviewer else ""}</li>
                     <li>Date Reviewed - {alloc.date_reviewed.date() if alloc.date_reviewed else ""}</li>
@@ -282,14 +293,10 @@ class AllocationAdmin(admin.ModelAdmin):
                     <th>Start</th>
                     <th>End</th>
                     <th>SU Usage</th>
-                    <th>SU Allocated</th>
-                    <th>SU Requested</th>
-                    <th>Justification</th>
-                    <th>Decision summary</th>
                 </tr>
             </thead>
             <tr>
-            {"</tr><tr>".join(rows)}
+            {"".join(rows)}
             </tr>
         </table>
         """
@@ -317,7 +324,6 @@ class AllocationAdmin(admin.ModelAdmin):
                 ),
             },
         ),
-        # TODO other allocations
     )
     readonly_fields = [
         "pi_info",
