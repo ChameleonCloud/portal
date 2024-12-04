@@ -15,11 +15,14 @@ class ChargeInline(admin.TabularInline):
 
 
 class AllocationAdmin(admin.ModelAdmin):
-    def project_description(self, obj):
-        return str(obj.project.description)
-
     def project_title(self, obj):
         return str(obj.project.title)
+
+    def pi_name(self, obj):
+        return f"{obj.project.pi.first_name} {obj.project.pi.last_name}"
+
+    def pi_email(self, obj):
+        return f"{obj.project.pi.email}"
 
     def pi_info(self, obj):
         keycloak_client = KeycloakClient()
@@ -302,12 +305,34 @@ class AllocationAdmin(admin.ModelAdmin):
         """
         )
 
+    def alloc_count(self, obj):
+        return obj.project.allocations.count()
+
+    def last_su_used(self, obj):
+        """Either su used for this alloc, if it isn't pending,
+        or the previous allocs su_used
+        """
+        prev_used = None
+        if obj.status == "pending":
+            allocs = obj.project.allocations.all().order_by("-date_requested")
+            if len(allocs) > 1:
+                balance = su_calculators.project_balances([allocs[1].project.id])[0]
+                prev_used = balance["total"]
+        else:
+            balance = su_calculators.project_balances([obj.project.id])[0]
+            prev_used = balance["total"]
+        return prev_used
+
     list_display = (
-        "project",
-        "status",
         "date_requested",
-        "date_reviewed",
-        "reviewer",
+        "pi_name",
+        "pi_email",
+        "project",
+        "project_title",
+        "alloc_count",
+        "status",
+        "last_su_used",
+        "justification",
     )
     fieldsets = (
         (
