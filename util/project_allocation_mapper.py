@@ -190,7 +190,7 @@ class ProjectAllocationMapper:
     def save_allocation(self, alloc, project_charge_code, host):
         reformated_alloc = self.json_to_portal_alloc(alloc, project_charge_code)
         reformated_alloc.save()
-        self._send_allocation_request_notification(project_charge_code, alloc)
+        self._send_allocation_request_notification(project_charge_code, reformated_alloc)
 
     def save_project(self, proj, host=None):
         allocations = self.get_attr(proj, "allocations")
