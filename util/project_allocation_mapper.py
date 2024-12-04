@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Max, QuerySet
+from django.urls import reverse
 from django.utils.html import strip_tags
 from djangoRT import rtModels, rtUtil
 import logging
@@ -37,11 +38,13 @@ class ProjectAllocationMapper:
     def _wants_db(self, request):
         return request.session.get("is_federated", False)
 
-    def _send_allocation_request_notification(self, charge_code, host):
+    def _send_allocation_request_notification(self, charge_code, alloc):
+        path = reverse("admin:allocations_allocation_change", args=[alloc.id])
+        alloc_url = f"https://chameleoncloud.org{path}"
         subject = f"Pending allocation request for project {charge_code}"
         body = f"""
-        <p>Please review the pending allocation request for project {charge_code}
-        at <a href="https://{host}/admin/allocations/">admin page</a>.</p>
+        Please review the pending allocation request for project {charge_code} at
+        {alloc_url}
         """
         rt = rtUtil.DjangoRt()
         ticket = rtModels.Ticket(
@@ -187,7 +190,7 @@ class ProjectAllocationMapper:
     def save_allocation(self, alloc, project_charge_code, host):
         reformated_alloc = self.json_to_portal_alloc(alloc, project_charge_code)
         reformated_alloc.save()
-        self._send_allocation_request_notification(project_charge_code, host)
+        self._send_allocation_request_notification(project_charge_code, alloc)
 
     def save_project(self, proj, host=None):
         allocations = self.get_attr(proj, "allocations")

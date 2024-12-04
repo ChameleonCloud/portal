@@ -26,12 +26,9 @@ logger = logging.getLogger("projects")
 
 def _send_publication_notification(charge_code, pubs):
     subject = f"Project {charge_code} added new publications"
-    formatted_pubs = [f"<li>{pub.__repr__()}<br><br></li>" for pub in pubs]
-    body = f"""
-    <p>Please review the following publications added by
-    project {charge_code}:
-    <ul>{" ".join(formatted_pubs)}</ul>
-    </p>
+    formatted_pubs = "\n".join([f"- {pub.__repr__()}" for pub in pubs])
+    body = f"""Please review the following publications added by project {charge_code}:
+    {formatted_pubs}
     """
     rt = rtUtil.DjangoRt()
     ticket = rtModels.Ticket(
@@ -43,20 +40,18 @@ def _send_publication_notification(charge_code, pubs):
 
 
 def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
-    subject = "Project {charge_code} plausible duplicate uploaded"
-    formatted_duplicate_pubs = [
-        (
-            f"<li>{pub.__repr__()} <br>Found duplicate for <br>"
-            f"{duplicate_pubs[pub]} <br><br></li>"
-        ).replace("\n", "<br>")
-        for pub in duplicate_pubs
-    ]
+    subject = f"Project {charge_code} plausible duplicate uploaded"
+    formatted_duplicate_pubs = "\n".join(
+        [
+            (f"- {pub.__repr__()}: Found duplicate for {duplicate_pubs[pub]}").replace(
+                "\n", ""
+            )
+            for pub in duplicate_pubs
+        ]
+    )
     formatted_duplicate_pubs = formatted_duplicate_pubs
-    body = f"""
-    <p>Please review the following publications which are plausible duplicates by
-    project {charge_code}:
-    <ul>{" ".join(formatted_duplicate_pubs)}</ul>
-    </p>
+    body = f"""Please review the following publications which are plausible duplicates by project {charge_code}:
+    {formatted_duplicate_pubs}
     """
     rt = rtUtil.DjangoRt()
     ticket = rtModels.Ticket(
