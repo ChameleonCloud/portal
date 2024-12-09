@@ -1603,13 +1603,13 @@ files = [
 
 [[package]]
 name = "httpx"
-version = "0.27.2"
+version = "0.28.1"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "httpx-0.27.2-py3-none-any.whl", hash = "sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0"},
-    {file = "httpx-0.27.2.tar.gz", hash = "sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2"},
+    {file = "httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"},
+    {file = "httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc"},
 ]
 
 [package.dependencies]
@@ -1617,7 +1617,6 @@ anyio = "*"
 certifi = "*"
 httpcore = "==1.*"
 idna = "*"
-sniffio = "*"
 
 [package.extras]
 brotli = ["brotli", "brotlicffi"]
@@ -3577,22 +3576,22 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "rt"
-version = "2.2.2"
+version = "3.3.3"
 description = "Python interface to Request Tracker API"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.9"
 files = [
-    {file = "rt-2.2.2-py3-none-any.whl", hash = "sha256:88f046dac788ca1b4ace2d2b5ddf40838f43251d991f0464071965894b309157"},
-    {file = "rt-2.2.2.tar.gz", hash = "sha256:79e4f7a101e2ed1bd9dc851aafa3f388cb6abaf861e3c10f96382dbaed54949f"},
+    {file = "rt-3.3.3-py3-none-any.whl", hash = "sha256:a1795a620d0bf6b1a563fc10a0c44a76f8a7c54989f152799ec9555a612470ed"},
 ]
 
 [package.dependencies]
-requests = "*"
+httpx = ">=0.28,<1.0"
+requests = ">=2.32,<3.0"
 
 [package.extras]
-dev = ["flake8", "flake8-bandit", "flake8-comprehensions", "flake8-docstrings", "mypy", "pep8-naming", "pycodestyle", "pylint", "types-requests"]
-docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
-test = ["codecov", "coveralls", "nose"]
+dev = ["bandit", "codespell", "mypy", "ruff", "types-requests"]
+docs = ["furo", "sphinx", "sphinx-autodoc-typehints", "sphinx-copybutton", "sphinx-rtd-theme"]
+test = ["coverage (>=7.6,<8.0)", "pytest (>=8.3,<9.0)", "pytest-asyncio (>=0.24,<1.0)"]
 
 [[package]]
 name = "scholarly"
@@ -4378,4 +4377,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.11"
-content-hash = "6d45806738b4e5dea1485ac7db94e2d25c1491ea8b1cdc8425ec54013aee265b"
+content-hash = "5605f2c73acdf27d40a4ac9d4b2887880fae8ba802847bfb7b02889cfc911a0a"
