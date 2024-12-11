@@ -32,4 +32,4 @@ class BillingError(EnforcementException):
 
 
 class LeasePastExpirationError(EnforcementException):
-    msg_fmt = "Cannot create reservation beyond allocation expiration date"
+    msg_fmt = "Cannot create a lease beyond Chameleon project expiration date. Please ask your PI to request an allocation renewal. https://chameleoncloud.readthedocs.io/en/latest/user/project.html#recharge-or-extend-your-allocation"
