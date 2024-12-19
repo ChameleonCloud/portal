@@ -380,7 +380,9 @@ class Publication(models.Model):
     submitted_date = models.DateField(default=timezone.now, null=True)
     reviewed_date = models.DateField(default=timezone.now, null=True)
     reviewed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
     )
     reviewed_comment = models.TextField(null=True)
 
