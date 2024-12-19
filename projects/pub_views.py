@@ -8,9 +8,12 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
+from django.template.loader import render_to_string
+from django.template.loader import get_template
 from django.shortcuts import render
 from django.utils.html import strip_tags
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.cache import never_cache
 
 from djangoRT import rtModels, rtUtil
 from projects.models import Publication, PublicationSource
@@ -69,7 +72,14 @@ def user_publications(request):
         try:
             del_pub_id = request.POST["pub_ref"]
             logger.debug("deleting publication with id {}".format(del_pub_id))
-            Publication.objects.get(pk=del_pub_id).delete_pub()
+            pub = Publication.objects.get(pk=del_pub_id)
+            if pub.added_by_username != request.user.username:
+                messages.error(
+                    request,
+                    "You do not have permission to delete that publication!",
+                )
+            else:
+                pub.delete_pub()
         except Exception:
             logger.exception("Failed removing publication")
             messages.error(
@@ -77,8 +87,10 @@ def user_publications(request):
                 "An unexpected error occurred while attempting "
                 "to remove this publication. Please try again",
             )
+    mapper = ProjectAllocationMapper(request)
+    project_ids = [p["id"] for p in mapper.get_user_projects(request.user.username)]
     context["publications"] = []
-    pubs = Publication.objects.filter(added_by_username=request.user.username).exclude(
+    pubs = Publication.objects.filter(project_id__in=project_ids).exclude(
         status=Publication.STATUS_DELETED
     )
     for pub in pubs:
@@ -102,8 +114,14 @@ def user_publications(request):
                     "nickname": project.nickname,
                     "chargeCode": project.charge_code,
                     "status": pub.status,
+                    "added_by_username": pub.added_by_username,
+                    "submitted_date": pub.submitted_date,
+                    "reviewed_by": pub.reviewed_by,
+                    "reviewed_date": pub.reviewed_date,
+                    "reviewed_comment": pub.reviewed_comment,
                 }
             )
+    logger.info(get_template('projects/view_publications.html').template.origin)
     return render(request, "projects/view_publications.html", context)
 
 

@@ -377,6 +377,12 @@ class Publication(models.Model):
     doi = models.CharField(max_length=500, null=True, blank=True)
     status = models.CharField(choices=STATUSES, max_length=30, null=False)
     checked_for_duplicates = models.BooleanField(default=False, null=False)
+    submitted_date = models.DateField(default=timezone.now, null=True)
+    reviewed_date = models.DateField(default=timezone.now, null=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True,
+    )
+    reviewed_comment = models.TextField(null=True)
 
     def __str__(self) -> str:
         return f"{self.id} {self.title}, {self.author}, In {self.forum}. {self.year}"

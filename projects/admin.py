@@ -34,6 +34,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     ]
 
     fields = (
+        "submitted_date",
         "project",
         "publication_type",
         "forum",
@@ -47,6 +48,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "added_by_username",
         "status",
         "checked_for_duplicates",
+        "reviewed_date",
+        "reviewed_by",
+        "reviewed_comment",
     )
     ordering = ["-status", "-id", "-year"]
     list_display = (
