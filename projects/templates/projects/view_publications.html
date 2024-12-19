@@ -3,20 +3,80 @@
 {% block title %}Publications{% endblock %}
 {% block content %}
 
+<style>
+  .user_pub_table td:first-child div {
+    display: flex;
+  }
+
+  .user_pub_table td div {
+    margin-right: 2rem;
+  }
+
+  .user_pub_table ul {
+    padding: 0;
+  }
+</style>
+
 <h2>Publications</h2>
-{% for p in publications %}
-
-<p>
-<form role="form" method="post" style="display:inline">
-  {% csrf_token %}
-  <input type="hidden" name="pub_ref" value="{{ p.id }}">
-  <button type="submit" class="btn btn-xs btn-link" name="del_pub"><i class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove publication</span></button>
-</form>
-<small>[{% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}]</small>
-<small>[{{p.status}}]</small>
-<a href="{{ p.link }}">{{ p.title }}</a>, {{ p.author }} In <i>{{ p.forum }}</i>. {{ p.month }} {{ p.year }}
-</p>
-
-{% endfor %}
+<table class="user_pub_table">
+  <thead>
+    <tr>
+      <td>
+        Project
+      </td>
+      <td>
+        Submitted by
+      </td>
+      <td>
+        Status
+      </td>
+      <td>
+        Publication
+      </td>
+    </tr>
+  </thead>
+  {% for p in publications %}
+  <tr>
+    <td>
+      <div>
+        {% if p.added_by_username == user.username %}
+        <form role="form" method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="pub_ref" value="{{ p.id }}">
+          <button type="submit" class="btn btn-xs btn-link" name="del_pub"><i
+              class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove publication</span></button>
+        </form>
+        {% endif %}
+        {% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}
+      </div>
+    </td>
+    <td>
+      <div>
+        {{p.added_by_username}}{% if p.submitted_date %} on {{p.submitted_date}}{% endif %}
+      </div>
+    </td>
+    <td>
+      <div>{{p.status}}</div>
+      {% if p.reviewed_by %}
+      <details>
+        <summary>
+          Details
+        </summary>
+        <ul>
+          <li>Reviewer: {{ p.reviewed_by }}</li>
+          <li>Reviewed on: {{ p.reviewed_date }}</li>
+          <li>Comment: {{ p.reviewed_comment }}</li>
+        </ul>
+      </details>
+      {% endif %}
+    </td>
+    <td>
+      <div>
+        <a href="{{ p.link }}">{{ p.title }}</a>, {{ p.author }} In <i>{{ p.forum }}</i>. {{ p.month }} {{ p.year }}
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 
 {% endblock %}
