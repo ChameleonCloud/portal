@@ -2,18 +2,14 @@ import datetime
 import logging
 
 import bibtexparser
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
-from django.template.loader import render_to_string
 from django.template.loader import get_template
 from django.shortcuts import render
-from django.utils.html import strip_tags
 from django.core.exceptions import PermissionDenied
-from django.views.decorators.cache import never_cache
 
 from djangoRT import rtModels, rtUtil
 from projects.models import Publication, PublicationSource
@@ -121,7 +117,7 @@ def user_publications(request):
                     "reviewed_comment": pub.reviewed_comment,
                 }
             )
-    logger.info(get_template('projects/view_publications.html').template.origin)
+    logger.info(get_template("projects/view_publications.html").template.origin)
     return render(request, "projects/view_publications.html", context)
 
 
