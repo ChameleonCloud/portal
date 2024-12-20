@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.urls import reverse
 
 from allocations.models import Allocation
 from projects.models import (
@@ -34,6 +35,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     ]
 
     fields = (
+        "submitted_date",
         "project",
         "publication_type",
         "forum",
@@ -47,6 +49,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "added_by_username",
         "status",
         "checked_for_duplicates",
+        "reviewed_date",
+        "reviewed_by",
+        "reviewed_comment",
     )
     ordering = ["-status", "-id", "-year"]
     list_display = (
@@ -214,7 +219,24 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ["charge_code", "pi", "nickname", "title"]
     search_fields = ["charge_code", "pi__username", "pi__email", "nickname", "title"]
     list_filter = ["tag"]
-    readonly_fields = ["charge_code", "automatically_tagged", "join_url"]
+    readonly_fields = [
+        "charge_code_link",
+        "automatically_tagged",
+        "join_url",
+    ]
+    fields = [
+        "charge_code_link",
+        "title",
+        "nickname",
+        "description",
+        "pi",
+        "join_url",
+    ]
+
+    def charge_code_link(self, obj):
+        return format_html(
+            f'<a href="{reverse("projects:view_project", args=[obj.id])}" target="_blank">{obj.charge_code}</a>'
+        )
 
     def join_url(self, obj):
         return format_html(
