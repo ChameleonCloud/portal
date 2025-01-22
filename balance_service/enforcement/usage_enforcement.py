@@ -353,8 +353,8 @@ class UsageEnforcer(object):
             for alloc in allocations:
                 su_factor = self.__get_billrate(alloc, resource_type)
                 # What propotion of the host is being used by this reservation
-                host_usage = (
-                    alloc.get("vcpus", reservation["vcpus"]) / reservation["vcpus"]
+                host_usage = reservation["vcpus"] / alloc.get(
+                    "vcpus", reservation["vcpus"]
                 )
                 running_total += su_factor * host_usage
             return running_total
