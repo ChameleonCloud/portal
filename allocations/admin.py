@@ -144,7 +144,8 @@ class AllocationAdmin(admin.ModelAdmin):
                 <table>
                     <tr><td>Project</td><td><input disabled id="chargeCode" value="{obj.project.charge_code}" /></td></tr>
                     <tr><td>Allocation ID</td><td><input disabled id="allocationId" value="{obj.id}" /></td></tr>
-                    <tr><td>Requestor</td><td><input disabled id="requestor" value="{obj.requestor}" /><input disabled id="requestorId" hidden value="{obj.requestor.id}" /></td></tr>
+                    <tr><td>Requestor</td><td><input disabled id="requestor" value="{obj.requestor}" /><input disabled id="requestorId" hidden value="{obj.requestor.id}" /><input disabled hidden id="piEmail" value="{obj.project.pi.email}" /></td></tr>
+                    
                     <tr><td>Date Requested</td><td>{obj.date_requested.date()}</td></tr>
                     <tr><td>Compute Requested</td><td>{obj.su_requested}</td></tr>
                     <tr><td>Compute Allocated</td><td><input type="number" value="{obj.su_requested}" id="alloc-compute-allocated"></input></td></tr>
