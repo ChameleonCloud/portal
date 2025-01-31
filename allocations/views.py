@@ -93,7 +93,8 @@ def view_project(request, charge_code):
 
     project = Project.objects.get(charge_code=charge_code)
     is_waiting = project.allocations.filter(
-        status__in=["pending", "approved", "waiting"]).exists()
+        status__in=["pending", "approved", "waiting"]
+    ).exists()
     is_active = project.allocations.filter(status="active").exists()
     furthest_allocation = project.allocations.order_by("-expiration_date").first()
     data = {
