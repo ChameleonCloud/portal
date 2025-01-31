@@ -6,6 +6,7 @@ app_name = "allocations"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("api/view/<str:charge_code>/", views.view_project, name="view_project"),
     path("view/", views.view, name="view"),
     path("json/", views.return_json, name="return_json"),
     path("approval/", views.approval, name="approval"),
