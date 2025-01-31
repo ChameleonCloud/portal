@@ -779,6 +779,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get(
     "ALLOCATIONS_BALANCE_SERVICE_ROOT_URL", ""
 )
+PROJECT_ALLOCATION_DETAILS_TOKEN = os.environ.get("PROJECT_ALLOCATION_DETAILS_TOKEN", None)
 
 # check if balance URL starts with https://www.chameleoncloud.org and https://chameleoncloud.org.
 # if it matches, raise an exception to prevent testing against production redis db.
