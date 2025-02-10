@@ -91,7 +91,11 @@ def view_project(request, charge_code):
         logger.error("Project allocation api Access Token validation failed")
         return HttpResponseForbidden()
 
-    project = Project.objects.get(charge_code=charge_code)
+    try:
+        project = Project.objects.get(charge_code=charge_code)
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "Project not found"}, status=404)
+
     is_waiting = project.allocations.filter(
         status__in=["pending", "approved", "waiting"]
     ).exists()
