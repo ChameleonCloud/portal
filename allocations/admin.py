@@ -11,7 +11,16 @@ from .models import Allocation, Charge
 class ChargeInline(admin.TabularInline):
     model = Charge
     extra = 1
-    fields = ["region_name", "user"]
+    fields = [
+        "region_name",
+        "user",
+        "resource_type",
+        "resource_id",
+        "hourly_cost",
+        "start_time",
+        "end_time",
+    ]
+    readonly_fields = ["region_name", "user"]
 
 
 class AllocationAdmin(admin.ModelAdmin):

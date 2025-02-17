@@ -225,9 +225,7 @@ class UsageEnforcer(object):
                 end_time=self._convert_to_localtime(
                     self._date_from_string(lease["end_date"])
                 ),
-                hourly_cost=self._get_reservation_sus(
-                    reservation["resource_type"], reservation["allocations"]
-                ),
+                hourly_cost=self._get_reservation_sus(reservation),
             )
             new_charge.save()
 
@@ -268,9 +266,7 @@ class UsageEnforcer(object):
         )
         self._check_alloc_expiration_date(new_lease, alloc, approved_alloc)
         for reservation in new_lease["reservations"]:
-            new_hourly_cost = self._get_reservation_sus(
-                reservation["resource_type"], reservation["allocations"]
-            )
+            new_hourly_cost = self._get_reservation_sus(reservation)
             if not end_date_changed:
                 # check if hourly_cost changed
                 old_reservation = [
@@ -279,9 +275,7 @@ class UsageEnforcer(object):
                 old_hourly_cost = None
                 if len(old_reservation) > 0:
                     old_reservation = old_reservation[0]
-                    old_hourly_cost = self._get_reservation_sus(
-                        old_reservation["resource_type"], old_reservation["allocations"]
-                    )
+                    old_hourly_cost = self._get_reservation_sus(old_reservation)
                 if new_hourly_cost == old_hourly_cost:
                     # nothing changed
                     continue
@@ -350,16 +344,31 @@ class UsageEnforcer(object):
 
         return DEFAULT_SU_FACTOR
 
-    def _get_reservation_sus(self, resource_type, allocations):
-        return sum(self.__get_billrate(a, resource_type) for a in allocations)
+    def _get_reservation_sus(self, reservation):
+        resource_type = reservation["resource_type"]
+        allocations = reservation["allocations"]
+        if resource_type == "flavor:instance":
+            # There is 1 allocation per reservation["amount"]
+            running_total = 0
+            for alloc in allocations:
+                su_factor = self.__get_billrate(alloc, resource_type)
+                # What propotion of the host is being used by this reservation
+                host_usage = reservation["vcpus"] / alloc.get(
+                    "vcpus", reservation["vcpus"]
+                )
+                running_total += su_factor * host_usage
+            return running_total
+        else:
+            return sum(self.__get_billrate(a, resource_type) for a in allocations)
 
     def _total_su_factor(self, lease_values):
+        """Gets the total SUs for the lease.
+        See https://docs.openstack.org/blazar/latest/admin/usage-enforcement.html#externalservicefilter
+        """
         total_su_factor = 0
 
         for reservation in lease_values["reservations"]:
-            resource_type = reservation["resource_type"]
-            allocations = reservation["allocations"]
-            total_su_factor += self._get_reservation_sus(resource_type, allocations)
+            total_su_factor += self._get_reservation_sus(reservation)
 
         return total_su_factor
 
