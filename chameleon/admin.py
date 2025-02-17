@@ -88,8 +88,8 @@ class PIEligibilityAdmin(ModelAdmin):
     def _notify_user(self, pi_request, host):
         subject = f"Decision of your PI Eligibility request for {pi_request.requestor}"
         body = f"""
-        <p>Your PI Eligibility status has been updated to {pi_request.status},
-        due to the following reason:</p>
+        <p>Your PI Eligibility status has been updated to {pi_request.status}
+        with the following message:</p>
         <p>{pi_request.review_summary}</p>
         <br/>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
