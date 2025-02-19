@@ -50,7 +50,7 @@ pydetex = "~1.0"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
 python = "3.10.11"
 python-blazarclient = {git = "https://github.com/ChameleonCloud/python-blazarclient", branch = "chameleoncloud/stable/train"}
-python-cinderclient = "^7.2.0"
+python-cinderclient = "^9.6.0"
 python-glanceclient = "2.17.1"
 python-ironicclient = "4.7.0"
 python-keycloak-client = {git = "https://github.com/ChameleonCloud/python-keycloak-client"}
