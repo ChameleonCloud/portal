@@ -105,6 +105,11 @@ class GitUrlParser:
         return parsed_info
 
 
+def check_url_param_length(param, length=36):
+    if len(param > length):
+        raise Http404("That artifact or version does not exist")
+
+
 def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -184,6 +189,7 @@ def can_edit(request, artifact):
 
 
 def handle_get_artifact(request, uuid, sharing_key=None):
+    check_url_param_length(uuid)
     try:
         return trovi.get_artifact_by_trovi_uuid(
             uuid, request.session.get("trovi_token"), sharing_key=sharing_key
@@ -873,6 +879,7 @@ def send_request_mail(request, daypass_request, artifact):
 @login_required
 @with_trovi_token
 def review_daypass(request, request_id, **kwargs):
+    check_url_param_length(str(request_id))
     try:
         daypass_request = DaypassRequest.objects.get(pk=request_id)
     except DaypassRequest.DoesNotExist:
@@ -1082,11 +1089,14 @@ def send_request_decision_mail(request, daypass_request, daypass_project):
 
 def _artifact_version(artifact, version_slug=None):
     if artifact["versions"]:
-        return next(
-            version
-            for version in artifact["versions"]
-            if not version_slug or version["slug"] == version_slug
-        )
+        try:
+            return next(
+                version
+                for version in artifact["versions"]
+                if not version_slug or version["slug"] == version_slug
+            )
+        except StopIteration:
+            raise Http404(f"Version {version_slug} not found")
     return None
 
 
