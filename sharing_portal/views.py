@@ -106,7 +106,10 @@ class GitUrlParser:
 
 
 def check_url_param_length(param, length=36):
-    if len(param > length):
+    """If the provided paramter is greater than a given length,
+    then raise a 404 rather than making a request to Trovi.
+    """
+    if len(param) > length:
         raise Http404("That artifact or version does not exist")
 
 
