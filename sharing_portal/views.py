@@ -105,6 +105,7 @@ class GitUrlParser:
             )
         return parsed_info
 
+
 def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
