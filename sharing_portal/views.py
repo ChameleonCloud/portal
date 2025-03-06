@@ -5,6 +5,7 @@ import subprocess
 from collections import defaultdict
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
+from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
@@ -104,15 +105,6 @@ class GitUrlParser:
             )
         return parsed_info
 
-
-def check_url_param_length(param, length=36):
-    """If the provided paramter is greater than a given length,
-    then raise a 404 rather than making a request to Trovi.
-    """
-    if len(param) > length:
-        raise Http404("That artifact or version does not exist")
-
-
 def with_trovi_token(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -192,11 +184,13 @@ def can_edit(request, artifact):
 
 
 def handle_get_artifact(request, uuid, sharing_key=None):
-    check_url_param_length(uuid)
     try:
+        UUID(uuid)
         return trovi.get_artifact_by_trovi_uuid(
             uuid, request.session.get("trovi_token"), sharing_key=sharing_key
         )
+    except ValueError:
+        raise Http404("That artifact does not exist")
     except trovi.TroviException as e:
         if e.code == 404:
             raise Http404("That artifact does not exist, or is private")
@@ -882,7 +876,6 @@ def send_request_mail(request, daypass_request, artifact):
 @login_required
 @with_trovi_token
 def review_daypass(request, request_id, **kwargs):
-    check_url_param_length(str(request_id))
     try:
         daypass_request = DaypassRequest.objects.get(pk=request_id)
     except DaypassRequest.DoesNotExist:
