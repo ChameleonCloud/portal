@@ -132,7 +132,7 @@ class PIEligibilityAdmin(ModelAdmin):
             if key not in ["joinDate"]:
                 # convert camelcase to separate out words
                 key = re.sub("([A-Z])", " \\1", key).strip().capitalize()
-                yield [(f"{key}: {val}")]
+                yield [f"{key}: {val}"]
 
     def orcid_metadata(self, obj):
         """
