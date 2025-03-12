@@ -13,11 +13,24 @@ from projects.models import (
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.utils import PublicationUtils
 from django.db import transaction
+from celery import shared_task
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
-def import_pubs(dry_run=True, source="all"):
+@shared_task(bind=True)
+def import_pubs_task(self):
+    LOG.info("Importing publications")
+    try:
+        import_pubs(self, dry_run=True, source="scopus")
+    except Exception as e:
+        self.update_state(state="ERROR")
+        LOG.error(f"Error importing scopus publications: {type(e)} {e}")
+        raise
+    return "Completed"
+
+
+def import_pubs(task, dry_run=True, source="all"):
     """Invoke import_pubs() interactively in django manage.py shell
 
     Args:
@@ -28,7 +41,7 @@ def import_pubs(dry_run=True, source="all"):
 
     # Import publications from different sources based on the input argument
     if source in ["scopus", "all"]:
-        pubs.extend(scopus.pub_import(dry_run))
+        pubs.extend(scopus.pub_import(task, dry_run))
     if source in ["semantic_scholar", "all"]:
         pubs.extend(semantic_scholar.pub_import(dry_run))
     if source in ["gscholar", "all"]:
@@ -50,7 +63,7 @@ def import_pubs(dry_run=True, source="all"):
             try:
                 project = Project.objects.get(charge_code=project_code)
             except Project.DoesNotExist:
-                logger.info(f"{project_code} does not exist in database")
+                LOG.info(f"{project_code} does not exist in database")
                 continue
             if utils.is_project_prior_to_publication(project, pub.year):
                 valid_projects.append(project_code)
@@ -69,7 +82,7 @@ def import_pubs(dry_run=True, source="all"):
 
         # If all conditions are met, import the publication
         else:
-            logger.info(f"import {pub.__repr__()}")
+            LOG.info(f"import {pub.__repr__()}")
             reason_for_report = f"Saving: {pub.title}"
             # Save the publication if it is not a dry run
             if not dry_run:
