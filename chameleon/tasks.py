@@ -10,6 +10,11 @@ from cinderclient.v3 import client as cinder_client
 import glanceclient
 import novaclient
 from util.keycloak_client import KeycloakClient
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from celery.result import AsyncResult
+from django.urls import reverse, path
+
 
 from .keystone_auth import (
     admin_session,
@@ -332,3 +337,63 @@ def update_institutions(interactive=True):
                 user=user,
                 institution=inst_obj,
             )
+
+
+class AdminTaskManager:
+    """This is used to add a "start_task" and "check_task" view to an admin page.
+    This is useful for one-off tasks that an admin should initiate.
+    """
+
+    def __init__(self, admin_site, name, task_function):
+        self.name = name
+        self._id = f"{name}_task_id"
+        self.task_function = task_function
+        self.admin_site = admin_site
+        self.start_path_name = f"start_{self.name}"
+        self.check_path_name = f"check_{self.name}"
+
+    def get_urls(self):
+        return [
+            path(
+                f"start/{self.name}",
+                self.admin_site.admin_view(self.start_task),
+                name=self.start_path_name,
+            ),
+            path(
+                f"check/{self.name}",
+                self.admin_site.admin_view(self.check_task),
+                name=self.check_path_name,
+            ),
+        ]
+
+    def start_task(self, request):
+        """Start task, if the user has doesn't have a running task,
+        otherwise return the task id.
+        """
+        task_id = request.session.get(self._id)
+        if task_id:
+            result = AsyncResult(task_id)
+            if result.state in ["PROGRESS", "PENDING"]:
+                return JsonResponse({"id": task_id})
+            else:
+                del request.session[self._id]
+        task = self.task_function.delay()
+        request.session[self._id] = task.id
+        return JsonResponse({"id": task.id})
+
+    def check_task(self, request):
+        """Get the latest status from the user's task."""
+        task_id = request.session.get(self._id)
+        if task_id:
+            result = AsyncResult(task_id)
+            if result.state == "PROGRESS":
+                return JsonResponse({"status": "PROGRESS", **result.info})
+            elif result.state == "FAILURE":
+                return JsonResponse(
+                    {
+                        "status": "FAILURE",
+                        "result": f"{type(result.result)} {result.result}",
+                    }
+                )
+            return JsonResponse({"status": result.state, "result": result.result})
+        return JsonResponse({"status": None})

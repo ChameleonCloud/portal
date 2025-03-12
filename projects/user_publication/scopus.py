@@ -2,6 +2,8 @@ import datetime
 import logging
 import re
 
+from django.conf import settings
+import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
@@ -40,11 +42,16 @@ def _publication_references_chameleon(references):
                 return True
 
 
-def pub_import(dry_run=True):
+def pub_import(task, dry_run=True):
+    pybliometrics.scopus.init()
     search = ScopusSearch(CHAMELEON_QUERY)
     logger.debug("Performed search")
     publications = []
-    for raw_pub in search.results:
+    task.update_state(state="PROGRESS", meta={"current": 0, "total": 10})
+    for i, raw_pub in enumerate(search.results):
+        task.update_state(
+            state="PROGRESS", meta={"current": i, "total": len(search.results)}
+        )
         logger.debug(f"Fetching results for {raw_pub.eid}")
         retries = 0
         references = None

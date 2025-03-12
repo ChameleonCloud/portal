@@ -1,6 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
+
+from chameleon.tasks import AdminTaskManager
+from projects.user_publication.publications import import_pubs_task
+
 
 from allocations.models import Allocation
 from projects.models import (
@@ -13,96 +17,16 @@ from projects.models import (
 )
 from projects.views import resend_invitation
 
+import logging
+
+LOG = logging.getLogger(__name__)
+
 
 class ProjectFields:
     def project_charge_code(self, model):
         """Obtain the charge_code attribute from the `project` relation."""
         project = getattr(model, "project", None)
         return getattr(project, "charge_code", None)
-
-
-class PublicationSourceInline(admin.TabularInline):
-    model = PublicationSource
-    extra = 0
-
-
-class PublicationAdmin(ProjectFields, admin.ModelAdmin):
-    inlines = (PublicationSourceInline,)
-
-    readonly_fields = [
-        "project",
-        "added_by_username",
-    ]
-
-    fields = (
-        "submitted_date",
-        "project",
-        "publication_type",
-        "forum",
-        "title",
-        "year",
-        "month",
-        "author",
-        "bibtex_source",
-        "doi",
-        "link",
-        "added_by_username",
-        "status",
-        "checked_for_duplicates",
-        "reviewed_date",
-        "reviewed_by",
-        "reviewed_comment",
-    )
-    ordering = ["-status", "-id", "-year"]
-    list_display = (
-        "id",
-        "title",
-        "project",
-        "year",
-        "status",
-    )
-    list_filter = ["status", "year", "checked_for_duplicates", "publication_type"]
-    search_fields = ["title", "project__charge_code", "author", "forum"]
-
-
-class ChameleonPublicationAdmin(admin.ModelAdmin):
-    fields = ("title", "ref")
-    list_display = ("title", "ref")
-
-
-class PublicationFields:
-    def publication_id(self, model):
-        """Obtain the publication id attribute from the `publication` relation"""
-        publication = getattr(model, "publication", None)
-        return getattr(publication, "id", None)
-
-    def publication_title(self, model):
-        """Obtain the publication title attribute from the `publication` relation"""
-        publication = getattr(model, "publication", None)
-        return getattr(publication, "title", None)
-
-
-class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
-    readonly_fields = [
-        "citation_count",
-    ]
-
-    fields = (
-        "name",
-        "publication",
-        "citation_count",
-        "is_found_by_algorithm",
-        "cites_chameleon",
-        "acknowledges_chameleon",
-        "entry_created_date",
-    )
-
-    list_display = (
-        "name",
-        "citation_count",
-        "publication",
-        "entry_created_date",
-    )
 
 
 class InvitationAdmin(admin.ModelAdmin):
@@ -257,8 +181,113 @@ class ProjectAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(Project, ProjectAdmin)
+class PublicationSourceInline(admin.TabularInline):
+    model = PublicationSource
+    extra = 0
+
+
+class ChameleonPublicationAdmin(admin.ModelAdmin):
+    fields = ("title", "ref")
+    list_display = ("title", "ref")
+
+
+class PublicationFields:
+    def publication_id(self, model):
+        """Obtain the publication id attribute from the `publication` relation"""
+        publication = getattr(model, "publication", None)
+        return getattr(publication, "id", None)
+
+    def publication_title(self, model):
+        """Obtain the publication title attribute from the `publication` relation"""
+        publication = getattr(model, "publication", None)
+        return getattr(publication, "title", None)
+
+
+class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
+    readonly_fields = [
+        "citation_count",
+    ]
+
+    fields = (
+        "name",
+        "publication",
+        "citation_count",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "entry_created_date",
+    )
+
+    list_display = (
+        "name",
+        "citation_count",
+        "publication",
+        "entry_created_date",
+    )
+
+
+class PublicationAdmin(ProjectFields, admin.ModelAdmin):
+    inlines = (PublicationSourceInline,)
+
+    readonly_fields = [
+        "project",
+        "added_by_username",
+    ]
+
+    fields = (
+        "submitted_date",
+        "project",
+        "publication_type",
+        "forum",
+        "title",
+        "year",
+        "month",
+        "author",
+        "bibtex_source",
+        "doi",
+        "link",
+        "added_by_username",
+        "status",
+        "checked_for_duplicates",
+        "reviewed_date",
+        "reviewed_by",
+        "reviewed_comment",
+    )
+    ordering = ["-status", "-id", "-year"]
+    list_display = (
+        "id",
+        "title",
+        "project",
+        "year",
+        "status",
+    )
+    list_filter = ["status", "year", "checked_for_duplicates", "publication_type"]
+    search_fields = ["title", "project__charge_code", "author", "forum"]
+
+    change_list_template = "admin/import_publication_changelist.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.task_managers = [
+            AdminTaskManager(self.admin_site, "pub_import", import_pubs_task),
+        ]
+
+    def get_urls(self):
+        urls = super().get_urls()
+        for task_manager in self.task_managers:
+            urls += task_manager.get_urls()
+        LOG.info(urls)
+        return urls
+
+    def changelist_view(self, request, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+        extra_context["task_managers"] = self.task_managers
+        return super().changelist_view(request, extra_context=extra_context)
+
+
 admin.site.register(Publication, PublicationAdmin)
+admin.site.register(Project, ProjectAdmin)
 admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 admin.site.register(PublicationSource, PublicationSourceAdmin)
