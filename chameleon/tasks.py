@@ -389,11 +389,14 @@ class AdminTaskManager:
             if result.state == "PROGRESS":
                 return JsonResponse({"status": "PROGRESS", **result.info})
             elif result.state == "FAILURE":
+                del request.session[self._id]
                 return JsonResponse(
                     {
                         "status": "FAILURE",
                         "result": f"{type(result.result)} {result.result}",
                     }
                 )
+            elif result.state == "SUCCESS":
+                del request.session[self._id]
             return JsonResponse({"status": result.state, "result": result.result})
         return JsonResponse({"status": None})

@@ -1,8 +1,14 @@
+from datetime import date
 from django.contrib import admin, messages
+from django.contrib.auth import get_user_model
+from django.http import HttpResponseRedirect
+from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse, path
+from django.utils.safestring import mark_safe
 
 from chameleon.tasks import AdminTaskManager
+from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
 from projects.user_publication.publications import import_pubs_task
 
 
@@ -13,6 +19,7 @@ from projects.models import (
     Invitation,
     Project,
     Publication,
+    PublicationDuplicate,
     PublicationSource,
 )
 from projects.views import resend_invitation
@@ -226,43 +233,142 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
     )
 
 
-class PublicationAdmin(ProjectFields, admin.ModelAdmin):
-    inlines = (PublicationSourceInline,)
+class PotentialDuplicateFilter(admin.SimpleListFilter):
+    title = "Is a Potential Duplicate"
+    parameter_name = "is_potential_duplicate_of"
 
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Yes"),
+            ("no", "No"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(
+                checked_for_duplicates=False,
+                status=Publication.STATUS_SUBMITTED,
+            ).filter(
+                id__in=[
+                    pub.id
+                    for pub in queryset
+                    if len(get_originals_for_duplicate_pub(pub)) > 0
+                ]
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                checked_for_duplicates=False,
+                status=Publication.STATUS_SUBMITTED,
+            ).exclude(
+                id__in=[
+                    pub.id
+                    for pub in queryset
+                    if len(get_originals_for_duplicate_pub(pub)) > 0
+                ]
+            )
+
+
+class DuplicateOfDuplicatePublicationInline(admin.TabularInline):
+    model = PublicationDuplicate
+    fk_name = "duplicate"
+    extra = 0
+    verbose_name = "Duplicate of publication"
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj):
+        return False
+
+
+class DuplicatesDuplicatePublicationInline(admin.TabularInline):
+    model = PublicationDuplicate
+    fk_name = "original"
+    extra = 0
+    readonly_fields = ["original"]
+    verbose_name = "Duplicated by publication"
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj):
+        return False
+
+
+class PublicationAdmin(ProjectFields, admin.ModelAdmin):
+    inlines = (
+        PublicationSourceInline,
+        DuplicatesDuplicatePublicationInline,
+        DuplicateOfDuplicatePublicationInline,
+    )
+
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": [
+                    "title",
+                    "submitted_date",
+                    "project",
+                    "publication_type",
+                    "forum",
+                    "year",
+                    "month",
+                    "author",
+                    "doi",
+                    "link",
+                    "clickable_link",
+                    "added_by_username",
+                ],
+            },
+        ),
+        (
+            "Review",
+            {
+                "fields": [
+                    "status",
+                    "reviewed_date",
+                    "reviewed_by",
+                    "reviewed_comment",
+                    "potential_duplicate_of",
+                    "checked_for_duplicates",
+                ]
+            },
+        ),
+        (
+            "Advanced",
+            {
+                "classes": ["collapse"],
+                "fields": [
+                    "bibtex_source",
+                ],
+            },
+        ),
+    ]
     readonly_fields = [
         "project",
         "added_by_username",
+        "potential_duplicate_of",
+        "clickable_link",
     ]
-
-    fields = (
-        "submitted_date",
-        "project",
-        "publication_type",
-        "forum",
-        "title",
-        "year",
-        "month",
-        "author",
-        "bibtex_source",
-        "doi",
-        "link",
-        "added_by_username",
-        "status",
-        "checked_for_duplicates",
-        "reviewed_date",
-        "reviewed_by",
-        "reviewed_comment",
-    )
     ordering = ["-status", "-id", "-year"]
     list_display = (
         "id",
-        "title",
+        "short_title",
         "project",
         "year",
         "status",
     )
-    list_filter = ["status", "year", "checked_for_duplicates", "publication_type"]
+    list_filter = [
+        PotentialDuplicateFilter,
+        "status",
+        "year",
+        "checked_for_duplicates",
+        "publication_type",
+    ]
     search_fields = ["title", "project__charge_code", "author", "forum"]
+
+    actions = ["mark_checked_for_duplicates"]
 
     change_list_template = "admin/import_publication_changelist.html"
 
@@ -272,11 +378,22 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             AdminTaskManager(self.admin_site, "pub_import", import_pubs_task),
         ]
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "reviewed_by":
+            kwargs["queryset"] = get_user_model().objects.filter(is_staff=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def get_urls(self):
         urls = super().get_urls()
+        urls += [
+            path(
+                "<int:duplicate_id>/create-duplicate/<int:original_id>",
+                self.admin_site.admin_view(self.create_duplicate),
+                name="projects_create_publication_duplicate",
+            ),
+        ]
         for task_manager in self.task_managers:
             urls += task_manager.get_urls()
-        LOG.info(urls)
         return urls
 
     def changelist_view(self, request, extra_context=None):
@@ -284,6 +401,96 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             extra_context = {}
         extra_context["task_managers"] = self.task_managers
         return super().changelist_view(request, extra_context=extra_context)
+
+    def potential_duplicate_of(self, obj):
+        duplicates = get_originals_for_duplicate_pub(obj)
+        if not duplicates:
+            return "No duplicates found"
+
+        links = []
+        for pub in duplicates:
+            create_url = reverse(
+                "admin:projects_create_publication_duplicate", args=[obj.pk, pub.pk]
+            )
+            links.append(
+                f"""
+                <li>
+                <a href="{reverse("admin:projects_publication_change", args=[pub.pk])}">{str(pub)})</a>
+                    <a class="btn" href="#" onclick="createDuplicate('{create_url}', '{pub.pk}')">
+                        Mark Duplicate
+                    </a>
+                </li>
+                """
+            )
+        links_html = "".join(links)
+        script_html = """
+            <script>
+                function createDuplicate(url, title) {
+                if (confirm(`Mark as duplicate of "${title}"?`)) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert(`Successfully marked this pub as a duplicate.`);
+                            window.location.reload();
+                        } else {
+                            alert(`Failed to mark duplicate.`);
+                        }
+                    });
+                }
+            }
+            </script>
+        """
+        return mark_safe(
+            f"""
+            {script_html}
+            <ul>{links_html}</ul>
+        """
+        )
+
+    potential_duplicate_of.short_description = "Is Potential Duplicate Of"
+
+    def short_title(self, obj):
+        max_length = 50
+        if len(obj.title) > max_length:
+            return f"{obj.title[:max_length]}..."
+        return obj.title
+
+    def clickable_link(self, obj):
+        return mark_safe(f'<a href="{obj.link}" target="_blank">{obj.link}</a>')
+
+    @admin.action(description="Mark selected as checked for duplicates")
+    def mark_checked_for_duplicates(self, request, queryset):
+        updated_count = queryset.update(checked_for_duplicates=True)
+        self.message_user(
+            request,
+            f"{updated_count} publication(s) marked as checked for duplicates.",
+            messages.SUCCESS,
+        )
+
+    def create_duplicate(self, request, duplicate_id, original_id):
+        duplicate = Publication.objects.get(pk=duplicate_id)
+        original = Publication.objects.get(pk=original_id)
+
+        PublicationDuplicate.objects.create(duplicate=duplicate, original=original)
+        duplicate.checked_for_duplicates = True
+        duplicate.status = Publication.STATUS_DUPLICATE
+        duplicate.checked_for_duplicates = True
+        duplicate.reviewed_by = request.user
+        duplicate.reviewed_date = date.today()
+        public_publication_url = f"https://chameleoncloud.org/user/projects/chameleon-used-research/#pub-{original.pk}"
+        duplicate.reviewed_comment = f"Marked as a duplicate of '{original.title}'. See {public_publication_url}."
+        duplicate.save()
+        self.message_user(
+            request,
+            f"Marked '{duplicate.title}' as a duplicate of '{original.title}'.",
+            messages.SUCCESS,
+        )
+        return HttpResponseRedirect(reverse("admin:projects_publication_changelist"))
 
 
 admin.site.register(Publication, PublicationAdmin)

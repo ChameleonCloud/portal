@@ -18,18 +18,23 @@
       {% for p in pubs %}
         <tr>
             <td>
-              {% if p.doi %}
-                <a href="https://doi.org/{{p.doi}}">{{p.title}}</a>
-              {% elif p.link %}
-                <a href="{{p.link}}">{{p.title}}</a>
-              {% else %}
-                {{p.title}}
-              {% endif %}
+              <a id="pub-{{p.id}}"></a>
+                {% if p.doi %}
+                  <a href="https://doi.org/{{p.doi}}">{{p.title}}</a>
+                {% elif p.link %}
+                  <a href="{{p.link}}">{{p.title}}</a>
+                {% else %}
+                  {{p.title}}
+                {% endif %}
             </td>
             <td>{{p.year}}</td>
             <td>{{p.forum}}</td>
             <td>{{p.author}}</td>
-            <td>{{p.max_cites_from_all_sources}}</td>
+            <td>
+              {% if p.max_cites_from_all_sources > 0 %}
+              {{p.max_cites_from_all_sources}}
+              {% else %}{% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
