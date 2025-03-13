@@ -369,7 +369,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     ]
     search_fields = ["title", "project__charge_code", "author", "forum"]
 
-    actions = ["mark_checked_for_duplicates"]
+    actions = ["mark_checked_for_duplicates", "mark_approved"]
 
     change_list_template = "admin/import_publication_changelist.html"
 
@@ -472,6 +472,20 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         self.message_user(
             request,
             f"{updated_count} publication(s) marked as checked for duplicates.",
+            messages.SUCCESS,
+        )
+
+    @admin.action(description="Mark selected as approved")
+    def mark_approved(self, request, queryset):
+        updated_count = queryset.update(
+            status=Publication.STATUS_APPROVED,
+            checked_for_duplicates=True,
+            reviewed_by=request.user,
+            reviewed_date=date.today(),
+        )
+        self.message_user(
+            request,
+            f"{updated_count} publication(s) marked as approved.",
             messages.SUCCESS,
         )
 
