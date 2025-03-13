@@ -318,6 +318,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     "link",
                     "clickable_link",
                     "added_by_username",
+                    "ticket_id",
+                    "ticket_link",
                 ],
             },
         ),
@@ -349,6 +351,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "added_by_username",
         "potential_duplicate_of",
         "clickable_link",
+        "ticket_link",
     ]
     ordering = ["-status", "-id", "-year"]
     list_display = (
@@ -464,6 +467,12 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     def clickable_link(self, obj):
         if obj.link:
             return mark_safe(f'<a href="{obj.link}" target="_blank">{obj.link}</a>')
+        return ""
+
+    def ticket_link(self, obj):
+        if obj.ticket_id:
+            link = f"https://consult.tacc.utexas.edu/Ticket/Display.html?id={obj.ticket_id}"
+            return mark_safe(f'<a href="{link}" target="_blank">{link}</a>')
         return ""
 
     @admin.action(description="Mark selected as checked for duplicates")

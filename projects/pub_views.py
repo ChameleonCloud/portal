@@ -39,7 +39,10 @@ def _send_publication_notification(charge_code, pubs):
         problem_description=body,
         requestor="us@tacc.utexas.edu",
     )
-    return rt.createTicket(ticket)
+    ticket_id = rt.createTicket(ticket)
+    for pub in pubs:
+        pub.ticket_id = ticket_id
+        pub.save()
 
 
 def _send_duplicate_pubs_notification(ticket_id, charge_code, duplicate_pubs):
