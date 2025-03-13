@@ -71,11 +71,8 @@ def get_duplicate_pubs(pubs=None):
             logger.info(f"{pub1.title} does not have year - ignoring")
             continue
         # Get all Publications that are older than pub1
-        pubs_to_check_against = Publication.objects.filter(
-            id__lt=pub1.id, year=pub1.year
-        ).order_by("-id")
         duplicate_with_their_original_pubs_map[pub1] = get_originals_for_duplicate_pub(
-            pub1, pubs_to_check_against
+            pub1
         )
     return duplicate_with_their_original_pubs_map
 

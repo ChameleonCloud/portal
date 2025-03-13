@@ -386,6 +386,7 @@ class Publication(models.Model):
         blank=True,
     )
     reviewed_comment = models.TextField(null=True, blank=True)
+    ticket_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self) -> str:
         short_title = self.title
