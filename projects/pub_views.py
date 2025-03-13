@@ -24,6 +24,10 @@ logger = logging.getLogger("projects")
 
 
 def _send_publication_notification(charge_code, pubs):
+    """Create ticket to notifiy of new publication
+
+    Returns: the new ticket id
+    """
     subject = f"Project {charge_code} added new publications"
     formatted_pubs = "\n".join([f"- {pub.__repr__()}" for pub in pubs])
     body = f"""Please review the following publications added by project {charge_code}:
@@ -35,11 +39,10 @@ def _send_publication_notification(charge_code, pubs):
         problem_description=body,
         requestor="us@tacc.utexas.edu",
     )
-    rt.createTicket(ticket)
+    return rt.createTicket(ticket)
 
 
-def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
-    subject = f"Project {charge_code} plausible duplicate uploaded"
+def _send_duplicate_pubs_notification(ticket_id, charge_code, duplicate_pubs):
     formatted_duplicate_pubs = "\n".join(
         [
             (f"- {pub.__repr__()}: Found duplicate for {duplicate_pubs[pub]}").replace(
@@ -53,12 +56,7 @@ def _send_duplicate_pubs_notification(charge_code, duplicate_pubs):
     {formatted_duplicate_pubs}
     """
     rt = rtUtil.DjangoRt()
-    ticket = rtModels.Ticket(
-        subject=subject,
-        problem_description=body,
-        requestor="us@tacc.utexas.edu",
-    )
-    rt.createTicket(ticket)
+    rt.replyToTicket(ticket_id, text=body)
 
 
 @login_required
@@ -153,11 +151,13 @@ def add_publications(request, project_id):
                     pub_source.save()
                     new_pubs.append(new_pub)
             messages.success(request, "Publication(s) added successfully")
-            _send_publication_notification(project.chargeCode, new_pubs)
+            ticket_id = _send_publication_notification(project.chargeCode, new_pubs)
             duplicate_pubs = get_duplicate_pubs(new_pubs)
             # if any of the pubs have duplicates
             if any(v for v in duplicate_pubs.values()):
-                _send_duplicate_pubs_notification(project.chargeCode, duplicate_pubs)
+                _send_duplicate_pubs_notification(
+                    ticket_id, project.chargeCode, duplicate_pubs
+                )
         else:
             messages.error(
                 request, f"Error adding publication(s). {pubs_form.bibtex_error}"
