@@ -2,7 +2,6 @@ from datetime import date
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
-from django.http.request import HttpRequest
 from django.utils.html import format_html
 from django.urls import reverse, path
 from django.utils.safestring import mark_safe
@@ -357,7 +356,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "short_title",
         "project",
         "year",
+        "checked_for_duplicates",
         "status",
+        "clickable_link",
     )
     list_filter = [
         PotentialDuplicateFilter,
@@ -405,7 +406,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     def potential_duplicate_of(self, obj):
         duplicates = get_originals_for_duplicate_pub(obj)
         if not duplicates:
-            return "No duplicates found"
+            return "No similar publications found"
 
         links = []
         for pub in duplicates:
@@ -461,7 +462,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         return obj.title
 
     def clickable_link(self, obj):
-        return mark_safe(f'<a href="{obj.link}" target="_blank">{obj.link}</a>')
+        if obj.link:
+            return mark_safe(f'<a href="{obj.link}" target="_blank">{obj.link}</a>')
+        return ""
 
     @admin.action(description="Mark selected as checked for duplicates")
     def mark_checked_for_duplicates(self, request, queryset):
