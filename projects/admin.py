@@ -8,8 +8,11 @@ from django.utils.safestring import mark_safe
 
 from chameleon.tasks import AdminTaskManager
 from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
-from projects.user_publication.publications import import_pubs_task
-
+from projects.user_publication.publications import (
+    import_pubs_google_scholar_task,
+    import_pubs_scopus_task,
+    import_pubs_semantic_scholar_task,
+)
 
 from allocations.models import Allocation
 from projects.models import (
@@ -379,7 +382,15 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.task_managers = [
-            AdminTaskManager(self.admin_site, "pub_import", import_pubs_task),
+            AdminTaskManager(self.admin_site, "import_scopus", import_pubs_scopus_task),
+            AdminTaskManager(
+                self.admin_site,
+                "import_semantic_scholar",
+                import_pubs_semantic_scholar_task,
+            ),
+            AdminTaskManager(
+                self.admin_site, "import_gscholar", import_pubs_google_scholar_task
+            ),
         ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

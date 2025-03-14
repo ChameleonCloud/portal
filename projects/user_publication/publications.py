@@ -11,7 +11,7 @@ from projects.models import (
     PublicationSource,
 )
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 from django.db import transaction
 from celery import shared_task
 
@@ -19,13 +19,27 @@ LOG = logging.getLogger(__name__)
 
 
 @shared_task(bind=True)
-def import_pubs_task(self):
+def import_pubs_scopus_task(self):
+    return import_pubs_task(self, "scopus")
+
+
+@shared_task(bind=True)
+def import_pubs_semantic_scholar_task(self):
+    return import_pubs_task(self, "semantic_scholar")
+
+
+@shared_task(bind=True)
+def import_pubs_google_scholar_task(self):
+    return import_pubs_task(self, "gscholar")
+
+
+def import_pubs_task(self, source):
     LOG.info("Importing publications")
     try:
-        import_pubs(self, dry_run=True, source="scopus")
+        import_pubs(self, dry_run=True, source=source)
     except Exception as e:
         self.update_state(state="ERROR")
-        LOG.error(f"Error importing scopus publications: {type(e)} {e}")
+        LOG.error(f"Error importing {source} publications: {type(e)} {e}")
         raise
     return "Completed"
 
@@ -43,12 +57,13 @@ def import_pubs(task, dry_run=True, source="all"):
     if source in ["scopus", "all"]:
         pubs.extend(scopus.pub_import(task, dry_run))
     if source in ["semantic_scholar", "all"]:
-        pubs.extend(semantic_scholar.pub_import(dry_run))
+        pubs.extend(semantic_scholar.pub_import(task, dry_run))
     if source in ["gscholar", "all"]:
-        pubs.extend(gscholar.pub_import(dry_run))
+        pubs.extend(gscholar.pub_import(task, dry_run))
 
     # Process each publication
-    for source, pub in pubs:
+    for i, (source, pub) in enumerate(pubs):
+        update_progress(stage=1, current=i, total=len(pubs), task=task)
         same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
         if same_pubs.exists():
             for same_pub in same_pubs:
