@@ -11,10 +11,8 @@ import glanceclient
 import novaclient
 from util.keycloak_client import KeycloakClient
 from django.http import JsonResponse
-from django.shortcuts import redirect
 from celery.result import AsyncResult
-from django.urls import reverse, path
-
+from django.urls import path
 
 from .keystone_auth import (
     admin_session,
@@ -351,6 +349,7 @@ class AdminTaskManager:
         self.admin_site = admin_site
         self.start_path_name = f"start_{self.name}"
         self.check_path_name = f"check_{self.name}"
+        self.terminate_path_name = f"terminate_{self.name}"
 
     def get_urls(self):
         return [
@@ -363,6 +362,11 @@ class AdminTaskManager:
                 f"check/{self.name}",
                 self.admin_site.admin_view(self.check_task),
                 name=self.check_path_name,
+            ),
+            path(
+                f"terminate/{self.name}",
+                self.admin_site.admin_view(self.terminate_task),
+                name=self.terminate_path_name,
             ),
         ]
 
@@ -380,6 +384,12 @@ class AdminTaskManager:
         task = self.task_function.delay()
         request.session[self._id] = task.id
         return JsonResponse({"id": task.id})
+
+    def terminate_task(self, request):
+        task_id = request.session.get(self._id)
+        AsyncResult(task_id).revoke(terminate=True)
+        del request.session[self._id]
+        return JsonResponse({"status": "TERMINATED"})
 
     def check_task(self, request):
         """Get the latest status from the user's task."""

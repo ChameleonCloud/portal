@@ -362,3 +362,16 @@ def export_publication_status_run(
             reason,
         ]
         csv_f_writer.writerow(row)
+
+
+def update_progress(stage, current, total, task):
+    """
+    Update the task's progress. This is essentially 2 different progress bars depending on stage.
+    Stage: 0 - import, 1 - processing.
+    """
+    stage_multiplier = 50 / total
+    stage_offset = stage * 50
+    calculated_current = int(current * stage_multiplier + stage_offset)
+    task.update_state(
+        state="PROGRESS", meta={"current": calculated_current, "total": 100}
+    )

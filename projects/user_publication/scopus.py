@@ -9,7 +9,7 @@ from requests import ReadTimeout
 
 from projects.models import Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 
 logger = logging.getLogger("projects")
 
@@ -47,11 +47,8 @@ def pub_import(task, dry_run=True):
     search = ScopusSearch(CHAMELEON_QUERY)
     logger.debug("Performed search")
     publications = []
-    task.update_state(state="PROGRESS", meta={"current": 0, "total": 10})
     for i, raw_pub in enumerate(search.results):
-        task.update_state(
-            state="PROGRESS", meta={"current": i, "total": len(search.results)}
-        )
+        update_progress(stage=0, current=i, total=len(search.results), task=task)
         logger.debug(f"Fetching results for {raw_pub.eid}")
         retries = 0
         references = None
