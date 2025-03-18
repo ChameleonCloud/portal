@@ -33,7 +33,7 @@
 
         const statusResponse = await fetch('{% url check_url_name %}');
         const statusData = await statusResponse.json();
-        let statusSuffix = statusData.current ? `- ${statusData.current}/${statusData.total}` : '';
+        let statusSuffix = statusData.total ? `- ${statusData.current}/${statusData.total}` : (statusData.message ? `- ${statusData.message}` : '');
         document.getElementById(lblId).innerText = `${statusData.status ? statusData.status : ''}${statusSuffix}`;
         if (statusData.status === 'PROGRESS') {
           let progressBarEl = document.getElementById(progId)

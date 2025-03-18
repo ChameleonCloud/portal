@@ -926,6 +926,8 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 # Publication
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
+SCOPUS_API_KEY = os.environ.get("SCOPUS_API_KEY")
+SCOPUS_INSTITUTION_KEY = os.environ.get("SCOPUS_INSTITUTION_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]

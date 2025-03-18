@@ -9,7 +9,7 @@ from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +189,7 @@ class GoogleScholarHandler(object):
         return
 
 
-def pub_import(dry_run=True, year_low=2014, year_high=None):
+def pub_import(task, dry_run=True, year_low=2014, year_high=None):
     """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
@@ -203,7 +203,10 @@ def pub_import(dry_run=True, year_low=2014, year_high=None):
     pubs = []
     if not year_high:
         year_high = datetime.date.today().year
-    for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
+    pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
+    total = len(pubs)
+    for i, chameleon_pub in enumerate(pubs):
+        update_progress(stage=0, current=i, total=total, task=task)
         ch_pub = gscholar.get_one_pub(chameleon_pub.title)
         cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
         for cited_pub in cited_pubs:
