@@ -1,10 +1,13 @@
 import datetime
 import logging
 import re
+from time import sleep, strptime
 
 from django.conf import settings
+import requests
 import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
+from pybliometrics.exception import Scopus429Error
 from requests import ReadTimeout
 
 from projects.models import Publication, PublicationSource
@@ -43,28 +46,23 @@ def _publication_references_chameleon(references):
 
 
 def pub_import(task, dry_run=True):
-    pybliometrics.scopus.init()
+    pybliometrics.scopus.init(
+        config_path="/project/pybliometrics.cfg",
+        keys=[settings.SCOPUS_API_KEY],
+        inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
+    )
     search = ScopusSearch(CHAMELEON_QUERY)
     logger.debug("Performed search")
     publications = []
     for i, raw_pub in enumerate(search.results):
         update_progress(stage=0, current=i, total=len(search.results), task=task)
         logger.debug(f"Fetching results for {raw_pub.eid}")
-        retries = 0
         references = None
-        while retries < 5:
-            try:
-                references = _get_references(AbstractRetrieval(raw_pub.eid, view="REF"))
-                break
-            except ReadTimeout:
-                msg = f"Failed abstract retrieval for {raw_pub.eid}."
-                if retries < 5:
-                    logger.warning(msg + " Retrying.")
-                else:
-                    logger.error(msg)
-            retries += 1
-        # If we retried 5 times to fetch references,
-        # then consider the publication a lost cause
+        try:
+            res = AbstractRetrieval(raw_pub.eid, view="REF")
+            references = _get_references(res)
+        except ReadTimeout:
+            logger.error(f"Failed abstract retrieval for {raw_pub.eid}.")
         if not references:
             continue
         if not _publication_references_chameleon(references):
