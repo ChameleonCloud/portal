@@ -97,9 +97,18 @@ class GoogleScholarHandler(object):
         cite_count = 0
         while True:
             try:
-                cited_pub = self.fill(self._get_next_cite(cites_gen))
-                citations.append(cited_pub)
-                cite_count += 1
+                try:
+                    next_cite = self._get_next_cite(cites_gen)
+                    cited_pub = self.fill(next_cite)
+                    citations.append(cited_pub)
+                    cite_count += 1
+                except Exception as e:
+                    # Some issue with google scholar data's model. Scholarly isn't able
+                    # to map everything via bibtex and random exceptions are raised.
+                    logger.error(e)
+                    logger.error(f"Error while filling citation for {next_cite}")
+                    continue
+
                 logger.info(f"Got {cite_count} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
@@ -200,7 +209,7 @@ def pub_import(task, dry_run=True, year_low=2014, year_high=None):
         year_high (int, optional): Defaults to datetime.now().year.
     """
     gscholar = GoogleScholarHandler()
-    pubs = []
+    publications = []
     if not year_high:
         year_high = datetime.date.today().year
     pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
@@ -216,5 +225,5 @@ def pub_import(task, dry_run=True, year_low=2014, year_high=None):
             except ValueError:
                 logger.warning(f"Skipping: {pub_model.title} does not have an year")
                 continue
-            pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
-    return pubs
+            publications.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+    return publications
