@@ -114,7 +114,13 @@ def is_project_prior_to_publication(project, pub_year):
     fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
     # Consider the runtime of a project to be the start of its first allocation
     # until the end of its last allocation
-    start = min(alloc.start_date or fake_start for alloc in project.allocations.all())
+    try:
+        start = min(
+            alloc.start_date or fake_start for alloc in project.allocations.all()
+        )
+    except ValueError:
+        # In case project doesn't have any allocations
+        start = fake_start
     # if project's allocation is prior to publication year
     if start.year <= pub_year:
         return True
