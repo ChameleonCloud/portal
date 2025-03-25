@@ -659,3 +659,43 @@ class BalanceServiceTest(TestCase):
         for c in Charge.objects.all():
             if c not in self.existing_charges:
                 self.assertEqual(c.end_time, self.now)
+
+    @patch("django.utils.timezone.now")
+    @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
+    @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
+    def test_usage_enforcer_check_usage_against_allocation_charges_flavor_res(
+        self, mock_kc, mock_ks, mock_now
+    ):
+        mock_now.return_value = self.now
+
+        ks_instance = mock_ks.return_value
+        ks_instance.get_project.return_value = {"name": "TEST123"}
+        ks_instance.get_user.return_value = {"name": "test_requestor"}
+
+        kc_instance = mock_kc.return_value
+        kc_instance.get_user_project_role_scopes.return_value = ("admin", None)
+
+        ue = UsageEnforcer(ks_instance)
+
+        self.allocation.su_allocated = 10000
+        self.allocation.save()
+
+        # Overwrite some lease data for one-off flavor use
+        lease_data = self._lease_data(
+            timezone.timedelta(hours=5),
+            reservations=1,
+            allocations_per_res=1,
+        )
+        lease_data["lease"]["reservations"][0]["resource_type"] = "flavor:instance"
+        lease_data["lease"]["reservations"][0]["vcpus"] = 10
+        lease_data["lease"]["reservations"][0]["allocations"][0]["vcpus"] = 100
+
+        ue.check_usage_against_allocation(lease_data)
+        new_charges = []
+        for c in Charge.objects.all():
+            if c not in self.existing_charges:
+                new_charges.append(c)
+        self.assertEqual(len(new_charges), 1)
+        # su_factor = 3
+        # 5 hrs * 3 su_factor * 10/100 vcpus = 1.5
+        self.assertAlmostEqual(get_total_sus(new_charges[0]), 1.5)
