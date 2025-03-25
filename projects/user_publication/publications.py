@@ -36,7 +36,7 @@ def import_pubs_google_scholar_task(self):
 def import_pubs_task(self, source):
     LOG.info("Importing publications")
     try:
-        import_pubs(self, dry_run=True, source=source)
+        import_pubs(self, dry_run=False, source=source)
     except Exception as e:
         self.update_state(state="ERROR")
         LOG.error(f"Error importing {source} publications: {type(e)} {e}")

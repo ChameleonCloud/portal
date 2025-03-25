@@ -1,13 +1,10 @@
 import datetime
 import logging
 import re
-from time import sleep, strptime
 
 from django.conf import settings
-import requests
 import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
-from pybliometrics.exception import Scopus429Error
 from requests import ReadTimeout
 
 from projects.models import Publication, PublicationSource
