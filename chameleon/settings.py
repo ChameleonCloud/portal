@@ -796,7 +796,6 @@ PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get(
 )
 ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY = 60 * 5
 ACTIVATE_EXPIRE_INVITATION_FREQUENCY = 60 * 5
-ALLOCATION_CHECK_CHARGE_FREQUENCY = 60 * 5
 
 ########
 # Tasks
@@ -840,12 +839,6 @@ CELERY_BEAT_SCHEDULE = {
     "warn-user-for-low-allocation": {
         "task": "allocations.tasks.warn_user_for_low_allocations",
         "schedule": crontab(minute=30, hour=7),
-    },
-    "check_charge": {
-        "task": "allocations.tasks.check_charge",
-        "schedule": crontab(
-            minute="*/{}".format(int(ALLOCATION_CHECK_CHARGE_FREQUENCY // 60))
-        ),
     },
 }
 
