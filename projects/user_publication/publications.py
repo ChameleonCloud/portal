@@ -13,7 +13,7 @@ from projects.models import (
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.utils import PublicationUtils, update_progress
 from django.db import transaction
-from celery import task
+from celery.decorators import task
 
 LOG = logging.getLogger(__name__)
 
