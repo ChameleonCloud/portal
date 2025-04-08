@@ -478,7 +478,6 @@ def check_keycloak_consistency():
                 keycloak_client.update_project(project, has_active_allocation="false")
 
 
-@task
 def check_charge():
     """
     Check if the charges of the active allocations are in sync

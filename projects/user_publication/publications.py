@@ -13,22 +13,22 @@ from projects.models import (
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.utils import PublicationUtils, update_progress
 from django.db import transaction
-from celery import shared_task
+from celery import task
 
 LOG = logging.getLogger(__name__)
 
 
-@shared_task(bind=True)
+@task(bind=True)
 def import_pubs_scopus_task(self):
     return import_pubs_task(self, "scopus")
 
 
-@shared_task(bind=True)
+@task(bind=True)
 def import_pubs_semantic_scholar_task(self):
     return import_pubs_task(self, "semantic_scholar")
 
 
-@shared_task(bind=True)
+@task(bind=True)
 def import_pubs_google_scholar_task(self):
     return import_pubs_task(self, "gscholar")
 
