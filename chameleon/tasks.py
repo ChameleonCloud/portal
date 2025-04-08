@@ -12,6 +12,8 @@ import novaclient
 from util.keycloak_client import KeycloakClient
 from django.http import JsonResponse
 from celery.result import AsyncResult
+from chameleon.celery import app as celery_app
+
 from django.urls import path
 
 from .keystone_auth import (
@@ -376,7 +378,7 @@ class AdminTaskManager:
         """
         task_id = request.session.get(self._id)
         if task_id:
-            result = AsyncResult(task_id)
+            result = AsyncResult(task_id, app=celery_app)
             if result.state in ["PROGRESS", "PENDING"]:
                 return JsonResponse({"id": task_id})
             else:
@@ -387,7 +389,7 @@ class AdminTaskManager:
 
     def terminate_task(self, request):
         task_id = request.session.get(self._id)
-        AsyncResult(task_id).revoke(terminate=True)
+        AsyncResult(task_id, app=celery_app).revoke(terminate=True)
         del request.session[self._id]
         return JsonResponse({"status": "TERMINATED"})
 
@@ -395,7 +397,7 @@ class AdminTaskManager:
         """Get the latest status from the user's task."""
         task_id = request.session.get(self._id)
         if task_id:
-            result = AsyncResult(task_id)
+            result = AsyncResult(task_id, app=celery_app)
             if result.state == "PROGRESS":
                 return JsonResponse({"status": "PROGRESS", **result.info})
             elif result.state == "FAILURE":
