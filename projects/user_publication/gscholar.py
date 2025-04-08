@@ -106,7 +106,6 @@ class GoogleScholarHandler(object):
                     # Some issue with google scholar data's model. Scholarly isn't able
                     # to map everything via bibtex and random exceptions are raised.
                     logger.error(e)
-                    logger.error(f"Error while filling citation for {next_cite}")
                     continue
 
                 logger.info(f"Got {cite_count} / {num_citations}")
@@ -125,7 +124,10 @@ class GoogleScholarHandler(object):
         Args:
             pub (dict): scholarly return of the publication
         """
-        return self.scholarly.fill(pub)
+        try:
+            return self.scholarly.fill(pub)
+        except ValueError:
+            return pub
 
     def get_authors(self, pub):
         """returns a list of authors in a publication
