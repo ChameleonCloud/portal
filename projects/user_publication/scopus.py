@@ -63,7 +63,6 @@ def pub_import(task, dry_run=True):
         if not references:
             continue
         if not _publication_references_chameleon(references):
-            print(raw_pub.title, "Does not referece chameleon")
             continue
         title = utils.decode_unicode_text(raw_pub.title)
         published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
