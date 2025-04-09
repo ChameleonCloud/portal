@@ -97,21 +97,19 @@ class GoogleScholarHandler(object):
         cite_count = 0
         while True:
             try:
-                try:
-                    next_cite = self._get_next_cite(cites_gen)
-                    cited_pub = self.fill(next_cite)
-                    citations.append(cited_pub)
-                    cite_count += 1
-                except Exception as e:
-                    # Some issue with google scholar data's model. Scholarly isn't able
-                    # to map everything via bibtex and random exceptions are raised.
-                    logger.error(e)
-                    continue
-
+                next_cite = self._get_next_cite(cites_gen)
+                cited_pub = self.fill(next_cite)
+                citations.append(cited_pub)
+                cite_count += 1
                 logger.info(f"Got {cite_count} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
+            except Exception as e:
+                # Some issue with google scholar data's model. Scholarly isn't able
+                # to map everything via bibtex and random exceptions are raised.
+                logger.error(e)
+                continue
 
     @_handle_proxy_reload
     def _get_next_cite(self, cites_gen):
