@@ -1,6 +1,16 @@
 from django.utils import timezone
 from django.db import models
-from django.db.models import ExpressionWrapper, F, Sum, functions
+from django.db.models import (
+    Case,
+    When,
+    Value,
+    F,
+    FloatField,
+    ExpressionWrapper,
+    Sum,
+    functions,
+)
+
 
 from projects.models import Project
 from allocations.models import Charge
@@ -99,10 +109,18 @@ def calculate_user_total_su_usage(user, project):
     # Extract('charge_duration', 'hour') to get the duration in hours but
     # Extract requires native DurationField database support.
     charges_with_duration_in_ms = charges.annotate(
-        charge_duration=ExpressionWrapper(
-            F("end_time") - F("start_time"), output_field=models.FloatField()
+        charge_duration=Case(
+            When(  # if end_time < start_time, set duration to 0.
+                end_time__gte=F("start_time"),
+                then=ExpressionWrapper(
+                    F("end_time") - F("start_time"), output_field=FloatField()
+                ),
+            ),
+            default=Value(0.0),
+            output_field=FloatField(),
         )
     )
+
     # Calculate cost of each charge in SUs by converting ms to hours
     charges_with_actual_cost = charges_with_duration_in_ms.annotate(
         charge_cost=F("charge_duration") / microseconds_per_hour * F("hourly_cost")
