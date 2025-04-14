@@ -17,9 +17,11 @@ class DjangoRt:
         self.queue = settings.DJANGO_RT["RT_QUEUE"]
 
         self.tracker = rt.Rt(host, username, password)
-        self.tracker.login()
+        self.logged_in = self.tracker.login()
 
     def getUserTickets(self, userEmail, show_resolved=False):
+        if not self.logged_in:
+            return []
         if show_resolved:
             query = 'Requestor="%s"' % userEmail
         else:
