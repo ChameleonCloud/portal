@@ -51,6 +51,7 @@ def dashboard(request):
     # open tickets...
     rt = rtUtil.DjangoRt()
     context["open_tickets"] = rt.getUserTickets(request.user.email)
+    context["logged_in_tickets"] = rt.logged_in
 
     # ongoing outages...
     outages = [

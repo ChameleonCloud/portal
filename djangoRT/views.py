@@ -125,6 +125,7 @@ def mytickets(request):
         "djangoRT/ticketList.html",
         {
             "tickets": tickets,
+            "logged_in": rt.logged_in,
             "show_resolved": show_resolved,
         },
     )

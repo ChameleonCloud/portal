@@ -26,12 +26,17 @@
 </form>
 
 <div class="tickets">
-  {% for ticket in tickets %}
-    {% include "djangoRT/ticket.html" %}
-  {% empty %}
-    <div class="jumbotron">
-      <p>No tickets to display!</p>
-    </div>
-  {% endfor %}
+  {% if not logged_in %}
+    <p class="alert alert-danger">Could not connect to the help desk. Please try again later.</p>
+  {% else %}
+    {% for ticket in tickets %}
+      {% include "djangoRT/ticket.html" %}
+    {% empty %}
+      <div class="jumbotron">
+        <p>No tickets to display!</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
 </div>
 {% endblock %}
