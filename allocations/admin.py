@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django import forms
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
@@ -11,7 +13,22 @@ from .models import Allocation, Charge
 class ChargeInline(admin.TabularInline):
     model = Charge
     extra = 1
-    fields = ["region_name", "user"]
+    fields = [
+        "region_name",
+        "user",
+        "resource_type",
+        "resource_id",
+        "start_time",
+        "end_time",
+        "hourly_cost",
+    ]
+
+    formfield_overrides = {
+        models.TextField: {"widget": forms.TextInput(attrs={"size": "10"})},
+    }
+
+    def has_change_permission(self, request, obj):
+        return False
 
 
 class AllocationAdmin(admin.ModelAdmin):
