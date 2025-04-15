@@ -215,15 +215,27 @@ def pub_import(task, dry_run=True, year_low=2014, year_high=None):
     pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
     total = len(pubs)
     for i, chameleon_pub in enumerate(pubs):
-        update_progress(stage=0, current=i, total=total, task=task)
-        ch_pub = gscholar.get_one_pub(chameleon_pub.title)
-        cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
-        for cited_pub in cited_pubs:
-            pub_model = gscholar.get_pub_model(cited_pub)
-            try:
-                pub_model.year = int(pub_model.year)
-            except ValueError:
-                logger.warning(f"Skipping: {pub_model.title} does not have an year")
-                continue
-            publications.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+        try:
+            update_progress(stage=0, current=i, total=total, task=task)
+            ch_pub = gscholar.get_one_pub(chameleon_pub.title)
+            cited_pubs = gscholar.get_cites(
+                ch_pub, year_low=year_low, year_high=year_high
+            )
+            for cited_pub in cited_pubs:
+                try:
+                    pub_model = gscholar.get_pub_model(cited_pub)
+                    try:
+                        pub_model.year = int(pub_model.year)
+                    except ValueError:
+                        logger.warning(
+                            f"Skipping: {pub_model.title} does not have an year"
+                        )
+                        continue
+                    publications.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+                except Exception as e:
+                    logger.error(f"Error in publication {cited_pub}: {e}")
+                    continue
+        except Exception as e:
+            logger.error(f"Error in publication: {e}")
+            continue
     return publications
