@@ -63,55 +63,59 @@ def import_pubs(task, dry_run=True, source="all"):
 
     # Process each publication
     for i, (source, pub) in enumerate(pubs):
-        update_progress(stage=1, current=i, total=len(pubs), task=task)
-        same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
-        if same_pubs.exists():
-            for same_pub in same_pubs:
-                utils.add_source_to_pub(same_pub, source)
-            continue
-        authors = [author.strip() for author in pub.author.split("and")]
-        projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
-
-        # Get valid projects that are active prior to the publication year
-        valid_projects = []
-        for project_code in projects:
-            try:
-                project = Project.objects.get(charge_code=project_code)
-            except Project.DoesNotExist:
-                LOG.info(f"{project_code} does not exist in database")
+        try:
+            update_progress(stage=1, current=i, total=len(pubs), task=task)
+            same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
+            if same_pubs.exists():
+                for same_pub in same_pubs:
+                    utils.add_source_to_pub(same_pub, source)
                 continue
-            if utils.is_project_prior_to_publication(project, pub.year):
-                valid_projects.append(project_code)
+            authors = [author.strip() for author in pub.author.split("and")]
+            projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
 
-        author_usernames = [
-            utils.get_usernames_for_author(author) for author in authors
-        ]
-        report_file_name = f"publications_run_{date.today()}_{source}.csv"
+            # Get valid projects that are active prior to the publication year
+            valid_projects = []
+            for project_code in projects:
+                try:
+                    project = Project.objects.get(charge_code=project_code)
+                except Project.DoesNotExist:
+                    LOG.info(f"{project_code} does not exist in database")
+                    continue
+                if utils.is_project_prior_to_publication(project, pub.year):
+                    valid_projects.append(project_code)
 
-        # Check if there are valid projects and if is a chameleon publication
-        if (
-            not valid_projects
-            or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
-        ):
-            reason_for_report = "Skipping: no valid projects"
+            author_usernames = [
+                utils.get_usernames_for_author(author) for author in authors
+            ]
+            report_file_name = f"publications_run_{date.today()}_{source}.csv"
 
-        # If all conditions are met, import the publication
-        else:
-            LOG.info(f"import {pub.__repr__()}")
-            reason_for_report = f"Saving: {pub.title}"
-            # Save the publication if it is not a dry run
-            if not dry_run:
-                utils.save_publication(pub, source)
+            # Check if there are valid projects and if is a chameleon publication
+            if (
+                not valid_projects
+                or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
+            ):
+                reason_for_report = "Skipping: no valid projects"
 
-        # Export the publication status report
-        utils.export_publication_status_run(
-            report_file_name,
-            pub,
-            author_usernames,
-            valid_projects,
-            projects,
-            reason_for_report,
-        )
+            # If all conditions are met, import the publication
+            else:
+                LOG.info(f"import {pub.__repr__()}")
+                reason_for_report = f"Saving: {pub.title}"
+                # Save the publication if it is not a dry run
+                if not dry_run:
+                    utils.save_publication(pub, source)
+
+            # Export the publication status report
+            utils.export_publication_status_run(
+                report_file_name,
+                pub,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason_for_report,
+            )
+        except Exception as e:
+            LOG.error(f"Error processing publication {pub} from {source}: {e}")
+            continue
 
 
 def choose_approved_with_option():
