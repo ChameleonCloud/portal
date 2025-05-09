@@ -1,5 +1,3 @@
-version: "3.5"
-
 services:
   portal:
     image: ${DOCKER_IMAGE_LATEST}
@@ -21,10 +19,6 @@ services:
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
     depends_on:
       - mysql
-  referenceapi:
-    image: docker.chameleoncloud.org/referenceapi:latest
-    ports:
-      - "127.0.0.1:8891:8000"
   mysql:
     image: mariadb:10
     volumes:
@@ -41,15 +35,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:3306:3306"
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - "127.0.0.1:8889:80"
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-    depends_on:
-      - mysql
   redis:
     image: redis:alpine
   celery:
