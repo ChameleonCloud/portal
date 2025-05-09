@@ -25,7 +25,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "NOT_A_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-DEBUG
-DEBUG = os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG"
+DEBUG = os.environ.get("DJANGO_ENV", "debug").lower() == "debug"
 
 # OpenStack Properties
 OPENSTACK_UC_REGION = os.environ.get("OPENSTACK_UC_REGION", "CHI@UC")
@@ -841,6 +841,8 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=30, hour=7),
     },
 }
+if DEBUG:
+    CELERY_BEAT_SCHEDULE = {}
 
 # Djangocms_blog templates
 BLOG_PLUGIN_TEMPLATE_FOLDERS = (
