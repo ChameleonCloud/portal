@@ -387,3 +387,7 @@ article {
     background-color: #fff;
     border: 1px solid #ddd;
 }
+
+.grayscale {
+  filter: grayscale(100%);
+}
