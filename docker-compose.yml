@@ -19,6 +19,10 @@ services:
     command: ["runserver", "0.0.0.0:${PORTAL_PORT}"]
     depends_on:
       - mysql
+  referenceapi:
+    image: ghcr.io/chameleoncloud/reference-api:latest
+    ports:
+      - "127.0.0.1:8891:8000"
   mysql:
     image: mariadb:10
     volumes:
