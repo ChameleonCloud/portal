@@ -98,6 +98,29 @@ html, body {
   padding-top: 2em;
 }
 
+.partners {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  
+  a {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    
+    img {
+      max-height: 50px;
+      max-width: 100px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+  }
+}
+
 .main {
   background-color: #fff;
   background-image: url(../images/bg.jpg);
