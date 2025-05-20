@@ -11,6 +11,7 @@ from django.template.loader import get_template
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from djangoRT import rtModels, rtUtil
 from projects.models import Publication, PublicationSource, Project
@@ -18,6 +19,7 @@ from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.util import get_project_members
 from projects.views import project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
+# from chameleon.research_impacts import get_education_users
 
 from .forms import AddBibtexPublicationForm
 
@@ -245,6 +247,18 @@ def view_chameleon_used_in_research_publications(request):
     ).distinct().count()
     impact_stats['historical_projects'] = historical_projects
     print(f"DEBUG: Active projects: {active_projects}, Historical projects: {historical_projects}", file=sys.stderr)
+    
+    # User statistics
+    total_users = User.objects.count()
+    impact_stats['total_users'] = total_users
+    
+    # Count total current active projects
+    active_education_projects_count = Project.objects.filter(
+        tag__name="Computing Education",
+        allocations__status__in=['active', 'approved']
+    ).distinct().count()
+    impact_stats['education_projects'] = active_education_projects_count
+    print(f"DEBUG: Total users: {total_users}, Active education projects: {active_education_projects_count}", file=sys.stderr)
     
     # Publication types distribution (top 5)
     pub_types = list(
