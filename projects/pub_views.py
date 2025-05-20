@@ -4,15 +4,16 @@ import logging
 import bibtexparser
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import Max
 from django.http import Http404
 from django.template.loader import get_template
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Publication, PublicationSource
+from projects.models import Publication, PublicationSource, Project
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.util import get_project_members
 from projects.views import project_member_or_admin_or_superuser
@@ -181,6 +182,7 @@ def add_publications(request, project_id):
 
 
 def view_chameleon_used_in_research_publications(request):
+    # Get all approved publications
     pubs = (
         Publication.objects.filter(
             checked_for_duplicates=True, status=Publication.STATUS_APPROVED
@@ -188,8 +190,82 @@ def view_chameleon_used_in_research_publications(request):
         .order_by("-year", "title")
         .annotate(max_cites_from_all_sources=Max("sources__citation_count"))
     )
+
+    # Add more visible debugging output
+    import sys
+    print("DEBUG: Starting metrics calculation", file=sys.stderr)
+    
+    # Calculate research impact statistics
+    impact_stats = {}
+    
+    # Total number of publications
+    total_pubs = pubs.count()
+    impact_stats['total_publications'] = total_pubs
+    print(f"DEBUG: Total publications: {total_pubs}", file=sys.stderr)
+    
+    pub_query = Publication.objects.filter(
+        checked_for_duplicates=True, status=Publication.STATUS_APPROVED
+    )
+
+    print(f"DEBUG: Publication count: {pub_query.count()}", file=sys.stderr)
+    
+    # Publications by year (last 5 years)
+    current_year = timezone.now().year
+    years_range = list(range(current_year-4, current_year+1))
+    print(f"DEBUG: Current year: {current_year}, Years range: {years_range}", file=sys.stderr)
+    
+    pubs_by_year = list(
+        pub_query.values('year')
+        .annotate(count=models.Count('id'))
+        .filter(year__in=years_range)
+        .order_by('year')
+    )
+    print(f"DEBUG: Publications by year (raw): {pubs_by_year}", file=sys.stderr)
+    
+    # Create a complete dataset with all years, filling in zeros for missing years
+    complete_pubs_by_year = []
+    year_counts = {item['year']: item['count'] for item in pubs_by_year}
+    for year in years_range:
+        complete_pubs_by_year.append({
+            'year': year,
+            'count': year_counts.get(year, 0)
+        })
+    impact_stats['publications_by_year'] = complete_pubs_by_year
+    print(f"DEBUG: Complete publications by year: {complete_pubs_by_year}", file=sys.stderr)
+    
+    # Projects with publications
+    projects_with_pubs = Project.objects.filter(
+        project_publication__status=Publication.STATUS_APPROVED
+    ).distinct().count()
+    total_projects = Project.objects.count()
+    impact_stats['projects_with_publications'] = projects_with_pubs
+    impact_stats['total_projects'] = total_projects
+    print(f"DEBUG: Projects with pubs: {projects_with_pubs}, Total projects: {total_projects}", file=sys.stderr)
+    
+    # Active projects (with allocations that are active or approved)
+    active_projects = Project.objects.filter(
+        allocations__status__in=['active', 'approved']
+    ).distinct().count()
+    impact_stats['active_projects'] = active_projects
+    print(f"DEBUG: Active projects: {active_projects}", file=sys.stderr)
+    
+    # Publication types distribution (top 5)
+    pub_types = list(
+        pub_query.values('publication_type')
+        .annotate(count=models.Count('id'))
+        .order_by('-count')[:5]
+    )
+    impact_stats['publication_types'] = pub_types
+    print(f"DEBUG: Publication types: {pub_types}", file=sys.stderr)
+    
+    # For troubleshooting template rendering
+    print(f"DEBUG: Final impact_stats: {impact_stats}", file=sys.stderr)
+    
     return render(
         request,
         "projects/chameleon_used_in_research.html",
-        {"pubs": pubs},
+        {
+            "pubs": pubs,
+            "impact_stats": impact_stats,
+        },
     )
