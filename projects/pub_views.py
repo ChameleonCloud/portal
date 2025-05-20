@@ -233,15 +233,6 @@ def view_chameleon_used_in_research_publications(request):
     impact_stats['publications_by_year'] = complete_pubs_by_year
     print(f"DEBUG: Complete publications by year: {complete_pubs_by_year}", file=sys.stderr)
     
-    # Projects with publications
-    projects_with_pubs = Project.objects.filter(
-        project_publication__status=Publication.STATUS_APPROVED
-    ).distinct().count()
-    total_projects = Project.objects.count()
-    impact_stats['projects_with_publications'] = projects_with_pubs
-    impact_stats['total_projects'] = total_projects
-    print(f"DEBUG: Projects with pubs: {projects_with_pubs}, Total projects: {total_projects}", file=sys.stderr)
-    
     # Active projects (with allocations that are active or approved)
     active_projects = Project.objects.filter(
         allocations__status__in=['active', 'approved']
