@@ -209,7 +209,13 @@ def view_chameleon_used_in_research_publications(request):
         checked_for_duplicates=True, status=Publication.STATUS_APPROVED
     )
 
-    print(f"DEBUG: Publication count: {pub_query.count()}", file=sys.stderr)
+    last_reviewed = pub_query.aggregate(Max("reviewed_date"))["reviewed_date__max"]
+    if last_reviewed:
+        last_reviewed = last_reviewed.strftime("%Y-%m-%d")
+    else:
+        last_reviewed = "N/A"
+    impact_stats['last_reviewed'] = last_reviewed
+    print(f"DEBUG: Publication count: {pub_query.count()}, Last Reviewed: {last_reviewed}", file=sys.stderr)
     
     # Publications by year (last 5 years)
     current_year = timezone.now().year
@@ -247,18 +253,6 @@ def view_chameleon_used_in_research_publications(request):
     ).distinct().count()
     impact_stats['historical_projects'] = historical_projects
     print(f"DEBUG: Active projects: {active_projects}, Historical projects: {historical_projects}", file=sys.stderr)
-    
-    # User statistics
-    total_users = User.objects.count()
-    impact_stats['total_users'] = total_users
-    
-    # Count total current active projects
-    active_education_projects_count = Project.objects.filter(
-        tag__name="Computing Education",
-        allocations__status__in=['active', 'approved']
-    ).distinct().count()
-    impact_stats['education_projects'] = active_education_projects_count
-    print(f"DEBUG: Total users: {total_users}, Active education projects: {active_education_projects_count}", file=sys.stderr)
     
     # Publication types distribution (top 5)
     pub_types = list(
