@@ -6,10 +6,12 @@
   <h1>Chameleon Used In Research</h1>
   <p>As a publicly-funded testbed, we strive to demonstrate the value that our
   testbed brings to science and research. As part of this effort, we ask our
-  users to <a href="#">acknowledge our project and cite our publications</a>
+  users to <a href="/learn/frequently-asked-questions/#toc-how-should-i-acknowledge-chameleon-">acknowledge our project and cite our publications</a>
   when reporting results enabled by Chameleon usage. This effort is critical to
   documenting the incredible work our users do with the infrastructure we
   work hard to develop and maintain.</p>
+
+  <p>Publication Data Last Updated: {{ impact_stats.last_reviewed }}</p>
   
   <h2>Research Impact Metrics</h2>
   
@@ -39,49 +41,10 @@
     <div class="col-md-4">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title text-center">Historical Projects</h3>
+          <h3 class="panel-title text-center">Total Approved Projects</h3>
         </div>
         <div class="panel-body">
           <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.historical_projects }}</p>
-          <p class="text-center" style="font-size: 12px; color: #666; margin: 0;">Projects ever approved</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="row">
-    <div class="col-md-4">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title text-center">Publications Last Year</h3>
-        </div>
-        <div class="panel-body">
-          {% with last_year=impact_stats.publications_by_year|last %}
-          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ last_year.count }}</p>
-          {% endwith %}
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-4">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title text-center">Total Users</h3>
-        </div>
-        <div class="panel-body">
-          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.total_users }}</p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-md-4">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title text-center">Education Projects</h3>
-        </div>
-        <div class="panel-body">
-          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.education_projects }}</p>
-          <p class="text-center" style="font-size: 12px; color: #666; margin: 0;">Active projects for education</p>
         </div>
       </div>
     </div>
