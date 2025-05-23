@@ -704,9 +704,11 @@ EDGE_HW_ROOT = "http://edgehwdiscovery:5000"
 #####
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("SMTP_HOST", "localhost")
-EMAIL_PORT = os.environ.get("SMTP_PORT", 25)
+EMAIL_PORT = int(os.environ.get("SMTP_PORT", "25"))
 EMAIL_HOST_USER = os.environ.get("SMTP_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+EMAIL_USE_SSL = EMAIL_PORT == 465
+EMAIL_USE_TLS = EMAIL_PORT == 587
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@chameleoncloud.org")
 
 
