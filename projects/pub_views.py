@@ -236,13 +236,13 @@ def view_chameleon_used_in_research_publications(request):
         allocations__status__in=['active', 'approved']
     ).distinct().count()
     impact_stats['active_projects'] = active_projects
-    
+
     # Historical projects (projects that have ever had an approved allocation)
     historical_projects = Project.objects.filter(
         allocations__status__in=['active', 'approved', 'inactive']
     ).distinct().count()
     impact_stats['historical_projects'] = historical_projects
-    
+
     # Publication types distribution (top 5)
     pub_types = list(
         pub_query.values('publication_type')
