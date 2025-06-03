@@ -30,8 +30,7 @@ class KeystoneAPI:
 
     def verify_auth_url(self, auth_url):
         allowed_auth_urls = [
-            settings.OPENSTACK_TACC_AUTH_URL,
-            settings.OPENSTACK_UC_AUTH_URL,
+            auth_url for auth_url in settings.OPENSTACK_AUTH_REGIONS.values()
         ]
 
         auth_url.rstrip("/")
