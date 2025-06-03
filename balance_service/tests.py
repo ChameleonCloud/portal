@@ -737,9 +737,6 @@ class BalanceServiceTest(TestCase):
         # 5 hrs * 3 su_factor * 10/100 vcpus = 1.5
         self.assertAlmostEqual(get_total_sus(new_charges[0]), 1.5)
 
-    
-    
-    
     @patch("django.utils.timezone.now")
     @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
     @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
