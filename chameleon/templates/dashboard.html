@@ -91,25 +91,29 @@
         </div>
       </div>
       <div class="panel-body">
-        {% if open_tickets %}
-          <table class="table">
-            <thead>
-              <th>Ticket</th>
-              <th>Last Updated</th>
-              <th></th>
-            </thead>
-            <tbody>
-              {% for ticket in open_tickets %}
-                <tr>
-                <td><a href="{% url 'djangoRT:ticketdetail' ticket.id %}">#{{ticket.id}} - {{ticket.Subject}}</a></td>
-                <td>{{ticket.LastUpdated|naturaltime}}</td>
-                <td class="text-right"><a href="{% url 'djangoRT:ticketreply' ticket.id %}">Reply</a></td>
-                </tr>
-              {% endfor %}
-            <tbody>
-          </table>
+        {% if not logged_in_tickets %}
+          <p class="alert alert-danger">Could not connect to the help desk. Please try again later.</p>
         {% else %}
-          <p>No open tickets.</p>
+          {% if open_tickets %}
+            <table class="table">
+              <thead>
+                <th>Ticket</th>
+                <th>Last Updated</th>
+                <th></th>
+              </thead>
+              <tbody>
+                {% for ticket in open_tickets %}
+                  <tr>
+                  <td><a href="{% url 'djangoRT:ticketdetail' ticket.id %}">#{{ticket.id}} - {{ticket.Subject}}</a></td>
+                  <td>{{ticket.LastUpdated|naturaltime}}</td>
+                  <td class="text-right"><a href="{% url 'djangoRT:ticketreply' ticket.id %}">Reply</a></td>
+                  </tr>
+                {% endfor %}
+              <tbody>
+            </table>
+          {% else %}
+            <p>No open tickets.</p>
+          {% endif %}
         {% endif %}
       </div>
     </div>

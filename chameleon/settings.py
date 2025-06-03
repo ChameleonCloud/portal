@@ -25,7 +25,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "NOT_A_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-DEBUG
-DEBUG = os.environ.get("DJANGO_ENV", "DEBUG") == "DEBUG"
+DEBUG = os.environ.get("DJANGO_ENV", "debug").lower() == "debug"
 
 # OpenStack Properties
 OPENSTACK_UC_REGION = os.environ.get("OPENSTACK_UC_REGION", "CHI@UC")
@@ -704,9 +704,11 @@ EDGE_HW_ROOT = "http://edgehwdiscovery:5000"
 #####
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("SMTP_HOST", "localhost")
-EMAIL_PORT = os.environ.get("SMTP_PORT", 25)
+EMAIL_PORT = int(os.environ.get("SMTP_PORT", "25"))
 EMAIL_HOST_USER = os.environ.get("SMTP_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+EMAIL_USE_SSL = EMAIL_PORT == 465
+EMAIL_USE_TLS = EMAIL_PORT == 587
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@chameleoncloud.org")
 
 
@@ -779,6 +781,9 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 ALLOCATIONS_BALANCE_SERVICE_ROOT_URL = os.environ.get(
     "ALLOCATIONS_BALANCE_SERVICE_ROOT_URL", ""
 )
+PROJECT_ALLOCATION_DETAILS_TOKEN = os.environ.get(
+    "PROJECT_ALLOCATION_DETAILS_TOKEN", None
+)
 
 # check if balance URL starts with https://www.chameleoncloud.org and https://chameleoncloud.org.
 # if it matches, raise an exception to prevent testing against production redis db.
@@ -793,7 +798,6 @@ PENDING_ALLOCATION_NOTIFICATION_EMAIL = os.environ.get(
 )
 ACTIVATE_EXPIRE_ALLOCATION_FREQUENCY = 60 * 5
 ACTIVATE_EXPIRE_INVITATION_FREQUENCY = 60 * 5
-ALLOCATION_CHECK_CHARGE_FREQUENCY = 60 * 5
 
 ########
 # Tasks
@@ -838,13 +842,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "allocations.tasks.warn_user_for_low_allocations",
         "schedule": crontab(minute=30, hour=7),
     },
-    "check_charge": {
-        "task": "allocations.tasks.check_charge",
-        "schedule": crontab(
-            minute="*/{}".format(int(ALLOCATION_CHECK_CHARGE_FREQUENCY // 60))
-        ),
-    },
 }
+if DEBUG:
+    CELERY_BEAT_SCHEDULE = {}
 
 # Djangocms_blog templates
 BLOG_PLUGIN_TEMPLATE_FOLDERS = (
@@ -923,6 +923,8 @@ ALLOWED_OPENSTACK_SERVICE_USERS = os.environ.get(
 # Publication
 ########
 SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
+SCOPUS_API_KEY = os.environ.get("SCOPUS_API_KEY")
+SCOPUS_INSTITUTION_KEY = os.environ.get("SCOPUS_INSTITUTION_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]

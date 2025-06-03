@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 "id": document.getElementById("allocationId").value,
             },
             "rt": {
-                "requestor": document.getElementById("requestor").value, // requestor username
+                "requestor": document.getElementById("piEmail").value, // pi email should be ticket requestor
                 "problem_description": message, 
             },
         }

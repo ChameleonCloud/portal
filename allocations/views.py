@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required, user_passes_test
+from projects.models import Project
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
@@ -80,6 +82,35 @@ def get_all_alloc(request):
 def view(request):
     """Return http response of get_all_alloc. Matches Template."""
     return HttpResponse(get_all_alloc(request), content_type="application/json")
+
+
+def view_project(request, charge_code):
+    provided_token = request.GET.get("token") if request.GET.get("token") else None
+    stored_token = getattr(settings, "PROJECT_ALLOCATION_DETAILS_TOKEN", None)
+    if not provided_token or not stored_token or provided_token != stored_token:
+        logger.error("Project allocation api Access Token validation failed")
+        return HttpResponseForbidden()
+
+    try:
+        project = Project.objects.get(charge_code=charge_code)
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "Project not found"}, status=404)
+
+    is_waiting = project.allocations.filter(
+        status__in=["pending", "approved", "waiting"]
+    ).exists()
+    is_active = project.allocations.filter(status="active").exists()
+    furthest_allocation = project.allocations.order_by("-expiration_date").first()
+    data = {
+        "charge_code": project.charge_code,
+        "nickname": project.nickname,
+        "pi": project.pi.email,
+        "status": furthest_allocation.status,
+        "expiration_date": furthest_allocation.expiration_date,
+        "is_active": is_active,
+        "has_pending_allocation": is_waiting,
+    }
+    return JsonResponse(data)
 
 
 @login_required

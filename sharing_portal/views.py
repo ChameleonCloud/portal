@@ -5,6 +5,7 @@ import subprocess
 from collections import defaultdict
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
+from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
@@ -185,9 +186,12 @@ def can_edit(request, artifact):
 
 def handle_get_artifact(request, uuid, sharing_key=None):
     try:
+        UUID(uuid)
         return trovi.get_artifact_by_trovi_uuid(
             uuid, request.session.get("trovi_token"), sharing_key=sharing_key
         )
+    except ValueError:
+        raise Http404("That artifact does not exist")
     except trovi.TroviException as e:
         if e.code == 404:
             raise Http404("That artifact does not exist, or is private")
@@ -1082,11 +1086,14 @@ def send_request_decision_mail(request, daypass_request, daypass_project):
 
 def _artifact_version(artifact, version_slug=None):
     if artifact["versions"]:
-        return next(
-            version
-            for version in artifact["versions"]
-            if not version_slug or version["slug"] == version_slug
-        )
+        try:
+            return next(
+                version
+                for version in artifact["versions"]
+                if not version_slug or version["slug"] == version_slug
+            )
+        except StopIteration:
+            raise Http404(f"Version {version_slug} not found")
     return None
 
 

@@ -1,0 +1,77 @@
+{% extends 'admin/change_list.html' %}
+
+{% block content %}
+<style>
+  .task-manager {
+    display: grid;
+    grid-template-columns: 15% 55% 10%;
+  }
+
+  .task-manager * {
+    margin: 5px;
+  }
+</style>
+<div class="task-manager">
+  {% for task in task_managers %}
+
+  {% with start_url_name="admin:"|add:task.start_path_name %}
+  {% with check_url_name="admin:"|add:task.check_path_name %}
+  {% with terminate_url_name="admin:"|add:task.terminate_path_name %}
+
+  <button id="start-import-btn-{{ task.name }}">Start {{ task.name }}</button>
+  <div>
+    <label id="progress-label-{{ task.name }}" for="progress-{{ task.name }}"></label>
+    <progress style="width: 600px" value=0 max=10 id="progress-{{ task.name }}"></progress>
+  </div>
+  <button id="terminate-import-btn-{{ task.name }}">Stop</button>
+
+  <script>
+    {
+      async function checkProgress(taskName) {
+        let lblId = "progress-label-{{ task.name }}"
+        let progId = "progress-{{ task.name }}"
+
+        const statusResponse = await fetch('{% url check_url_name %}');
+        const statusData = await statusResponse.json();
+        let statusSuffix = statusData.total ? `- ${statusData.current}/${statusData.total}` : (statusData.message ? `- ${statusData.message}` : '');
+        document.getElementById(lblId).innerText = `${statusData.status ? statusData.status : ''}${statusSuffix}`;
+        if (statusData.status === 'PROGRESS') {
+          let progressBarEl = document.getElementById(progId)
+          progressBarEl.setAttribute("max", statusData.total)
+          progressBarEl.setAttribute("value", statusData.current)
+        } else if (statusData.status === 'SUCCESS') {
+          alert(`Import complete! ${statusData?.result}`);
+          return
+        } else if (statusData.status === 'FAILURE') {
+          alert(`Import failed! ${statusData?.result}`);
+          return
+        }
+        // Keep checking only if the status is not null
+        if (statusData.status !== null) {
+          setTimeout(checkProgress, 5000);
+        }
+      }
+      let btnId = "start-import-btn-{{ task.name }}"
+      document.getElementById(btnId).addEventListener('click', async () => {
+        const response = await fetch('{% url start_url_name %}');
+        await response.json();
+        await checkProgress();
+      });
+      let termBtnId = "terminate-import-btn-{{ task.name }}"
+      document.getElementById(termBtnId).addEventListener('click', async () => {
+        const response = await fetch('{% url terminate_url_name %}');
+        await response.json();
+        await checkProgress();
+      });
+
+      checkProgress();
+    }
+  </script>
+
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+  {% endfor %}
+</div>
+{{ block.super }}
+{% endblock %}

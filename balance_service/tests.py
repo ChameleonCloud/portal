@@ -9,6 +9,8 @@ from unittest.mock import patch
 
 import logging
 
+from balance_service.utils import su_calculators
+
 LOG = logging.getLogger(__name__)
 
 from .utils.su_calculators import (
@@ -138,6 +140,41 @@ class BalanceServiceTest(TestCase):
 
     @patch("django.utils.timezone.now")
     @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
+    @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
+    def test_calculate_user_total_su_usage_deleted_leases(
+        self, mock_kc, mock_ks, mock_now
+    ):
+        mock_now.return_value = self.now
+        # Test calculate_user_total_su_usage function
+        user = self.charge.user  # Assuming a user is associated with the charge
+
+        lease_data = self._lease_data(
+            timezone.timedelta(hours=5),
+            reservations=3,
+            pending_td=timezone.timedelta(hours=5),
+        )
+
+        ks_instance = mock_ks.return_value
+        ks_instance.get_project.return_value = {"id": 123, "name": "TEST123"}
+        ks_instance.get_user.return_value = {"name": "test_requestor"}
+
+        kc_instance = mock_kc.return_value
+        kc_instance.get_user_project_role_scopes.return_value = ("admin", None)
+
+        self.allocation.su_allocated = 10000
+        self.allocation.save()
+
+        ue = UsageEnforcer(ks_instance)
+        # Create charges
+        ue.check_usage_against_allocation(lease_data)
+        # End charges
+        ue.stop_charging(lease_data)
+
+        total_su_usage = calculate_user_total_su_usage(user, self.project)
+        self.assertAlmostEqual(total_su_usage, 21.0, places=2)
+
+    @patch("django.utils.timezone.now")
+    @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
     def test_usage_enforcer_get_remaining_balance(self, mock_ks, mock_now):
         mock_now.return_value = self.now
         ks_instance = mock_ks.return_value
@@ -155,13 +192,14 @@ class BalanceServiceTest(TestCase):
         update_allocations_per_res=2,
         update_su_factor=3,
         update_extend=0,
+        pending_td=timezone.timedelta(days=0),
     ):
-        lease_start = self.now.strftime("%Y-%m-%d %H:%M:%S")
-        lease_end = (self.now + duration_td).strftime("%Y-%m-%d %H:%M:%S")
+        lease_start = (self.now + pending_td).strftime("%Y-%m-%d %H:%M:%S")
+        lease_end = (self.now + pending_td + duration_td).strftime("%Y-%m-%d %H:%M:%S")
 
-        update_start = self.now.strftime("%Y-%m-%d %H:%M:%S")
+        update_start = (self.now + pending_td).strftime("%Y-%m-%d %H:%M:%S")
         update_end = (
-            self.now + duration_td + timezone.timedelta(days=update_extend)
+            self.now + pending_td + duration_td + timezone.timedelta(days=update_extend)
         ).strftime("%Y-%m-%d %H:%M:%S")
 
         if not include_update:
@@ -679,7 +717,6 @@ class BalanceServiceTest(TestCase):
 
         self.allocation.su_allocated = 10000
         self.allocation.save()
-
         # Overwrite some lease data for one-off flavor use
         lease_data = self._lease_data(
             timezone.timedelta(hours=5),
@@ -699,3 +736,44 @@ class BalanceServiceTest(TestCase):
         # su_factor = 3
         # 5 hrs * 3 su_factor * 10/100 vcpus = 1.5
         self.assertAlmostEqual(get_total_sus(new_charges[0]), 1.5)
+
+    
+    
+    
+    @patch("django.utils.timezone.now")
+    @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
+    @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
+    def test_usage_enforcer_stop_charging_pending_lease(
+        self, mock_kc, mock_ks, mock_now
+    ):
+        mock_now.return_value = self.now
+
+        ks_instance = mock_ks.return_value
+        ks_instance.get_project.return_value = {"id": 123, "name": "TEST123"}
+
+        ks_instance.get_user.return_value = {"name": "test_requestor"}
+
+        kc_instance = mock_kc.return_value
+        kc_instance.get_user_project_role_scopes.return_value = ("admin", None)
+
+        ue = UsageEnforcer(ks_instance)
+
+        self.allocation.su_allocated = 10000
+        self.allocation.save()
+        lease_data = self._lease_data(
+            timezone.timedelta(hours=5),
+            reservations=3,
+            pending_td=timezone.timedelta(hours=5),
+        )
+
+        # Create charges
+        ue.check_usage_against_allocation(lease_data)
+        # End charges
+        ue.stop_charging(lease_data)
+        # mock_now.return_value = self.now + timezone.timedelta(hours=24)
+
+        # Ensure all charges end now, when stopped
+        for c in Charge.objects.all():
+            if c not in self.existing_charges:
+                self.assertEqual(su_calculators.get_total_sus(c), 0)
+                self.assertEqual(c.end_time, self.now)

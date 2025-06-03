@@ -4,6 +4,105 @@
 {% block content %}
 
   <h1>Chameleon Used In Research</h1>
+  <p>As a publicly-funded testbed, we strive to demonstrate the value that our
+  testbed brings to science and research. As part of this effort, we ask our
+  users to <a href="/learn/frequently-asked-questions/#toc-how-should-i-acknowledge-chameleon-">acknowledge our project and cite our publications</a>
+  when reporting results enabled by Chameleon usage. This effort is critical to
+  documenting the incredible work our users do with the infrastructure we
+  work hard to develop and maintain.</p>
+
+  <p>Publication Data Last Updated: {{ impact_stats.last_reviewed }}</p>
+  
+  <h2>Research Impact Metrics</h2>
+  
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title text-center">Total Publications</h3>
+        </div>
+        <div class="panel-body">
+          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.total_publications }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title text-center">Active Projects</h3>
+        </div>
+        <div class="panel-body">
+          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.active_projects }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title text-center">Total Approved Projects</h3>
+        </div>
+        <div class="panel-body">
+          <p class="text-center" style="font-size: 36px; margin: 10px 0;">{{ impact_stats.historical_projects }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Publications by Year</h3>
+        </div>
+        <div class="panel-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Publications</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in impact_stats.publications_by_year reversed %}
+              <tr>
+                <td>{{ item.year }}</td>
+                <td>{{ item.count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Publication Types</h3>
+        </div>
+        <div class="panel-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in impact_stats.publication_types %}
+              <tr>
+                <td>{{ item.publication_type }}</td>
+                <td>{{ item.count }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
   <table id="example" class="table table-striped table-bordered align-middle" style="width:100%">
     <thead>
         <tr>
@@ -18,18 +117,23 @@
       {% for p in pubs %}
         <tr>
             <td>
-              {% if p.doi %}
-                <a href="https://doi.org/{{p.doi}}">{{p.title}}</a>
-              {% elif p.link %}
-                <a href="{{p.link}}">{{p.title}}</a>
-              {% else %}
-                {{p.title}}
-              {% endif %}
+              <a id="pub-{{p.id}}"></a>
+                {% if p.doi %}
+                  <a href="https://doi.org/{{p.doi}}">{{p.title}}</a>
+                {% elif p.link %}
+                  <a href="{{p.link}}">{{p.title}}</a>
+                {% else %}
+                  {{p.title}}
+                {% endif %}
             </td>
             <td>{{p.year}}</td>
             <td>{{p.forum}}</td>
             <td>{{p.author}}</td>
-            <td>{{p.max_cites_from_all_sources}}</td>
+            <td>
+              {% if p.max_cites_from_all_sources > 0 %}
+              {{p.max_cites_from_all_sources}}
+              {% else %}{% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>

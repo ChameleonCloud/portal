@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 from django.db import transaction
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
-from pybliometrics.scopus.exception import Scopus404Error
+from pybliometrics.exception import Scopus404Error
 
 from projects.models import Publication, PublicationSource
 from projects.user_publication.gscholar import GoogleScholarHandler

@@ -6,8 +6,8 @@ ifneq (,$(wildcard ./.env))
 endif
 
 DOCKER_TAG ?= $(shell git rev-parse --short HEAD)
-DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/portal:$(DOCKER_TAG)
-DOCKER_IMAGE_LATEST ?= $(DOCKER_REGISTRY)/portal:latest
+DOCKER_IMAGE ?= portal:$(DOCKER_TAG)
+DOCKER_IMAGE_LATEST ?= portal:latest
 
 ifeq ($(shell arch),arm64)
 	PY_IMG = arm64v8/python
@@ -41,7 +41,7 @@ publish-latest:
 
 .PHONY: start
 start: .env
-	docker-compose $(ENV_FILE_PARAM) up -d
+	docker compose $(ENV_FILE_PARAM) up -d
 
 .PHONY: clean
 clean:
@@ -49,7 +49,7 @@ clean:
 
 .PHONY: migrations
 migrations: start
-	docker-compose exec portal python manage.py makemigrations --check
+	docker compose exec portal python manage.py makemigrations --check
 
 requirements-frozen.txt: build
 	docker run --rm $(DOCKER_IMAGE) pip freeze > $@

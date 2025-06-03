@@ -84,3 +84,9 @@ yarn-error.log
 #tmp folder
 */.tmp
 celerybeat-schedule
+
+**/.claude/settings.local.json
+CLAUDE.md
+portal_dev_2025_05_09.sql
+.gitignore
+static/images/.DS_Store

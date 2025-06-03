@@ -1,5 +1,3 @@
-version: "3.5"
-
 services:
   portal:
     image: ${DOCKER_IMAGE_LATEST}
@@ -14,6 +12,7 @@ services:
       - .:/project
       - ./media:/media
       - static:/static
+      - cache:/cache
     ports:
       - "127.0.0.1:8890:${PORTAL_PORT}"
     entrypoint: ["python3", "manage.py"]
@@ -21,7 +20,7 @@ services:
     depends_on:
       - mysql
   referenceapi:
-    image: docker.chameleoncloud.org/referenceapi:latest
+    image: ghcr.io/chameleoncloud/reference-api:latest
     ports:
       - "127.0.0.1:8891:8000"
   mysql:
@@ -40,15 +39,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:3306:3306"
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - "127.0.0.1:8889:80"
-    environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-    depends_on:
-      - mysql
   redis:
     image: redis:alpine
   celery:
@@ -61,6 +51,7 @@ services:
       - .env
     volumes:
       - .:/project
+      - cache:/cache
     depends_on:
       - mysql
       - redis
@@ -80,3 +71,4 @@ services:
 
 volumes:
   static:
+  cache:

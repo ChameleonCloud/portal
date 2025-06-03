@@ -429,9 +429,6 @@ def check_keycloak_consistency():
         for project in Project.objects.filter(~Q(charge_code__in=active_projects))
     )
 
-    LOG.info(f"CONSISTENCY: {len(active_projects)} active allocations")
-    LOG.info(f"CONSISTENCY: {len(inactive_projects)} inactive allocations")
-
     keycloak_client = KeycloakClient()
     groups = keycloak_client._project_admin()
     groups_url = groups._client.get_full_url(
@@ -453,9 +450,6 @@ def check_keycloak_consistency():
             for inactive in ("false", None)
         )
     }
-
-    LOG.info(f"CONSISTENCY: {len(active_groups)} active groups in Keycloak")
-    LOG.info(f"CONSISTENCY: {len(inactive_groups)} inactive groups in Keycloak")
 
     for project in active_projects:
         if project in inactive_groups:
@@ -484,7 +478,6 @@ def check_keycloak_consistency():
                 keycloak_client.update_project(project, has_active_allocation="false")
 
 
-@task
 def check_charge():
     """
     Check if the charges of the active allocations are in sync

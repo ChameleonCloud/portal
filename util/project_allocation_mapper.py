@@ -62,8 +62,8 @@ class ProjectAllocationMapper:
         subject = f"Decision of your allocation request for project {charge_code}"
         body = f"""
         <p>Dear {user.first_name} {user.last_name},</p>
-        <p>Your allocation request for project {charge_code} has been {status},
-        due to the following reason:</p>
+        <p>Your allocation request for project {charge_code} has been {status}
+        with the following message:</p>
         <p>{decision_summary}</p>
         <br/>
         <p><i>This is an automatic email, please <b>DO NOT</b> reply!
@@ -183,7 +183,7 @@ class ProjectAllocationMapper:
                 for b in project_balances(project_ids):
                     charge_code = b.get("charge_code")
                     if charge_code:
-                        all_active_allocations[charge_code].su_used = b.get("used")
+                        all_active_allocations[charge_code].su_used = b.get("total")
 
         return projects
 

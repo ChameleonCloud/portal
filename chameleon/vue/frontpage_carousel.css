@@ -32,13 +32,13 @@
 
 .slide-content {
   display: flex;
-  padding-bottom: 4em;
+  padding-bottom: 0em;
 } .slide-content .post-item {
   flex: 1;
 } .slide-content .post-item .post-detail {
   list-style-type: none;
   padding: 0;
-  margin-bottom: 1em;
+  margin-bottom: 0em;
 } .slide-content .post-item .post-date {
   font-weight: bold;
 } .slide-content .post-image {

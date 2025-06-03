@@ -7,7 +7,7 @@ from django.conf import settings
 
 from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 
 logger = logging.getLogger("projects")
 
@@ -129,9 +129,12 @@ def _get_pub_model(publication, dry_run=True):
     return pub_model
 
 
-def pub_import(dry_run=True):
+def pub_import(task, dry_run=True):
     publications = []
-    for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
+    pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
+    total = len(pubs)
+    for i, chameleon_pub in enumerate(pubs):
+        update_progress(stage=0, current=i, total=total, task=task)
         for cc in _get_citations(chameleon_pub.ref):
             citing_paper = cc.get("citingPaper", {})
             if not citing_paper:

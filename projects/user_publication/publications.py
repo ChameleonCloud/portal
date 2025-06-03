@@ -11,13 +11,40 @@ from projects.models import (
     PublicationSource,
 )
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 from django.db import transaction
+from celery.decorators import task
 
-logger = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
-def import_pubs(dry_run=True, source="all"):
+@task(bind=True)
+def import_pubs_scopus_task(self):
+    return import_pubs_task(self, "scopus")
+
+
+@task(bind=True)
+def import_pubs_semantic_scholar_task(self):
+    return import_pubs_task(self, "semantic_scholar")
+
+
+@task(bind=True)
+def import_pubs_google_scholar_task(self):
+    return import_pubs_task(self, "gscholar")
+
+
+def import_pubs_task(self, source):
+    LOG.info("Importing publications")
+    try:
+        import_pubs(self, dry_run=False, source=source)
+    except Exception as e:
+        self.update_state(state="ERROR")
+        LOG.error(f"Error importing {source} publications: {type(e)} {e}")
+        raise
+    return "Completed"
+
+
+def import_pubs(task, dry_run=True, source="all"):
     """Invoke import_pubs() interactively in django manage.py shell
 
     Args:
@@ -28,62 +55,67 @@ def import_pubs(dry_run=True, source="all"):
 
     # Import publications from different sources based on the input argument
     if source in ["scopus", "all"]:
-        pubs.extend(scopus.pub_import(dry_run))
+        pubs.extend(scopus.pub_import(task, dry_run))
     if source in ["semantic_scholar", "all"]:
-        pubs.extend(semantic_scholar.pub_import(dry_run))
+        pubs.extend(semantic_scholar.pub_import(task, dry_run))
     if source in ["gscholar", "all"]:
-        pubs.extend(gscholar.pub_import(dry_run))
+        pubs.extend(gscholar.pub_import(task, dry_run))
 
     # Process each publication
-    for source, pub in pubs:
-        same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
-        if same_pubs.exists():
-            for same_pub in same_pubs:
-                utils.add_source_to_pub(same_pub, source)
-            continue
-        authors = [author.strip() for author in pub.author.split("and")]
-        projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
-
-        # Get valid projects that are active prior to the publication year
-        valid_projects = []
-        for project_code in projects:
-            try:
-                project = Project.objects.get(charge_code=project_code)
-            except Project.DoesNotExist:
-                logger.info(f"{project_code} does not exist in database")
+    for i, (source, pub) in enumerate(pubs):
+        try:
+            update_progress(stage=1, current=i, total=len(pubs), task=task)
+            same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
+            if same_pubs.exists():
+                for same_pub in same_pubs:
+                    utils.add_source_to_pub(same_pub, source)
                 continue
-            if utils.is_project_prior_to_publication(project, pub.year):
-                valid_projects.append(project_code)
+            authors = [author.strip() for author in pub.author.split("and")]
+            projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
 
-        author_usernames = [
-            utils.get_usernames_for_author(author) for author in authors
-        ]
-        report_file_name = f"publications_run_{date.today()}_{source}.csv"
+            # Get valid projects that are active prior to the publication year
+            valid_projects = []
+            for project_code in projects:
+                try:
+                    project = Project.objects.get(charge_code=project_code)
+                except Project.DoesNotExist:
+                    LOG.info(f"{project_code} does not exist in database")
+                    continue
+                if utils.is_project_prior_to_publication(project, pub.year):
+                    valid_projects.append(project_code)
 
-        # Check if there are valid projects and if is a chameleon publication
-        if (
-            not valid_projects
-            or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
-        ):
-            reason_for_report = "Skipping: no valid projects"
+            author_usernames = [
+                utils.get_usernames_for_author(author) for author in authors
+            ]
+            report_file_name = f"publications_run_{date.today()}_{source}.csv"
 
-        # If all conditions are met, import the publication
-        else:
-            logger.info(f"import {pub.__repr__()}")
-            reason_for_report = f"Saving: {pub.title}"
-            # Save the publication if it is not a dry run
-            if not dry_run:
-                utils.save_publication(pub, source)
+            # Check if there are valid projects and if is a chameleon publication
+            if (
+                not valid_projects
+                or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
+            ):
+                reason_for_report = "Skipping: no valid projects"
 
-        # Export the publication status report
-        utils.export_publication_status_run(
-            report_file_name,
-            pub,
-            author_usernames,
-            valid_projects,
-            projects,
-            reason_for_report,
-        )
+            # If all conditions are met, import the publication
+            else:
+                LOG.info(f"import {pub.__repr__()}")
+                reason_for_report = f"Saving: {pub.title}"
+                # Save the publication if it is not a dry run
+                if not dry_run:
+                    utils.save_publication(pub, source)
+
+            # Export the publication status report
+            utils.export_publication_status_run(
+                report_file_name,
+                pub,
+                author_usernames,
+                valid_projects,
+                projects,
+                reason_for_report,
+            )
+        except Exception as e:
+            LOG.error(f"Error processing publication {pub} from {source}: {e}")
+            continue
 
 
 def choose_approved_with_option():

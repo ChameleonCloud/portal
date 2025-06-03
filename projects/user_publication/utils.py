@@ -114,7 +114,13 @@ def is_project_prior_to_publication(project, pub_year):
     fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
     # Consider the runtime of a project to be the start of its first allocation
     # until the end of its last allocation
-    start = min(alloc.start_date or fake_start for alloc in project.allocations.all())
+    try:
+        start = min(
+            alloc.start_date or fake_start for alloc in project.allocations.all()
+        )
+    except ValueError:
+        # In case project doesn't have any allocations
+        start = fake_start
     # if project's allocation is prior to publication year
     if start.year <= pub_year:
         return True
@@ -362,3 +368,19 @@ def export_publication_status_run(
             reason,
         ]
         csv_f_writer.writerow(row)
+
+
+def update_progress(task, stage=None, current=None, total=None, message=None):
+    """
+    Update the task's progress. This is essentially 2 different progress bars depending on stage.
+    Stage: 0 - import, 1 - processing.
+    """
+    if message:
+        task.update_state(state="PROGRESS", meta={"message": message})
+    else:
+        stage_multiplier = 50 / total
+        stage_offset = stage * 50
+        calculated_current = int(current * stage_multiplier + stage_offset)
+        task.update_state(
+            state="PROGRESS", meta={"current": calculated_current, "total": 100}
+        )

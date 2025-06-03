@@ -10,7 +10,7 @@ from projects.user_publication.utils import PublicationUtils, update_original_pu
 logger = logging.getLogger(__name__)
 
 
-def get_originals_for_duplicate_pub(dpub, pubs_to_check_against):
+def get_originals_for_duplicate_pub(dpub):
     """Returns original pubs that are almost same as dpub
 
     Args:
@@ -20,6 +20,14 @@ def get_originals_for_duplicate_pub(dpub, pubs_to_check_against):
     Returns:
         list: original publications that are similar to dpub
     """
+    pubs_to_check_against = (
+        Publication.objects.filter(
+            year=dpub.year, id__lt=dpub.id, checked_for_duplicates=True
+        )
+        .exclude(status=Publication.STATUS_DUPLICATE)
+        .order_by("id")
+    )
+
     original_pubs = []
     # Loop through each subset publication to check against for duplicates
     for pub2 in pubs_to_check_against:
@@ -63,11 +71,8 @@ def get_duplicate_pubs(pubs=None):
             logger.info(f"{pub1.title} does not have year - ignoring")
             continue
         # Get all Publications that are older than pub1
-        pubs_to_check_against = Publication.objects.filter(
-            id__lt=pub1.id, year=pub1.year
-        ).order_by("-id")
         duplicate_with_their_original_pubs_map[pub1] = get_originals_for_duplicate_pub(
-            pub1, pubs_to_check_against
+            pub1
         )
     return duplicate_with_their_original_pubs_map
 
@@ -120,14 +125,8 @@ def review_duplicates(dry_run=True):
         # get all the publications that already checked for duplicates
         # and are not duplicates, that are published in the same year as pub1
         # and is older than (created) pub1
-        pubs_to_check_against = (
-            Publication.objects.filter(
-                year=pub1.year, id__lt=pub1.id, checked_for_duplicates=True
-            )
-            .exclude(status=Publication.STATUS_DUPLICATE)
-            .order_by("id")
-        )
-        original_pubs = get_originals_for_duplicate_pub(pub1, pubs_to_check_against)
+
+        original_pubs = get_originals_for_duplicate_pub(pub1)
         # is not a duplicate pub
         if len(original_pubs) == 0:
             if not dry_run:

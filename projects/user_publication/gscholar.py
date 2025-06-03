@@ -9,7 +9,7 @@ from scholarly._proxy_generator import MaxTriesExceededException
 
 from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_progress
 
 logger = logging.getLogger(__name__)
 
@@ -97,13 +97,19 @@ class GoogleScholarHandler(object):
         cite_count = 0
         while True:
             try:
-                cited_pub = self.fill(self._get_next_cite(cites_gen))
+                next_cite = self._get_next_cite(cites_gen)
+                cited_pub = self.fill(next_cite)
                 citations.append(cited_pub)
                 cite_count += 1
                 logger.info(f"Got {cite_count} / {num_citations}")
             except StopIteration:
                 logger.info(f"End of iteration. Got {len(citations)} / {num_citations}")
                 return citations
+            except Exception as e:
+                # Some issue with google scholar data's model. Scholarly isn't able
+                # to map everything via bibtex and random exceptions are raised.
+                logger.error(e)
+                continue
 
     @_handle_proxy_reload
     def _get_next_cite(self, cites_gen):
@@ -116,7 +122,10 @@ class GoogleScholarHandler(object):
         Args:
             pub (dict): scholarly return of the publication
         """
-        return self.scholarly.fill(pub)
+        try:
+            return self.scholarly.fill(pub)
+        except ValueError:
+            return pub
 
     def get_authors(self, pub):
         """returns a list of authors in a publication
@@ -189,7 +198,7 @@ class GoogleScholarHandler(object):
         return
 
 
-def pub_import(dry_run=True, year_low=2014, year_high=None):
+def pub_import(task, dry_run=True, year_low=2014, year_high=None):
     """Returns Publication models of all publications that ref chameleon
     and are not in database already
     - Checks if there is a project associated with the publication
@@ -200,18 +209,33 @@ def pub_import(dry_run=True, year_low=2014, year_high=None):
         year_high (int, optional): Defaults to datetime.now().year.
     """
     gscholar = GoogleScholarHandler()
-    pubs = []
+    publications = []
     if not year_high:
         year_high = datetime.date.today().year
-    for chameleon_pub in ChameleonPublication.objects.exclude(ref__isnull=True):
-        ch_pub = gscholar.get_one_pub(chameleon_pub.title)
-        cited_pubs = gscholar.get_cites(ch_pub, year_low=year_low, year_high=year_high)
-        for cited_pub in cited_pubs:
-            pub_model = gscholar.get_pub_model(cited_pub)
-            try:
-                pub_model.year = int(pub_model.year)
-            except ValueError:
-                logger.warning(f"Skipping: {pub_model.title} does not have an year")
-                continue
-            pubs.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
-    return pubs
+    pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
+    total = len(pubs)
+    for i, chameleon_pub in enumerate(pubs):
+        try:
+            update_progress(stage=0, current=i, total=total, task=task)
+            ch_pub = gscholar.get_one_pub(chameleon_pub.title)
+            cited_pubs = gscholar.get_cites(
+                ch_pub, year_low=year_low, year_high=year_high
+            )
+            for cited_pub in cited_pubs:
+                try:
+                    pub_model = gscholar.get_pub_model(cited_pub)
+                    try:
+                        pub_model.year = int(pub_model.year)
+                    except ValueError:
+                        logger.warning(
+                            f"Skipping: {pub_model.title} does not have an year"
+                        )
+                        continue
+                    publications.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+                except Exception as e:
+                    logger.error(f"Error in publication {cited_pub}: {e}")
+                    continue
+        except Exception as e:
+            logger.error(f"Error in publication: {e}")
+            continue
+    return publications
