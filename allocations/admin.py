@@ -22,6 +22,7 @@ class ChargeInline(admin.TabularInline):
         "end_time",
         "hourly_cost",
     ]
+    readonly_fields = ["region_name", "user"]
 
     formfield_overrides = {
         models.TextField: {"widget": forms.TextInput(attrs={"size": "10"})},
