@@ -39,6 +39,16 @@ h3 a, h3 a:hover, h3 a:focus {
       font-weight: 300;
       color: $grey-dark;
       border: 0;
+      margin: 0.4em 0; // Reduced from default 0.67em
+    }
+    
+    .container {
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+    }
+    
+    .row {
+      align-items: center; // Vertically center the content
     }
   }
 
@@ -78,13 +88,41 @@ h3 a, h3 a:hover, h3 a:focus {
 
 @media screen and (min-width:992px) {
   .front .jumbotron h1 {
-    font-size: 2.75em;
+    font-size: 2.5em; // Reduced from 2.75em
   }
 }
 
 @media screen and (min-width:1200px) {
   .front .jumbotron h1 {
-    font-size: 3.5em;
+    font-size: 3em; // Reduced from 3.5em
+  }
+}
+
+// Additional media queries for intermediate desktop sizes
+@media screen and (min-width:1024px) and (max-width:1199px) {
+  .front .jumbotron h1 {
+    font-size: 2.25em; // Slightly smaller for compact layout
+  }
+  
+  .partners a img {
+    max-height: 40px;
+    max-width: 100px;
+  }
+  
+  .partners {
+    gap: 1rem;
+  }
+}
+
+
+@media screen and (min-width:1280px) and (max-width:1366px) {
+  .front .jumbotron h1 {
+    font-size: 2.75em; // Reduced for consistency
+  }
+  
+  .partners a img {
+    max-height: 45px;
+    max-width: 110px;
   }
 }
 
@@ -96,6 +134,18 @@ html, body {
   background-color: #f2f2f2;
   border-top: 3px solid #9ad61a;
   padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  
+  // Reduce paragraph spacing
+  p {
+    margin-bottom: 0.5em;
+    line-height: 1.3;
+  }
+  
+  // Make last paragraph have no bottom margin
+  p:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .partners {
@@ -103,18 +153,18 @@ html, body {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
   
   a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
     
     img {
-      max-height: 50px;
-      max-width: 120px;
+      max-height: 40px;
+      max-width: 100px;
       width: auto;
       height: auto;
       object-fit: contain;
@@ -135,15 +185,13 @@ html, body {
   }
 }
 
-// Homepage-specific layout to fit viewport
+// Homepage-specific layout - responsive approach
 body:has(.front) {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
 
   .main {
-    overflow-y: auto;
     overflow-x: hidden;
     
     // Ensure images don't break layout
@@ -165,7 +213,7 @@ body:has(.front) {
   // Also apply to front section images
   .front {
     .col-md-5 img {
-      max-height: 150px;
+      max-height: 120px; // Reduced from 150px
       width: auto;
       object-fit: contain;
     }
@@ -174,13 +222,11 @@ body:has(.front) {
 
 // Fallback for browsers without :has() support
 body.homepage {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
 
   .main {
-    overflow-y: auto;
     overflow-x: hidden;
     
     img {
@@ -239,6 +285,56 @@ body.homepage {
 @media screen and (max-width:767px) {
   .dropdown-divider {
     color: white;
+  }
+}
+
+// Footer responsive adjustments
+@media screen and (max-width:1366px) {
+  .site-footer {
+    font-size: 0.9em;
+  }
+  
+  .partners a img {
+    max-height: 35px;
+    max-width: 90px;
+  }
+}
+
+@media screen and (max-width:1024px) {
+  .site-footer {
+    font-size: 0.85em;
+  }
+  
+  .partners {
+    gap: 0.75rem;
+  }
+  
+  .partners a img {
+    max-height: 30px;
+    max-width: 80px;
+  }
+}
+
+// Ultra-compact footer for height-constrained viewports
+@media screen and (max-height:700px) {
+  .site-footer {
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    font-size: 0.85em;
+  }
+  
+  .partners {
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+    
+    a img {
+      max-height: 30px;
+      max-width: 80px;
+    }
+  }
+  
+  .site-footer p {
+    margin-bottom: 0.25em;
   }
 }
 
