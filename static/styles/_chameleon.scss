@@ -39,6 +39,16 @@ h3 a, h3 a:hover, h3 a:focus {
       font-weight: 300;
       color: $grey-dark;
       border: 0;
+      margin: 0.4em 0; // Reduced from default 0.67em
+    }
+    
+    .container {
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+    }
+    
+    .row {
+      align-items: center; // Vertically center the content
     }
   }
 
@@ -78,24 +88,20 @@ h3 a, h3 a:hover, h3 a:focus {
 
 @media screen and (min-width:992px) {
   .front .jumbotron h1 {
-    font-size: 2.75em;
+    font-size: 2.5em; // Reduced from 2.75em
   }
 }
 
 @media screen and (min-width:1200px) {
   .front .jumbotron h1 {
-    font-size: 3.5em;
+    font-size: 3em; // Reduced from 3.5em
   }
 }
 
 // Additional media queries for intermediate desktop sizes
 @media screen and (min-width:1024px) and (max-width:1199px) {
   .front .jumbotron h1 {
-    font-size: 2.5em;
-  }
-  
-  .front .jumbotron {
-    padding: 15px 0;
+    font-size: 2.25em; // Slightly smaller for compact layout
   }
   
   .partners a img {
@@ -111,7 +117,7 @@ h3 a, h3 a:hover, h3 a:focus {
 
 @media screen and (min-width:1280px) and (max-width:1366px) {
   .front .jumbotron h1 {
-    font-size: 3em;
+    font-size: 2.75em; // Reduced for consistency
   }
   
   .partners a img {
@@ -207,7 +213,7 @@ body:has(.front) {
   // Also apply to front section images
   .front {
     .col-md-5 img {
-      max-height: 150px;
+      max-height: 120px; // Reduced from 150px
       width: auto;
       object-fit: contain;
     }
