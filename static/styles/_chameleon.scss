@@ -129,6 +129,17 @@ html, body {
   border-top: 3px solid #9ad61a;
   padding-top: 0.5em;
   padding-bottom: 0.5em;
+  
+  // Reduce paragraph spacing
+  p {
+    margin-bottom: 0.5em;
+    line-height: 1.3;
+  }
+  
+  // Make last paragraph have no bottom margin
+  p:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .partners {
@@ -136,18 +147,18 @@ html, body {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
   
   a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
     
     img {
-      max-height: 50px;
-      max-width: 120px;
+      max-height: 40px;
+      max-width: 100px;
       width: auto;
       height: auto;
       object-fit: contain;
@@ -277,8 +288,9 @@ body.homepage {
     font-size: 0.9em;
   }
   
-  .site-footer p {
-    margin-bottom: 0.5em;
+  .partners a img {
+    max-height: 35px;
+    max-width: 90px;
   }
 }
 
@@ -292,8 +304,31 @@ body.homepage {
   }
   
   .partners a img {
-    max-height: 35px;
-    max-width: 90px;
+    max-height: 30px;
+    max-width: 80px;
+  }
+}
+
+// Ultra-compact footer for height-constrained viewports
+@media screen and (max-height:700px) {
+  .site-footer {
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    font-size: 0.85em;
+  }
+  
+  .partners {
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+    
+    a img {
+      max-height: 30px;
+      max-width: 80px;
+    }
+  }
+  
+  .site-footer p {
+    margin-bottom: 0.25em;
   }
 }
 
