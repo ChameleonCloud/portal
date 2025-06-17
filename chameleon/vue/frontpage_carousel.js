@@ -10,5 +10,20 @@ const glide = new Glide('.glide', {
     startAt: 0,
     perView: 1,
     autoplay: 5000,
-    hoverpause: true
+    hoverpause: true,
+    // Add responsive breakpoints
+    breakpoints: {
+        1366: {
+            perView: 1
+        },
+        1280: {
+            perView: 1
+        },
+        1024: {
+            perView: 1
+        },
+        768: {
+            perView: 1
+        }
+    }
 }).mount();
