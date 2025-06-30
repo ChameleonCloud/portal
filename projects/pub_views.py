@@ -166,8 +166,12 @@ def add_publications(request, project_id):
                 )
         else:
             messages.error(
-                request, f"Error adding publication(s). {pubs_form.bibtex_error}"
+                request, "Error adding publication(s)."
             )
+            for error in pubs_form.bibtex_errors:
+                messages.error(request, error)
+            pubs_form.bibtex_errors = []
+
     pubs_form = AddBibtexPublicationForm(initial={"project_id": project.id})
 
     return render(

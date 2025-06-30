@@ -15,7 +15,7 @@ def get_project_members(project):
             user = get_user_model().objects.get(username=username)
             users.append(user)
         except get_user_model().DoesNotExist:
-            logger.exception(f"Could not get user model for {username}")
+            logger.warning(f"Could not get user model for {username}")
     return users
 
 

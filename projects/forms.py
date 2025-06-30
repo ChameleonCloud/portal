@@ -7,6 +7,7 @@ from django.forms import BaseFormSet
 from django.forms import formset_factory
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
+from projects.user_publication.utils import PublicationUtils
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .models import Project
@@ -239,7 +240,17 @@ class AddBibtexPublicationForm(forms.Form):
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "@article{..."}),
     )
-    bibtex_error = ""
+    confirmation = forms.ChoiceField(
+        choices=[
+            ('', 'Please select confirmation'),
+            ('confirmed', 'The publications entered above have utilized Chameleon resources.'),
+        ],
+        required=True,
+        label="Confirm Chameleon Usage",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    bibtex_errors = []
 
     mandatory_fields = ["title", "year", "author"]
 
@@ -247,12 +258,15 @@ class AddBibtexPublicationForm(forms.Form):
         try:
             return bibtexparser.loads(bibtex_string)
         except bibtexparser.bibdatabase.UndefinedString as e:
-            self.bibtex_error = f"{e} not a valid string"
+            self.bibtex_errors.append(f"{e} not a valid string")
             return None
 
     def is_valid(self):
         if not super().is_valid():
             return False
+
+        if self.cleaned_data.get('confirmation') != 'confirmed':
+            self.add_error('confirmation', "You must confirm publication information is correct.")
 
         bib_database = self.parse_bibtex(self.cleaned_data["bibtex_string"])
         if bib_database and bib_database.entries:
@@ -263,8 +277,14 @@ class AddBibtexPublicationForm(forms.Form):
                 ]
                 missing_fields.extend(missing)
 
+                if not PublicationUtils.get_link(entry):
+                    self.bibtex_errors.append(
+                        "Please include `howpublished`, `url`, or `doi` in bibtex."
+                    )
+                    return False
+
             if missing_fields:
-                self.bibtex_error = (
+                self.bibtex_errors.append(
                     f"Missing mandatory fields: {', '.join(missing_fields)}"
                 )
                 return False
