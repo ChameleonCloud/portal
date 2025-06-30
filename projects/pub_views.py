@@ -165,9 +165,7 @@ def add_publications(request, project_id):
                     ticket_id, project.chargeCode, duplicate_pubs
                 )
         else:
-            messages.error(
-                request, "Error adding publication(s)."
-            )
+            messages.error(request, "Error adding publication(s).")
             for error in pubs_form.bibtex_errors:
                 messages.error(request, error)
             pubs_form.bibtex_errors = []

@@ -533,7 +533,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if (
             obj.status != Publication.STATUS_SUBMITTED
-            and obj.ticket_id and obj.ticket_id
+            and obj.ticket_id
+            and obj.ticket_id
         ):
             rt = rtUtil.DjangoRt()
             rt.closeTicket(obj.ticket_id)

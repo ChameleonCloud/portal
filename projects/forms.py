@@ -242,12 +242,15 @@ class AddBibtexPublicationForm(forms.Form):
     )
     confirmation = forms.ChoiceField(
         choices=[
-            ('', 'Please select confirmation'),
-            ('confirmed', 'The publications entered above have utilized Chameleon resources.'),
+            ("", "Please select confirmation"),
+            (
+                "confirmed",
+                "The publications entered above have utilized Chameleon resources.",
+            ),
         ],
         required=True,
         label="Confirm Chameleon Usage",
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     bibtex_errors = []
@@ -265,8 +268,10 @@ class AddBibtexPublicationForm(forms.Form):
         if not super().is_valid():
             return False
 
-        if self.cleaned_data.get('confirmation') != 'confirmed':
-            self.add_error('confirmation', "You must confirm publication information is correct.")
+        if self.cleaned_data.get("confirmation") != "confirmed":
+            self.add_error(
+                "confirmation", "You must confirm publication information is correct."
+            )
 
         bib_database = self.parse_bibtex(self.cleaned_data["bibtex_string"])
         if bib_database and bib_database.entries:
