@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     contactBtn.addEventListener("click", function () {
         modalContact.style.display = "block";
     });
+
     closeButton.addEventListener("click", function () {
         modal.style.display = "none";
     });
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeBtnContact.addEventListener("click", function () {
         modalContact.style.display = "none";
     });
+
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
@@ -76,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .join("\n");
     }    
 
-    // Submitting approval
     const approveSubmitBtn = document.getElementById("approve-submit-btn");
     approveSubmitBtn.addEventListener("click", function () {
         let payload = {
@@ -106,6 +107,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`Error approving allocation:\n${formatErrors(res.errors)}`)
             } else {
                 alert("Approved allocation")
+                location.reload(); // Refresh admin form
+            }
+        });
+    });
+
+    const rejectSubmitBtn = document.getElementById("reject-submit-btn");
+    rejectSubmitBtn.addEventListener("click", function () {
+        let payload = {
+            "status": "Rejected",
+            "dateReviewed": new Date().toISOString().split("T")[0],
+            "decisionSummary": document.getElementById("idDecisionSummaryReject").value,
+            "project": document.getElementById("chargeCode").value,
+            "requestorId": document.getElementById("requestorId").value,
+            "id": document.getElementById("allocationId").value,
+            "start": null,
+            "end": null,
+            "computeAllocated": null,
+        }
+
+        fetch("/admin/allocations/approval/", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify(payload)
+        })
+        .then( res => res.json())
+        .then( res => {
+            if(res.status == "error"){
+                console.error(res.errors)
+                alert(`Error reject allocation:\n${formatErrors(res.errors)}`)
+            } else {
+                alert("Rejected allocation")
                 location.reload(); // Refresh admin form
             }
         });
