@@ -7,6 +7,7 @@ from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 
 from chameleon.tasks import AdminTaskManager
+from djangoRT import rtUtil
 from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
 from projects.user_publication.publications import (
     import_pubs_google_scholar_task,
@@ -528,6 +529,14 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             messages.SUCCESS,
         )
         return HttpResponseRedirect(reverse("admin:projects_publication_changelist"))
+
+    def save_model(self, request, obj, form, change):
+        if (
+            obj.status != Publication.STATUS_SUBMITTED
+            and obj.ticket_id and obj.ticket_id
+        ):
+            rt = rtUtil.DjangoRt()
+            rt.closeTicket(obj.ticket_id)
 
 
 admin.site.register(Publication, PublicationAdmin)

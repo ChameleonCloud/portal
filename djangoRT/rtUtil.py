@@ -96,5 +96,5 @@ class DjangoRt:
 
     # Close the ticket
     def closeTicket(self, ticket_id):
-        if ticket_id:
+        if ticket_id and self.logged_in:
             return self.tracker.edit_ticket(ticket_id, Status="resolved")
