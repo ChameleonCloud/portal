@@ -58,6 +58,8 @@ class DjangoRt:
 
     # Returns the ticket id of the created ticket
     def createTicket(self, ticket):
+        if not self.logged_in:
+            return None
         return self.tracker.create_ticket(
             Queue=self.queue,
             Subject=ticket.subject,
@@ -94,5 +96,5 @@ class DjangoRt:
 
     # Close the ticket
     def closeTicket(self, ticket_id):
-        if ticket_id:
+        if ticket_id and self.logged_in:
             return self.tracker.edit_ticket(ticket_id, Status="resolved")
