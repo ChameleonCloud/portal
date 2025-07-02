@@ -70,6 +70,8 @@ class DjangoRt:
         )
 
     def replyToTicket(self, ticket_id, text="", files=[]):
+        if not self.logged_in:
+            return None
         return self.tracker.reply(ticket_id, text=text, files=files)
 
     def commentOnTicket(self, ticket_id, text=""):
