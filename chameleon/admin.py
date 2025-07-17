@@ -28,6 +28,7 @@ from django.utils.html import (
 from functools import wraps
 import logging
 import urllib.parse
+from djangoRT import rtUtil
 from util.keycloak_client import KeycloakClient
 
 
@@ -113,6 +114,9 @@ class PIEligibilityAdmin(ModelAdmin):
         obj.review_date = datetime.datetime.now()
         obj.save()
         self._notify_user(obj, request.get_host())
+        if obj.status.lower() != "requested":
+            rt = rtUtil.DjangoRt()
+            rt.closeTicket(obj.ticket_id)
 
     def keycloak_metadata(self, obj):
         """User metadata from keycloak backend. Returns a list of strings."""

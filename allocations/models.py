@@ -50,6 +50,7 @@ class Allocation(models.Model):
     su_used = models.FloatField(null=True)
     balance_service_version = models.IntegerField(default=2, null=False)
     low_allocation_warning_issued = models.DateTimeField(null=True)
+    ticket_id = models.CharField(max_length=100, null=True, blank=True)
 
     def as_dict(self):
         return Allocation.to_dict(self)

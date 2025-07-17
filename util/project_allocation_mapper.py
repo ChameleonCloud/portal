@@ -52,7 +52,10 @@ class ProjectAllocationMapper:
             problem_description=body,
             requestor="us@tacc.utexas.edu",
         )
-        rt.createTicket(ticket)
+        ticket_id = rt.createTicket(ticket)
+        alloc.ticket_id = ticket_id
+        alloc.save()
+
 
     def _send_allocation_decision_notification(
         self, charge_code, requestor_id, status, decision_summary, host
@@ -106,7 +109,7 @@ class ProjectAllocationMapper:
             problem_description=problem_description,
             requestor="us@tacc.utexas.edu",
         )
-        rt.createTicket(ticket)
+        return rt.createTicket(ticket)
 
     def _create_ticket_for_pending_allocation(
         self, requestor, problem_description, owner
@@ -308,7 +311,9 @@ class ProjectAllocationMapper:
             pie_request.requestor_id = user.id
             pie_request.department_directory_link = department_directory_link
             pie_request.save()
-            self._create_ticket_for_pi_request(user)
+            ticket_id = self._create_ticket_for_pi_request(user)
+            pie_request.ticket_id = ticket_id
+            pie_request.save()
 
         email = new_profile.get("email")
         keycloak_client.update_user(
@@ -397,6 +402,10 @@ class ProjectAllocationMapper:
             "host": host,
         }
         self._send_allocation_decision_notification(**email_args)
+        if alloc.status.lower() not in ["pending", "waiting"]:
+            rt = rtUtil.DjangoRt()
+            rt.closeTicket(alloc.ticket_id)
+
 
     def contact_pi_via_rt(self, data):
         rt_info = data["rt"]

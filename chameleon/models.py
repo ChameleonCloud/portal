@@ -30,6 +30,7 @@ class PIEligibility(models.Model):
     )
     review_summary = models.TextField(blank=True, null=True)
     department_directory_link = models.URLField(max_length=500, blank=True, null=True)
+    ticket_id = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         verbose_name = "PI Eligibility Request"
