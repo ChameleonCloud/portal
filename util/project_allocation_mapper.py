@@ -406,7 +406,6 @@ class ProjectAllocationMapper:
             rt = rtUtil.DjangoRt()
             rt.closeTicket(alloc.ticket_id)
 
-
     def contact_pi_via_rt(self, data):
         rt_info = data["rt"]
         ticket_id = self._create_ticket_for_pending_allocation(

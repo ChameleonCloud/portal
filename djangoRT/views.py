@@ -268,6 +268,7 @@ def ticketcreate(request):
             )
     else:
         form = forms.TicketForm(
+            user=request.user,
             initial={
                 "email": request.user.email,
                 "first_name": request.user.first_name,
