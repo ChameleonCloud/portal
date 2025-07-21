@@ -3,7 +3,7 @@ ________________________________ Project Support Details _______________________
 {% for region in regions %}
 Region: {{region.name}}
     {% for project in region.projects %}
-    Project: {{project.charge_code}}
+    Project: {{project.charge_code}} ({{project.link}})
         ID: {{project.id}}
         {% if project.leases %}
         Leases:{% for lease in project.leases %}
