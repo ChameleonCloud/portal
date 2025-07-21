@@ -93,7 +93,7 @@ class BaseTicketForm(forms.Form):
     attachment = forms.FileField(required=False)
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)
 
         super(BaseTicketForm, self).__init__(*args, **kwargs)
         self.fields["category"].choices = get_ticket_categories()
@@ -108,8 +108,8 @@ class BaseTicketForm(forms.Form):
                     (
                         f"{p.charge_code} - https://chameleoncloud.org/user/projects/{p.id}/",
                         f"{p.charge_code} - {p.title}",
-                    ) for p in
-                    projects_qs.order_by("charge_code")
+                    )
+                    for p in projects_qs.order_by("charge_code")
                 ]
                 initialized_projects = True
         if not initialized_projects:

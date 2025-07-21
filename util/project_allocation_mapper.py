@@ -56,7 +56,6 @@ class ProjectAllocationMapper:
         alloc.ticket_id = ticket_id
         alloc.save()
 
-
     def _send_allocation_decision_notification(
         self, charge_code, requestor_id, status, decision_summary, host
     ):
