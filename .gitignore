@@ -4,6 +4,7 @@ run-script.sh
 .idea
 .chameleon_env
 .env*
+rt_data/
 
 media/
 db/

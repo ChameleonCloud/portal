@@ -68,6 +68,15 @@ services:
     restart: always
     ports:
     - "127.0.0.1:8025:8025"
+  rt:
+    image: quay.io/abh/rt:latest
+    volumes:
+    - ./rt_config/rt_config.pm:/opt/rt/etc/RT_SiteConfig.pm
+    - ./rt_config/start.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    command: >
+      sh -c "/docker-entrypoint-initdb.d/init-db.sh"
+    ports:
+    - "127.0.0.1:8892:8892"
 
 volumes:
   static:

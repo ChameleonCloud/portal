@@ -123,6 +123,7 @@ def get_openstack_data(username, region, projects):
         current_project = {}
         current_project["charge_code"] = project.charge_code
         current_project["id"] = ks_project_id
+        current_project["link"] = f"https://chameleoncloud.org/project/{project.id}"
         current_region["projects"].append(current_project)
 
         try:

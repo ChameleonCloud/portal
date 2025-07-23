@@ -4,6 +4,9 @@ from django_recaptcha.fields import ReCaptchaField, ReCaptchaV3
 from django import forms
 from django.core.validators import validate_email
 
+from projects.models import Project
+from util.keycloak_client import KeycloakClient
+
 from .models import TicketCategories
 
 logger = logging.getLogger(__name__)
@@ -52,12 +55,10 @@ class BaseTicketForm(forms.Form):
         widget=forms.TextInput(), label="Last name", max_length=100, required=True
     )
     email = forms.EmailField(widget=forms.EmailInput(), label="Email", required=True)
-    project_id = forms.CharField(
-        widget=forms.TextInput(),
-        label="Project ID",
-        max_length=100,
-        required=False,
-        help_text="Which project are you using,  if applicable (e.g. CHI-123456).",
+    project_id = forms.ChoiceField(
+        label="Project",
+        required=True,
+        help_text="Which project are you using",
     )
     site = forms.CharField(
         widget=forms.TextInput(),
@@ -92,8 +93,29 @@ class BaseTicketForm(forms.Form):
     attachment = forms.FileField(required=False)
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+
         super(BaseTicketForm, self).__init__(*args, **kwargs)
         self.fields["category"].choices = get_ticket_categories()
+
+        initialized_projects = False
+        if user:
+            keycloak_client = KeycloakClient()
+            charge_codes = keycloak_client.get_user_projects_by_username(user.username)
+            if charge_codes:
+                projects_qs = Project.objects.filter(charge_code__in=charge_codes)
+                self.fields["project_id"].choices = [
+                    (
+                        f"{p.charge_code} - https://chameleoncloud.org/user/projects/{p.id}/",
+                        f"{p.charge_code} - {p.title}",
+                    )
+                    for p in projects_qs.order_by("charge_code")
+                ]
+                initialized_projects = True
+        if not initialized_projects:
+            self.fields["project_id"] = forms.CharField(
+                widget=forms.TextInput(), label="Project", max_length=100, required=True
+            )
 
 
 class TicketForm(BaseTicketForm):
