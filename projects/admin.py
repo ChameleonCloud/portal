@@ -538,6 +538,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         ):
             rt = rtUtil.DjangoRt()
             rt.closeTicket(obj.ticket_id)
+        super().save_model(request, obj, form, change)
 
 
 admin.site.register(Publication, PublicationAdmin)
