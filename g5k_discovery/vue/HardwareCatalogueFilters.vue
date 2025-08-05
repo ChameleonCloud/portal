@@ -46,31 +46,53 @@
         </button>
       </div>
     </div>
-
-    <div class="row">
+    <div class="row simple-filter-row">
+      <div class="col col-sm-2 threads-slider">
+        <strong># Threads</strong>
+        <div class="range-slider">
+          <input
+            type="range"
+            :min="minThreads"
+            :max="threads.max"
+            v-model.number="threads.min"
+            class="range-low"
+            @input="onThreadsChange"
+          />
+          <input
+            type="range"
+            :min="threads.min"
+            :max="maxThreads"
+            v-model.number="threads.max"
+            class="range-high"
+            @input="onThreadsChange"
+          />
+        </div>
+        <p class="text-center">
+          {{ threads.min }} – {{ threads.max }}
+        </p>
+      </div>
       <div
         v-for="(filters, groupLabel) in simpleCapabilityFilters"
         :key="groupLabel"
+        v-if="groupLabel !== '# Threads'"
         class="col col-sm-2"
       >
         <strong>{{ groupLabel }}</strong>
-
         <div v-for="filter in filters" :key="filter.label" class="checkbox">
-          <label
-            ><input
+          <label>
+            <input
               type="checkbox"
               :name="groupLabel"
               :value="filter.label"
               :checked="filter.active"
               :disabled="!filter.currentMatches"
-              v-on:change="toggleFilter(filter)"
+              @change="toggleFilter(filter)"
             />
-            {{ filter.label }} ({{ filter.currentMatches }})</label
-          >
+            {{ filter.label }} ({{ filter.currentMatches }})
+          </label>
         </div>
       </div>
     </div>
-
     <div class="row">
       <div class="col-md-12">
         <h4>
@@ -93,32 +115,291 @@
           >
             <h5 class="bg-success">{{ sectionLabel }}</h5>
             <div class="row">
-              <div
-                class="col-md-2"
-                v-for="(filters, groupLabel) in advFilters"
-                :key="groupLabel"
-              >
-                <strong>{{ groupLabel }}</strong>
-                <div
-                  v-for="filter in filters"
-                  :key="filter.label"
-                  class="checkbox"
-                >
-                  <label
-                    ><input
-                      type="checkbox"
-                      :name="sectionLabel"
-                      :value="filter.label"
-                      :checked="filter.active"
-                      :disabled="!filter.currentMatches"
-                      v-on:change="toggleFilter(filter)"
-                    />
-                    {{ filter.label }} ({{ filter.currentMatches }})</label
+              <template v-if="sectionLabel === 'Processor'">
+                <div class="col-md-12">
+                  <a
+                    role="button"
+                    class="pseudolink"
+                    @click="showProcessorDetails = !showProcessorDetails"
                   >
+                    <span v-if="!showProcessorDetails">+Show Detailed Fields</span>
+                    <span v-else>-Hide Detailed Fields</span>
+                  </a>
                 </div>
-              </div>
+                <div
+                  class="col-md-2"
+                  v-for="(filters, groupLabel) in advFilters"
+                  :key="'main-'+groupLabel"
+                  v-if="!PROCESSOR_DETAIL_FIELDS.includes(groupLabel)"
+                >
+                  <strong>{{ groupLabel }}</strong>
+                  <div
+                    v-for="filter in filters"
+                    :key="filter.label"
+                    class="checkbox"
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        :name="sectionLabel"
+                        :value="filter.label"
+                        :checked="filter.active"
+                        :disabled="!filter.currentMatches"
+                        @change="toggleFilter(filter)"
+                      />
+                      {{ filter.label }} ({{ filter.currentMatches }})
+                    </label>
+                  </div>
+                </div>
+                <template v-if="showProcessorDetails">
+                  <div
+                    class="col-md-2"
+                    v-for="(filters, groupLabel) in advFilters"
+                    :key="'detail-'+groupLabel"
+                    v-if="PROCESSOR_DETAIL_FIELDS.includes(groupLabel)"
+                  >
+                    <strong>{{ groupLabel }}</strong>
+                    <div
+                      v-for="filter in filters"
+                      :key="filter.label"
+                      class="checkbox"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          :name="sectionLabel"
+                          :value="filter.label"
+                          :checked="filter.active"
+                          :disabled="!filter.currentMatches"
+                          @change="toggleFilter(filter)"
+                        />
+                        {{ filter.label }} ({{ filter.currentMatches }})
+                      </label>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <template v-else-if="sectionLabel === 'Placement'">
+                <div class="col-md-12">
+                  <a
+                    role="button"
+                    class="pseudolink"
+                    @click="showPlacementDetails = !showPlacementDetails"
+                  >
+                    <span v-if="!showPlacementDetails">+Show Detailed Fields</span>
+                    <span v-else>-Hide Detailed Fields</span>
+                  </a>
+                </div>
+                <div
+                  class="col-md-2"
+                  v-for="(filters, groupLabel) in advFilters"
+                  :key="'main-'+groupLabel"
+                  v-if="!PLACEMENT_DETAIL_FIELDS.includes(groupLabel)"
+                >
+                  <strong>{{ groupLabel }}</strong>
+                  <div
+                    v-for="filter in filters"
+                    :key="filter.label"
+                    class="checkbox"
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        :name="sectionLabel"
+                        :value="filter.label"
+                        :checked="filter.active"
+                        :disabled="!filter.currentMatches"
+                        @change="toggleFilter(filter)"
+                      />
+                      {{ filter.label }} ({{ filter.currentMatches }})
+                    </label>
+                  </div>
+                </div>
+                <template v-if="showPlacementDetails">
+                  <div
+                    class="col-md-2"
+                    v-for="(filters, groupLabel) in advFilters"
+                    :key="'detail-'+groupLabel"
+                    v-if="PLACEMENT_DETAIL_FIELDS.includes(groupLabel)"
+                  >
+                    <strong>{{ groupLabel }}</strong>
+                    <div
+                      v-for="filter in filters"
+                      :key="filter.label"
+                      class="checkbox"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          :name="sectionLabel"
+                          :value="filter.label"
+                          :checked="filter.active"
+                          :disabled="!filter.currentMatches"
+                          @change="toggleFilter(filter)"
+                        />
+                        {{ filter.label }} ({{ filter.currentMatches }})
+                      </label>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <template v-else-if="sectionLabel === 'SSD'">
+                <div class="col-md-12">
+                  <a
+                    role="button"
+                    class="pseudolink"
+                    @click="showSSDDetails = !showSSDDetails"
+                  >
+                    <span v-if="!showSSDDetails">+Show Detailed Fields</span>
+                    <span v-else>-Hide Detailed Fields</span>
+                  </a>
+                </div>
+                <div
+                  class="col-md-2"
+                  v-for="(filters, groupLabel) in advFilters"
+                  :key="'main-'+groupLabel"
+                  v-if="!SSD_DETAIL_FIELDS.includes(groupLabel)"
+                >
+                  <strong>{{ groupLabel }}</strong>
+                  <div
+                    v-for="filter in filters"
+                    :key="filter.label"
+                    class="checkbox"
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        :name="sectionLabel"
+                        :value="filter.label"
+                        :checked="filter.active"
+                        :disabled="!filter.currentMatches"
+                        @change="toggleFilter(filter)"
+                      />
+                      {{ filter.label }} ({{ filter.currentMatches }})
+                    </label>
+                  </div>
+                </div>
+                <template v-if="showSSDDetails">
+                  <div
+                    class="col-md-2"
+                    v-for="(filters, groupLabel) in advFilters"
+                    :key="'detail-'+groupLabel"
+                    v-if="SSD_DETAIL_FIELDS.includes(groupLabel)"
+                  >
+                    <strong>{{ groupLabel }}</strong>
+                    <div
+                      v-for="filter in filters"
+                      :key="filter.label"
+                      class="checkbox"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          :name="sectionLabel"
+                          :value="filter.label"
+                          :checked="filter.active"
+                          :disabled="!filter.currentMatches"
+                          @change="toggleFilter(filter)"
+                        />
+                        {{ filter.label }} ({{ filter.currentMatches }})
+                      </label>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <template v-else-if="sectionLabel === 'Network Devices'">
+                <div class="col-md-12">
+                  <a
+                    role="button"
+                    class="pseudolink"
+                    @click="showNetworkDevicesDetails = !showNetworkDevicesDetails"
+                  >
+                    <span v-if="!showNetworkDevicesDetails">+Show Detailed Fields</span>
+                    <span v-else>-Hide Detailed Fields</span>
+                  </a>
+                </div>
+                <div
+                  class="col-md-2"
+                  v-for="(filters, groupLabel) in advFilters"
+                  :key="'main-'+groupLabel"
+                  v-if="!NETWORK_DEVICES_DETAIL_FIELDS.includes(groupLabel)"
+                >
+                  <strong>{{ groupLabel }}</strong>
+                  <div
+                    v-for="filter in filters"
+                    :key="filter.label"
+                    class="checkbox"
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        :name="sectionLabel"
+                        :value="filter.label"
+                        :checked="filter.active"
+                        :disabled="!filter.currentMatches"
+                        @change="toggleFilter(filter)"
+                      />
+                      {{ filter.label }} ({{ filter.currentMatches }})
+                    </label>
+                  </div>
+                </div>
+                <template v-if="showNetworkDevicesDetails">
+                  <div
+                    class="col-md-2"
+                    v-for="(filters, groupLabel) in advFilters"
+                    :key="'detail-'+groupLabel"
+                    v-if="NETWORK_DEVICES_DETAIL_FIELDS.includes(groupLabel)"
+                  >
+                    <strong>{{ groupLabel }}</strong>
+                    <div
+                      v-for="filter in filters"
+                      :key="filter.label"
+                      class="checkbox"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                          :name="sectionLabel"
+                          :value="filter.label"
+                          :checked="filter.active"
+                          :disabled="!filter.currentMatches"
+                          @change="toggleFilter(filter)"
+                        />
+                        {{ filter.label }} ({{ filter.currentMatches }})
+                      </label>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <template v-else>
+                <div
+                  class="col-md-2"
+                  v-for="(filters, groupLabel) in advFilters"
+                  :key="groupLabel"
+                >
+                  <strong>{{ groupLabel }}</strong>
+                  <div
+                    v-for="filter in filters"
+                    :key="filter.label"
+                    class="checkbox"
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        :name="sectionLabel"
+                        :value="filter.label"
+                        :checked="filter.active"
+                        :disabled="!filter.currentMatches"
+                        @change="toggleFilter(filter)"
+                      />
+                      {{ filter.label }} ({{ filter.currentMatches }})
+                    </label>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -136,12 +417,82 @@
 .btn-filter {
   margin-bottom: 20px;
 }
+
+.range-slider {
+  position: relative;
+  width: 100%;
+  height: 2em;
+}
+.range-slider input[type="range"] {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 2em;
+  background: transparent;
+  pointer-events: auto;
+  margin: 0;
+  padding: 0;
+}
+.range-slider input[type="range"]:focus {
+  outline: none;
+}
+
+.range-slider input[type="range"]::-webkit-slider-thumb {
+  position: relative;
+  z-index: 2;
+}
+.range-slider input[type="range"].range-min {
+  z-index: 3;
+}
+.range-slider input[type="range"].range-max {
+  z-index: 2;
+}
+
+.simple-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.simple-filter-row > [class*='col-'] {
+  float: none;
+}
+
+.threads-slider {
+  order: 3;
+}
+
+.simple-filter-row > [class*='col-']:not(.threads-slider):nth-child(n+5) {
+  order: 4;
+}
+
 </style>
 
 <script>
 import JSPath from "jspath";
 import { capitalCase, snakeCase } from "change-case";
 import { advancedCapabilities, simpleCapabilities } from "./capabilities";
+
+const PROCESSOR_DETAIL_FIELDS = [
+  "Cache L1", "Cache L2", "Cache L3", "Clock Speed", "Version",
+  "Other Description", "Cache L1 D", "Cache L1 I"
+];
+
+const PLACEMENT_DETAIL_FIELDS = [
+  "Rack"
+];
+
+const SSD_DETAIL_FIELDS = [
+  "Model",
+  "Vendor",
+  "Serial"
+];
+
+const NETWORK_DEVICES_DETAIL_FIELDS = [
+  "Model",
+  "Vendor",
+  "Name",
+  "# Active Devices"
+];
 
 function createFilter(label, filterFn, options) {
   const constraint = options && options.constraint;
@@ -255,6 +606,13 @@ export default {
 
     const coarseFilters = createCapabilityFilters(".nodeType", this.allNodes);
     const simpleCapabilityFilters = processCapabilities(simpleCapabilities);
+
+    const smtValues = this.allNodes.map(
+      (n) => (n.architecture && n.architecture.smtSize) || 0
+    );
+    const minThreads = Math.min(...smtValues);
+    const maxThreads = Math.max(...smtValues);
+
     const advancedCapabilityFilters = Object.fromEntries(
       Object.entries(advancedCapabilities).map(
         ([key, { discover, custom }]) => {
@@ -274,12 +632,35 @@ export default {
       coarseFilters,
       simpleCapabilityFilters,
       advancedCapabilityFilters,
+
+      showProcessorDetails: false,
+      showPlacementDetails: false,
+      showSSDDetails: false,
+      showNetworkDevicesDetails: false,
+
+      PROCESSOR_DETAIL_FIELDS,
+      PLACEMENT_DETAIL_FIELDS,
+      SSD_DETAIL_FIELDS,
+      NETWORK_DEVICES_DETAIL_FIELDS,
+
+      // min and max threads across all nodes for the slider:
+      minThreads,
+      maxThreads,
+
+      // current user-selected threads range:
+      threads: {
+        min: minThreads,
+        max: maxThreads
+      },
     };
+
   },
   watch: {
-    filteredNodes: function () {
+    "threads.min"() { this.onThreadsChange(); },
+    "threads.max"() { this.onThreadsChange(); },
+    filteredNodes() {
       this.updateFilterCounts();
-    },
+    }
   },
   computed: {
     allFilters() {
@@ -290,6 +671,7 @@ export default {
           ...Object.values(this.advancedCapabilityFilters[section])
         );
       }
+
       return all;
     },
     activeFilters() {
@@ -303,6 +685,14 @@ export default {
     },
   },
   methods: {
+    onThreadsChange() {
+      this.$emit("filtersChange", [
+        nodes => nodes.filter(n => {
+          const v = (n.architecture && n.architecture.smtSize) || 0;
+          return v >= this.threads.min && v <= this.threads.max;
+        })
+      ]);
+    },
     reset() {
       for (const filter of this.allFilters) {
         filter.active = false;
@@ -345,6 +735,13 @@ export default {
         this.allNodes
       ).length;
     }
+
+    this.$emit("filtersChange", [
+      nodes => nodes.filter(n => {
+        const v = (n.architecture && n.architecture.smtSize) || 0;
+        return v >= this.threads.min && v <= this.threads.max;
+      })
+    ]);
   },
 };
 </script>
