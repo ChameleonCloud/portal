@@ -57,3 +57,24 @@ $(document).on('click', '.remove-funding-form-row', function(e){
 });
 
 })()
+
+document.addEventListener('DOMContentLoaded', function() {
+    const isFundedSelect = document.getElementById('is-funded');
+    const fundingSection = document.getElementById('funding-section');
+
+    function toggleFundingSection() {
+        if (isFundedSelect.value === 'yes') {
+            fundingSection.style.display = '';
+        } else {
+            fundingSection.style.display = 'none';
+        }
+    }
+
+
+    const agencyEls = $("#id_form-0-agency")
+    if (agencyEls.length > 0 && agencyEls[0].value !== '') {
+        isFundedSelect.value = 'yes';
+    }
+    isFundedSelect.addEventListener('change', toggleFundingSection);
+    toggleFundingSection();
+});

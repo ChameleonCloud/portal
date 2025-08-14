@@ -73,6 +73,7 @@ class AllocationAdmin(admin.ModelAdmin):
         )
 
     def project_info(self, obj):
+        fundings = "</li><li>".join(str(f) for f in obj.project.project_funding.all())
         return mark_safe(
             f"""<table>
             <tr>
@@ -86,6 +87,9 @@ class AllocationAdmin(admin.ModelAdmin):
             </tr>
             <tr>
                 <td><b>Tag</b></td><td>{obj.project.tag.name} - {obj.project.tag.description}</td>
+            </tr>
+            <tr>
+                <td><b>Fundings</b></td><td><ul><li>{fundings}</li></ul></td>
             </tr>
         <table>"""
         )
