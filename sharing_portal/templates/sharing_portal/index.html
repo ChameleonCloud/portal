@@ -19,39 +19,12 @@
   <div class="layoutGrid__main">
     <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter"/>
 
-    <!-- <h3>Featured Artifacts</h3> -->
-<!-- 
-    <div>
-      {% for artifact in featured_artifacts %}
-      <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
-        <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
-          <h5 class="cardItem__title">
-            <span class="cardTitleTitle">{{ artifact.title }}</span>
-            <span class="cardTitlePrivate">
-          {% if artifact.is_private and not artifact.has_doi %}
-            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
-               title="This artifact is only visible for those chosen by the author"></i>
-          {% endif %}
-          </span>
-          </h5>
-          <div class="cardItem__body">
-            {% if artifact.short_description %}
-            <p class="artifactGridItem__description">
-              {{ artifact.short_description }}
-            </p>
-            {% endif %}
-          </div>
-        </a>
-        <div class="cardItem__footer">
-          {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
-        </div>
-      </div>
-      {% empty %}
-      <div class="cardEmpty">
-        <p>No results found.</p>
-      </div>
-      {% endfor %}
-    </div> -->
+    <h3>Featured Artifacts</h3>
+    <div id="featured-artifact-list">
+      {% with featured_artifacts as artifacts %}
+        {% include "sharing_portal/includes/artifact_cards.html" %}
+      {% endwith %}
+    </div>
 
     <h3>All Artifacts</h3>
 
@@ -74,6 +47,9 @@
 
         document.getElementById("artifact-list")
           .insertAdjacentHTML("beforeend", data.html);
+
+        document.getElementById("featured-artifact-list")
+          .insertAdjacentHTML("beforeend", data.featured_html);
 
         after = data.next_cursor;
         console.log(after, typeof(after))

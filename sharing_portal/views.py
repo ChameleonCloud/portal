@@ -303,6 +303,14 @@ def _render_list(request, owned=False, public=False):
         )
     ]
 
+    featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
+    featured_artifacts = [
+        a for a in artifacts if a["uuid"] in featured_uuids
+    ]
+    other_artifacts = [
+        a for a in artifacts if a["uuid"] not in featured_uuids
+    ]
+
     if raw_artifacts:
         next_cursor = raw_artifacts[-1]["uuid"]
 
@@ -310,26 +318,28 @@ def _render_list(request, owned=False, public=False):
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render(
             request,
-            "sharing_portal/includes/artifact_cards.html",  # partial
-            {"artifacts": artifacts}
+            "sharing_portal/includes/artifact_cards.html",
+            {"artifacts": other_artifacts}
+        ).content.decode("utf-8")
+        featured_html = render(
+            request,
+            "sharing_portal/includes/artifact_cards.html",
+            {"artifacts": featured_artifacts}
         ).content.decode("utf-8")
         return JsonResponse({
             "html": html,
+            "featured_html": featured_html,
             "next_cursor": next_cursor
         })
 
     # Normal page load
     template = loader.get_template("sharing_portal/index.html")
 
-    # featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
-    # featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
-    # other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
-
     context = {
         "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        "artifacts": artifacts,
+        "artifacts": other_artifacts,
         "next_cursor": next_cursor,
-        "featured_artifacts": [],
+        "featured_artifacts": featured_artifacts,
         "tags": [t["tag"] for t in trovi.list_tags()],
         "badges": list(Badge.objects.all()),
     }
