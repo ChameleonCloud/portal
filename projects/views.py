@@ -302,7 +302,7 @@ def notify_join_request_user(django_request, join_request):
         f'You can view the project here: <a href="{link}" target="_blank">{link}</a>'
     )
     body = f"""
-    {subject} {view_text if join_request.is_accepted() else ''}<br><br>
+    {subject} {view_text if join_request.is_accepted() else ""}<br><br>
 
     Thanks,<br>
     Chameleon Team
@@ -915,42 +915,53 @@ def create_allocation(request, project_id, allocation_id=-1):
         )
         consent_form = ConsentForm(request.POST)
         if form.is_valid() and formset.is_valid() and consent_form.is_valid():
-            allocation = form.cleaned_data.copy()
-            allocation["computeRequested"] = 20000
-
-            # Also update the project and fundings
-            project.description = allocation.pop("description", None)
-            justification = allocation.pop("justification", None)
-
-            allocation["projectId"] = project_id
-            allocation["requestorId"] = mapper.get_portal_user_id(request.user.username)
-            allocation["resourceId"] = "39"
-            allocation["justification"] = justification
-
-            if allocation_id > 0:
-                allocation["id"] = allocation_id
-
-            try:
-                logger.info(
-                    "Submitting allocation request for project %s: %s"
-                    % (project.id, allocation)
-                )
-                with transaction.atomic():
-                    project.save()
-                    mapper.save_allocation(
-                        allocation, project.chargeCode, request.get_host()
-                    )
-                    new_funding_source = _save_fundings(formset, project_id)
-                    _remove_fundings(funding_source, new_funding_source)
-                messages.success(request, "Your allocation request has been submitted!")
-                return HttpResponseRedirect(
-                    reverse("projects:view_project", args=[project.id])
-                )
-            except:
-                logger.exception("Error creating allocation")
+            logger.info(f"FUNDED {request.POST.get('is_funded')} - {len(formset)}")
+            if request.POST.get("is_funded") == "yes" and len(formset) < 1:
                 form.add_error(
-                    "__all__", "An unexpected error occurred. Please try again"
+                    "__all__",
+                    "You must specify a funding source if your project is funded.",
                 )
+            else:
+                allocation = form.cleaned_data.copy()
+                allocation["computeRequested"] = 20000
+
+                # Also update the project and fundings
+                project.description = allocation.pop("description", None)
+                justification = allocation.pop("justification", None)
+
+                allocation["projectId"] = project_id
+                allocation["requestorId"] = mapper.get_portal_user_id(
+                    request.user.username
+                )
+                allocation["resourceId"] = "39"
+                allocation["justification"] = justification
+
+                if allocation_id > 0:
+                    allocation["id"] = allocation_id
+
+                try:
+                    logger.info(
+                        "Submitting allocation request for project %s: %s"
+                        % (project.id, allocation)
+                    )
+                    with transaction.atomic():
+                        project.save()
+                        mapper.save_allocation(
+                            allocation, project.chargeCode, request.get_host()
+                        )
+                        new_funding_source = _save_fundings(formset, project_id)
+                        _remove_fundings(funding_source, new_funding_source)
+                    messages.success(
+                        request, "Your allocation request has been submitted!"
+                    )
+                    return HttpResponseRedirect(
+                        reverse("projects:view_project", args=[project.id])
+                    )
+                except:
+                    logger.exception("Error creating allocation")
+                    form.add_error(
+                        "__all__", "An unexpected error occurred. Please try again"
+                    )
         else:
             form.add_error(
                 "__all__",
