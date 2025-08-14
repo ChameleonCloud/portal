@@ -1,0 +1,25 @@
+{% for artifact in artifacts %}
+<div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
+  <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
+    <h5 class="cardItem__title">
+      <span class="cardTitleTitle">{{ artifact.title }}</span>
+      <span class="cardTitlePrivate">
+        {% if artifact.is_private and not artifact.has_doi %}
+        <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
+           title="This artifact is only visible for those chosen by the author"></i>
+        {% endif %}
+      </span>
+    </h5>
+    <div class="cardItem__body">
+      {% if artifact.short_description %}
+      <p class="artifactGridItem__description">
+        {{ artifact.short_description }}
+      </p>
+      {% endif %}
+    </div>
+  </a>
+  <div class="cardItem__footer">
+    {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
+  </div>
+</div>
+{% endfor %}
