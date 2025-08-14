@@ -19,8 +19,8 @@
   <div class="layoutGrid__main">
     <input id="cardFilter" class="cardFilter" type="text" placeholder="Filter"/>
 
-    <h3>Featured Artifacts</h3>
-
+    <!-- <h3>Featured Artifacts</h3> -->
+<!-- 
     <div>
       {% for artifact in featured_artifacts %}
       <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
@@ -51,41 +51,38 @@
         <p>No results found.</p>
       </div>
       {% endfor %}
-    </div>
+    </div> -->
 
     <h3>All Artifacts</h3>
 
-    <div>
-      {% for artifact in artifacts %}
-      <div class="cardItem" data-search="{{ artifact.search_terms|join:' ' }}">
-        <a class="blockLink" href="{% url 'sharing_portal:detail' artifact.uuid %}">
-          <h5 class="cardItem__title">
-            <span class="cardTitleTitle">{{ artifact.title }}</span>
-            <span class="cardTitlePrivate">
-              {% if artifact.is_private and not artifact.has_doi %}
-            <i class="fa fa-eye-slash" data-toggle="tooltip" data-placement="top"
-               title="This artifact is only visible for those chosen by the author"></i>
-          {% endif %}
-          </span>
-          </h5>
-          <div class="cardItem__body">
-            {% if artifact.short_description %}
-            <p class="artifactGridItem__description">
-              {{ artifact.short_description }}
-            </p>
-            {% endif %}
-          </div>
-        </a>
-        <div class="cardItem__footer">
-          {% include 'sharing_portal/includes/stats.html' with artifact=artifact %}
-        </div>
-      </div>
-      {% empty %}
-      <div class="cardEmpty">
-        <p>No results found.</p>
-      </div>
-      {% endfor %}
+    <div id="artifact-list">
+      {% include "sharing_portal/includes/artifact_cards.html" %}
     </div>
+    
+    <div id="pagination-data" data-after="{{ next_cursor }}"></div>
+    
+    <script>
+    async function loadAllArtifacts() {
+      let after = document.getElementById("pagination-data").dataset.after;
+      if (!after) return; // No more pages from the start
+
+      while (after) {
+        const resp = await fetch(`?after=${after}`, {
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+        const data = await resp.json();
+
+        document.getElementById("artifact-list")
+          .insertAdjacentHTML("beforeend", data.html);
+
+        after = data.next_cursor;
+        console.log(after, typeof(after))
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAllArtifacts);
+    </script>
+    
   </div>
 
   <div class="layoutGrid__side">

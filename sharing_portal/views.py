@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -240,24 +240,6 @@ def get_artifact(func):
     return wrapper
 
 
-def _render_list(request, artifacts):
-    template = loader.get_template("sharing_portal/index.html")
-
-    featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
-    featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
-    other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
-
-    context = {
-        "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        "artifacts": other_artifacts,
-        "featured_artifacts": featured_artifacts,
-        "tags": [t["tag"] for t in trovi.list_tags()],
-        "badges": list(Badge.objects.all()),
-    }
-
-    return HttpResponse(template.render(context, request))
-
-
 def _compute_artifact_fields(artifact):
     artifact["badges"] = ArtifactBadge.objects.filter(
         artifact_uuid=artifact["uuid"], status=ArtifactBadge.STATUS_APPROVED
@@ -282,40 +264,93 @@ def _owns_artifact(user, artifact):
 
 
 @handle_trovi_errors
-def _trovi_artifacts(request):
+def _trovi_artifacts(request, limit=20, after=None):
+    kwargs = {}
+    if after:
+        kwargs["after"] = after
+    if limit:
+        kwargs["limit"] = limit
     artifacts = [
         _compute_artifact_fields(a)
         for a in trovi.list_artifacts(
-            request.session.get("trovi_token"), sort_by="updated_at"
+            request.session.get("trovi_token"),
+            sort_by="updated_at",
+            **kwargs
         )
+        # NOTE: Due to a bug in trovi, we must filter out the marker artifact
+        if a["uuid"] != after
     ]
     return artifacts
 
 
 @with_trovi_token
+def _render_list(request, owned=False, public=False):
+    limit = 20
+    after = request.GET.get("after")
+
+    params = {"limit": limit}
+    if after:
+        params["after"] = after
+
+    next_cursor = None
+
+    raw_artifacts = _trovi_artifacts(request, limit=limit, after=after)
+    artifacts = [
+        a for a in raw_artifacts
+        if (
+            (not owned or _owns_artifact(request.user, a))
+            and (not public or (a["visibility"] == "public" or a["has_doi"]))
+        )
+    ]
+
+    if raw_artifacts:
+        next_cursor = raw_artifacts[-1]["uuid"]
+
+    # AJAX request → return HTML snippet + cursor
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render(
+            request,
+            "sharing_portal/includes/artifact_cards.html",  # partial
+            {"artifacts": artifacts}
+        ).content.decode("utf-8")
+        return JsonResponse({
+            "html": html,
+            "next_cursor": next_cursor
+        })
+
+    # Normal page load
+    template = loader.get_template("sharing_portal/index.html")
+
+    # featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
+    # featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
+    # other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
+
+    context = {
+        "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
+        "artifacts": artifacts,
+        "next_cursor": next_cursor,
+        "featured_artifacts": [],
+        "tags": [t["tag"] for t in trovi.list_tags()],
+        "badges": list(Badge.objects.all()),
+    }
+
+    return HttpResponse(template.render(context, request))
+
+
+@with_trovi_token
 def index_all(request, collection=None):
-    return _render_list(request, _trovi_artifacts(request))
+    return _render_list(request)
 
 
 @login_required
 @with_trovi_token
 def index_mine(request):
-    artifacts = [
-        artifact
-        for artifact in _trovi_artifacts(request)
-        if _owns_artifact(request.user, artifact)
-    ]
-    return _render_list(request, artifacts)
+    return _render_list(request, owned=True)
 
 
 @with_trovi_token
 def index_public(request):
-    artifacts = [
-        artifact
-        for artifact in _trovi_artifacts(request)
-        if artifact["visibility"] == "public"
-    ]
-    return _render_list(request, artifacts)
+    return _render_list(request, public=True)
 
 
 def _delete_artifact_version(request, version):
