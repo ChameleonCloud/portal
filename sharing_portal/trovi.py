@@ -96,11 +96,15 @@ def list_artifacts(token, sort_by="-updated_at", after=None, limit=None):
     if not after:
         after = ""
     res = requests.get(
-        url_with_token("/artifacts/", token, query=dict(
-            sort_by=sort_by,
-            after=after,
-            limit=limit,
-        ))
+        url_with_token(
+            "/artifacts/",
+            token,
+            query=dict(
+                sort_by=sort_by,
+                after=after,
+                limit=limit,
+            ),
+        )
     )
     check_status(res, requests.codes.ok)
     return res.json()["artifacts"]

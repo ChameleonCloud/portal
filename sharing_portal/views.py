@@ -273,9 +273,7 @@ def _trovi_artifacts(request, limit=20, after=None):
     artifacts = [
         _compute_artifact_fields(a)
         for a in trovi.list_artifacts(
-            request.session.get("trovi_token"),
-            sort_by="updated_at",
-            **kwargs
+            request.session.get("trovi_token"), sort_by="updated_at", **kwargs
         )
         # NOTE: Due to a bug in trovi, we must filter out the marker artifact
         if a["uuid"] != after
@@ -296,7 +294,8 @@ def _render_list(request, owned=False, public=False):
 
     raw_artifacts = _trovi_artifacts(request, limit=limit, after=after)
     artifacts = [
-        a for a in raw_artifacts
+        a
+        for a in raw_artifacts
         if (
             (not owned or _owns_artifact(request.user, a))
             and (not public or (a["visibility"] == "public" or a["has_doi"]))
@@ -304,12 +303,8 @@ def _render_list(request, owned=False, public=False):
     ]
 
     featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
-    featured_artifacts = [
-        a for a in artifacts if a["uuid"] in featured_uuids
-    ]
-    other_artifacts = [
-        a for a in artifacts if a["uuid"] not in featured_uuids
-    ]
+    featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
+    other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
 
     if raw_artifacts:
         next_cursor = raw_artifacts[-1]["uuid"]
@@ -319,18 +314,16 @@ def _render_list(request, owned=False, public=False):
         html = render(
             request,
             "sharing_portal/includes/artifact_cards.html",
-            {"artifacts": other_artifacts}
+            {"artifacts": other_artifacts},
         ).content.decode("utf-8")
         featured_html = render(
             request,
             "sharing_portal/includes/artifact_cards.html",
-            {"artifacts": featured_artifacts}
+            {"artifacts": featured_artifacts},
         ).content.decode("utf-8")
-        return JsonResponse({
-            "html": html,
-            "featured_html": featured_html,
-            "next_cursor": next_cursor
-        })
+        return JsonResponse(
+            {"html": html, "featured_html": featured_html, "next_cursor": next_cursor}
+        )
 
     # Normal page load
     template = loader.get_template("sharing_portal/index.html")
@@ -385,7 +378,7 @@ def _delete_artifact_version(request, version):
         messages.add_message(
             request,
             messages.ERROR,
-            f"Cannot delete versions " f"already assigned a DOI. ({version})",
+            f"Cannot delete versions already assigned a DOI. ({version})",
         )
         return False
 
