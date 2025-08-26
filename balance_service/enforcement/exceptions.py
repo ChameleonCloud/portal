@@ -37,10 +37,13 @@ class LeasePastExpirationError(EnforcementException):
 
 class MaxLeaseDurationError(EnforcementException):
     msg_fmt = (
-        'Lease duration of %(lease_duration)s seconds must be less '
-        'than or equal to the maximum lease duration of %(max_duration)s seconds')
+        "Lease duration of %(lease_duration)s seconds must be less "
+        "than or equal to the maximum lease duration of %(max_duration)s seconds"
+    )
 
 
 class MaxLeaseUpdateWindowException(EnforcementException):
-    msg_fmt = ('Lease can only be extended within %(extension_window)s '
-                'seconds of the leases current end time.')
+    msg_fmt = (
+        "Lease can only be extended within %(extension_window)s "
+        "seconds of the leases current end time."
+    )

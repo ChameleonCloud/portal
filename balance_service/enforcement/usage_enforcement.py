@@ -265,7 +265,8 @@ class UsageEnforcer(object):
 
         # use old lease's end date as start date
         self._check_lease_duration(
-            new_lease, new_lease_eval, old_lease["end_date"], new_lease["end_date"])
+            new_lease, new_lease_eval, old_lease["end_date"], new_lease["end_date"]
+        )
         self._check_lease_update_window(old_lease, new_lease, new_lease_eval)
 
         # create/update charges
@@ -415,7 +416,7 @@ class UsageEnforcer(object):
             "max_lease_length",
             lease,
             lease_eval,
-            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS
+            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS,
         )
         # we subtract 1 here to account for rounding because we are dealing with floats
         duration = (end_date - start_date).total_seconds() - 1
@@ -426,14 +427,13 @@ class UsageEnforcer(object):
             )
 
     def _check_lease_update_window(self, old_lease, new_lease, new_lease_eval):
-        old_start_date = self._date_from_string(old_lease['start_date'])
-        old_end_date = self._date_from_string(old_lease['end_date'])
-        new_end_date = self._date_from_string(new_lease['end_date'])
+        old_start_date = self._date_from_string(old_lease["start_date"])
+        old_end_date = self._date_from_string(old_lease["end_date"])
+        new_end_date = self._date_from_string(new_lease["end_date"])
 
         # If lease is not being extended, no need to check
-        if (
-            old_end_date >= new_end_date
-            and old_start_date >= self._date_from_string(new_lease['start_date'])
+        if old_end_date >= new_end_date and old_start_date >= self._date_from_string(
+            new_lease["start_date"]
         ):
             return
 
@@ -449,26 +449,29 @@ class UsageEnforcer(object):
             "lease_update_window",
             new_lease,
             new_lease_eval,
-            default=settings.ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS
+            default=settings.ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS,
         )
         min_window = old_end_date - datetime.timedelta(seconds=extension_window)
         max_duration = get_config_value(
             "max_lease_length",
             new_lease,
             new_lease_eval,
-            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS
+            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS,
         )
-        min_window_percent = old_end_date - datetime.timedelta(seconds=max_duration * 2 / 7)
+        min_window_percent = old_end_date - datetime.timedelta(
+            seconds=max_duration * 2 / 7
+        )
         # We must update before at least 1 of the windows
         if not (update_at > min_window or update_at > min_window_percent):
             raise exceptions.MaxLeaseUpdateWindowException(
-                extension_window=extension_window)
+                extension_window=extension_window
+            )
 
 
 def get_config_value(key, lease, lease_eval, default):
     # Use the minimum value among all reservations
     min_value = None
-    for reservation in lease['reservations']:
+    for reservation in lease["reservations"]:
         resource_type = reservation["resource_type"]
         v = None
         if resource_type == "flavor:instance":

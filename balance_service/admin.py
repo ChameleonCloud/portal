@@ -1,4 +1,3 @@
-
 from balance_service.models import (
     ConfigVariable,
 )

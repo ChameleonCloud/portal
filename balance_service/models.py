@@ -21,7 +21,11 @@ def generate_constraints():
             fields = ["key", *subset]
 
             # Any dimension not in this subset must be NULL
-            nulls = {dim + "__isnull": True for dim in constraint_dimensions if dim not in subset}
+            nulls = {
+                dim + "__isnull": True
+                for dim in constraint_dimensions
+                if dim not in subset
+            }
             condition = Q(**nulls) if nulls else None
 
             label = "__".join(["key", *subset]) if subset else "key"
@@ -83,7 +87,9 @@ class ConfigVariable(models.Model):
         def rank(c):
             return (
                 1 if c.username and c.username == username else 0,
-                1 if c.project_charge_code and c.project_charge_code == charge_code else 0,
+                1
+                if c.project_charge_code and c.project_charge_code == charge_code
+                else 0,
                 1 if c.flavor_id and c.flavor_id == flavor_id else 0,
             )
 

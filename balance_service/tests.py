@@ -3,7 +3,10 @@ from django.test import TestCase
 from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
-from balance_service.enforcement.usage_enforcement import UsageEnforcer, get_config_value
+from balance_service.enforcement.usage_enforcement import (
+    UsageEnforcer,
+    get_config_value,
+)
 from balance_service.models import ConfigVariable
 from projects.models import Project
 from django.contrib.auth import get_user_model
@@ -697,7 +700,9 @@ class BalanceServiceTest(TestCase):
     @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
     @patch.object(UsageEnforcer, "_check_lease_duration")
     @patch.object(UsageEnforcer, "_check_lease_update_window")
-    def test_usage_enforcer_stop_charging(self, mock_ld, mock_uw, mock_kc, mock_ks, mock_now):
+    def test_usage_enforcer_stop_charging(
+        self, mock_ld, mock_uw, mock_kc, mock_ks, mock_now
+    ):
         mock_now.return_value = self.now
 
         ks_instance = mock_ks.return_value
@@ -809,7 +814,9 @@ class BalanceServiceTest(TestCase):
 
     @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
     @patch("balance_service.enforcement.usage_enforcement.get_config_value")
-    def test_usage_enforcer_check_lease_duration_exceeds_max(self, mock_get_config_value, mock_ks):
+    def test_usage_enforcer_check_lease_duration_exceeds_max(
+        self, mock_get_config_value, mock_ks
+    ):
         ks_instance = mock_ks.return_value
         mock_get_config_value.return_value = 60 * 60 * 24 * 7  # 7 days
         sd = (self.now).strftime("%Y-%m-%d %H:%M:%S")
@@ -838,7 +845,9 @@ class BalanceServiceTest(TestCase):
     @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
     @patch("balance_service.enforcement.usage_enforcement.get_config_value")
     @patch("django.utils.timezone.now")  # Mocking timezone.now()
-    def test_usage_enforcement_check_lease_update_window(self, mock_now, mock_get_config_value, mock_ks):
+    def test_usage_enforcement_check_lease_update_window(
+        self, mock_now, mock_get_config_value, mock_ks
+    ):
         permitted_lease_duration = 7
 
         def fake_get_config_value(key, lease, lease_eval, default):
@@ -854,7 +863,9 @@ class BalanceServiceTest(TestCase):
         # Extend a lease for 7 days within the update window
         mock_now.return_value = self.now
         sd = self.now.strftime("%Y-%m-%d %H:%M:%S")
-        ed = (self.now + timedelta(days=1, hours=23, minutes=59)).strftime("%Y-%m-%d %H:%M:%S")
+        ed = (self.now + timedelta(days=1, hours=23, minutes=59)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         new_ed = (self.now + timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
         ue = UsageEnforcer(ks_instance)
         ue._check_lease_update_window(
@@ -873,7 +884,9 @@ class BalanceServiceTest(TestCase):
         permitted_lease_duration = 28
         mock_now.return_value = self.now + timedelta(days=20)
         sd = self.now.strftime("%Y-%m-%d %H:%M:%S")
-        ed = (self.now + timedelta(days=27, hours=23, minutes=59)).strftime("%Y-%m-%d %H:%M:%S")
+        ed = (self.now + timedelta(days=27, hours=23, minutes=59)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         new_ed = (self.now + timedelta(days=35)).strftime("%Y-%m-%d %H:%M:%S")
         ue = UsageEnforcer(ks_instance)
         ue._check_lease_update_window(
@@ -908,7 +921,9 @@ class BalanceServiceTest(TestCase):
             )
 
     @patch("balance_service.enforcement.usage_enforcement.ConfigVariable")
-    def test_get_config_value_returns_min_value_from_multiple_reservations(self, mock_config_var):
+    def test_get_config_value_returns_min_value_from_multiple_reservations(
+        self, mock_config_var
+    ):
         lease = {
             "reservations": [
                 {
@@ -932,7 +947,9 @@ class BalanceServiceTest(TestCase):
         self.assertEqual(mock_config_var.get_value.call_count, 2)
 
     @patch("balance_service.enforcement.usage_enforcement.ConfigVariable")
-    def test_get_config_value_returns_value_from_single_reservation(self, mock_config_var):
+    def test_get_config_value_returns_value_from_single_reservation(
+        self, mock_config_var
+    ):
         lease = {
             "reservations": [
                 {
@@ -955,7 +972,9 @@ class BalanceServiceTest(TestCase):
         )
 
     @patch("balance_service.enforcement.usage_enforcement.ConfigVariable")
-    def test_get_config_value_returns_default_when_all_values_none(self, mock_config_var):
+    def test_get_config_value_returns_default_when_all_values_none(
+        self, mock_config_var
+    ):
         lease = {
             "reservations": [
                 {
@@ -989,7 +1008,9 @@ class BalanceServiceTest(TestCase):
         self.assertEqual(result, 1234)
 
     def test_ConfigVarible_get_value_returns_none_when_no_match(self):
-        result = ConfigVariable.get_value("lease_limit", flavor_id="f1", username="user1", charge_code="CC123")
+        result = ConfigVariable.get_value(
+            "lease_limit", flavor_id="f1", username="user1", charge_code="CC123"
+        )
         self.assertIsNone(result)
 
     def test_ConfigVarible_get_value_returns_match_by_flavor(self):
