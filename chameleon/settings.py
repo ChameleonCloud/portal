@@ -928,3 +928,15 @@ SCOPUS_INSTITUTION_KEY = os.environ.get("SCOPUS_INSTITUTION_KEY")
 SCRAPER_API_KEY = os.environ.get("SCRAPER_API_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+
+
+#############
+# Enforcement
+#############
+
+ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS = int(
+    os.environ.get("ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS", 60 * 60 * 24 * 7)
+)
+ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS = int(
+    os.environ.get("ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS", 60 * 60 * 48 * 2)
+)
