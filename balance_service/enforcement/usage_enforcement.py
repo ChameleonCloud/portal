@@ -348,9 +348,24 @@ class UsageEnforcer(object):
                     charge.end_time = now
                     charge.save()
 
-    def __get_billrate(self, resource, resource_type=None):
-        su_factor = resource.get("su_factor")
+    def __get_billrate(self, resource, reservation, resource_type=None):
+        # Do not charge for floating IPs
+        if resource_type == "virtual:floatingip":
+            return 0
 
+        # SU factor is configured per flavor in portal
+        # Note: this doesn't let us customize su_factor per project/user yet
+        if resource_type == "flavor:instance":
+            flavor_id = _get_reservation_flavor_id(reservation)
+            v = ConfigVariable.get_value(
+                "su_factor",
+                flavor_id=flavor_id,
+            )
+            if v is not None:
+                return v
+
+        # SU factor can be set at the blazar resource via blazar API for other resource types
+        su_factor = resource.get("su_factor")
         if su_factor:
             return float(su_factor)
 
@@ -363,7 +378,9 @@ class UsageEnforcer(object):
             # There is 1 allocation per reservation["amount"]
             running_total = 0
             for alloc in allocations:
-                su_factor = self.__get_billrate(alloc, resource_type)
+                # Either
+
+                su_factor = self.__get_billrate(alloc, reservation, resource_type)
                 # What propotion of the host is being used by this reservation
                 host_usage = reservation["vcpus"] / alloc.get(
                     "vcpus", reservation["vcpus"]
@@ -371,7 +388,9 @@ class UsageEnforcer(object):
                 running_total += su_factor * host_usage
             return running_total
         else:
-            return sum(self.__get_billrate(a, resource_type) for a in allocations)
+            return sum(
+                self.__get_billrate(a, reservation, resource_type) for a in allocations
+            )
 
     def _total_su_factor(self, lease_values):
         """Gets the total SUs for the lease.
@@ -468,6 +487,17 @@ class UsageEnforcer(object):
             )
 
 
+def _get_reservation_flavor_id(reservation):
+    # Blazar stores original flavor details in resource properties
+    if reservation["resource_type"] == "flavor:instance":
+        try:
+            properties = json.loads(reservation["resource_properties"])
+            return properties.get("flavor_id")
+        except (KeyError, AttributeError, json.JSONDecodeError):
+            return None
+    return None
+
+
 def get_config_value(key, lease, lease_eval, default):
     # Use the minimum value among all reservations
     min_value = None
@@ -475,12 +505,7 @@ def get_config_value(key, lease, lease_eval, default):
         resource_type = reservation["resource_type"]
         v = None
         if resource_type == "flavor:instance":
-            try:
-                # Blazar stores original flavor details in resource properties
-                properties = json.loads(reservation["resource_properties"])
-                flavor_id = properties.get("flavor_id")
-            except (KeyError, json.JSONDecodeError):
-                flavor_id = None
+            flavor_id = _get_reservation_flavor_id(reservation)
             v = ConfigVariable.get_value(
                 key,
                 flavor_id=flavor_id,
