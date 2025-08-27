@@ -362,7 +362,7 @@ class UsageEnforcer(object):
                 flavor_id=flavor_id,
             )
             if v is not None:
-                return v
+                return float(v)
 
         # SU factor can be set at the blazar resource via blazar API for other resource types
         su_factor = resource.get("su_factor")
@@ -378,8 +378,6 @@ class UsageEnforcer(object):
             # There is 1 allocation per reservation["amount"]
             running_total = 0
             for alloc in allocations:
-                # Either
-
                 su_factor = self.__get_billrate(alloc, reservation, resource_type)
                 # What propotion of the host is being used by this reservation
                 host_usage = reservation["vcpus"] / alloc.get(
@@ -470,7 +468,7 @@ class UsageEnforcer(object):
             new_lease_eval,
             default=settings.ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS,
         )
-        min_window = old_end_date - datetime.timedelta(seconds=extension_window)
+        min_window = old_end_date - datetime.timedelta(seconds=int(extension_window))
         max_duration = get_config_value(
             "max_lease_length",
             new_lease,
@@ -478,7 +476,7 @@ class UsageEnforcer(object):
             default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS,
         )
         min_window_percent = old_end_date - datetime.timedelta(
-            seconds=max_duration * 2 / 7
+            seconds=int(max_duration * 2 / 7)
         )
         # We must update before at least 1 of the windows
         if not (update_at > min_window or update_at > min_window_percent):
@@ -492,7 +490,7 @@ def _get_reservation_flavor_id(reservation):
     if reservation["resource_type"] == "flavor:instance":
         try:
             properties = json.loads(reservation["resource_properties"])
-            return properties.get("flavor_id")
+            return properties.get("id")
         except (KeyError, AttributeError, json.JSONDecodeError):
             return None
     return None

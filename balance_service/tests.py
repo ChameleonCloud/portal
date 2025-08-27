@@ -928,11 +928,11 @@ class BalanceServiceTest(TestCase):
             "reservations": [
                 {
                     "resource_type": "flavor:instance",
-                    "resource_properties": json.dumps({"flavor_id": "flavor1"}),
+                    "resource_properties": json.dumps({"id": "flavor1"}),
                 },
                 {
                     "resource_type": "flavor:instance",
-                    "resource_properties": json.dumps({"flavor_id": "flavor2"}),
+                    "resource_properties": json.dumps({"id": "flavor2"}),
                 },
             ]
         }
@@ -954,7 +954,7 @@ class BalanceServiceTest(TestCase):
             "reservations": [
                 {
                     "resource_type": "flavor:instance",
-                    "resource_properties": json.dumps({"flavor_id": "flavor1"}),
+                    "resource_properties": json.dumps({"id": "flavor1"}),
                 }
             ]
         }
@@ -979,7 +979,7 @@ class BalanceServiceTest(TestCase):
             "reservations": [
                 {
                     "resource_type": "flavor:instance",
-                    "resource_properties": json.dumps({"flavor_id": "flavor1"}),
+                    "resource_properties": json.dumps({"id": "flavor1"}),
                 }
             ]
         }
