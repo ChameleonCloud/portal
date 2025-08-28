@@ -15,14 +15,17 @@
 
 import collections
 import datetime
+import json
 import logging
 
 import pytz
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
+from balance_service.models import ConfigVariable
 from balance_service.utils import su_calculators
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
@@ -57,7 +60,7 @@ class UsageEnforcer(object):
     def get_remaining_balance(self, project_id):
         balances = su_calculators.project_balances([project_id])[0]
         remaining = balances["allocated"] - balances["total"]
-        LOG.info(
+        LOG.debug(
             "Remaining balance for project {}: {:.2f}".format(project_id, remaining)
         )
 
@@ -199,6 +202,9 @@ class UsageEnforcer(object):
             lease_eval.project, alloc
         )
         self._check_alloc_expiration_date(lease, alloc, approved_alloc)
+        self._check_lease_duration(
+            lease, lease_eval, lease["start_date"], lease["end_date"]
+        )
 
         # create new charges
         for reservation in lease["reservations"]:
@@ -256,6 +262,12 @@ class UsageEnforcer(object):
                 "Reservation update would spend {:.2f} more SUs, only "
                 "{:.2f} left".format(change_amount, left)
             )
+
+        # use old lease's end date as start date
+        self._check_lease_duration(
+            new_lease, new_lease_eval, old_lease["end_date"], new_lease["end_date"]
+        )
+        self._check_lease_update_window(old_lease, new_lease, new_lease_eval)
 
         # create/update charges
         now = timezone.now()
@@ -336,9 +348,24 @@ class UsageEnforcer(object):
                     charge.end_time = now
                     charge.save()
 
-    def __get_billrate(self, resource, resource_type=None):
-        su_factor = resource.get("su_factor")
+    def __get_billrate(self, resource, reservation, resource_type=None):
+        # Do not charge for floating IPs
+        if resource_type == "virtual:floatingip":
+            return 0
 
+        # SU factor is configured per flavor in portal
+        # Note: this doesn't let us customize su_factor per project/user yet
+        if resource_type == "flavor:instance":
+            flavor_id = _get_reservation_flavor_id(reservation)
+            v = ConfigVariable.get_value(
+                "su_factor",
+                flavor_id=flavor_id,
+            )
+            if v is not None:
+                return float(v)
+
+        # SU factor can be set at the blazar resource via blazar API for other resource types
+        su_factor = resource.get("su_factor")
         if su_factor:
             return float(su_factor)
 
@@ -351,7 +378,7 @@ class UsageEnforcer(object):
             # There is 1 allocation per reservation["amount"]
             running_total = 0
             for alloc in allocations:
-                su_factor = self.__get_billrate(alloc, resource_type)
+                su_factor = self.__get_billrate(alloc, reservation, resource_type)
                 # What propotion of the host is being used by this reservation
                 host_usage = reservation["vcpus"] / alloc.get(
                     "vcpus", reservation["vcpus"]
@@ -359,7 +386,9 @@ class UsageEnforcer(object):
                 running_total += su_factor * host_usage
             return running_total
         else:
-            return sum(self.__get_billrate(a, resource_type) for a in allocations)
+            return sum(
+                self.__get_billrate(a, reservation, resource_type) for a in allocations
+            )
 
     def _total_su_factor(self, lease_values):
         """Gets the total SUs for the lease.
@@ -379,7 +408,7 @@ class UsageEnforcer(object):
             # Blazar introduces a new dateformat
             new_date_format = "%Y-%m-%dT%H:%M:%S"
             date = datetime.datetime.strptime(date_string, new_date_format)
-        return date
+        return date.replace(tzinfo=pytz.UTC)
 
     def _convert_to_localtime(self, utctime):
         utc = utctime.replace(tzinfo=pytz.UTC)
@@ -394,3 +423,95 @@ class UsageEnforcer(object):
             not approved_alloc and lease_end > alloc.expiration_date
         ):
             raise exceptions.LeasePastExpirationError()
+
+    def _check_lease_duration(self, lease, lease_eval, start_date_str, end_date_str):
+        # Note that start_date_str and end_date_str are passed in as parameters
+        # to support updates, where the dates are in the new_lease dict
+        start_date = self._date_from_string(start_date_str)
+        end_date = self._date_from_string(end_date_str)
+        max_duration = get_config_value(
+            "max_lease_length",
+            lease,
+            lease_eval,
+            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS,
+        )
+        # we subtract 1 here to account for rounding because we are dealing with floats
+        duration = (end_date - start_date).total_seconds() - 1
+        if duration > max_duration:
+            raise exceptions.MaxLeaseDurationError(
+                lease_duration=duration,
+                max_duration=max_duration,
+            )
+
+    def _check_lease_update_window(self, old_lease, new_lease, new_lease_eval):
+        old_start_date = self._date_from_string(old_lease["start_date"])
+        old_end_date = self._date_from_string(old_lease["end_date"])
+        new_end_date = self._date_from_string(new_lease["end_date"])
+
+        # If lease is not being extended, no need to check
+        if old_end_date >= new_end_date and old_start_date >= self._date_from_string(
+            new_lease["start_date"]
+        ):
+            return
+
+        # If lease hasn't started yet, no need to check
+        update_at = timezone.now()
+        if old_start_date > update_at:
+            return
+
+        # Only permit update within extension window or 2/7ths of max lease duration
+        # e.g. for a 7 day max lease, permit update within 2 days of end, but for
+        # a 28 day lease, permit update within 8 days of end.
+        extension_window = get_config_value(
+            "lease_update_window",
+            new_lease,
+            new_lease_eval,
+            default=settings.ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS,
+        )
+        min_window = old_end_date - datetime.timedelta(seconds=int(extension_window))
+        max_duration = get_config_value(
+            "max_lease_length",
+            new_lease,
+            new_lease_eval,
+            default=settings.ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS,
+        )
+        min_window_percent = old_end_date - datetime.timedelta(
+            seconds=int(max_duration * 2 / 7)
+        )
+        # We must update before at least 1 of the windows
+        if not (update_at > min_window or update_at > min_window_percent):
+            raise exceptions.MaxLeaseUpdateWindowException(
+                extension_window=extension_window
+            )
+
+
+def _get_reservation_flavor_id(reservation):
+    # Blazar stores original flavor details in resource properties
+    if reservation["resource_type"] == "flavor:instance":
+        try:
+            properties = json.loads(reservation["resource_properties"])
+            return properties.get("id")
+        except (KeyError, AttributeError, json.JSONDecodeError):
+            return None
+    return None
+
+
+def get_config_value(key, lease, lease_eval, default):
+    # Use the minimum value among all reservations
+    min_value = None
+    for reservation in lease["reservations"]:
+        resource_type = reservation["resource_type"]
+        v = None
+        if resource_type == "flavor:instance":
+            flavor_id = _get_reservation_flavor_id(reservation)
+            v = ConfigVariable.get_value(
+                key,
+                flavor_id=flavor_id,
+                username=lease_eval.user.username,
+                charge_code=lease_eval.project.charge_code,
+            )
+        if min_value is None or (v is not None and v < min_value):
+            min_value = v
+    if min_value is not None:
+        return min_value
+    return default
