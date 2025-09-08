@@ -1469,3 +1469,19 @@ def badges_api(request):
     # Allow any origin to access this badge for API access
     response["Access-Control-Allow-Origin"] = "*"
     return response
+
+
+@login_required
+@handle_trovi_errors
+@with_trovi_token
+@check_edit_permission
+def delete_artifact(request, artifact):
+    if request.method == "POST":
+        trovi.delete_artifact(
+            request.session.get("trovi_token"),
+            artifact["uuid"]
+        )
+        return JsonResponse(
+            {"redirect_url": reverse("sharing_portal:index_all")}
+        )
+    return JsonResponse({"error": "Invalid method"}, status=405)
