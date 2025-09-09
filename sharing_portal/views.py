@@ -1477,11 +1477,6 @@ def badges_api(request):
 @check_edit_permission
 def delete_artifact(request, artifact):
     if request.method == "POST":
-        trovi.delete_artifact(
-            request.session.get("trovi_token"),
-            artifact["uuid"]
-        )
-        return JsonResponse(
-            {"redirect_url": reverse("sharing_portal:index_all")}
-        )
+        trovi.delete_artifact(request.session.get("trovi_token"), artifact["uuid"])
+        return JsonResponse({"redirect_url": reverse("sharing_portal:index_all")})
     return JsonResponse({"error": "Invalid method"}, status=405)

@@ -461,7 +461,5 @@ def to_user_urn(username):
 
 
 def delete_artifact(token, artifact_uuid):
-    res = requests.delete(
-        url_with_token(f"/artifacts/{artifact_uuid}/", token)
-    )
+    res = requests.delete(url_with_token(f"/artifacts/{artifact_uuid}/", token))
     check_status(res, requests.codes.no_content)
