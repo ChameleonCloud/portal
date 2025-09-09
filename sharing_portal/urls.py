@@ -34,4 +34,5 @@ urlpatterns = [
         views.download,
         name="download_version",
     ),
+    path("<pk>/delete", views.delete_artifact, name="delete_artifact"),
 ]

@@ -26,6 +26,7 @@
           <h2 class="artifactTitle">Edit artifact</h2>
           <div class="artifactActions">
             <button type="submit" class="btn btn-success">Save Changes</button>
+            <button type="button" id="delete-artifact" class="btn btn-danger">Delete Artifact</button>
             <a href="{% url 'sharing_portal:detail' artifact.uuid %}" class="btn btn-default">Cancel</a>
           </div>
         </header>
@@ -121,6 +122,33 @@
           });
         });
       })();
+    </script>
+    <script nonce="{{ request.csp_nonce }}">
+      document.addEventListener("DOMContentLoaded", function() {
+          const deleteBtn = document.getElementById("delete-artifact");
+          if (deleteBtn) {
+              deleteBtn.addEventListener("click", function() {
+                  if (!confirm("Are you sure you want to delete this artifact? This cannot be undone!")) return;
+                  fetch("{% url 'sharing_portal:delete_artifact' artifact.uuid %}", {
+                      method: "POST",
+                      headers: {
+                          "X-CSRFToken": "{{ csrf_token }}",
+                          "Accept": "application/json"
+                      },
+                      credentials: "same-origin"
+                  })
+                  .then(resp => resp.json())
+                  .then(data => {
+                      if (data.redirect_url) {
+                          window.location.href = data.redirect_url;
+                      } else {
+                          alert("Error deleting artifact.");
+                      }
+                  })
+                  .catch(e => { alert("Delete failed: " + e); });
+              });
+          }
+      });
     </script>
   </div>
 </div>
