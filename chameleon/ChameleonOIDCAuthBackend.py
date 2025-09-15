@@ -37,10 +37,13 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         return login
 
     def filter_users_by_claims(self, claims):
-        """Override to search for users by username and not email."""
+        """Override to search for users by username and email."""
         username = claims.get("preferred_username")
         if username:
             return self.UserModel.objects.filter(username__iexact=username)
+        email = claims.get("email")
+        if email:
+            return self.UserModel.objects.filter(email__iexact=email)
 
         return self.UserModel.objects.none()
 
