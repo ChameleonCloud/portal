@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="node-list-container">
     <div v-for="(item, idx) in visibleItems" :key="idx + item.uid">
       <slot v-bind:item="item"></slot>
     </div>
@@ -8,6 +8,19 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.node-list-container {
+  display: grid;
+  grid-gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .node-list-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
 
 <script>
 export default {
