@@ -96,13 +96,13 @@ openstack reservation lease create \
             <div class="row">
               <div class="col-md-12">
                 <InfiniteScroller
-                  v-show="visibleNodes"
+                  v-show="visibleNodes.length"
                   :items="visibleNodes"
                   v-slot="slot"
                 >
                   <HardwareDetails :hardware="slot.item" />
                 </InfiniteScroller>
-                <div v-show="!visibleNodes" class="alert alert-warning">
+                <div v-show="!visibleNodes.length" class="alert alert-warning">
                   Node(s) not found.
                 </div>
               </div>
@@ -222,6 +222,8 @@ export default {
     },
     changeView(panel) {
       this.panel = panel;
+      // When going back to search, clear the results-view search query
+      if (panel === "search") this.searchQuery = "";
     },
     updateVisibleNodes() {
       this.visibleNodes = this.filteredNodes.filter((node) => {

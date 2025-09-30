@@ -1,214 +1,172 @@
 {% extends 'layout/default.html' %} {% load sekizai_tags static %} {% block title %}Chameleon Resource Browser{% endblock %} {% block styles %}
-<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}"> {% endblock %} {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'g5k_discovery/css/main.css' %}">
+<style>
+    .capability-group-header {
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 1rem;
+        color: #337ab7;
+        font-size: 1.2em;
+    }
+
+    .capability-group-header .fa {
+        margin-right: 0.5em;
+    }
+
+    .capability-group-body {
+        padding-left: 1.5em;
+    }
+</style>
+{% endblock %} {% block content %}
 
 <h2>{{ node.uid }} {% if node.node_name %}({{ node.node_name }}){% endif %}</h2>
 <div ng-app="discoveryApp" class="discovery-app" ng-controller="NodeController" ng-init="initLink('{{resource}}');">
-        <section>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Site: </strong> {{ site }}
+    <section>
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="dl-horizontal">
+                    <dt>Site</dt><dd>{{ site }}</dd>
+                    <dt>Cluster</dt><dd>{{ cluster }}</dd>
+                    <dt>Platform Type</dt><dd>{{ node.architecture.platform_type }}</dd>
+                    <dt># CPUs</dt><dd>{{ node.architecture.smp_size }}</dd>
+                    <dt># of Threads</dt><dd>{{ node.architecture.smt_size }}</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="dl-horizontal">
+                    <dt>RAM Size</dt><dd>{{ node.main_memory.humanized_ram_size }}</dd>
+                    <dt>Node Type</dt><dd>{{ node.node_type }}</dd>
+                    <dt>Wattmeter</dt><dd>{% if node.monitoring.wattmeter %}Yes{% else %}No{% endif%}</dd>
+                    <dt>Version</dt><dd>{{ node.version }}</dd>
+                </dl>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <!-- Expanded Sections -->
+            <div class="col-md-6">
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#processor">
+                        <i class="fa fa-caret-down"></i> Processor
+                    </h4>
+                    <div id="processor" class="collapse in capability-group-body">
+                        <dl class="dl-horizontal">
+                            <dt>Instruction Set</dt><dd>{{ node.processor.instruction_set }}</dd>
+                            <dt>Vendor</dt><dd>{{ node.processor.vendor }}</dd>
+                            <dt>Model</dt><dd>{{ node.processor.model }}</dd>
+                            <dt>Clock Speed</dt><dd>{{ node.processor.clock_speed }}</dd>
+                            <dt>Version</dt><dd>{{ node.processor.version }}</dd>
+                            <dt>Other Description</dt><dd>{{ node.processor.other_description }}</dd>
+                            <dt>Cache L1d</dt><dd>{{ node.processor.cache_l1d }}</dd>
+                            <dt>Cache L1i</dt><dd>{{ node.processor.cache_l1i }}</dd>
+                            <dt>Cache L2</dt><dd>{{ node.processor.cache_l2 }}</dd>
+                            <dt>Cache L3</dt><dd>{{ node.processor.cache_l3 }}</dd>
+                        </dl>
+                    </div>
                 </div>
-                <div class="col col-sm-3">
-                    <strong>Cluster: </strong> {{ cluster }}
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#gpu">
+                        <i class="fa fa-caret-down"></i> GPU
+                    </h4>
+                    <div id="gpu" class="collapse in capability-group-body">
+                        <dl class="dl-horizontal">
+                            <dt>GPU</dt><dd>{% if node.gpu and node.gpu.gpu %}Yes{% else %}No{% endif%}</dd>
+                        </dl>
+                    </div>
                 </div>
-                <div class="col col-sm-3">
-                    <strong>Platform Type: </strong>{{ node.architecture.platform_type }}
+                 <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#bios">
+                        <i class="fa fa-caret-right"></i> Bios
+                    </h4>
+                    <div id="bios" class="collapse capability-group-body">
+                        <dl class="dl-horizontal">
+                            <dt>Release Date</dt><dd>{{ node.bios.release_date }}</dd>
+                            <dt>Vendor</dt><dd>{{ node.bios.vendor }}</dd>
+                            <dt>Version</dt><dd>{{ node.bios.version }}</dd>
+                        </dl>
+                    </div>
                 </div>
-                <div class="col col-sm-3">
-                    <strong># CPUs: </strong>{{ node.architecture.smp_size }}
+
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#chassis">
+                        <i class="fa fa-caret-right"></i> Chassis
+                    </h4>
+                    <div id="chassis" class="collapse capability-group-body">
+                        <dl class="dl-horizontal">
+                            <dt>Manufacturer</dt><dd>{{ node.chassis.manufacturer }}</dd>
+                            <dt>Name</dt><dd>{{ node.chassis.name }}</dd>
+                            <dt>Serial</dt><dd>{{ node.chassis.serial }}</dd>
+                        </dl>
+                    </div>
                 </div>
-                <div class="col col-sm-3">
-                    <strong># of Threads: </strong>{{ node.architecture.smt_size }}
+
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#network">
+                        <i class="fa fa-caret-right"></i> Network Adapters
+                    </h4>
+                    <div class="collapse capability-group-body" id="network">
+                        {% for na in node.network_adapters %}
+                        <h5 class="bg-info"><strong>Network Adapter #{{ forloop.counter0 }}</strong></h5>
+                        <dl class="dl-horizontal">
+                            <dt>Bridged</dt><dd>{% if na.bridged == False %}No{% else %}Yes{% endif %}</dd>
+                            <dt>Device</dt><dd>{{ na.device }}</dd>
+                            <dt>Driver</dt><dd>{{ na.driver }}</dd>
+                            <dt>Interface</dt><dd>{{ na.interface }}</dd>
+                            <dt>Mac</dt><dd>{{ na.mac }}</dd>
+                            <dt>Management</dt><dd>{% if na.management == False %}No{% else %}Yes{% endif %}</dd>
+                            <dt>Model</dt><dd>{{ na.model }}</dd>
+                            <dt>Mounted</dt><dd>{% if na.mounted == False %}No{% else %}Yes{% endif %}</dd>
+                            <dt>Rate</dt><dd>{{ na.rate }}</dd>
+                            <dt>Vendor</dt><dd>{{ na.vendor }}</dd>
+                        </dl>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="col col-sm-3">
-                    <strong>RAM Size: </strong>{{ node.main_memory.humanized_ram_size }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Node Type: </strong> {{ node.node_type }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Wattmeter: </strong>{% if node.monitoring.wattmeter %}Yes{% else %}No{% endif%}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Version: </strong> {{ node.version }}
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#jobs">
+                        <i class="fa fa-caret-right"></i> Supported Job Types
+                    </h4>
+                    <div id="jobs" class="collapse capability-group-body">
+                        <dl class="dl-horizontal">
+                            <dt>Best Effort</dt><dd>{% if node.supported_job_types.besteffort %}Yes{% else %}No{% endif%}</dd>
+                            <dt>Deploy</dt><dd>{% if node.supported_job_types.deploy %}Yes{% else %}No{% endif%}</dd>
+                            <dt>Virtual</dt><dd>{{ node.supported_job_types.virtual }}</dd>
+                        </dl>
+                    </div>
                 </div>
             </div>
-            <h5 class="bg-success"><strong>Bios</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Release Date: </strong> {{ node.bios.release_date }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Vendor: </strong> {{ node.bios.version }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Version: </strong> {{ node.bios.vendor }}
+            <div class="col-md-6">
+                <div class="capability-group">
+                    <h4 class="capability-group-header" data-toggle="collapse" data-target="#storage">
+                        <i class="fa fa-caret-down"></i> Storage Devices
+                    </h4>
+                    <div class="collapse in capability-group-body" id="storage">
+                        {% for sd in node.storage_devices %}
+                        <h5 class="bg-info"><strong>Storage Device #{{ forloop.counter0 }}</strong></h5>
+                        <dl class="dl-horizontal">
+                            <dt>Device</dt><dd>{{ sd.device }}</dd>
+                            <dt>Driver</dt><dd>{{ sd.driver }}</dd>
+                            <dt>Interface</dt><dd>{{ sd.interface }}</dd>
+                            <dt>Model</dt><dd>{{ sd.model }}</dd>
+                            <dt>Rev</dt><dd>{{ sd.rev }}</dd>
+                            <dt>Size</dt><dd>{{ sd.humanized_size }}</dd>
+                            <dt>Vendor</dt><dd>{{ sd.vendor }}</dd>
+                        </dl>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
-            <h5 class="bg-success"><strong>Chassis</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Manufacturer: </strong> {{ node.chassis.manufacturer }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Name: </strong> {{ node.chassis.name }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Serial: </strong> {{ node.chassis.serial }}
-                </div>
-            </div>
-            <h5 class="bg-success"><strong>GPU</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>GPU: </strong>{% if node.gpu and node.gpu.gpu %}Yes{% else %}No{% endif%}
-                </div>
-            </div>
-            <h5 class="bg-success" data-toggle="collapse" data-target="#network"><strong>Network Adapters</strong>
-                <span class="pull-right network-toggle">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-            </h5>
-            <div class="collapse" id="network">
-                {% for na in node.network_adapters %}
-                <h5 class="bg-info"><strong>Network Adapter #{{ forloop.counter0 }}</strong></h5>
-                <div class="row">
-                    <div class="col col-sm-3">
-                        <strong>Bridged: </strong> {% if na.bridged == False %}No{% else %}Yes{% endif %}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Device: </strong> {{ na.device }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Driver: </strong> {{ na.driver }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Interface: </strong> {{ na.interface }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Mac: </strong> {{ na.mac }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Management: </strong>{% if na.management == False %}No{% else %}Yes{% endif %}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Model: </strong> {{ na.model }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Mounted: </strong>{% if na.mounted == False %}No{% else %}Yes{% endif %}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Rate: </strong> {{ na.rate }}
-                    </div>
-                    <div class="col col-sm-3">
-                        <strong>Vendor: </strong> {{ na.vendor }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <h5 class="bg-success"><strong>Operating System</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Kernel: </strong> {{ node.operating_system.kernel }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Name: </strong> {{ node.operating_system.name }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Version: </strong> {{ node.operating_system.version }}
-                </div>
-            </div>
-            <h5 class="bg-success"><strong>Processor</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Cache L1d: </strong> {{ node.processor.cache_l1d }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Cache L1i: </strong> {{ node.processor.cache_l1i }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Cache L2: </strong> {{ node.processor.cache_l2 }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Cache L3: </strong> {{ node.processor.cache_l3 }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Clock Speed: </strong> {{ node.processor.clock_speed }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Instruction Set: </strong> {{ node.processor.instruction_set }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Model: </strong> {{ node.processor.model }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Other Description: </strong> {{ node.processor.other_description }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Vendor: </strong> {{ node.processor.vendor }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Version: </strong> {{ node.processor.version }}
-                </div>
-            </div>
-            <h5 class="bg-success" data-toggle="collapse" data-target="#storage"><strong>Storage Devices</strong>
-                <span class="pull-right storage-toggle">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>
-            </h5>
-            <div class="collapse" id="storage">
-                {% for sd in node.storage_devices %}
-                <h5 class="bg-info"><strong>Storage Device #{{ forloop.counter0 }}</strong></h5>
-                <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Device: </strong> {{ sd.device }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Driver: </strong> {{ sd.driver }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Interface: </strong> {{ sd.interface }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Model: </strong> {{ sd.model }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Rev: </strong> {{ sd.rev }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Size: </strong> {{ sd.humanized_size }}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Vendor: </strong> {{ sd.vendor }}
-                </div>
-                </div>
-                {% endfor %}
-            </div>
-            <h5 class="bg-success"><strong>Supported Job Types</strong></h5>
-            <div class="row">
-                <div class="col col-sm-3">
-                    <strong>Best Effort: </strong> {% if node.supported_job_types.besteffort %}Yes{% else %}No{% endif%}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Deploy: </strong> {% if node.supported_job_types.deploy %}Yes{% else %}No{% endif%}
-                </div>
-                <div class="col col-sm-3">
-                    <strong>Virtual: </strong> {{ node.supported_job_types.virtual }}
-                </div>
-            </div>
-        </section>
+        </div>
+    </section>
 </div>
 {% endblock content %}{% block scripts %}
 <script type="text/javascript">
 $(document).ready(function(){
-  $("#storage").on("hide.bs.collapse", function(){
-    $(".storage-toggle").html('<span class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>');
-  });
-  $("#storage").on("show.bs.collapse", function(){
-    $(".storage-toggle").html('<span class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>');
-  });
-  $("#network").on("hide.bs.collapse", function(){
-    $(".network-toggle").html('<span class="pull-right">More&nbsp;&nbsp;<i class="fa fa-caret-right"></i></span>');
-  });
-  $("#network").on("show.bs.collapse", function(){
-    $(".network-toggle").html('<span class="pull-right">Less&nbsp;&nbsp;<i class="fa fa-caret-down"></i></span>');
+  $('.collapse').on('show.bs.collapse', function () {
+    $(this).prev('.capability-group-header').find('.fa').removeClass('fa-caret-right').addClass('fa-caret-down');
+  }).on('hide.bs.collapse', function () {
+    $(this).prev('.capability-group-header').find('.fa').removeClass('fa-caret-down').addClass('fa-caret-right');
   });
 });
 </script>
 {% endblock %}
-
