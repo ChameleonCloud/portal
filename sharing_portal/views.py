@@ -4,6 +4,7 @@ import re
 import subprocess
 from collections import defaultdict
 from datetime import datetime, timedelta
+from functools import wraps
 from urllib.parse import urlencode
 from uuid import UUID
 
@@ -104,6 +105,25 @@ class GitUrlParser:
                 }
             )
         return parsed_info
+
+
+def trovi_redirect(redirect_to):
+    """
+    Decorator to mark a view as deprecated.
+    redirect_to: a callable taking (request, *args, **kwargs) and returning a URL
+    """
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            new_url = redirect_to(request, *args, **kwargs)
+            LOG.info("REDIRECTING REQUEST TO " + new_url)
+
+            return HttpResponseRedirect(new_url)
+
+        return _wrapped_view
+
+    return decorator
 
 
 def with_trovi_token(view_func):
@@ -340,17 +360,26 @@ def _render_list(request, owned=False, public=False):
     return HttpResponse(template.render(context, request))
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts"
+)
 @with_trovi_token
 def index_all(request, collection=None):
     return _render_list(request)
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts?owned=1"
+)
 @login_required
 @with_trovi_token
 def index_mine(request):
     return _render_list(request, owned=True)
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts?public=1"
+)
 @with_trovi_token
 def index_public(request):
     return _render_list(request, public=True)
@@ -393,6 +422,9 @@ def _convert_artifact_roles_to_formset_roles(roles):
     ]
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}/edit/"
+)
 @login_required
 @handle_trovi_errors
 @with_trovi_token
@@ -666,6 +698,13 @@ def construct_issues_url(url):
     return issue_page_url
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: (
+        f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}"
+        + (f"/versions/{kwargs['version_slug']}" if kwargs.get("version_slug") else "")
+        + "/"
+    )
+)
 @handle_trovi_errors
 @with_trovi_token
 @get_artifact
@@ -1302,6 +1341,9 @@ def create_supplemental_project_if_needed(request, artifact, project):
         daypass_project.save()
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}/edit/"
+)
 @login_required
 @handle_trovi_errors
 @with_trovi_token
@@ -1347,16 +1389,22 @@ def create_git_version(request, artifact):
     return HttpResponse(template.render({}, request))
 
 
-# Login required to prevent someone potentially abusing this
-@login_required
 def get_remote_data(request):
+    # NOTE: We may want to set this to some token auth in the future to
+    # minimize abuse. `ls_remote` is basically just HTTP GET to the repo
+    # URL, so I don't think it's a big risk.
     remote_url = request.GET.get("remote_url")
-    return JsonResponse({"result": ls_remote(remote_url)})
+    response = JsonResponse({"result": ls_remote(remote_url)})
+    response["Access-Control-Allow-Origin"] = "*"
+    return response
 
 
 def ls_remote(remote_url):
     remote_url = remote_url.strip()
-    res = subprocess.run(["git", "ls-remote", remote_url], capture_output=True)
+    # Need to set `cwd=/tmp` to avoid git issues with dev container
+    res = subprocess.run(
+        ["git", "ls-remote", remote_url], capture_output=True, cwd="/tmp"
+    )
     output = res.stdout.decode("utf-8")
     error_output = res.stderr.decode("utf-8")
     if error_output:
@@ -1370,6 +1418,9 @@ def ls_remote(remote_url):
     return parts
 
 
+@trovi_redirect(
+    lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/add"
+)
 @login_required
 @handle_trovi_errors
 @with_trovi_token
