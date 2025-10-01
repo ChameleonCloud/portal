@@ -94,6 +94,9 @@ ARTIFACT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M%Z"
 TROVI_API_BASE_URL = os.getenv(
     "TROVI_API_BASE_URL", "https://trovi.chameleoncloud.org/"
 )
+TROVI_DASHBOARD_URL_BASE = os.getenv(
+    "TROVI_DASHBOARD_URL_BASE", "https://trovi.chameleoncloud.org/dashboard/"
+)
 
 # TEMPLATE_DEBUG = DEBUG
 

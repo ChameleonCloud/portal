@@ -30,39 +30,13 @@
       <div class="layoutGrid__main">
         <div class="artifactDetail">
           <header class="artifactDetail__heading">
-            <h2 class="artifactTitle">Edit sharing settings</h2>
+            <h2 class="artifactTitle">Edit Chameleon settings</h2>
             <div class="artifactActions">
               <button type="submit" class="btn btn-success">Save Changes</button>
               <a href="{% url 'sharing_portal:detail' artifact.uuid %}" class="btn btn-default">Cancel</a>
             </div>
           </header>
 
-          <label class="control-label">Publish with DOI</label>
-          <p class="help-block">
-            You can publish any version of this artifact to
-            <a href="https://zenodo.org" rel="noopener noreferrer" target="_blank">Zenodo</a>,
-            which will assign a DOI (Digital Object Identifier), suitable for use
-            in academic citation. Use the "Request DOI" options for any versions
-            you wish to publish publicly in this way.
-          </p>
-
-          <label class="control-label">Publish (without DOI)</label>
-          <p class="help-block">
-            Want to allow any Chameleon user to find and launch this artifact?
-            This is a good option if you want to share your work but don't
-            necessarily want to publish to Zenodo as a citable digital artifact.
-          </p>
-
-
-          {% bootstrap_field share_form.is_public %}
-
-          <fieldset id="artifactShareFormPrivateOptions">
-            <label class="control-label">Share via private link</label>
-            <p>
-              <a href="{{ share_url }}">{{ share_url }}</a>
-            </p>
-
-          </fieldset>
 
           <p class="help-block">
             A person without an active Chameleon allocation is unable to launch
@@ -88,21 +62,6 @@
         </div>
       </div>
 
-      <div class="layoutGrid__side">
-        <div class="artifactVersions">
-          <h4><i class="fa fa-files-o"></i> Versions</h4>
-          {{ z_management_form }}
-          {% for slug, form in z_forms %}
-          <fieldset>
-            <span class="artifactVersion__title">
-              <span>Version {{ slug }}</span>
-              <span>{{ form.model.created_at }}</span>
-            </span>
-            {% bootstrap_form form form_group_class='form-group artifactVersion__doi' error_css_class='foobar' show_label=False layout='inline' %}
-          </fieldset>
-          {% endfor %}
-        </div>
-      </div>
     </div>
   </form>
 
