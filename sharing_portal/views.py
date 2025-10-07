@@ -521,10 +521,10 @@ def edit_artifact(request, artifact):
     return HttpResponse(template.render(context, request))
 
 
-@check_edit_permission
+@login_required
 @handle_trovi_errors
 @with_trovi_token
-@login_required
+@check_edit_permission
 def share_artifact(request, artifact):
     if request.method == "POST":
         form = ShareArtifactForm(request, request.POST)
