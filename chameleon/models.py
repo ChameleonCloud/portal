@@ -94,3 +94,10 @@ class UserInstitution(models.Model):
         on_delete=models.CASCADE,
         related_name="institutions",
     )
+
+
+class KeycloakUser(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="keycloak_user"
+    )
+    sub = models.CharField(max_length=255, unique=True, null=True, blank=True)
