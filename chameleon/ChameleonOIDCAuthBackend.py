@@ -98,6 +98,8 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
             # Keycloak should prevent this from ever happening
             LOG.warning(
                 "User %s already linked to a different Keycloak sub (%s != %s)",
-                user.username, keycloak_user.sub, sub
+                user.username,
+                keycloak_user.sub,
+                sub,
             )
         return user
