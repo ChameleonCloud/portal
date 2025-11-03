@@ -6,11 +6,14 @@ import re
 from chameleon.models import (
     Institution,
     InstitutionAlias,
+    KeycloakUser,
     PIEligibility,
     UserInstitution,
 )
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -273,3 +276,17 @@ class InstitutionAdmin(ModelAdmin):
 
 
 admin.site.register(Institution, InstitutionAdmin)
+
+
+class KeycloakUserInline(admin.StackedInline):
+    model = KeycloakUser
+    can_delete = False
+    verbose_name_plural = "employee"
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = [KeycloakUserInline]
+
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
