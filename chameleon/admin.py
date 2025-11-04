@@ -281,7 +281,6 @@ admin.site.register(Institution, InstitutionAdmin)
 class KeycloakUserInline(admin.StackedInline):
     model = KeycloakUser
     can_delete = False
-    verbose_name_plural = "employee"
 
 
 class UserAdmin(BaseUserAdmin):
