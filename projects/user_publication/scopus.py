@@ -13,10 +13,11 @@ from projects.user_publication.utils import PublicationUtils, update_progress
 
 logger = logging.getLogger("projects")
 
-CHAMELEON_QUERY = (
-    "( TITLE (chameleon) OR REF (chameleon) OR ABS (chameleon) OR KEY (chameleon) )"
-    "AND PUBYEAR > 2014 AND SUBJAREA(COMP)"
-)
+# CHAMELEON_QUERY = (
+#     "( TITLE (chameleon) OR REF (chameleon) OR ABS (chameleon) OR KEY (chameleon) )"
+#     "AND PUBYEAR > 2014 AND SUBJAREA(COMP)"
+# )
+CHAMELEON_QUERY = "( REFTITLE (chameleon) AND REFAUTH(keahey)) AND PUBYEAR > 2014"
 
 CHAMELEON_REFS_REGEX = [
     re.compile(pattern)
@@ -95,6 +96,8 @@ def pub_import(task, dry_run=True):
             )
             publications.append((PublicationSource.SCOPUS, pub_model))
         except Exception as e:
-            logger.error(f"Error processing publication {raw_pub}: {e}")
+            # TODO  we keep hitting this
+            logger.error(f"Error processing publication {raw_pub.eid}: {e}")
+            logger.exception(e)
             continue
     return publications

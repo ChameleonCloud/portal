@@ -98,7 +98,7 @@ def decode_unicode_text(en_text):
         unicodedata.normalize("NFKD", en_text).encode("ascii", "ignore").decode("ascii")
     )
     if en_text != de_text:
-        LOG.info(f"decoding - {en_text} to {de_text}")
+        LOG.debug(f"decoding - {en_text} to {de_text}")
     return de_text
 
 
@@ -381,6 +381,7 @@ def update_progress(task, stage=None, current=None, total=None, message=None):
         stage_multiplier = 50 / total
         stage_offset = stage * 50
         calculated_current = int(current * stage_multiplier + stage_offset)
+        LOG.info(f"Updating task progress: {current}/{total} -> {calculated_current}/100")
         task.update_state(
             state="PROGRESS", meta={"current": calculated_current, "total": 100}
         )

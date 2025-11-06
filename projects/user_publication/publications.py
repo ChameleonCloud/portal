@@ -61,10 +61,11 @@ def import_pubs(task, dry_run=True, source="all"):
     if source in ["gscholar", "all"]:
         pubs.extend(gscholar.pub_import(task, dry_run))
 
-    # Process each publication
+    # Process each found publication
     for i, (source, pub) in enumerate(pubs):
         try:
             update_progress(stage=1, current=i, total=len(pubs), task=task)
+            # get matching pubs in DB, add this as a source, continue to next new pub.
             same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
             if same_pubs.exists():
                 for same_pub in same_pubs:
