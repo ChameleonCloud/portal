@@ -95,13 +95,48 @@ openstack reservation lease create \
 
             <div class="row">
               <div class="col-md-12">
-                <InfiniteScroller
-                  v-show="visibleNodes.length"
-                  :items="visibleNodes"
-                  v-slot="slot"
+                <div
+                  v-if="Object.keys(groupedNodes).length > 1"
+                  class="jump-to-site well well-sm"
                 >
-                  <HardwareDetails :hardware="slot.item" />
+                  Nodes grouped by site, jump to a specific site:
+                  <span v-for="(nodes, site) in groupedNodes" :key="site + '-link'">
+                    <span @click="jumpToSite(site)" class="jump-to-site-link">{{ site }}</span>
+                  </span>
+                </div>
+
+                <InfiniteScroller
+                  ref="scroller"
+                  :items="nodesWithSiteHeaders"
+                  v-slot="{ item, index }"
+                >
+                  <h2
+                    v-if="item.isHeader"
+                    :id="'site-' + item.site"
+                    class="site-header-container"
+                  >
+                    <span>
+                      Site: {{ item.site }}
+                      <span
+                        v-if="index > 0"
+                        @click="returnToTop"
+                        class="return-to-top"
+                        title="Return to top"
+                        >↑</span
+                      >
+                    </span>
+                    <a
+                      v-if="calendarLinks[item.site]"
+                      :href="siteCalendarLinks[item.site]"
+                      target="_blank"
+                      class="availability-calendar-link"
+                    >
+                      View Host Calendar 📅
+                    </a>
+                  </h2>
+                  <HardwareDetails v-else :hardware="item.node" />
                 </InfiniteScroller>
+
                 <div v-show="!visibleNodes.length" class="alert alert-warning">
                   Node(s) not found.
                 </div>
@@ -115,10 +150,40 @@ openstack reservation lease create \
 </template>
 
 <style scoped>
+.site-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.availability-calendar-link {
+  text-decoration: none;
+}
+
+.availability-calendar-link:hover {
+  text-decoration: underline;
+}
+
+.return-to-top {
+  font-size: 22px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  margin-left: 0.5em;
+  position: relative;
+  top: -4px;
+}
+
+.jump-to-site-link {
+  color: #337ab7;
+  cursor: pointer;
+  margin: 0 5px;
+}
 </style>
 
 <script>
 import axios from "axios";
+import { capitalCase } from "change-case";
 import HardwareCatalogueFilters from "./HardwareCatalogueFilters.vue";
 import HardwareDetails from "./HardwareDetails.vue";
 import InfiniteScroller from "./InfiniteScroller.vue";
@@ -183,14 +248,61 @@ export default {
       filteredNodes: [],
       visibleNodes: [],
       reservationProperties: [],
+      calendarLinks: {
+        tacc: "https://chi.tacc.chameleoncloud.org/project/leases/calendar/host/",
+        uc: "https://chi.uc.chameleoncloud.org/project/leases/calendar/host/",
+        nu: "https://sl-ciab.northwestern.edu/project/leases/calendar/host/",
+        ncar: "https://chi.hpc.ucar.edu/project/leases/calendar/host/",
+        nrp: "https://chi.nrp.ai/project/leases/calendar/host/",
+      },
     };
   },
   computed: {
+    siteCalendarLinks() {
+      const links = {};
+
+      // Get all unique node types across all visible nodes, filtering out undefined
+      const allNodeTypes = new Set(this.visibleNodes.map(node => node.nodeType).filter(type => type !== undefined));
+      const uniqueType = allNodeTypes.size === 1 ? allNodeTypes.values().next().value : null;
+      const nodeTypeParam = uniqueType ? `?node_type=${uniqueType}` : "";
+
+      for (const site in this.groupedNodes) {
+        const baseUrl = this.calendarLinks[site];
+        if (!baseUrl) {
+          links[site] = "";
+          continue;
+        }
+
+        links[site] = `${baseUrl}${nodeTypeParam}`;
+      }
+      return links;
+    },
     reservationPropertiesJSON() {
       return JSON.stringify(this.reservationProperties);
     },
+    groupedNodes() {
+      return this.visibleNodes.reduce((acc, node) => {
+        const site = node.parent.parent.uid;
+        if (!acc[site]) {
+          acc[site] = [];
+        }
+        acc[site].push(node);
+        return acc;
+      }, {});
+    },
+    nodesWithSiteHeaders() {
+      const result = [];
+      for (const site in this.groupedNodes) {
+        result.push({ isHeader: true, site: site, uid: site });
+        this.groupedNodes[site].forEach(node => {
+          result.push({ isHeader: false, node: node, uid: node.uid });
+        });
+      }
+      return result;
+    },
   },
   methods: {
+    capitalCase,
     async fetchNodes() {
       const deepValues = (obj) => {
         return Object.values(obj).reduce((acc, subObj) => {
@@ -284,6 +396,20 @@ export default {
     updateSearch(event) {
       this.searchQuery = event.target.value;
       this.updateVisibleNodes();
+    },
+    jumpToSite(site) {
+      const index = this.nodesWithSiteHeaders.findIndex(
+        (item) => item.isHeader && item.site === site
+      );
+      if (index !== -1) {
+        this.$refs.scroller.scrollToIndex(index);
+      }
+    },
+    returnToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    capitalCase(str) {
+      return capitalCase(str);
     },
   },
   mounted() {
