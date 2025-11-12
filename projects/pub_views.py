@@ -11,10 +11,13 @@ from django.template.loader import get_template
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+import json
+import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Publication, PublicationSource, Project
+from projects.models import Publication, PublicationSource
 from projects.user_publication.deduplicate import get_duplicate_pubs
+from projects.user_publication.utils import PublicationUtils
 from projects.util import get_project_members
 from projects.views import project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -125,6 +128,75 @@ def user_publications(request):
     return render(request, "projects/view_publications.html", context)
 
 
+def entry_to_id(entry: dict) -> str:
+    """
+    Generate a normalized source_id from entry title, author, journal, and year.
+    Ensures the string fits within 1024 characters.
+    """
+    title = entry.get("title", "").strip().lower()
+    author = entry.get("author", "").strip().lower()
+    journal = entry.get("journal", "").strip().lower()
+    year = entry.get("year", "").strip()
+    key = f"{year}|{author}|{journal}|{title}"
+
+    if len(key) > 1024:
+        key = key[:1024]
+    return key
+
+
+def create_pub_from_bibtex(bibtex_entry, project, username, status):
+    pub = Publication()
+
+    if project:
+        pub.project_id = project.id
+
+    pub.publication_type = PublicationUtils.get_pub_type(bibtex_entry)
+    pub.title = pip.strict(bibtex_entry.get("title", ""))
+    pub.year = bibtex_entry.get("year")
+    pub.month = PublicationUtils.get_month(bibtex_entry)
+    pub.author = pip.strict(bibtex_entry.get("author", ""))
+    pub.bibtex_source = json.dumps(bibtex_entry)
+    pub.added_by_username = username
+    pub.forum = PublicationUtils.get_forum(bibtex_entry)
+    pub.link = PublicationUtils.get_link(bibtex_entry)
+    pub.doi = bibtex_entry.get("doi")
+    pub.status = status
+
+    pub.save()
+    return pub
+
+
+def create_pubs_from_bibtext_string(str, project, username, source="user_reported"):
+    bib_database = bibtexparser.loads(str)
+    new_pubs = []
+    with transaction.atomic():
+        for entry in bib_database.entries:
+            logger.info(entry)
+            source_id = entry_to_id(entry)
+            if PublicationSource.objects.filter(
+                source_id=source_id, name=source
+            ).exists():
+                logger.info(f"Publication {source_id} exists, skipping.")
+                continue
+            new_pub = create_pub_from_bibtex(
+                entry,
+                project,
+                username,
+                Publication.STATUS_SUBMITTED,
+            )
+            if source == "user_reported":
+                pub_source = PublicationSource(publication=new_pub)
+                pub_source.name = PublicationSource.USER_REPORTED
+                pub_source.save()
+            elif source == "google_scholar":
+                pub_source = PublicationSource(publication=new_pub)
+                pub_source.name = PublicationSource.GOOGLE_SCHOLAR
+                pub_source.source_id = source_id
+                pub_source.save()
+            new_pubs.append(new_pub)
+    return new_pubs
+
+
 @login_required
 def add_publications(request, project_id):
     mapper = ProjectAllocationMapper(request)
@@ -141,21 +213,11 @@ def add_publications(request, project_id):
     if request.POST:
         pubs_form = AddBibtexPublicationForm(request.POST)
         if pubs_form.is_valid():
-            bib_database = bibtexparser.loads(pubs_form.cleaned_data["bibtex_string"])
-            new_pubs = []
-            with transaction.atomic():
-                for entry in bib_database.entries:
-                    new_pub = Publication.objects.create_from_bibtex(
-                        entry,
-                        project,
-                        request.user.username,
-                        "user_reported",
-                        Publication.STATUS_SUBMITTED,
-                    )
-                    pub_source = PublicationSource(publication=new_pub)
-                    pub_source.name = PublicationSource.USER_REPORTED
-                    pub_source.save()
-                    new_pubs.append(new_pub)
+            new_pubs = create_pubs_from_bibtext_string(
+                pubs_form.cleaned_data["bibtex_string"],
+                project,
+                request.user.username,
+            )
             messages.success(request, "Publication(s) added successfully")
             ticket_id = _send_publication_notification(project.chargeCode, new_pubs)
             duplicate_pubs = get_duplicate_pubs(new_pubs)

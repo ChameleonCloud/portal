@@ -10,7 +10,7 @@ from django.utils.functional import lazy
 from projects.user_publication.utils import PublicationUtils
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Project
+from .models import Project, PublicationSource
 
 logger = logging.getLogger("projects")
 
@@ -254,8 +254,21 @@ class AddBibtexPublicationForm(forms.Form):
     )
 
     bibtex_errors = []
-
     mandatory_fields = ["title", "year", "author"]
+
+    def __init__(self, *args, is_admin=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_admin = is_admin
+
+        if self.is_admin:
+            self.fields.pop("confirmation", None)
+            self.fields["source"] = forms.ChoiceField(
+                choices=PublicationSource.SOURCES,
+                required=True,
+                label="source",
+                widget=forms.Select(attrs={"class": "form-control"}),
+                initial=PublicationSource.GOOGLE_SCHOLAR,
+            )
 
     def parse_bibtex(self, bibtex_string):
         try:
@@ -268,13 +281,16 @@ class AddBibtexPublicationForm(forms.Form):
         if not super().is_valid():
             return False
 
-        if self.cleaned_data.get("confirmation") != "confirmed":
+        if not self.is_admin and self.cleaned_data.get("confirmation") != "confirmed":
             self.add_error(
                 "confirmation", "You must confirm publication information is correct."
             )
 
         bib_database = self.parse_bibtex(self.cleaned_data["bibtex_string"])
         if bib_database and bib_database.entries:
+            if self.is_admin:
+                # Ignore field validation for admin form
+                return True
             missing_fields = []
             for entry in bib_database.entries:
                 missing = [

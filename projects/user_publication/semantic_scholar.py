@@ -7,7 +7,7 @@ from django.conf import settings
 
 from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils, update_progress
+from projects.user_publication.utils import PublicationUtils, RawPublicationSource, update_progress
 
 logger = logging.getLogger("projects")
 
@@ -141,5 +141,11 @@ def pub_import(task, dry_run=True):
                 continue
             pub = _get_pub_model(citing_paper, dry_run)
             if pub:
-                publications.append((PublicationSource.SEMANTIC_SCHOLAR, pub))
+                publications.append(
+                    RawPublicationSource(
+                        pub_model=pub,
+                        source_id=citing_paper.get("paperId"),
+                        source_name=PublicationSource.SEMANTIC_SCHOLAR,
+                    )
+                )
     return publications

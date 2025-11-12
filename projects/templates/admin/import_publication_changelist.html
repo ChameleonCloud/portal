@@ -63,15 +63,38 @@
         await response.json();
         await checkProgress();
       });
-
       checkProgress();
     }
   </script>
-
   {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endfor %}
+</div>
+<div>
+  <button id="toggle-btn">Import bibtex</button>
+  <div id="import-details">
+    <form method="post" style="margin-bottom: 2em;">
+      {% csrf_token %}
+      {{ add_bibtex_form.as_p }}
+      <input type="submit" class="button" value="Import">
+    </form>
+  </div>
+  <script>
+      const details = document.getElementById('import-details');
+      details.style.display = 'none';
+      const button = document.getElementById('toggle-btn');
+
+      button.addEventListener('click', () => {
+        if (details.style.display === 'none') {
+          details.style.display = 'block';
+          button.textContent = 'Hide import';
+        } else {
+          details.style.display = 'none';
+          button.textContent = 'Import bibtex';
+        }
+      });
+  </script>
 </div>
 {{ block.super }}
 {% endblock %}
