@@ -17,7 +17,14 @@
   }
 </style>
 
-<h2>Publications</h2>
+<h2>
+  Publications
+  {% if is_pi  %}
+  <a href="/user/projects/add/publications/{{p.id}}" class="btn btn-info pull-right">
+    <i class="fa fa-plus-circle"></i> Add Publications
+  </a>
+  {% endif %}
+</h2>
 <table class="user_pub_table">
   <thead>
     <tr>

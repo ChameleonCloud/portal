@@ -8,6 +8,7 @@ from django.forms import formset_factory
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from projects.user_publication.utils import PublicationUtils
+from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .models import Project, PublicationSource
@@ -235,7 +236,11 @@ class ProjectAddUserForm(forms.Form):
 
 
 class AddBibtexPublicationForm(forms.Form):
-    project_id = forms.CharField(widget=forms.HiddenInput())
+    project_id = forms.ChoiceField(
+        label="Project",
+        required=True,
+        help_text="Which project is this publication from",
+    )
     bibtex_string = forms.CharField(
         required=True,
         widget=forms.Textarea(attrs={"placeholder": "@article{..."}),
@@ -256,7 +261,7 @@ class AddBibtexPublicationForm(forms.Form):
     bibtex_errors = []
     mandatory_fields = ["title", "year", "author"]
 
-    def __init__(self, *args, is_admin=False, **kwargs):
+    def __init__(self, *args, is_admin=False, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_admin = is_admin
 
@@ -268,6 +273,25 @@ class AddBibtexPublicationForm(forms.Form):
                 label="source",
                 widget=forms.Select(attrs={"class": "form-control"}),
                 initial=PublicationSource.GOOGLE_SCHOLAR,
+            )
+
+        initialized_projects = False
+        if user:
+            keycloak_client = KeycloakClient()
+            charge_codes = keycloak_client.get_user_projects_by_username(user.username)
+            if charge_codes:
+                projects_qs = Project.objects.filter(charge_code__in=charge_codes)
+                self.fields["project_id"].choices = [
+                    (
+                        p.id,
+                        f"{p.charge_code} - {p.title}",
+                    )
+                    for p in projects_qs.order_by("charge_code")
+                ]
+                initialized_projects = True
+        if not initialized_projects:
+            self.fields["project_id"] = forms.CharField(
+                widget=forms.TextInput(), label="Project", max_length=100, required=True
             )
 
     def parse_bibtex(self, bibtex_string):

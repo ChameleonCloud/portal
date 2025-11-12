@@ -1,40 +1,11 @@
 {% extends 'layout/user.html' %}
 {% load static bootstrap3 chameleon_tags %}
-{% block title %}Add Publications for Project - {{ project.chargeCode }}{% endblock %}
+{% block title %}Add Publications{% endblock %}
 {% block content %}
 
 <h2>
-    Add Publication |
-  <small>{{ project.chargeCode }}</small>
+    Add Publication
 </h2>
-
-<div class="table-responsive">
-  <table class="table">
-    <tbody>
-      <tr>
-        <th>PI</th>
-        <td>
-          {{ project.pi.firstName }} {{ project.pi.lastName }} <a href="mailto:{{ project.pi.email }}">&lt;{{ project.pi.email }}&gt;</a>,
-          {% if project.pi.institution %}{{ project.pi.institution}}{% endif %}
-        </td>
-      </tr>
-      <tr>
-        <th>Nickname</th>
-        <td>
-        <span id='project_nickname'>{{ project_nickname|default_if_none:'' }}</span>
-          </td>
-      </tr>
-      <tr>
-        <th>Abstract</th>
-        <td style="white-space:pre-wrap;">{{ project.description }}</td>
-      </tr>
-      <tr>
-        <th>Tag</th>
-        <td>{{ project.tag }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
 
 <div class="row">
   <div class="col-md-12">
