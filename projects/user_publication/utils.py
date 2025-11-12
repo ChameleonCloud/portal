@@ -1,3 +1,4 @@
+from collections import namedtuple
 import csv
 import datetime
 import logging
@@ -12,6 +13,7 @@ from django.db import transaction
 from django.db.models import Q
 
 # from projects.models import Publication
+from projects.models import Publication, PublicationSource
 from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
@@ -73,14 +75,25 @@ def update_original_pub_source(original_pub, duplicate_pub):
         opub_source.save()
 
 
-def add_source_to_pub(pub, source, dry_run=True):
+def add_source_to_pub(pub, raw_pub, dry_run=True):
     LOG.info(
-        f"Publication already exists - {pub.title} - adding other source - {source}"
+        f"Publication already exists - {pub.title} - adding other source - {raw_pub.source_name}"
     )
     if dry_run:
         return
     with transaction.atomic():
-        source = pub.sources.get_or_create(name=source)[0]
+        # Match by exist source ID first
+        # Fallback to source_name (legacy data)
+        # Otherwise create
+        source = PublicationSource.objects.filter(id=raw_pub.source_id).first()
+        if not source:
+            source = pub.sources.filter(name=raw_pub.source_name).first()
+        if not source:
+            source = pub.sources.create(
+                name=raw_pub.source_name
+            )
+
+        source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True
         source.cites_chameleon = True
         # Adding source to a publication only when it already exists is a valid publication with project in chameleon
@@ -167,6 +180,14 @@ def format_author_name(author):
         return f"{names[1]} {names[0]}"
     else:
         return names[0]
+
+
+RawPublicationSource = namedtuple(
+    "RawPublicationSource",
+    field_names=(
+        "source_name", "source_id", "pub_model",
+    ),
+)
 
 
 class PublicationUtils:
@@ -327,14 +348,15 @@ class PublicationUtils:
 
 
 def save_publication(
-    pub_model, source, cites_chameleon=True, acknowledges_chameleon=False
+    raw_pub, cites_chameleon=True, acknowledges_chameleon=False
 ):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
     with transaction.atomic():
-        pub_model.save()
-        source = pub_model.sources.create(
-            name=source,
+        raw_pub.pub_model.save()
+        source = raw_pub.pub_model.sources.create(
+            source_id=raw_pub.source_id,
+            name=raw_pub.source_name,
             is_found_by_algorithm=True,
             cites_chameleon=cites_chameleon,
             acknowledges_chameleon=acknowledges_chameleon,

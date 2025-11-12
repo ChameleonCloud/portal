@@ -9,7 +9,7 @@ from requests import ReadTimeout
 
 from projects.models import Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils, update_progress
+from projects.user_publication.utils import PublicationUtils, RawPublicationSource, update_progress
 
 logger = logging.getLogger("projects")
 
@@ -55,6 +55,14 @@ def pub_import(task, dry_run=True):
     for i, raw_pub in enumerate(search.results):
         try:
             update_progress(stage=0, current=i, total=len(search.results), task=task)
+
+            # Skip this publication if we've seen it before
+            if PublicationSource.objects.filter(
+                source_id=raw_pub.eid, name=PublicationSource.SCOPUS
+            ).exists():
+                logger.info(f"Skipping known publication {raw_pub.eid}")
+                continue
+
             logger.debug(f"Fetching results for {raw_pub.eid}")
             references = None
             try:
@@ -94,7 +102,13 @@ def pub_import(task, dry_run=True):
                 link=link,
                 status=Publication.STATUS_SUBMITTED,
             )
-            publications.append((PublicationSource.SCOPUS, pub_model))
+            publications.append(
+                RawPublicationSource(
+                    pub_model=pub_model,
+                    source_id=raw_pub.eid,
+                    source_name=PublicationSource.SCOPUS,
+                )
+            )
         except Exception as e:
             # TODO  we keep hitting this
             logger.error(f"Error processing publication {raw_pub.eid}: {e}")

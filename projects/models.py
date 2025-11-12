@@ -14,7 +14,6 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.sites.models import Site
 from django.core.validators import MinValueValidator
 
-from projects.user_publication.utils import PublicationUtils
 
 logger = logging.getLogger(__name__)
 
@@ -310,28 +309,6 @@ class JoinRequest(models.Model):
         self._update_status(JoinRequest.Status.REJECTED)
 
 
-class PublicationManager(models.Manager):
-    def create_from_bibtex(self, bibtex_entry, project, username, source, status):
-        pub = Publication()
-
-        pub.project_id = project.id
-
-        pub.publication_type = PublicationUtils.get_pub_type(bibtex_entry)
-        pub.title = pip.strict(bibtex_entry.get("title", ""))
-        pub.year = bibtex_entry.get("year")
-        pub.month = PublicationUtils.get_month(bibtex_entry)
-        pub.author = pip.strict(bibtex_entry.get("author", ""))
-        pub.bibtex_source = json.dumps(bibtex_entry)
-        pub.added_by_username = username
-        pub.forum = PublicationUtils.get_forum(bibtex_entry)
-        pub.link = PublicationUtils.get_link(bibtex_entry)
-        pub.doi = bibtex_entry.get("doi")
-        pub.status = status
-
-        pub.save()
-        return pub
-
-
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
@@ -416,8 +393,6 @@ class Publication(models.Model):
         domain = site.domain if site else ""
         return f"https://{domain}{path}"
 
-    objects = PublicationManager()
-
 
 class ChameleonPublication(models.Model):
     title = models.CharField(max_length=500, null=False)
@@ -485,12 +460,15 @@ class PublicationSource(models.Model):
     approved_with = models.CharField(
         choices=APPROVED_WITH, max_length=30, null=True, blank=True
     )
+    source_id = models.CharField(
+        null=True, blank=True, max_length=1024,
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["publication", "name"], name="Unique source for a publication"
-            )
+            ),
         ]
 
     def __str__(self):

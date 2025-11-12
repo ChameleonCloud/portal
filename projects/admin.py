@@ -2,15 +2,18 @@ from datetime import date
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.utils.html import format_html
 from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 
 from chameleon.tasks import AdminTaskManager
 from djangoRT import rtUtil
+from projects.forms import AddBibtexPublicationForm
+from projects.pub_views import create_pubs_from_bibtext_string
+from projects.user_publication import utils
 from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
 from projects.user_publication.publications import (
-    import_pubs_google_scholar_task,
     import_pubs_scopus_task,
     import_pubs_semantic_scholar_task,
 )
@@ -25,6 +28,7 @@ from projects.models import (
     PublicationDuplicate,
     PublicationSource,
 )
+from projects.user_publication.utils import PublicationUtils
 from projects.views import resend_invitation
 
 import logging
@@ -194,6 +198,12 @@ class ProjectAdmin(admin.ModelAdmin):
 class PublicationSourceInline(admin.TabularInline):
     model = PublicationSource
     extra = 0
+    fields = (
+        "name",
+        "entry_created_date",
+        "citation_count",
+        "source_id",
+    )
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
@@ -220,21 +230,25 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
 
     fields = (
         "name",
+        "source_id",
         "publication",
         "citation_count",
-        "is_found_by_algorithm",
-        "cites_chameleon",
-        "acknowledges_chameleon",
         "entry_created_date",
     )
 
     list_display = (
+        "id",
         "name",
+        "source_id",
         "citation_count",
         "publication",
         "entry_created_date",
     )
 
+    list_filter = (
+        "name",
+        "entry_created_date",
+    )
 
 class PotentialDuplicateFilter(admin.SimpleListFilter):
     title = "Is a Potential Duplicate"
@@ -312,7 +326,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 "fields": [
                     "title",
                     "submitted_date",
-                    "project",
+                    "potential_project",
                     "publication_type",
                     "forum",
                     "year",
@@ -354,6 +368,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "project",
         "added_by_username",
         "potential_duplicate_of",
+        "potential_project",
         "clickable_link",
         "ticket_link",
     ]
@@ -372,6 +387,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "status",
         "year",
         "checked_for_duplicates",
+        "sources__name",
         "publication_type",
     ]
     search_fields = ["title", "project__charge_code", "author", "forum"]
@@ -388,9 +404,6 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 self.admin_site,
                 "import_semantic_scholar",
                 import_pubs_semantic_scholar_task,
-            ),
-            AdminTaskManager(
-                self.admin_site, "import_gscholar", import_pubs_google_scholar_task
             ),
         ]
 
@@ -416,6 +429,31 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         if extra_context is None:
             extra_context = {}
         extra_context["task_managers"] = self.task_managers
+
+        if request.method == "POST":
+            form = AddBibtexPublicationForm(request.POST, is_admin=True)
+            if form.is_valid():
+                # bibtex_data = form.cleaned_data["bibtex"]
+                new_pubs = create_pubs_from_bibtext_string(
+                    form.cleaned_data["bibtex_string"],
+                    project=None,
+                    username="admin",
+                    source=form.cleaned_data["source"],
+                )
+                messages.success(request, f"Added {len(new_pubs)} publications")
+                return redirect(request.path)
+            else:
+                messages.error(request, "Error adding publication(s).")
+                for error in form.bibtex_errors:
+                    messages.error(request, error)
+                form.bibtex_errors = []
+
+        else:
+            form = AddBibtexPublicationForm(
+                is_admin=True, initial={"project_id": "admin", "confirmation": "confirmed"})
+
+        extra_context["add_bibtex_form"] = form
+
         return super().changelist_view(request, extra_context=extra_context)
 
     def potential_duplicate_of(self, obj):
@@ -469,6 +507,31 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         )
 
     potential_duplicate_of.short_description = "Is Potential Duplicate Of"
+
+    def potential_project(self, obj):
+        def _project_href(proj):
+            return f'<a href="/user/projects/{proj.pk}" target="_blank">{proj.charge_code}</a>'
+
+        if obj.project:
+            return mark_safe(f"submitted by {_project_href(obj.project)}")
+
+        authors = [author.strip() for author in obj.author.split("and")]
+        projects = PublicationUtils.get_projects_for_author_names(authors, obj.year)
+
+        # Get valid projects that are active prior to the publication year
+        valid_projects = []
+        for project_code in projects:
+            try:
+                project = Project.objects.get(charge_code=project_code)
+            except Project.DoesNotExist:
+                LOG.info(f"{project_code} does not exist in database")
+                continue
+            if utils.is_project_prior_to_publication(project, obj.year):
+                valid_projects.append(
+                    f"<li>{_project_href(project)}</li>"
+                )
+
+        return mark_safe("<ul>" + "".join(valid_projects) + "</ul>")
 
     def short_title(self, obj):
         max_length = 50

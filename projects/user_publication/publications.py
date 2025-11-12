@@ -62,60 +62,37 @@ def import_pubs(task, dry_run=True, source="all"):
         pubs.extend(gscholar.pub_import(task, dry_run))
 
     # Process each found publication
-    for i, (source, pub) in enumerate(pubs):
+    for i, raw_pub in enumerate(pubs):
+        report_file_name = f"publications_run_{date.today()}_{raw_pub.source_name}.csv"
         try:
             update_progress(stage=1, current=i, total=len(pubs), task=task)
             # get matching pubs in DB, add this as a source, continue to next new pub.
-            same_pubs = utils.get_publications_with_same_attributes(pub, Publication)
+            same_pubs = utils.get_publications_with_same_attributes(raw_pub.pub_model, Publication)
             if same_pubs.exists():
                 for same_pub in same_pubs:
-                    utils.add_source_to_pub(same_pub, source)
+                    utils.add_source_to_pub(same_pub, raw_pub)
                 continue
-            authors = [author.strip() for author in pub.author.split("and")]
-            projects = PublicationUtils.get_projects_for_author_names(authors, pub.year)
-
-            # Get valid projects that are active prior to the publication year
-            valid_projects = []
-            for project_code in projects:
-                try:
-                    project = Project.objects.get(charge_code=project_code)
-                except Project.DoesNotExist:
-                    LOG.info(f"{project_code} does not exist in database")
-                    continue
-                if utils.is_project_prior_to_publication(project, pub.year):
-                    valid_projects.append(project_code)
-
-            author_usernames = [
-                utils.get_usernames_for_author(author) for author in authors
-            ]
-            report_file_name = f"publications_run_{date.today()}_{source}.csv"
-
-            # Check if there are valid projects and if is a chameleon publication
-            if (
-                not valid_projects
-                or ChameleonPublication.objects.filter(title__iexact=pub.title).exists()
-            ):
-                reason_for_report = "Skipping: no valid projects"
 
             # If all conditions are met, import the publication
             else:
-                LOG.info(f"import {pub.__repr__()}")
-                reason_for_report = f"Saving: {pub.title}"
+                LOG.info(f"import {raw_pub.pub_model.__repr__()}")
+                reason_for_report = f"Saving: {raw_pub.pub_model.title}"
                 # Save the publication if it is not a dry run
                 if not dry_run:
-                    utils.save_publication(pub, source)
+                    utils.save_publication(raw_pub)
 
             # Export the publication status report
             utils.export_publication_status_run(
                 report_file_name,
-                pub,
-                author_usernames,
-                valid_projects,
-                projects,
+                raw_pub.pub_model,
+                None,
+                None,
+                None,
                 reason_for_report,
             )
         except Exception as e:
-            LOG.error(f"Error processing publication {pub} from {source}: {e}")
+            LOG.error(f"Error processing publication {raw_pub.pub_model.title} from {source}")
+            LOG.exception(e)
             continue
 
 
