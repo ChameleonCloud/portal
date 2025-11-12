@@ -15,11 +15,11 @@ import json
 import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Publication, PublicationSource
+from projects.models import Project, Publication, PublicationSource
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils
 from projects.util import get_project_members
-from projects.views import project_member_or_admin_or_superuser
+from projects.views import is_pi_eligible, project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 # from chameleon.research_impacts import get_education_users
@@ -124,6 +124,7 @@ def user_publications(request):
                     "reviewed_comment": pub.reviewed_comment,
                 }
             )
+    context["is_pi"] = is_pi_eligible(request.user)
     logger.info(get_template("projects/view_publications.html").template.origin)
     return render(request, "projects/view_publications.html", context)
 
@@ -198,21 +199,35 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
 
 
 @login_required
-def add_publications(request, project_id):
+@login_required
+def add_publications(request, project_id=None):
     mapper = ProjectAllocationMapper(request)
-    try:
-        project = mapper.get_project(project_id)
-        if project.source != "Chameleon":
+
+    project = None
+    users = []
+
+    # Only try to load a project if project_id was provided
+    if project_id:
+        try:
+            project = mapper.get_project(project_id)
+            if project.source != "Chameleon":
+                raise Http404("The requested project does not exist!")
+        except Exception as e:
+            logger.error(e)
             raise Http404("The requested project does not exist!")
-    except Exception as e:
-        logger.error(e)
-        raise Http404("The requested project does not exist!")
-    users = get_project_members(project)
-    if not project_member_or_admin_or_superuser(request.user, project, users):
-        raise PermissionDenied
+
+        users = get_project_members(project)
+        if not project_member_or_admin_or_superuser(request.user, project, users):
+            raise PermissionDenied
+
     if request.POST:
-        pubs_form = AddBibtexPublicationForm(request.POST)
+        pubs_form = AddBibtexPublicationForm(request.POST, user=request.user)
         if pubs_form.is_valid():
+            # If project not in url, load it from form
+            project = project or mapper.get_project(
+                pubs_form.cleaned_data["project_id"]
+            )
+
             new_pubs = create_pubs_from_bibtext_string(
                 pubs_form.cleaned_data["bibtex_string"],
                 project,
@@ -228,19 +243,21 @@ def add_publications(request, project_id):
                 )
         else:
             messages.error(request, "Error adding publication(s).")
+            for error in pubs_form.errors:
+                messages.error(request, error)
             for error in pubs_form.bibtex_errors:
                 messages.error(request, error)
             pubs_form.bibtex_errors = []
 
-    pubs_form = AddBibtexPublicationForm(initial={"project_id": project.id})
+    initial = {"project_id": project.id} if project else {}
+    pubs_form = AddBibtexPublicationForm(initial=initial, user=request.user)
 
     return render(
         request,
         "projects/add_publications.html",
         {
             "project": project,
-            "project_nickname": project.nickname,
-            "is_pi": request.user.username == project.pi.username,
+            "project_nickname": project.nickname if project else "",
             "pubs_form": pubs_form,
             "form": pubs_form,
         },

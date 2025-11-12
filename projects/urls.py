@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import pub_views, views
 
@@ -21,8 +21,8 @@ urlpatterns = [
         name="renew_allocation",
     ),
     path("api/extras/", views.get_extras, name="get_extras"),
-    path(
-        "add/publications/<int:project_id>/",
+    re_path(
+        r"^add/publications(?:/(?P<project_id>\d+))?/$",
         pub_views.add_publications,
         name="add_publications",
     ),
