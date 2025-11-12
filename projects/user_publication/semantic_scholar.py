@@ -7,7 +7,11 @@ from django.conf import settings
 
 from projects.models import ChameleonPublication, Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils, RawPublicationSource, update_progress
+from projects.user_publication.utils import (
+    PublicationUtils,
+    RawPublicationSource,
+    update_progress,
+)
 
 logger = logging.getLogger("projects")
 

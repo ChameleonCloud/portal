@@ -9,7 +9,11 @@ from requests import ReadTimeout
 
 from projects.models import Publication, PublicationSource
 from projects.user_publication import utils
-from projects.user_publication.utils import PublicationUtils, RawPublicationSource, update_progress
+from projects.user_publication.utils import (
+    PublicationUtils,
+    RawPublicationSource,
+    update_progress,
+)
 
 logger = logging.getLogger("projects")
 

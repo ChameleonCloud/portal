@@ -12,8 +12,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
 
-# from projects.models import Publication
-from projects.models import Publication, PublicationSource
+from projects.models import PublicationSource
 from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
@@ -89,9 +88,7 @@ def add_source_to_pub(pub, raw_pub, dry_run=True):
         if not source:
             source = pub.sources.filter(name=raw_pub.source_name).first()
         if not source:
-            source = pub.sources.create(
-                name=raw_pub.source_name
-            )
+            source = pub.sources.create(name=raw_pub.source_name)
 
         source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True
@@ -185,7 +182,9 @@ def format_author_name(author):
 RawPublicationSource = namedtuple(
     "RawPublicationSource",
     field_names=(
-        "source_name", "source_id", "pub_model",
+        "source_name",
+        "source_id",
+        "pub_model",
     ),
 )
 
@@ -347,9 +346,7 @@ class PublicationUtils:
         return projects
 
 
-def save_publication(
-    raw_pub, cites_chameleon=True, acknowledges_chameleon=False
-):
+def save_publication(raw_pub, cites_chameleon=True, acknowledges_chameleon=False):
     """Saves publication model along with the source
     Creates the source model with FK to publication"""
     with transaction.atomic():
@@ -403,7 +400,9 @@ def update_progress(task, stage=None, current=None, total=None, message=None):
         stage_multiplier = 50 / total
         stage_offset = stage * 50
         calculated_current = int(current * stage_multiplier + stage_offset)
-        LOG.info(f"Updating task progress: {current}/{total} -> {calculated_current}/100")
+        LOG.info(
+            f"Updating task progress: {current}/{total} -> {calculated_current}/100"
+        )
         task.update_state(
             state="PROGRESS", meta={"current": calculated_current, "total": 100}
         )

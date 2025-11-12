@@ -67,7 +67,9 @@ def import_pubs(task, dry_run=True, source="all"):
         try:
             update_progress(stage=1, current=i, total=len(pubs), task=task)
             # get matching pubs in DB, add this as a source, continue to next new pub.
-            same_pubs = utils.get_publications_with_same_attributes(raw_pub.pub_model, Publication)
+            same_pubs = utils.get_publications_with_same_attributes(
+                raw_pub.pub_model, Publication
+            )
             if same_pubs.exists():
                 for same_pub in same_pubs:
                     utils.add_source_to_pub(same_pub, raw_pub)
@@ -91,7 +93,9 @@ def import_pubs(task, dry_run=True, source="all"):
                 reason_for_report,
             )
         except Exception as e:
-            LOG.error(f"Error processing publication {raw_pub.pub_model.title} from {source}")
+            LOG.error(
+                f"Error processing publication {raw_pub.pub_model.title} from {source}"
+            )
             LOG.exception(e)
             continue
 

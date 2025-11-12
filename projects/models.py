@@ -461,7 +461,9 @@ class PublicationSource(models.Model):
         choices=APPROVED_WITH, max_length=30, null=True, blank=True
     )
     source_id = models.CharField(
-        null=True, blank=True, max_length=1024,
+        null=True,
+        blank=True,
+        max_length=1024,
     )
 
     class Meta:
