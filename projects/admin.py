@@ -250,6 +250,7 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "entry_created_date",
     )
 
+
 class PotentialDuplicateFilter(admin.SimpleListFilter):
     title = "Is a Potential Duplicate"
     parameter_name = "is_potential_duplicate_of"
@@ -450,7 +451,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
 
         else:
             form = AddBibtexPublicationForm(
-                is_admin=True, initial={"project_id": "admin", "confirmation": "confirmed"})
+                is_admin=True,
+                initial={"project_id": "admin", "confirmation": "confirmed"},
+            )
 
         extra_context["add_bibtex_form"] = form
 
@@ -527,9 +530,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 LOG.info(f"{project_code} does not exist in database")
                 continue
             if utils.is_project_prior_to_publication(project, obj.year):
-                valid_projects.append(
-                    f"<li>{_project_href(project)}</li>"
-                )
+                valid_projects.append(f"<li>{_project_href(project)}</li>")
 
         return mark_safe("<ul>" + "".join(valid_projects) + "</ul>")
 
