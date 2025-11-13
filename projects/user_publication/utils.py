@@ -37,12 +37,15 @@ PUBLICATION_REPORT_KEYS = [
 
 
 def get_publications_with_same_attributes(pub, publication_model_class):
-    # return publications with exact title, forum, author and year
+    # return publications with exact title, forum, author and year OR same DOI
     similar_pub = publication_model_class.objects.filter(
-        title__iexact=pub.title,
-        forum__iexact=pub.forum,
-        author__iexact=pub.author,
-        year=pub.year,
+        Q(
+            title__iexact=pub.title,
+            forum__iexact=pub.forum,
+            author__iexact=pub.author,
+            year=pub.year,
+        )
+        | Q(doi__iexact=pub.doi)
     )
     if not similar_pub:
         similar_pub = publication_model_class.objects.filter(
@@ -74,17 +77,15 @@ def update_original_pub_source(original_pub, duplicate_pub):
         opub_source.save()
 
 
-def add_source_to_pub(pub, raw_pub, dry_run=True):
+def add_source_to_pub(pub, raw_pub):
     LOG.info(
         f"Publication already exists - {pub.title} - adding other source - {raw_pub.source_name}"
     )
-    if dry_run:
-        return
     with transaction.atomic():
         # Match by exist source ID first
         # Fallback to source_name (legacy data)
         # Otherwise create
-        source = PublicationSource.objects.filter(id=raw_pub.source_id).first()
+        source = PublicationSource.objects.filter(source_id=raw_pub.source_id).first()
         if not source:
             source = pub.sources.filter(name=raw_pub.source_name).first()
         if not source:
