@@ -15,7 +15,7 @@ import json
 import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Project, Publication, PublicationSource
+from projects.models import Publication, PublicationSource
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils
 from projects.util import get_project_members
