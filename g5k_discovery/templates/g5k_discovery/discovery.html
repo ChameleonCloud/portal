@@ -12,26 +12,36 @@
     </div>
 </div>
 <div class="row">
+    {% if sites.CHI_TACC.web %}
     <div class="col col-sm-2">
-        <a target="blank" href="https://chi.tacc.chameleoncloud.org/project/leases/calendar/host/"
+        <a target="blank" href="{{ sites.CHI_TACC.web }}/project/leases/calendar/host/"
             class="btn btn-lg btn-block btn-default">CHI@TACC <i class="fa fa-external-link"></i></a>
     </div>
+    {% endif %}
+    {% if sites.CHI_UC.web %}
     <div class="col col-sm-2">
-        <a target="blank" href="https://chi.uc.chameleoncloud.org/project/leases/calendar/host/"
+        <a target="blank" href="{{ sites.CHI_UC.web }}/project/leases/calendar/host/"
             class="btn btn-lg btn-block btn-default">CHI@UC <i class="fa fa-external-link"></i></a>
     </div>
+    {% endif %}
+    {% if sites.CHI_NU.web %}
     <div class="col col-sm-2">
-        <a target="_self" href="https://sl-ciab.northwestern.edu/project/leases/calendar/host/"
+        <a target="blank" href="{{ sites.CHI_NU.web }}/project/leases/calendar/host/"
             class="btn btn-lg btn-block btn-default">CHI@NU <i class="fa fa-external-link"></i></a>
     </div>
+    {% endif %}
+    {% if sites.CHI_NCAR.web %}
     <div class="col col-sm-2">
-        <a target="_self" href="https://chi.hpc.ucar.edu/project/leases/calendar/host/"
+        <a target="blank" href="{{ sites.CHI_NCAR.web }}/project/leases/calendar/host/"
             class="btn btn-lg btn-block btn-default">CHI@NCAR <i class="fa fa-external-link"></i></a>
     </div>
+    {% endif %}
+    {% if sites.CHI_NRP.web %}
     <div class="col col-sm-2">
-        <a target="_self" href="https://chi.nrp.ai/project/leases/calendar/host/"
+        <a target="blank" href="{{ sites.CHI_NRP.web }}/project/leases/calendar/host/"
             class="btn btn-lg btn-block btn-default">CHI@NRP <i class="fa fa-external-link"></i></a>
     </div>
+    {% endif %}
 </div>
 <h2>Resource Browser</h2>
 {% csrf_token %}

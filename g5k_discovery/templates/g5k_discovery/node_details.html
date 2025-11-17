@@ -16,10 +16,35 @@
     .capability-group-body {
         padding-left: 1.5em;
     }
+
+    .page-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .header-actions {
+        text-align: right;
+    }
 </style>
+
 {% endblock %} {% block content %}
 
-<h2>{{ node.uid }} {% if node.node_name %}({{ node.node_name }}){% endif %}</h2>
+<div class="page-header">
+    <h2>{{ node.uid }} {% if node.node_name %}({{ node.node_name }}){% endif %}</h2>
+    <div class="header-actions text-nowrap">
+        <a href="{{ site_url }}/project/leases/calendar/host?node_type={{ node.node_type }}" class="btn btn-info">Check Availability</a>
+        <a href="{{ site_url }}/project/leases/create/{% if node.node_name %}?node_name={{ node.node_name }}{% endif %}" class="btn btn-success ml-2">Reserve Node</a>
+    </div>
+</div>
 <div ng-app="discoveryApp" class="discovery-app" ng-controller="NodeController" ng-init="initLink('{{resource}}');">
     <section>
         <div class="row">
