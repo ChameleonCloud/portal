@@ -12,7 +12,7 @@ api = G5K_API()
 
 
 def _get_chameleon_sites():
-    sites_response = requests.get('https://api.chameleoncloud.org/sites', timeout=5)
+    sites_response = requests.get("https://api.chameleoncloud.org/sites", timeout=5)
     sites_response.raise_for_status()
     return sites_response
 
@@ -21,7 +21,7 @@ def _get_chameleon_sites_list():
     """Helper to fetch and return the list of Chameleon sites."""
     try:
         response = _get_chameleon_sites()
-        return response.json().get('items', [])
+        return response.json().get("items", [])
     except (requests.exceptions.RequestException, ValueError) as e:
         logger.error(f"Failed to fetch chameleon sites for discovery page: {e}")
         return []
@@ -33,7 +33,7 @@ def _get_chameleon_sites_list():
 @csp_update(SCRIPT_SRC="'unsafe-eval'")
 def index(request):
     sites_list = _get_chameleon_sites_list()
-    sites = {s['name'].replace('@', '_'): s for s in sites_list}
+    sites = {s["name"].replace("@", "_"): s for s in sites_list}
     return render(request, "g5k_discovery/discovery.html", {"sites": sites})
 
 
@@ -57,14 +57,14 @@ def node_view(request, resource):
     site_uid = resource.split("/")[1]
     cluster = resource.split("/")[3]
 
-    site_url = f'https://chi.{site_uid}.chameleoncloud.org'
+    site_url = f"https://chi.{site_uid}.chameleoncloud.org"
     site_name = site_uid
 
     sites = _get_chameleon_sites_list()
     for site_info in sites:
-        if site_info.get('uid') == site_uid:
-            site_url = site_info.get('web', site_url)
-            site_name = site_info.get('name', site_name)
+        if site_info.get("uid") == site_uid:
+            site_url = site_info.get("web", site_url)
+            site_name = site_info.get("name", site_name)
             break
 
     return render(
@@ -88,7 +88,9 @@ def node_data(request, resource):
 def chameleon_sites(request):
     try:
         sites_response = _get_chameleon_sites()
-        return HttpResponse(sites_response.content, content_type='application/json')
+        return HttpResponse(sites_response.content, content_type="application/json")
     except (requests.exceptions.RequestException, ValueError) as e:
         logger.error(f"Failed to fetch chameleon sites: {e}")
-        return HttpResponse(status=502, content='Error fetching data from Chameleon sites API')
+        return HttpResponse(
+            status=502, content="Error fetching data from Chameleon sites API"
+        )
