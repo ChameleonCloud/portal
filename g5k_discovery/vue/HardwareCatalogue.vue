@@ -101,7 +101,7 @@ openstack reservation lease create \
                 >
                   Nodes grouped by site, jump to a specific site:
                   <span v-for="(nodes, site) in groupedNodes" :key="site + '-link'">
-                    <span @click="jumpToSite(site)" class="jump-to-site-link">{{ site }}</span>
+                    <span @click="jumpToSite(site)" class="jump-to-site-link">{{ siteInfo[site] ? siteInfo[site].name : site }}</span>
                   </span>
                 </div>
 
@@ -116,7 +116,7 @@ openstack reservation lease create \
                     class="site-header-container"
                   >
                     <span>
-                      Site: {{ item.site }}
+                      Site: {{ item.siteName }}
                       <span
                         v-if="index > 0"
                         @click="returnToTop"
@@ -126,7 +126,7 @@ openstack reservation lease create \
                       >
                     </span>
                     <a
-                      v-if="calendarLinks[item.site]"
+                      v-if="siteCalendarLinks[item.site]"
                       :href="siteCalendarLinks[item.site]"
                       target="_blank"
                       class="availability-calendar-link"
@@ -248,22 +248,30 @@ export default {
       filteredNodes: [],
       visibleNodes: [],
       reservationProperties: [],
-      calendarLinks: {
-        tacc: "https://chi.tacc.chameleoncloud.org/project/leases/calendar/host/",
-        uc: "https://chi.uc.chameleoncloud.org/project/leases/calendar/host/",
-        nu: "https://sl-ciab.northwestern.edu/project/leases/calendar/host/",
-        ncar: "https://chi.hpc.ucar.edu/project/leases/calendar/host/",
-        nrp: "https://chi.nrp.ai/project/leases/calendar/host/",
-      },
+      siteInfo: {},
     };
   },
   computed: {
+    calendarLinks() {
+      const links = {};
+      for (const siteId in this.siteInfo) {
+        links[
+          siteId
+        ] = `${this.siteInfo[siteId].web}/project/leases/calendar/host/`;
+      }
+      return links;
+    },
     siteCalendarLinks() {
       const links = {};
 
       // Get all unique node types across all visible nodes, filtering out undefined
-      const allNodeTypes = new Set(this.visibleNodes.map(node => node.nodeType).filter(type => type !== undefined));
-      const uniqueType = allNodeTypes.size === 1 ? allNodeTypes.values().next().value : null;
+      const allNodeTypes = new Set(
+        this.visibleNodes
+          .map((node) => node.nodeType)
+          .filter((type) => type !== undefined)
+      );
+      const uniqueType =
+        allNodeTypes.size === 1 ? allNodeTypes.values().next().value : null;
       const nodeTypeParam = uniqueType ? `?node_type=${uniqueType}` : "";
 
       for (const site in this.groupedNodes) {
@@ -293,8 +301,9 @@ export default {
     nodesWithSiteHeaders() {
       const result = [];
       for (const site in this.groupedNodes) {
-        result.push({ isHeader: true, site: site, uid: site });
-        this.groupedNodes[site].forEach(node => {
+        const siteName = this.siteInfo[site] ? this.siteInfo[site].name : site;
+        result.push({ isHeader: true, site: site, siteName: siteName, uid: site });
+        this.groupedNodes[site].forEach((node) => {
           result.push({ isHeader: false, node: node, uid: node.uid });
         });
       }
@@ -303,6 +312,22 @@ export default {
   },
   methods: {
     capitalCase,
+    async fetchSiteInfo() {
+      try {
+        const response = await axios.get("chameleon_sites.json");
+        const sites = response.data.items;
+        const siteInfo = {};
+        for (const site of sites) {
+          siteInfo[site.uid] = {
+            web: site.web,
+            name: site.name,
+          };
+        }
+        this.siteInfo = siteInfo;
+      } catch (error) {
+        console.error("Failed to fetch site information:", error);
+      }
+    },
     async fetchNodes() {
       const deepValues = (obj) => {
         return Object.values(obj).reduce((acc, subObj) => {
@@ -316,6 +341,7 @@ export default {
       };
 
       this.loading = true;
+      await this.fetchSiteInfo();
       this.allNodes = await axios
         .get("sites.json")
         .then(({ data }) => data)
