@@ -312,6 +312,7 @@ class JoinRequest(models.Model):
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
+    STATUS_REFERENCE_ONLY = "REFERENCE_ONLY"
     STATUS_DUPLICATE = "DUPLICATE"
     STATUS_REJECTED = "REJECTED"
     STATUS_DELETED = "DELETED"
@@ -319,6 +320,7 @@ class Publication(models.Model):
     STATUSES = [
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
+        (STATUS_REFERENCE_ONLY, "References, does not use Chameleon"),
         (STATUS_DUPLICATE, "Duplicate"),
         (STATUS_REJECTED, "Rejected"),
         (STATUS_DELETED, "Deleted"),
