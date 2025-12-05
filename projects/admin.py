@@ -200,9 +200,12 @@ class PublicationSourceInline(admin.TabularInline):
     extra = 0
     fields = (
         "name",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "approved_with",
         "entry_created_date",
         "citation_count",
-        "source_id",
     )
 
 
