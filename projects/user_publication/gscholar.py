@@ -7,7 +7,7 @@ from django.db import transaction
 from scholarly import ProxyGenerator, scholarly
 from scholarly._proxy_generator import MaxTriesExceededException
 
-from projects.models import ChameleonPublication, Publication, PublicationSource
+from projects.models import ChameleonPublication, Publication, RawPublication
 from projects.user_publication import utils
 from projects.user_publication.utils import PublicationUtils, update_progress
 
@@ -180,7 +180,7 @@ class GoogleScholarHandler(object):
         g_citations = result_pub.get("num_citations", 0)
         # Returns a tuple of (object, created)
         existing_g_source = pub.sources.get_or_create(
-            name=PublicationSource.GOOGLE_SCHOLAR
+            name=RawPublication.GOOGLE_SCHOLAR
         )[0]
         existing_citation_count = existing_g_source.citation_count
         if not dry_run:
@@ -231,7 +231,7 @@ def pub_import(task, dry_run=True, year_low=2014, year_high=None):
                             f"Skipping: {pub_model.title} does not have an year"
                         )
                         continue
-                    publications.append((PublicationSource.GOOGLE_SCHOLAR, pub_model))
+                    publications.append((RawPublication.GOOGLE_SCHOLAR, pub_model))
                 except Exception as e:
                     logger.error(f"Error in publication {cited_pub}: {e}")
                     continue

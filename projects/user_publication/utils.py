@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
 
-from projects.models import PublicationSource
+from projects.models import RawPublication
 from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
@@ -85,11 +85,12 @@ def add_source_to_pub(pub, raw_pub):
         # Match by exist source ID first
         # Fallback to source_name (legacy data)
         # Otherwise create
-        source = PublicationSource.objects.filter(source_id=raw_pub.source_id).first()
+        source = RawPublication.objects.filter(source_id=raw_pub.source_id).first()
         if not source:
             source = pub.sources.filter(name=raw_pub.source_name).first()
         if not source:
-            source = pub.sources.create(name=raw_pub.source_name)
+            pub_source = RawPublication(publication=pub)
+            pub_source.name = raw_pub.source_name
 
         source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True

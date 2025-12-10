@@ -27,6 +27,7 @@ from projects.models import (
     Publication,
     PublicationDuplicate,
     PublicationSource,
+    RawPublication,
 )
 from projects.user_publication.utils import PublicationUtils
 from projects.views import resend_invitation
@@ -209,6 +210,20 @@ class PublicationSourceInline(admin.TabularInline):
     )
 
 
+class RawPublicationInline(admin.TabularInline):
+    model = RawPublication
+    extra = 0
+    fields = (
+        "name",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "approved_with",
+        "entry_created_date",
+        "citation_count",
+    )
+
+
 class ChameleonPublicationAdmin(admin.ModelAdmin):
     fields = ("title", "ref")
     list_display = ("title", "ref")
@@ -238,6 +253,34 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
         "citation_count",
         "entry_created_date",
     )
+
+    list_display = (
+        "id",
+        "name",
+        "source_id",
+        "citation_count",
+        "publication",
+        "entry_created_date",
+    )
+
+    list_filter = (
+        "name",
+        "entry_created_date",
+    )
+
+
+class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
+    readonly_fields = [
+        "publication",
+    ]
+
+    # fields = (
+    #     "name",
+    #     "source_id",
+    #     "publication",
+    #     "citation_count",
+    #     "entry_created_date",
+    # )
 
     list_display = (
         "id",
@@ -318,7 +361,8 @@ class DuplicatesDuplicatePublicationInline(admin.TabularInline):
 
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     inlines = (
-        PublicationSourceInline,
+        RawPublicationInline,
+        # PublicationSourceInline,
         DuplicatesDuplicatePublicationInline,
         DuplicateOfDuplicatePublicationInline,
     )
@@ -356,15 +400,6 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     "potential_duplicate_of",
                     "checked_for_duplicates",
                 ]
-            },
-        ),
-        (
-            "Advanced",
-            {
-                "classes": ["collapse"],
-                "fields": [
-                    "bibtex_source",
-                ],
             },
         ),
     ]
@@ -581,15 +616,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         duplicate = Publication.objects.get(pk=duplicate_id)
         original = Publication.objects.get(pk=original_id)
 
-        PublicationDuplicate.objects.create(duplicate=duplicate, original=original)
-        duplicate.checked_for_duplicates = True
-        duplicate.status = Publication.STATUS_DUPLICATE
-        duplicate.checked_for_duplicates = True
-        duplicate.reviewed_by = request.user
-        duplicate.reviewed_date = date.today()
-        public_publication_url = f"https://chameleoncloud.org/user/projects/chameleon-used-research/#pub-{original.pk}"
-        duplicate.reviewed_comment = f"Marked as a duplicate of '{original.title}'. See {public_publication_url}."
-        duplicate.save()
+        RawPublication.objects.filter(publication=duplicate).update(publication=original)
+        duplicate.delete()
+
         self.message_user(
             request,
             f"Marked '{duplicate.title}' as a duplicate of '{original.title}'.",
@@ -612,4 +641,5 @@ admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
-admin.site.register(PublicationSource, PublicationSourceAdmin)
+# admin.site.register(PublicationSource, PublicationSourceAdmin)
+admin.site.register(RawPublication, RawPublicationAdmin)

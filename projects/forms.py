@@ -11,7 +11,7 @@ from projects.user_publication.utils import PublicationUtils
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Project, PublicationSource
+from .models import Project, RawPublication
 
 logger = logging.getLogger("projects")
 
@@ -268,11 +268,11 @@ class AddBibtexPublicationForm(forms.Form):
         if self.is_admin:
             self.fields.pop("confirmation", None)
             self.fields["source"] = forms.ChoiceField(
-                choices=PublicationSource.SOURCES,
+                choices=RawPublication.SOURCES,
                 required=True,
                 label="source",
                 widget=forms.Select(attrs={"class": "form-control"}),
-                initial=PublicationSource.GOOGLE_SCHOLAR,
+                initial=RawPublication.GOOGLE_SCHOLAR,
             )
 
         initialized_projects = False
