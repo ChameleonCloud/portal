@@ -415,7 +415,9 @@ class Funding(models.Model):
 
 
 class PublicationSource(models.Model):
-    """Model to hold information about source of publication and number of citations"""
+    """DEPRECATED: Use RawPublication instead!
+    
+    Model to hold information about source of publication and number of citations"""
 
     USER_REPORTED = "user_reported"
     SCOPUS = "scopus"
@@ -478,13 +480,98 @@ class PublicationSource(models.Model):
     def __str__(self):
         return self.name
 
-    def __repr__(self) -> str:
-        line_format = "{0:24} : {1}"
-        lines = [
-            line_format.format(ck, getattr(self, ck))
-            for ck in self.SOURCE_REPORT_FIELDS
-        ]
-        return "\n" + "\n".join(lines)
+    # def __repr__(self) -> str:
+    #     # line_format = "{0:24} : {1}"
+    #     # lines = [
+    #     #     line_format.format(ck, getattr(self, ck))
+    #     #     for ck in self.SOURCE_REPORT_FIELDS
+    #     # ]
+    #     # return "\n" + "\n".join(lines)
+
+
+class RawPublication(models.Model):
+    USER_REPORTED = "user_reported"
+    SCOPUS = "scopus"
+    SEMANTIC_SCHOLAR = "semantic_scholar"
+    GOOGLE_SCHOLAR = "google_scholar"
+
+    SOURCES = [
+        (USER_REPORTED, "User Reported"),
+        (SCOPUS, "Scopus"),
+        (SEMANTIC_SCHOLAR, "Semantic scholar"),
+        (GOOGLE_SCHOLAR, "Google Scholar"),
+    ]
+
+    APPROVED_WITH_PUBLICATION = "publication"
+    APPROVED_WITH_JUSTIFICATION = "justification"
+    APPROVED_WITH_EMAIL = "email"
+
+    APPROVED_WITH = [
+        (APPROVED_WITH_PUBLICATION, "Publication"),
+        (APPROVED_WITH_JUSTIFICATION, "Justification"),
+        (APPROVED_WITH_EMAIL, "Email"),
+    ]
+
+    SOURCE_REPORT_FIELDS = [
+        "name",
+        "is_found_by_algorithm",
+        "cites_chameleon",
+        "acknowledges_chameleon",
+        "approved_with",
+    ]
+
+    publication = models.ForeignKey(
+        Publication, related_name="raw_sources", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=30, choices=SOURCES)
+    citation_count = models.IntegerField(default=0, null=False)
+    # auto_add_now does not allow to insert with a custom datetime
+    entry_created_date = models.DateField(default=timezone.now)
+    # if the publication identified by the source
+    # using our algorithm to find publications ref Chamaeleon
+    is_found_by_algorithm = models.BooleanField(default=False, null=False)
+    cites_chameleon = models.BooleanField(default=False, null=False)
+    acknowledges_chameleon = models.BooleanField(default=False, null=False)
+    approved_with = models.CharField(
+        choices=APPROVED_WITH, max_length=30, null=True, blank=True
+    )
+    source_id = models.CharField(
+        null=True,
+        blank=True,
+        max_length=1024,
+    )
+    project = models.ForeignKey(
+        Project, null=True, on_delete=models.CASCADE
+    )
+    publication_type = models.CharField(max_length=50, null=False)
+    forum = models.CharField(max_length=500, null=True, blank=True)
+    title = models.CharField(max_length=500, null=False)
+    year = models.IntegerField(null=False)
+    month = models.IntegerField(null=True, blank=True)
+    author = models.CharField(max_length=500, null=False)
+    bibtex_source = models.TextField()
+    link = models.CharField(max_length=500, null=True, blank=True)
+    added_by_username = models.CharField(max_length=100)
+    doi = models.CharField(max_length=500, null=True, blank=True)
+    checked_for_duplicates = models.BooleanField(default=False, null=False)
+
+    @classmethod
+    def from_publication(cls, pub: Publication, name: str = None):
+        return cls(
+            publication=pub,
+            name=name,
+            publication_type=pub.publication_type,
+            forum=pub.forum,
+            title=pub.title,
+            year=pub.year,
+            month=pub.month,
+            author=pub.author,
+            bibtex_source=pub.bibtex_source,
+            link=pub.link,
+            added_by_username=pub.added_by_username,
+            doi=pub.doi,
+            checked_for_duplicates=pub.checked_for_duplicates,
+        )
 
 
 class PublicationDuplicate(models.Model):

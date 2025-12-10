@@ -7,7 +7,7 @@ import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import Publication, PublicationSource
+from projects.models import Publication, RawPublication
 from projects.user_publication import utils
 from projects.user_publication.utils import (
     PublicationUtils,
@@ -61,8 +61,8 @@ def pub_import(task, dry_run=True):
             update_progress(stage=0, current=i, total=len(search.results), task=task)
 
             # Skip this publication if we've seen it before
-            if PublicationSource.objects.filter(
-                source_id=raw_pub.eid, name=PublicationSource.SCOPUS
+            if RawPublication.objects.filter(
+                source_id=raw_pub.eid, name=RawPublication.SCOPUS
             ).exists():
                 logger.info(f"Skipping known publication {raw_pub.eid}")
                 continue
@@ -110,7 +110,7 @@ def pub_import(task, dry_run=True):
                 RawPublicationSource(
                     pub_model=pub_model,
                     source_id=raw_pub.eid,
-                    source_name=PublicationSource.SCOPUS,
+                    source_name=RawPublication.SCOPUS,
                 )
             )
         except Exception as e:

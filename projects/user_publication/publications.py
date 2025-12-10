@@ -8,7 +8,7 @@ from projects.models import (
     ChameleonPublication,
     Project,
     Publication,
-    PublicationSource,
+    RawPublication,
 )
 from projects.user_publication import gscholar, scopus, semantic_scholar, utils
 from projects.user_publication.utils import PublicationUtils, update_progress
@@ -115,11 +115,11 @@ def choose_approved_with_option():
     print("5. To leave the status as is. Choose this")
     inp = input("Choose 1, 2, 3 or 4: ")
     if inp == "1":
-        return PublicationSource.APPROVED_WITH_PUBLICATION
+        return RawPublication.APPROVED_WITH_PUBLICATION
     elif inp == "2":
-        return PublicationSource.APPROVED_WITH_JUSTIFICATION
+        return RawPublication.APPROVED_WITH_JUSTIFICATION
     elif inp == "3":
-        return PublicationSource.APPROVED_WITH_EMAIL
+        return RawPublication.APPROVED_WITH_EMAIL
     elif inp == "4":
         return
     elif inp == "5":
@@ -167,9 +167,9 @@ def review_imported_publications():
             print(f"with source: {source.__repr__()}\n")
         approval_needed_sources = pub.sources.filter(
             approved_with__isnull=True
-        ).exclude(name=PublicationSource.USER_REPORTED)
+        ).exclude(name=RawPublication.USER_REPORTED)
         user_reported_source = pub.sources.filter(
-            name=PublicationSource.USER_REPORTED,
+            name=RawPublication.USER_REPORTED,
         ).first()
         if user_reported_source:
             # update other sources as approved with same method

@@ -15,7 +15,7 @@ import json
 import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Publication, PublicationSource
+from projects.models import Publication, RawPublication
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils
 from projects.util import get_project_members
@@ -174,7 +174,7 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
         for entry in bib_database.entries:
             logger.info(entry)
             source_id = entry_to_id(entry)
-            if PublicationSource.objects.filter(
+            if RawPublication.objects.filter(
                 source_id=source_id, name=source
             ).exists():
                 logger.info(f"Publication {source_id} exists, skipping.")
@@ -186,12 +186,10 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
                 Publication.STATUS_SUBMITTED,
             )
             if source == "user_reported":
-                pub_source = PublicationSource(publication=new_pub)
-                pub_source.name = PublicationSource.USER_REPORTED
+                pub_source = RawPublication.from_publication(new_pub, RawPublication.USER_REPORTED)
                 pub_source.save()
             elif source == "google_scholar":
-                pub_source = PublicationSource(publication=new_pub)
-                pub_source.name = PublicationSource.GOOGLE_SCHOLAR
+                pub_source = RawPublication.from_publication(new_pub, RawPublication.GOOGLE_SCHOLAR)
                 pub_source.source_id = source_id
                 pub_source.save()
             new_pubs.append(new_pub)

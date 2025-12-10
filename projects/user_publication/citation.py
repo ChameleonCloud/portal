@@ -12,7 +12,7 @@ from django.db import transaction
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from pybliometrics.exception import Scopus404Error
 
-from projects.models import Publication, PublicationSource
+from projects.models import Publication, RawPublication
 from projects.user_publication.gscholar import GoogleScholarHandler
 from projects.user_publication.utils import PublicationUtils
 
@@ -52,7 +52,7 @@ def update_scopus_citation(pub, dry_run=True):
     if scopus_pub:
         # Returns a tuple of (object, created)
         existing_scopus_source = pub.sources.get_or_create(
-            name=PublicationSource.SCOPUS
+            name=RawPublication.SCOPUS
         )[0]
         logger.info(
             f"update scopus citation number for "
@@ -124,7 +124,7 @@ def update_semantic_scholar_citation(pub, dry_run=True):
         citation_cnt = semantic_scholar_pub.get("citationCount", 0)
         # Returns a tuple of (object, created)
         existing_sem_source = pub.sources.get_or_create(
-            name=PublicationSource.SEMANTIC_SCHOLAR
+            name=RawPublication.SEMANTIC_SCHOLAR
         )[0]
         logger.info(
             (
