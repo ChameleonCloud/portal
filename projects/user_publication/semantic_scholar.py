@@ -1,6 +1,7 @@
 import datetime
 import logging
 import re
+import time
 
 import requests
 from django.conf import settings
@@ -40,29 +41,60 @@ def _get_references(pid):
     return response.json().get("references", [])
 
 
-def _get_citations(pid):
+def _get_citation_count(pid):
+    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
+    for attempt in range(1, 4):
+        response = requests.get(
+            url,
+            params={"fields": "citationCount"},
+            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+        )
+        d = response.json()
+        if response.status_code == 200:
+            return d.get("citationCount", 0)
+
+        elif response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", attempt))
+            logger.warning(
+                f"Rate limit hit for {pid}, waiting {retry_after}s (attempt {attempt}/3)"
+            )
+            time.sleep(retry_after)
+            continue
+        else:
+            logger.warning(
+                f"Failed to get citation count for {pid}, status {response.status_code}; "
+                f"attempt {attempt}/3"
+            )
+            time.sleep(attempt)
+    logger.error(f"Giving up getting citation count for {pid}")
+    return 0
+
+
+def _get_citations(pid, fields=None):
     url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/citations"
-    fields = [
-        "paperId",
-        "externalIds",
-        "url",
-        "title",
-        "venue",
-        "year",
-        "citationCount",
-        "fieldsOfStudy",
-        "publicationTypes",
-        "publicationDate",
-        "citationStyles",
-        "journal",
-        "authors",
-        "abstract",
-    ]
+    if fields is None:
+        fields = [
+            "paperId",
+            "externalIds",
+            "url",
+            "title",
+            "venue",
+            "year",
+            "citationCount",
+            "fieldsOfStudy",
+            "publicationTypes",
+            "publicationDate",
+            "citationStyles",
+            "journal",
+            "authors",
+            "abstract",
+        ]
     limit = 1000
     all_citations = []
     offset = 0
     while True:
         params = {"fields": ",".join(fields), "offset": offset, "limit": limit}
+        logger.info(params)
 
         response = requests.get(
             url,
@@ -153,3 +185,13 @@ def pub_import(task, dry_run=True):
                     )
                 )
     return publications
+
+
+def update_citations():
+    for pub in RawPublication.objects.filter(
+        name=RawPublication.SEMANTIC_SCHOLAR,
+        publication__status=Publication.STATUS_APPROVED,
+        source_id__isnull=False,
+    ).select_related("publication"):
+        pub.citation_count = _get_citation_count(pub.source_id)
+        pub.save()

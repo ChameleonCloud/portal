@@ -313,7 +313,6 @@ class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
     STATUS_REFERENCE_ONLY = "REFERENCE_ONLY"
-    STATUS_DUPLICATE = "DUPLICATE"
     STATUS_REJECTED = "REJECTED"
     STATUS_DELETED = "DELETED"
 
@@ -321,7 +320,6 @@ class Publication(models.Model):
         (STATUS_SUBMITTED, "Submitted"),
         (STATUS_APPROVED, "Approved"),
         (STATUS_REFERENCE_ONLY, "References, does not use Chameleon"),
-        (STATUS_DUPLICATE, "Duplicate"),
         (STATUS_REJECTED, "Rejected"),
         (STATUS_DELETED, "Deleted"),
     ]
@@ -541,7 +539,7 @@ class RawPublication(models.Model):
         max_length=1024,
     )
     project = models.ForeignKey(
-        Project, null=True, on_delete=models.CASCADE
+        Project, null=True, on_delete=models.CASCADE, related_name="raw_pubs"
     )
     publication_type = models.CharField(max_length=50, null=False)
     forum = models.CharField(max_length=500, null=True, blank=True)

@@ -119,3 +119,21 @@ def pub_import(task, dry_run=True):
             logger.exception(e)
             continue
     return publications
+
+
+def update_citations():
+    # for each rawpublication that is scopus, from an approved publication
+    pybliometrics.scopus.init(
+        config_path="/project/pybliometrics.cfg",
+        keys=[settings.SCOPUS_API_KEY],
+        inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
+    )
+
+    for pub in RawPublication.objects.filter(
+        name=RawPublication.SCOPUS,
+        publication__status=Publication.STATUS_APPROVED,
+        source_id__isnull=False,
+    ).select_related("publication"):
+        ab = AbstractRetrieval(pub.source_id, view="REF")
+        pub.citation_count = len(ab.references)
+        pub.save()
