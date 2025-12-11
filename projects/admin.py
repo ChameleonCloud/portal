@@ -16,6 +16,8 @@ from projects.user_publication.deduplicate import get_originals_for_duplicate_pu
 from projects.user_publication.publications import (
     import_pubs_scopus_task,
     import_pubs_semantic_scholar_task,
+    update_scopus_citations_task,
+    update_semantic_scholar_citations_task,
 )
 
 from allocations.models import Allocation
@@ -270,18 +272,6 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
 
 
 class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
-    readonly_fields = [
-        "publication",
-    ]
-
-    # fields = (
-    #     "name",
-    #     "source_id",
-    #     "publication",
-    #     "citation_count",
-    #     "entry_created_date",
-    # )
-
     list_display = (
         "id",
         "name",
@@ -377,11 +367,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     "potential_project",
                     "publication_type",
                     "forum",
-                    "year",
-                    "month",
+                    # "year",
+                    # "month",
                     "author",
                     "doi",
-                    "link",
+                    # "link",
                     "clickable_link",
                     "added_by_username",
                     "ticket_id",
@@ -426,7 +416,6 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "status",
         "year",
         "checked_for_duplicates",
-        "sources__name",
         "publication_type",
     ]
     search_fields = ["title", "project__charge_code", "author", "forum"]
@@ -444,6 +433,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 "import_semantic_scholar",
                 import_pubs_semantic_scholar_task,
             ),
+            AdminTaskManager(self.admin_site, "update_scopus_citations", update_scopus_citations_task),
+            AdminTaskManager(self.admin_site, "update_semantic_scholar_citations_task", update_semantic_scholar_citations_task),
         ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

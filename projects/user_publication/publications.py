@@ -33,6 +33,16 @@ def import_pubs_google_scholar_task(self):
     return import_pubs_task(self, "gscholar")
 
 
+@task(bind=True)
+def update_scopus_citations_task(self):
+    scopus.update_citations()
+
+
+@task(bind=True)
+def update_semantic_scholar_citations_task(self):
+    semantic_scholar.update_citations()
+
+
 def import_pubs_task(self, source):
     LOG.info("Importing publications")
     try:
