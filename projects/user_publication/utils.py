@@ -54,29 +54,6 @@ def get_publications_with_same_attributes(pub, publication_model_class):
     return similar_pub
 
 
-def update_original_pub_source(original_pub, duplicate_pub):
-    """Updates original publications' source with the duplicate publication's sources
-    this function does not use transaction.atomic() - expects caller to use it
-
-    Args:
-        original_pubs (models.Publication)
-        duplicate_pub (models.Publication)
-    """
-    dpub_sources = duplicate_pub.sources.all()
-    for dpub_source in dpub_sources:
-        # copy all the objects's data to original_pub source
-        opub_source = original_pub.sources.get_or_create(name=dpub_source.name)[0]
-        opub_source.cites_chameleon = dpub_source.cites_chameleon
-        opub_source.acknowledges_chameleon = dpub_source.acknowledges_chameleon
-        opub_source.is_found_by_algorithm = True
-        if original_pub.status == original_pub.STATUS_APPROVED:
-            opub_source.approved_with = opub_source.APPROVED_WITH_PUBLICATION
-        else:
-            opub_source.approved_with = None
-        opub_source.entry_created_date = dpub_source.entry_created_date
-        opub_source.save()
-
-
 def add_source_to_pub(pub, raw_pub):
     LOG.info(
         f"Publication already exists - {pub.title} - adding other source - {raw_pub.source_name}"
@@ -87,10 +64,12 @@ def add_source_to_pub(pub, raw_pub):
         # Otherwise create
         source = RawPublication.objects.filter(source_id=raw_pub.source_id).first()
         if not source:
-            source = pub.sources.filter(name=raw_pub.source_name).first()
+            source = RawPublication.objects.filter(
+                name=raw_pub.source_name, publication=pub
+            ).first()
         if not source:
-            pub_source = RawPublication(publication=pub)
-            pub_source.name = raw_pub.source_name
+            source = RawPublication(publication=pub)
+            source.name = raw_pub.source_name
 
         source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True
@@ -346,49 +325,6 @@ class PublicationUtils:
             proj for u in usernames for proj in kcc.get_user_projects_by_username(u)
         ]
         return projects
-
-
-def save_publication(raw_pub, cites_chameleon=True, acknowledges_chameleon=False):
-    """Saves publication model along with the source
-    Creates the source model with FK to publication"""
-    with transaction.atomic():
-        raw_pub.pub_model.save()
-        source = raw_pub.pub_model.sources.create(
-            source_id=raw_pub.source_id,
-            name=raw_pub.source_name,
-            is_found_by_algorithm=True,
-            cites_chameleon=cites_chameleon,
-            acknowledges_chameleon=acknowledges_chameleon,
-        )
-        source.approved_with = None
-        source.save()
-
-
-def export_publication_status_run(
-    file_name, pub, author_usernames, valid_projects, projects, reason
-):
-    if not os.path.isfile(file_name):
-        with open(file_name, "w", newline="") as csv_f:
-            csv_f_writer = csv.writer(csv_f)
-            csv_f_writer.writerow(PUBLICATION_REPORT_KEYS)
-    with open(file_name, "a", newline="") as csv_f:
-        csv_f_writer = csv.writer(csv_f)
-        row = [
-            pub.title,
-            pub.publication_type,
-            pub.forum,
-            pub.year,
-            pub.month,
-            pub.author,
-            pub.bibtex_source,
-            pub.link,
-            pub.doi,
-            author_usernames,
-            valid_projects,
-            projects,
-            reason,
-        ]
-        csv_f_writer.writerow(row)
 
 
 def update_progress(task, stage=None, current=None, total=None, message=None):

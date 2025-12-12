@@ -118,7 +118,6 @@ def user_publications(request):
                     "chargeCode": project.charge_code,
                     "status": pub.status,
                     "added_by_username": pub.added_by_username,
-                    "submitted_date": pub.submitted_date,
                     "reviewed_by": pub.reviewed_by,
                     "reviewed_date": pub.reviewed_date,
                     "reviewed_comment": pub.reviewed_comment,

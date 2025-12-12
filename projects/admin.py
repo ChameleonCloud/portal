@@ -216,6 +216,7 @@ class RawPublicationInline(admin.TabularInline):
     model = RawPublication
     extra = 0
     fields = (
+        "admin_link",
         "name",
         "is_found_by_algorithm",
         "cites_chameleon",
@@ -224,6 +225,19 @@ class RawPublicationInline(admin.TabularInline):
         "entry_created_date",
         "citation_count",
     )
+    readonly_fields = ("admin_link",)
+
+    def admin_link(self, obj):
+        if not obj.pk:
+            return "(save first)"
+        url = reverse(
+            "admin:projects_rawpublication_change",  # CHANGE THIS
+            args=[obj.pk],
+        )
+        return format_html('<a href="{}" target="_blank">Open</a>', url)
+
+    admin_link.short_description = "Edit"
+
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
@@ -322,39 +336,9 @@ class PotentialDuplicateFilter(admin.SimpleListFilter):
             )
 
 
-class DuplicateOfDuplicatePublicationInline(admin.TabularInline):
-    model = PublicationDuplicate
-    fk_name = "duplicate"
-    extra = 0
-    verbose_name = "Duplicate of publication"
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def has_change_permission(self, request, obj):
-        return False
-
-
-class DuplicatesDuplicatePublicationInline(admin.TabularInline):
-    model = PublicationDuplicate
-    fk_name = "original"
-    extra = 0
-    readonly_fields = ["original"]
-    verbose_name = "Duplicated by publication"
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def has_change_permission(self, request, obj):
-        return False
-
-
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     inlines = (
         RawPublicationInline,
-        # PublicationSourceInline,
-        DuplicatesDuplicatePublicationInline,
-        DuplicateOfDuplicatePublicationInline,
     )
 
     fieldsets = [
@@ -392,6 +376,14 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 ]
             },
         ),
+        (
+            "Source comparison", 
+            {
+                "fields": [
+                    "source_comparison",
+                ]
+            },
+        ),
     ]
     readonly_fields = [
         "project",
@@ -400,15 +392,19 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "potential_project",
         "clickable_link",
         "ticket_link",
+        "source_comparison",
+        "source_count",
     ]
     ordering = ["-status", "-id", "-year"]
     list_display = (
         "id",
+        "submitted_date",
         "short_title",
         "project",
         "year",
         "checked_for_duplicates",
         "status",
+        "source_count",
         "clickable_link",
     )
     list_filter = [
@@ -488,6 +484,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
 
         return super().changelist_view(request, extra_context=extra_context)
 
+    def source_count(self, obj):
+        return RawPublication.objects.filter(publication=obj).count()
+
     def potential_duplicate_of(self, obj):
         duplicates = get_originals_for_duplicate_pub(obj)
         if not duplicates:
@@ -563,6 +562,26 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
 
         return mark_safe("<ul>" + "".join(valid_projects) + "</ul>")
 
+    def _to_html_list(self, items):
+        markup = []
+        for item in items:
+            markup.append(f"<li>{item}</li>")
+        return mark_safe("<ul>" + "".join(markup) + "</ul>")
+
+    def source_comparison(self, obj):
+        sources = RawPublication.objects.filter(publication=obj)
+        titles = {source.title for source in sources}
+        forums = {source.forum for source in sources}
+        publication_types = {source.publication_type for source in sources}
+        authors = {source.author for source in sources}
+        all_props = [
+            f"<h3>Titles</h3><div>{self._to_html_list(titles)}</div>",
+            f"<h3>Forums</h3><div>{self._to_html_list(forums)}</div>",
+            f"<h3>Types</h3><div>{self._to_html_list(publication_types)}</div>",
+            f"<h3>Authors</h3><div>{self._to_html_list(authors)}</div>",
+        ]
+        return self._to_html_list(all_props)
+    
     def short_title(self, obj):
         max_length = 50
         if len(obj.title) > max_length:

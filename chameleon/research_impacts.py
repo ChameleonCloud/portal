@@ -250,7 +250,6 @@ def get_context():
         "active_projects_per_year": active_projects_per_year,
         "total_publications": sum(a[1] for a in publications_per_year),
         "publications_per_year": publications_per_year,
-        "citations": citation_report(),
         "active_projects_per_year_per_tag": active_projects_per_year_per_tag,
         "active_education_projects_per_academic_year": active_education_projects_per_academic_year,
         "total_unique_projects_per_tag": total_unique_projects_per_tag,
@@ -327,20 +326,3 @@ def publication_information(start_year, end_year):
         ).count()
         publications_per_year.append((year, pub_count))
     return publications_per_year
-
-
-def citation_report():
-    publications = []
-    for p in Publication.objects.filter(status=Publication.STATUS_APPROVED):
-        publications.append(
-            (p, max((s.citation_count for s in p.sources.all()), default=0))
-        )
-    total = sum(p[1] for p in publications)
-    gt100_unsorted = [
-        (f"{p[0].project} - {p[0].title}", p[1]) for p in publications if p[1] >= 100
-    ]
-    gt100 = sorted(gt100_unsorted, key=lambda tup: tup[1], reverse=True)
-    return {
-        "total": total,
-        "gt100": gt100,
-    }
