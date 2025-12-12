@@ -31,16 +31,6 @@ CHAMELEON_REFS_REGEX = [
 ]
 
 
-def _get_references(pid):
-    url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
-    response = requests.get(
-        url,
-        params={"fields": "references.title"},
-        headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-    )
-    return response.json().get("references", [])
-
-
 def _get_citation_count(pid):
     url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
     for attempt in range(1, 4):
