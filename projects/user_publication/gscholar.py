@@ -180,7 +180,8 @@ class GoogleScholarHandler(object):
         g_citations = result_pub.get("num_citations", 0)
         # Returns a tuple of (object, created)
         existing_g_source = RawPublication.objects.filter(
-            publication=pub, name=RawPublication.GOOGLE_SCHOLAR).first()
+            publication=pub, name=RawPublication.GOOGLE_SCHOLAR
+        ).first()
         existing_citation_count = existing_g_source.citation_count
         if not dry_run:
             with transaction.atomic():
