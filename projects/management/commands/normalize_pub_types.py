@@ -31,7 +31,7 @@ EXACT_MAP = {
     "conference full paper": CONFERENCE_PAPER,
     "conference short paper": CONFERENCE_SHORT_PAPER,
     "conference poster": CONFERENCE_POSTER,
-    "conference demostration": CONFERENCE_DEMO,
+    "conference demonstration": CONFERENCE_DEMO,
     "conference demo": CONFERENCE_DEMO,
     "conference paper": CONFERENCE_PAPER,
     "conference": CONFERENCE_PAPER,
