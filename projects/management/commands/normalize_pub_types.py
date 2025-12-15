@@ -23,12 +23,10 @@ EXACT_MAP = {
     # Preprints
     "pre-print": PREPRINT,
     "preprint": PREPRINT,
-
     # Journal article
     "journal article": JOURNAL_ARTICLE,
     "research article": JOURNAL_ARTICLE,
     "article": JOURNAL_ARTICLE,
-
     # Conference categories
     "conference full paper": CONFERENCE_PAPER,
     "conference short paper": CONFERENCE_SHORT_PAPER,
@@ -39,27 +37,21 @@ EXACT_MAP = {
     "conference": CONFERENCE_PAPER,
     "inproceedings": CONFERENCE_PAPER,
     "poster": CONFERENCE_POSTER,
-
     # Tech report
     "tech report": TECH_REPORT,
     "techreport": TECH_REPORT,
-
     # Thesis categories
     "ms thesis": MS_THESIS,
     "phd thesis": PHD_THESIS,
     "dissertation": PHD_THESIS,
     "thesis": THESIS,
-
     # Software/code
     "github": SOFTWARE,
     "software": SOFTWARE,
-
     # Books
     "book chapter": BOOK_CHAPTER,
-
     # Patent
     "patent": PATENT,
-
     # Everything else (handled by fallbacks)
     "misc": OTHER,
     "other": OTHER,
@@ -67,41 +59,32 @@ EXACT_MAP = {
 
 BIBTEX_RULES = [
     # Conference
-    (("@inproceedings", "@conference", "@proceedings",
-    "@incollection", "@workshop"), CONFERENCE_PAPER),
-
+    (
+        ("@inproceedings", "@conference", "@proceedings", "@incollection", "@workshop"),
+        CONFERENCE_PAPER,
+    ),
     # Thesis
     (("@phdthesis",), PHD_THESIS),
     (("@mastersthesis",), MS_THESIS),
     (("@thesis",), THESIS),
-
     # Journal
     (("@article",), JOURNAL_ARTICLE),
-
     # Books & chapters
     (("@book", "@inbook", "@booklet"), BOOK_CHAPTER),
-
     # Reports
     (("@techreport", "@report"), TECH_REPORT),
-
     # Software / code
     (("@software", "@code"), SOFTWARE),
-
     # Dataset
     (("@dataset", "@data"), OTHER),
-
     # Manual
     (("@manual",), OTHER),
-
     # Patent
     (("@patent",), PATENT),
-
     # Online / webpage
     (("@online", "@webpage"), OTHER),
-
     # Unpublished
     (("@unpublished",), OTHER),
-
     # Misc
     (("@misc",), OTHER),
 ]
@@ -139,14 +122,19 @@ class Command(BaseCommand):
     help = "Normalize RawPublication.publication_type into clear categories."
 
     def add_arguments(self, parser):
-        parser.add_argument("--yes", action="store_true",
-                            help="Apply changes.")
-        parser.add_argument("--dry-run", action="store_true",
-                            default=True,
-                            help="Only display changes (default).")
-        parser.add_argument("--no-dry-run", action="store_false",
-                            dest="dry_run",
-                            help="Actually apply changes (requires --yes).")
+        parser.add_argument("--yes", action="store_true", help="Apply changes.")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            default=True,
+            help="Only display changes (default).",
+        )
+        parser.add_argument(
+            "--no-dry-run",
+            action="store_false",
+            dest="dry_run",
+            help="Actually apply changes (requires --yes).",
+        )
 
     def normalize(self, pub: RawPublication) -> str:
         val = pub.publication_type.strip().lower()
