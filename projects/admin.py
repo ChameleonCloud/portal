@@ -239,7 +239,6 @@ class RawPublicationInline(admin.TabularInline):
     admin_link.short_description = "Edit"
 
 
-
 class ChameleonPublicationAdmin(admin.ModelAdmin):
     fields = ("title", "ref")
     list_display = ("title", "ref")
@@ -337,9 +336,7 @@ class PotentialDuplicateFilter(admin.SimpleListFilter):
 
 
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
-    inlines = (
-        RawPublicationInline,
-    )
+    inlines = (RawPublicationInline,)
 
     fieldsets = [
         (
@@ -377,7 +374,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             },
         ),
         (
-            "Source comparison", 
+            "Source comparison",
             {
                 "fields": [
                     "source_comparison",
@@ -429,8 +426,14 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 "import_semantic_scholar",
                 import_pubs_semantic_scholar_task,
             ),
-            AdminTaskManager(self.admin_site, "update_scopus_citations", update_scopus_citations_task),
-            AdminTaskManager(self.admin_site, "update_semantic_scholar_citations_task", update_semantic_scholar_citations_task),
+            AdminTaskManager(
+                self.admin_site, "update_scopus_citations", update_scopus_citations_task
+            ),
+            AdminTaskManager(
+                self.admin_site,
+                "update_semantic_scholar_citations_task",
+                update_semantic_scholar_citations_task,
+            ),
         ]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -581,7 +584,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             f"<h3>Authors</h3><div>{self._to_html_list(authors)}</div>",
         ]
         return self._to_html_list(all_props)
-    
+
     def short_title(self, obj):
         max_length = 50
         if len(obj.title) > max_length:
@@ -626,7 +629,9 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         duplicate = Publication.objects.get(pk=duplicate_id)
         original = Publication.objects.get(pk=original_id)
 
-        RawPublication.objects.filter(publication=duplicate).update(publication=original)
+        RawPublication.objects.filter(publication=duplicate).update(
+            publication=original
+        )
         duplicate.delete()
 
         self.message_user(
