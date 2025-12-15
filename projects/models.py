@@ -414,7 +414,7 @@ class Funding(models.Model):
 
 class PublicationSource(models.Model):
     """DEPRECATED: Use RawPublication instead!
-    
+
     Model to hold information about source of publication and number of citations"""
 
     USER_REPORTED = "user_reported"

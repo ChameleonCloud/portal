@@ -173,9 +173,7 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
         for entry in bib_database.entries:
             logger.info(entry)
             source_id = entry_to_id(entry)
-            if RawPublication.objects.filter(
-                source_id=source_id, name=source
-            ).exists():
+            if RawPublication.objects.filter(source_id=source_id, name=source).exists():
                 logger.info(f"Publication {source_id} exists, skipping.")
                 continue
             new_pub = create_pub_from_bibtex(
@@ -185,10 +183,14 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
                 Publication.STATUS_SUBMITTED,
             )
             if source == "user_reported":
-                pub_source = RawPublication.from_publication(new_pub, RawPublication.USER_REPORTED)
+                pub_source = RawPublication.from_publication(
+                    new_pub, RawPublication.USER_REPORTED
+                )
                 pub_source.save()
             elif source == "google_scholar":
-                pub_source = RawPublication.from_publication(new_pub, RawPublication.GOOGLE_SCHOLAR)
+                pub_source = RawPublication.from_publication(
+                    new_pub, RawPublication.GOOGLE_SCHOLAR
+                )
                 pub_source.source_id = source_id
                 pub_source.save()
             new_pubs.append(new_pub)
