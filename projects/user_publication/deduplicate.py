@@ -22,7 +22,7 @@ def get_originals_for_duplicate_pub(dpub):
         Publication.objects.filter(
             year=dpub.year, id__lt=dpub.id, checked_for_duplicates=True
         )
-        .exclude(status=Publication.STATUS_DUPLICATE)
+        .exclude(status="DUPLICATE")
         .order_by("id")
     )
 
