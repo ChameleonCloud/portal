@@ -945,3 +945,10 @@ ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS = int(
 ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS = int(
     os.environ.get("ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS", 60 * 60 * 48 * 2)
 )
+
+
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_BASE_URL = os.environ.get(
+    "OPENAI_API_BASE_URL", "https://ellm.nrp-nautilus.io/v1/"
+)
+OPENAI_MODEL_NAME = os.environ.get("OPENAI_MODEL_NAME", "gpt-oss")
