@@ -40,11 +40,14 @@ class Command(BaseCommand):
         self.stdout.write(f"Processing {users.count()} users")
 
         keycloak_client = KeycloakClient()
+        kc_user_map = keycloak_client.get_all_users_attributes()
         for user in users.iterator():
-            kc_user = keycloak_client.get_user_by_username(user.username)
+            # fetch user from
+            kc_user = kc_user_map.get(user.username)
             if not kc_user:
                 # Legacy user, no login since fed. identity
                 continue
+            print(f"Processing user {user.pk} ({user.username})")
             self.process_user(user, kc_user)
 
     def process_user(self, user, kc_user):
@@ -104,6 +107,13 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"Institution already exists: {inst.name} (source={inst.source})"
                 )
+            else:
+                self.stdout.write(
+                    f"Created new institution: {inst.name} (type={inst.institution_type}, state={inst.state})"
+                )
+            return
+        print("Giving up")
+        print(ai_data)
         self.stdout.write(
             self.style.WARNING(
                 f"Could not normalize institution for user {user.pk}: '{raw_value}'"
@@ -130,7 +140,7 @@ Return JSON with the following keys:
 - state: US state name or "n/a" if not US-based
 - institution_type: one of [r1, r2, cc, government, nonprofit, industry, other, unknown]
 
-Respond with ONLY valid JSON.
+Respond with ONLY valid JSON, no additional mark-up.
 """
 
         response = self.client.chat.completions.create(
@@ -144,9 +154,13 @@ Respond with ONLY valid JSON.
         content = response.choices[0].message.content.strip()
 
         try:
+            # strip markdown code block
+            if content.startswith("```") and content.endswith("```"):
+                content = "\n".join(content.split("\n")[1:-1])
             data = json.loads(content)
         except json.JSONDecodeError:
             self.stdout.write(self.style.ERROR("Invalid AI JSON"))
+            self.stdout.write(content)
             return None
 
         name = (data.get("name") or "").strip()
