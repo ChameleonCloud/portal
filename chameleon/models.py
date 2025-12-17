@@ -72,10 +72,48 @@ class PIEligibility(models.Model):
 
 
 class Institution(models.Model):
+    class Source(models.TextChoices):
+        CANONICAL = "canonical", "Canonical list"
+        AI = "ai", "AI generated"
+        MANUAL = "manual", "Manually entered"
+
+    class InstitutionType(models.TextChoices):
+        R1 = "r1", "R1 University"
+        R2 = "r2", "R2 University"
+        COMMUNITY_COLLEGE = "cc", "Community College"
+        GOVERNMENT = "gov", "Government"
+        NONPROFIT = "nonprofit", "Nonprofit"
+        INDUSTRY = "industry", "Industry"
+        OTHER = "other", "Other"
+        UNKNOWN = "unknown", "Unknown"
+
     name = models.CharField(max_length=500)
-    state = models.CharField(max_length=100)
-    minority_serving_institution = models.BooleanField()
-    epscor_state = models.BooleanField()
+
+    # metadata
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.CANONICAL,
+    )
+    source_comment = models.TextField(blank=True)
+
+    # location
+    state = models.CharField(max_length=100, blank=True)  # "n/a" if not US
+
+    # classification
+    institution_type = models.CharField(
+        max_length=20,
+        choices=InstitutionType.choices,
+        default=InstitutionType.UNKNOWN,
+    )
+
+    minority_serving_institution = models.BooleanField(default=False)
+    epscor_state = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class InstitutionAlias(models.Model):

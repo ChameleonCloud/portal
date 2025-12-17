@@ -283,8 +283,32 @@ class KeycloakUserInline(admin.StackedInline):
     can_delete = False
 
 
+class UserInstitutionInline(admin.TabularInline):
+    model = UserInstitution
+    extra = 0
+
+
+class HasInstitutionFilter(admin.SimpleListFilter):
+    title = "institution"
+    parameter_name = "has_institution"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Has institution"),
+            ("no", "No institution"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(institutions__isnull=False)
+        if self.value() == "no":
+            return queryset.filter(institutions__isnull=True)
+        return queryset
+
+
 class UserAdmin(BaseUserAdmin):
-    inlines = [KeycloakUserInline]
+    inlines = [UserInstitutionInline, KeycloakUserInline]
+    list_filter = BaseUserAdmin.list_filter + (HasInstitutionFilter,)
 
 
 admin.site.unregister(User)
