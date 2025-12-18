@@ -24,6 +24,8 @@ from projects.user_publication.publications import (
 from allocations.models import Allocation
 from projects.models import (
     ChameleonPublication,
+    Forum,
+    ForumAlias,
     Funding,
     Invitation,
     Project,
@@ -692,6 +694,41 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class ForumAliasInline(admin.TabularInline):
+    model = ForumAlias
+    extra = 1
+
+
+class ForumPublicationInline(admin.TabularInline):
+    model = Publication
+    extra = 0
+    fields = ["title", "year", "author"]
+    can_delete = False
+    fk_name = "normalized_forum"
+    show_change_link = True
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class ForumAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "pub_count",
+        "year",
+        "organization",
+        "forum_type",
+        "country",
+        "source",
+    )
+    search_fields = ("name", "organization", "forum_type", "country")
+    inlines = [ForumAliasInline, ForumPublicationInline]
+    readonly_fields = ["pub_count"]
+
+    def pub_count(self, obj):
+        return obj.publications.count()
+
+
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Invitation, InvitationAdmin)
@@ -699,3 +736,4 @@ admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 # admin.site.register(PublicationSource, PublicationSourceAdmin)
 admin.site.register(RawPublication, RawPublicationAdmin)
 admin.site.register(PublicationQuery, PublicationQueryAdmin)
+admin.site.register(Forum, ForumAdmin)

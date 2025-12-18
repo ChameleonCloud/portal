@@ -362,6 +362,13 @@ class Publication(models.Model):
     )
     reviewed_comment = models.TextField(null=True, blank=True)
     ticket_id = models.CharField(max_length=100, null=True, blank=True)
+    normalized_forum = models.ForeignKey(
+        "Forum",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="publications",
+    )
 
     def __str__(self) -> str:
         short_title = self.title
@@ -608,3 +615,59 @@ class PublicationQuery(models.Model):
 
     def __str__(self):
         return f"{self.query}"
+
+
+class Forum(models.Model):
+    class Organization(models.TextChoices):
+        ACM = "acm", "ACM"
+        IEEE = "ieee", "IEEE"
+        USENIX = "usenix", "USENIX"
+        SPRINGER = "springer", "Springer"
+        ELSEVIER = "elsevier", "Elsevier"
+        OTHER = "other", "Other"
+        UNKNOWN = "unknown", "Unknown"
+
+    class ForumType(models.TextChoices):
+        CONFERENCE = "conference", "Conference"
+        JOURNAL = "journal", "Journal"
+        WORKSHOP = "workshop", "Workshop"
+        SYMPOSIUM = "symposium", "Symposium"
+        OTHER = "other", "Other"
+        UNKNOWN = "unknown", "Unknown"
+
+    name = models.CharField(max_length=512)
+    year = models.PositiveIntegerField(null=True, blank=True)
+
+    organization = models.CharField(
+        max_length=32, choices=Organization.choices, default=Organization.UNKNOWN
+    )
+    forum_type = models.CharField(
+        max_length=32, choices=ForumType.choices, default=ForumType.UNKNOWN
+    )
+
+    country = models.CharField(max_length=128, blank=True, default="")
+
+    source = models.CharField(
+        max_length=32,
+        default="ai",
+        help_text="ai | heuristic | manual",
+    )
+    source_comment = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("name", "year")
+
+    def __str__(self):
+        return f"{self.name} ({self.year})" if self.year else self.name
+
+
+class ForumAlias(models.Model):
+    forum = models.ForeignKey(Forum, on_delete=models.CASCADE, related_name="aliases")
+    alias = models.CharField(max_length=512, unique=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.alias
