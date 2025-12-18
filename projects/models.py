@@ -371,15 +371,6 @@ class Publication(models.Model):
             short_title = self.title[:60] + "..."
         return f"{self.id}: {self.status} '{short_title}', {self.year}"
 
-    def __repr__(self) -> str:
-        line_format = "{0:18} : {1}"
-        lines = [
-            line_format.format(ck, getattr(self, ck))
-            for ck in self.PUBLICATION_REPORT_FIELDS
-        ]
-        lines.append(line_format.format("Admin page", self.pub_admin_page()))
-        return "\n" + "\n".join(lines)
-
     def delete_pub(self, using=None, keep_parents=False):
         self.status = self.STATUS_DELETED
         self.save()
@@ -396,7 +387,10 @@ class Publication(models.Model):
 
 class ChameleonPublication(models.Model):
     title = models.CharField(max_length=500, null=False)
-    ref = models.CharField(max_length=40, null=True)
+    semantic_scholar_ref = models.CharField(max_length=40, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.title}"
 
 
 class Funding(models.Model):
@@ -552,6 +546,18 @@ class RawPublication(models.Model):
     added_by_username = models.CharField(max_length=100)
     doi = models.CharField(max_length=500, null=True, blank=True)
     checked_for_duplicates = models.BooleanField(default=False, null=False)
+    chameleon_publications = models.ManyToManyField(
+        "ChameleonPublication",
+        blank=True,
+        related_name="raw_publications",
+        help_text="Chameleon publications that cite this source"
+    )
+    publication_queries = models.ManyToManyField(
+        "PublicationQuery",
+        blank=True,
+        related_name="raw_publications",
+        help_text="Queries that found this publication"
+    )
 
     @classmethod
     def from_publication(cls, pub: Publication, name: str = None):
@@ -570,6 +576,9 @@ class RawPublication(models.Model):
             doi=pub.doi,
             checked_for_duplicates=pub.checked_for_duplicates,
         )
+    
+    def __str__(self):
+        return f"({self.name}) {self.title}"
 
 
 class PublicationDuplicate(models.Model):
@@ -589,3 +598,11 @@ class PublicationDuplicate(models.Model):
                 name="Unique duplicate to its duplicate of publication",
             )
         ]
+
+
+class PublicationQuery(models.Model):
+    source_type = models.CharField(max_length=50, null=False, choices=RawPublication.SOURCES)
+    query = models.TextField(null=False)
+
+    def __str__(self):
+        return f"{self.query}"

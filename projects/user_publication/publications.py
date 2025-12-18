@@ -68,7 +68,7 @@ def import_pubs(task, source="all"):
             same_pubs = utils.get_publications_with_same_attributes(
                 raw_pub.pub_model, Publication
             )
-            if same_pubs.exists():
+            if len(same_pubs) > 0:
                 for same_pub in same_pubs:
                     utils.add_source_to_pub(same_pub, raw_pub)
                 continue
@@ -76,10 +76,8 @@ def import_pubs(task, source="all"):
             # If all conditions are met, import the publication
             else:
                 LOG.info(f"import {raw_pub.pub_model.__repr__()}")
-                # Save the publication if it is not a dry run
+                raw_pub.pub_model.save()
                 utils.add_source_to_pub(raw_pub.pub_model, raw_pub)
-                source.approved_with = None
-                source.save()
 
         except Exception as e:
             LOG.error(
