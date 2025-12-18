@@ -4,13 +4,12 @@ import logging
 import bibtexparser
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction, models
+from django.db import transaction
 from django.db.models import Max
 from django.http import Http404
 from django.template.loader import get_template
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
-from django.utils import timezone
 import json
 import pydetex.pipelines as pip
 

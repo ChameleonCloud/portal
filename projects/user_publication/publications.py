@@ -5,7 +5,6 @@ import logging
 
 from projects.models import (
     Publication,
-    RawPublication,
 )
 from projects.user_publication import science_direct, scopus, semantic_scholar, utils
 from projects.user_publication.utils import update_progress
@@ -66,7 +65,6 @@ def import_pubs(task, source="all"):
         pubs.extend(semantic_scholar.pub_import(task))
     if source in ["science_direct", "all"]:
         pubs.extend(science_direct.pub_import(task))
-
 
     # Process each found publication
     for i, raw_pub in enumerate(pubs):

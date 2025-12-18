@@ -7,7 +7,6 @@ from django.db import transaction
 
 def migrate_date_to_sources(apps, schema_editor):
     Publication = apps.get_model("projects", "Publication")
-    PublicationSource = apps.get_model("projects", "PublicationSource")
     pubs = Publication.objects.all()
     with transaction.atomic():
         for pub in pubs:

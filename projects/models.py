@@ -1,10 +1,8 @@
-import json
 import logging
 import secrets
 from operator import attrgetter
 from datetime import timedelta
 
-import pydetex.pipelines as pip
 
 from django.conf import settings
 from django.db import models, transaction, DataError
@@ -552,13 +550,13 @@ class RawPublication(models.Model):
         "ChameleonPublication",
         blank=True,
         related_name="raw_publications",
-        help_text="Chameleon publications that cite this source"
+        help_text="Chameleon publications that cite this source",
     )
     publication_queries = models.ManyToManyField(
         "PublicationQuery",
         blank=True,
         related_name="raw_publications",
-        help_text="Queries that found this publication"
+        help_text="Queries that found this publication",
     )
 
     @classmethod
@@ -578,7 +576,7 @@ class RawPublication(models.Model):
             doi=pub.doi,
             checked_for_duplicates=pub.checked_for_duplicates,
         )
-    
+
     def __str__(self):
         return f"({self.name}) {self.title}"
 
@@ -603,7 +601,9 @@ class PublicationDuplicate(models.Model):
 
 
 class PublicationQuery(models.Model):
-    source_type = models.CharField(max_length=50, null=False, choices=RawPublication.SOURCES)
+    source_type = models.CharField(
+        max_length=50, null=False, choices=RawPublication.SOURCES
+    )
     query = models.TextField(null=False)
 
     def __str__(self):
