@@ -26,6 +26,9 @@ def pub_import(task, dry_run=True):
         source_type=RawPublication.SCIENCE_DIRECT
     ):
         search = ScienceDirectSearch(query.query)
+        if not search.results:
+            logger.info(f"No results for Science Direct query: {query.query}")
+            continue
         for i, raw_pub in enumerate(search.results):
             try:
                 update_progress(
