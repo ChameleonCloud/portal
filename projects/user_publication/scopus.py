@@ -7,7 +7,7 @@ import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 from requests import ReadTimeout
 
-from projects.models import Publication, RawPublication
+from projects.models import Publication, PublicationQuery, RawPublication
 from projects.user_publication import utils
 from projects.user_publication.utils import (
     PublicationUtils,
@@ -17,34 +17,9 @@ from projects.user_publication.utils import (
 
 logger = logging.getLogger("projects")
 
-# CHAMELEON_QUERY = (
-#     "( TITLE (chameleon) OR REF (chameleon) OR ABS (chameleon) OR KEY (chameleon) )"
-#     "AND PUBYEAR > 2014 AND SUBJAREA(COMP)"
-# )
-CHAMELEON_QUERY = "( REFTITLE (chameleon) AND REFAUTH(keahey)) AND PUBYEAR > 2014"
-
-CHAMELEON_REFS_REGEX = [
-    re.compile(pattern)
-    for pattern in [
-        "chameleon:(.*)testbed for computer science research",
-        "lessons learned from(.*)chameleon testbed",
-        "chameleon cloud testbed(.*)software defined networking",
-        "chameleoncloud.org",
-    ]
-]
-
 
 def _get_references(a):
     return a.references if a.references else []
-
-
-def _publication_references_chameleon(references):
-    for ref in references:
-        ref_title = ref.title.lower() if ref.title else ""
-        ref_fulltext = ref.fulltext.lower() if ref.fulltext else ""
-        for cref_regex in CHAMELEON_REFS_REGEX:
-            if cref_regex.search(ref_title) or cref_regex.search(ref_fulltext):
-                return True
 
 
 def pub_import(task, dry_run=True):
@@ -53,71 +28,64 @@ def pub_import(task, dry_run=True):
         keys=[settings.SCOPUS_API_KEY],
         inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
     )
-    search = ScopusSearch(CHAMELEON_QUERY)
-    logger.debug("Performed search")
     publications = []
-    for i, raw_pub in enumerate(search.results):
-        try:
-            update_progress(stage=0, current=i, total=len(search.results), task=task)
-
-            # Skip this publication if we've seen it before
-            if RawPublication.objects.filter(
-                source_id=raw_pub.eid, name=RawPublication.SCOPUS
-            ).exists():
-                logger.info(f"Skipping known publication {raw_pub.eid}")
-                continue
-
-            logger.debug(f"Fetching results for {raw_pub.eid}")
-            references = None
+    for query in PublicationQuery.objects.filter(source_type=RawPublication.SCOPUS):
+        search = ScopusSearch(query.query)
+        logger.debug("Performed search")
+        for i, raw_pub in enumerate(search.results):
             try:
-                res = AbstractRetrieval(raw_pub.eid, view="REF")
-                references = _get_references(res)
-            except ReadTimeout:
-                logger.error(f"Failed abstract retrieval for {raw_pub.eid}.")
-            if not references:
-                continue
-            if not _publication_references_chameleon(references):
-                continue
-            title = utils.decode_unicode_text(raw_pub.title)
-            published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
-            year = published_on.year
-            # get the author names with decoded unicode characters
-            author_names = utils.decode_unicode_text(raw_pub.author_names)
-            # authors as a list of strings "firstname lastname" format
-            authors = [
-                utils.format_author_name(author) for author in author_names.split(";")
-            ]
-            doi = raw_pub.doi if raw_pub.doi else ""
-            link = ""
-            if doi:
-                link = f"https://www.doi.org/{doi}"
-            pub_model = Publication(
-                title=title,
-                year=year,
-                month=published_on.month,
-                author=" and ".join(authors),
-                publication_type=PublicationUtils.get_pub_type(
-                    {"ENTRYTYPE": raw_pub.subtypeDescription}
-                ),
-                bibtex_source="{}",
-                added_by_username="admin",
-                forum=raw_pub.publicationName,
-                doi=doi,
-                link=link,
-                status=Publication.STATUS_SUBMITTED,
-            )
-            publications.append(
-                RawPublicationSource(
-                    pub_model=pub_model,
-                    source_id=raw_pub.eid,
-                    source_name=RawPublication.SCOPUS,
+                update_progress(stage=0, current=i, total=len(search.results), task=task)
+
+                # Skip this publication if we've seen it before
+                # if RawPublication.objects.filter(
+                #     source_id=raw_pub.eid, name=RawPublication.SCOPUS
+                # ).exists():
+                #     logger.info(f"Skipping known publication {raw_pub.eid}")
+                #     continue
+
+                title = utils.decode_unicode_text(raw_pub.title)
+                published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
+                year = published_on.year
+                # get the author names with decoded unicode characters
+                author_names = utils.decode_unicode_text(raw_pub.author_names)
+                # authors as a list of strings "firstname lastname" format
+                authors = [
+                    utils.format_author_name(author) for author in author_names.split(";")
+                ]
+                doi = raw_pub.doi if raw_pub.doi else ""
+                link = ""
+                if doi:
+                    link = f"https://www.doi.org/{doi}"
+                pub_model = Publication(
+                    title=title,
+                    year=year,
+                    month=published_on.month,
+                    author=" and ".join(authors),
+                    publication_type=PublicationUtils.get_pub_type(
+                        {"ENTRYTYPE": raw_pub.subtypeDescription}
+                    ),
+                    bibtex_source="{}",
+                    added_by_username="admin",
+                    forum=raw_pub.publicationName,
+                    doi=doi,
+                    link=link,
+                    status=Publication.STATUS_SUBMITTED,
                 )
-            )
-        except Exception as e:
-            # TODO  we keep hitting this
-            logger.error(f"Error processing publication {raw_pub.eid}: {e}")
-            logger.exception(e)
-            continue
+                logger.info(f"Processing publication {raw_pub.eid} - {title} - {query.query}")
+                publications.append(
+                    RawPublicationSource(
+                        pub_model=pub_model,
+                        source_id=raw_pub.eid,
+                        source_name=RawPublication.SCOPUS,
+                        cites_chameleon_pub=None,
+                        found_with_query=query,
+                    )
+                )
+            except Exception as e:
+                # TODO  we keep hitting this
+                logger.error(f"Error processing publication {raw_pub.eid}: {e}")
+                logger.exception(e)
+                continue
     return publications
 
 

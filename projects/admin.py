@@ -28,6 +28,7 @@ from projects.models import (
     Project,
     Publication,
     PublicationDuplicate,
+    PublicationQuery,
     PublicationSource,
     RawPublication,
 )
@@ -239,9 +240,43 @@ class RawPublicationInline(admin.TabularInline):
     admin_link.short_description = "Edit"
 
 
+class ChameleonPublicationRawPublicationInline(admin.TabularInline):
+    model = ChameleonPublication.raw_publications.through
+    extra = 0
+    can_delete = False
+    verbose_name = "Raw Publication"
+    verbose_name_plural = "Raw Publications"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 class ChameleonPublicationAdmin(admin.ModelAdmin):
-    fields = ("title", "ref")
-    list_display = ("title", "ref")
+    fields = ("title", "semantic_scholar_ref")
+    list_display = ("title", "semantic_scholar_ref")
+    inlines = [ChameleonPublicationRawPublicationInline]
+
+
+class QueryRawPublicationInline(admin.TabularInline):
+    model = RawPublication.publication_queries.through
+    extra = 0
+    can_delete = False
+    verbose_name = "Raw Publication"
+    verbose_name_plural = "Raw Publications"
+
+    def has_add_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+class PublicationQueryAdmin(admin.ModelAdmin):
+    list_display = ("source_type", "query")
+    inlines = [QueryRawPublicationInline]
 
 
 class PublicationFields:
@@ -298,6 +333,7 @@ class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
         "name",
         "entry_created_date",
     )
+
 
 
 class PotentialDuplicateFilter(admin.SimpleListFilter):
@@ -658,3 +694,4 @@ admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 # admin.site.register(PublicationSource, PublicationSourceAdmin)
 admin.site.register(RawPublication, RawPublicationAdmin)
+admin.site.register(PublicationQuery, PublicationQueryAdmin)

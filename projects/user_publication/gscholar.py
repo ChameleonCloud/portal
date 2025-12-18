@@ -212,7 +212,7 @@ def pub_import(task, dry_run=True, year_low=2014, year_high=None):
     publications = []
     if not year_high:
         year_high = datetime.date.today().year
-    pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
+    pubs = ChameleonPublication.objects.exclude(semantic_scholar_ref__isnull=True)
     total = len(pubs)
     for i, chameleon_pub in enumerate(pubs):
         try:

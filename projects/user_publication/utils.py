@@ -47,16 +47,22 @@ def get_publications_with_same_attributes(pub, publication_model_class):
         )
         | Q(doi__iexact=pub.doi)
     )
-    if not similar_pub:
-        similar_pub = publication_model_class.objects.filter(
-            doi=pub.doi, status=publication_model_class.STATUS_APPROVED
-        )
-    return similar_pub
+
+    if not similar_pub.exists():
+        # Fallback: try matching by DOI only
+        similar_pub = publication_model_class.objects.filter(doi__iexact=pub.doi)
+
+    # Order results: approved first, then others. Return as a list so the
+    # caller can rely on ordering.
+    approved = similar_pub.filter(status=publication_model_class.STATUS_APPROVED)
+    others = similar_pub.exclude(status=publication_model_class.STATUS_APPROVED)
+    # Evaluate querysets into lists to preserve order
+    return list(approved) + list(others)
 
 
 def add_source_to_pub(pub, raw_pub):
     LOG.info(
-        f"Publication already exists - {pub.title} - adding other source - {raw_pub.source_name}"
+        f"Publication already exists - {pub.id} - {pub.title} - adding other source - {raw_pub.source_name}"
     )
     with transaction.atomic():
         # Match by exist source ID first
@@ -68,11 +74,14 @@ def add_source_to_pub(pub, raw_pub):
                 name=raw_pub.source_name, publication=pub
             ).first()
         if not source:
-            source = RawPublication(publication=pub)
+            source = RawPublication.from_publication(
+                pub, raw_pub.source_name
+            )
             source.name = raw_pub.source_name
 
         source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True
+
         source.cites_chameleon = True
         # Adding source to a publication only when it already exists is a valid publication with project in chameleon
         if pub.status == pub.STATUS_APPROVED:
@@ -80,6 +89,29 @@ def add_source_to_pub(pub, raw_pub):
         else:
             source.approved_with = None
         source.save()
+
+        LOG.info(
+            f"Added source {source.source_id} - {source.name} to publication {pub.id} - {pub.title}"
+        )
+        LOG.info(raw_pub)
+        LOG.info(raw_pub.found_with_query)
+        LOG.info(source.id)
+        LOG.info(source.publication_queries.all())
+
+        if (
+            raw_pub.cites_chameleon_pub
+            and not source.chameleon_publications.filter(pk=raw_pub.cites_chameleon_pub.pk).exists()
+        ):
+            source.chameleon_publications.add(raw_pub.cites_chameleon_pub)
+            source.save()
+
+        if (
+            raw_pub.found_with_query
+            and not source.publication_queries.filter(pk=raw_pub.found_with_query.pk).exists()
+        ):
+            LOG.info("Adding publication query to source")
+            source.publication_queries.add(raw_pub.found_with_query)
+            source.save()
 
 
 def decode_unicode_text(en_text):
@@ -166,6 +198,8 @@ RawPublicationSource = namedtuple(
         "source_name",
         "source_id",
         "pub_model",
+        "cites_chameleon_pub",
+        "found_with_query",
     ),
 )
 

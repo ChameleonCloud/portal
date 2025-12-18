@@ -157,11 +157,11 @@ def _get_pub_model(publication, dry_run=True):
 
 def pub_import(task, dry_run=True):
     publications = []
-    pubs = ChameleonPublication.objects.exclude(ref__isnull=True)
+    pubs = ChameleonPublication.objects.exclude(semantic_scholar_ref__isnull=True)
     total = len(pubs)
     for i, chameleon_pub in enumerate(pubs):
         update_progress(stage=0, current=i, total=total, task=task)
-        for cc in _get_citations(chameleon_pub.ref):
+        for cc in _get_citations(chameleon_pub.semantic_scholar_ref):
             citing_paper = cc.get("citingPaper", {})
             if not citing_paper:
                 continue
@@ -172,6 +172,8 @@ def pub_import(task, dry_run=True):
                         pub_model=pub,
                         source_id=citing_paper.get("paperId"),
                         source_name=RawPublication.SEMANTIC_SCHOLAR,
+                        cites_chameleon_pub=chameleon_pub,
+                        found_with_query=None,
                     )
                 )
     return publications
