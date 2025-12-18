@@ -4,7 +4,7 @@ import re
 
 from django.conf import settings
 import pybliometrics
-from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
+from pybliometrics.sciencedirect import ScienceDirectSearch
 from requests import ReadTimeout
 
 from projects.models import Publication, PublicationQuery, RawPublication
@@ -18,20 +18,15 @@ from projects.user_publication.utils import (
 logger = logging.getLogger("projects")
 
 
-def _get_references(a):
-    return a.references if a.references else []
-
-
 def pub_import(task, dry_run=True):
-    pybliometrics.scopus.init(
+    pybliometrics.sciencedirect.init(
         config_path="/project/pybliometrics.cfg",
         keys=[settings.SCOPUS_API_KEY],
         inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
     )
     publications = []
-    for query in PublicationQuery.objects.filter(source_type=RawPublication.SCOPUS):
-        search = ScopusSearch(query.query)
-        logger.debug("Performed search")
+    for query in PublicationQuery.objects.filter(source_type=RawPublication.SCIENCE_DIRECT):
+        search = ScienceDirectSearch(query.query)
         for i, raw_pub in enumerate(search.results):
             try:
                 update_progress(stage=0, current=i, total=len(search.results), task=task)
@@ -40,7 +35,7 @@ def pub_import(task, dry_run=True):
                 published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
                 year = published_on.year
                 # get the author names with decoded unicode characters
-                author_names = utils.decode_unicode_text(raw_pub.author_names)
+                author_names = utils.decode_unicode_text(raw_pub.authors)
                 # authors as a list of strings "firstname lastname" format
                 authors = [
                     utils.format_author_name(author) for author in author_names.split(";")
@@ -54,9 +49,8 @@ def pub_import(task, dry_run=True):
                     year=year,
                     month=published_on.month,
                     author=" and ".join(authors),
-                    publication_type=PublicationUtils.get_pub_type(
-                        {"ENTRYTYPE": raw_pub.subtypeDescription}
-                    ),
+                    # Science Direct only indexes journal articles
+                    publication_type="journal article",
                     bibtex_source="{}",
                     added_by_username="admin",
                     forum=raw_pub.publicationName,
@@ -64,37 +58,19 @@ def pub_import(task, dry_run=True):
                     link=link,
                     status=Publication.STATUS_SUBMITTED,
                 )
-                logger.info(f"Processing publication {raw_pub.eid} - {title} - {query.query}")
+                logger.info(f"Processing publication {raw_pub.pii} - {title} - {query.query}")
                 publications.append(
                     RawPublicationSource(
                         pub_model=pub_model,
-                        source_id=raw_pub.eid,
-                        source_name=RawPublication.SCOPUS,
+                        source_id=raw_pub.pii,
+                        source_name=RawPublication.SCIENCE_DIRECT,
                         cites_chameleon_pub=None,
                         found_with_query=query,
                     )
                 )
             except Exception as e:
                 # TODO  we keep hitting this
-                logger.error(f"Error processing publication {raw_pub.eid}: {e}")
+                logger.error(f"Error processing publication {raw_pub.pii}: {e}")
                 logger.exception(e)
                 continue
     return publications
-
-
-def update_citations():
-    # for each rawpublication that is scopus, from an approved publication
-    pybliometrics.scopus.init(
-        config_path="/project/pybliometrics.cfg",
-        keys=[settings.SCOPUS_API_KEY],
-        inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
-    )
-
-    for pub in RawPublication.objects.filter(
-        name=RawPublication.SCOPUS,
-        publication__status=Publication.STATUS_APPROVED,
-        source_id__isnull=False,
-    ).select_related("publication"):
-        ab = AbstractRetrieval(pub.source_id, view="REF")
-        pub.citation_count = len(ab.references)
-        pub.save()

@@ -14,6 +14,7 @@ from projects.pub_views import create_pubs_from_bibtext_string
 from projects.user_publication import utils
 from projects.user_publication.deduplicate import get_originals_for_duplicate_pub
 from projects.user_publication.publications import (
+    import_pubs_science_direct_task,
     import_pubs_scopus_task,
     import_pubs_semantic_scholar_task,
     update_scopus_citations_task,
@@ -462,6 +463,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 "import_semantic_scholar",
                 import_pubs_semantic_scholar_task,
             ),
+            AdminTaskManager(self.admin_site, "import_science_direct", import_pubs_science_direct_task),
             AdminTaskManager(
                 self.admin_site, "update_scopus_citations", update_scopus_citations_task
             ),
