@@ -1,8 +1,6 @@
 from collections import namedtuple
-import csv
 import datetime
 import logging
-import os
 import re
 import unicodedata
 from difflib import SequenceMatcher
@@ -74,9 +72,7 @@ def add_source_to_pub(pub, raw_pub):
                 name=raw_pub.source_name, publication=pub
             ).first()
         if not source:
-            source = RawPublication.from_publication(
-                pub, raw_pub.source_name
-            )
+            source = RawPublication.from_publication(pub, raw_pub.source_name)
             source.name = raw_pub.source_name
 
         source.source_id = raw_pub.source_id
@@ -92,14 +88,18 @@ def add_source_to_pub(pub, raw_pub):
 
         if (
             raw_pub.cites_chameleon_pub
-            and not source.chameleon_publications.filter(pk=raw_pub.cites_chameleon_pub.pk).exists()
+            and not source.chameleon_publications.filter(
+                pk=raw_pub.cites_chameleon_pub.pk
+            ).exists()
         ):
             source.chameleon_publications.add(raw_pub.cites_chameleon_pub)
             source.save()
 
         if (
             raw_pub.found_with_query
-            and not source.publication_queries.filter(pk=raw_pub.found_with_query.pk).exists()
+            and not source.publication_queries.filter(
+                pk=raw_pub.found_with_query.pk
+            ).exists()
         ):
             source.publication_queries.add(raw_pub.found_with_query)
             source.save()

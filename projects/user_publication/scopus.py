@@ -1,11 +1,9 @@
 import datetime
 import logging
-import re
 
 from django.conf import settings
 import pybliometrics
 from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
-from requests import ReadTimeout
 
 from projects.models import Publication, PublicationQuery, RawPublication
 from projects.user_publication import utils
@@ -34,7 +32,9 @@ def pub_import(task, dry_run=True):
         logger.debug("Performed search")
         for i, raw_pub in enumerate(search.results):
             try:
-                update_progress(stage=0, current=i, total=len(search.results), task=task)
+                update_progress(
+                    stage=0, current=i, total=len(search.results), task=task
+                )
 
                 title = utils.decode_unicode_text(raw_pub.title)
                 published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
@@ -43,7 +43,8 @@ def pub_import(task, dry_run=True):
                 author_names = utils.decode_unicode_text(raw_pub.author_names)
                 # authors as a list of strings "firstname lastname" format
                 authors = [
-                    utils.format_author_name(author) for author in author_names.split(";")
+                    utils.format_author_name(author)
+                    for author in author_names.split(";")
                 ]
                 doi = raw_pub.doi if raw_pub.doi else ""
                 link = ""
@@ -64,7 +65,9 @@ def pub_import(task, dry_run=True):
                     link=link,
                     status=Publication.STATUS_SUBMITTED,
                 )
-                logger.info(f"Processing publication {raw_pub.eid} - {title} - {query.query}")
+                logger.info(
+                    f"Processing publication {raw_pub.eid} - {title} - {query.query}"
+                )
                 publications.append(
                     RawPublicationSource(
                         pub_model=pub_model,

@@ -28,7 +28,6 @@ from projects.models import (
     Invitation,
     Project,
     Publication,
-    PublicationDuplicate,
     PublicationQuery,
     PublicationSource,
     RawPublication,
@@ -270,7 +269,7 @@ class QueryRawPublicationInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False
 
@@ -334,7 +333,6 @@ class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
         "name",
         "entry_created_date",
     )
-
 
 
 class PotentialDuplicateFilter(admin.SimpleListFilter):
@@ -463,7 +461,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 "import_semantic_scholar",
                 import_pubs_semantic_scholar_task,
             ),
-            AdminTaskManager(self.admin_site, "import_science_direct", import_pubs_science_direct_task),
+            AdminTaskManager(
+                self.admin_site,
+                "import_science_direct",
+                import_pubs_science_direct_task,
+            ),
             AdminTaskManager(
                 self.admin_site, "update_scopus_citations", update_scopus_citations_task
             ),
