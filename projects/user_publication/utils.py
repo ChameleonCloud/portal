@@ -90,14 +90,6 @@ def add_source_to_pub(pub, raw_pub):
             source.approved_with = None
         source.save()
 
-        LOG.info(
-            f"Added source {source.source_id} - {source.name} to publication {pub.id} - {pub.title}"
-        )
-        LOG.info(raw_pub)
-        LOG.info(raw_pub.found_with_query)
-        LOG.info(source.id)
-        LOG.info(source.publication_queries.all())
-
         if (
             raw_pub.cites_chameleon_pub
             and not source.chameleon_publications.filter(pk=raw_pub.cites_chameleon_pub.pk).exists()
@@ -109,7 +101,6 @@ def add_source_to_pub(pub, raw_pub):
             raw_pub.found_with_query
             and not source.publication_queries.filter(pk=raw_pub.found_with_query.pk).exists()
         ):
-            LOG.info("Adding publication query to source")
             source.publication_queries.add(raw_pub.found_with_query)
             source.save()
 

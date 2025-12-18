@@ -486,12 +486,14 @@ class RawPublication(models.Model):
     SCOPUS = "scopus"
     SEMANTIC_SCHOLAR = "semantic_scholar"
     GOOGLE_SCHOLAR = "google_scholar"
+    SCIENCE_DIRECT = "science_direct"
 
     SOURCES = [
         (USER_REPORTED, "User Reported"),
         (SCOPUS, "Scopus"),
         (SEMANTIC_SCHOLAR, "Semantic scholar"),
         (GOOGLE_SCHOLAR, "Google Scholar"),
+        (SCIENCE_DIRECT, "Science Direct"),
     ]
 
     APPROVED_WITH_PUBLICATION = "publication"
