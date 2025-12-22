@@ -3,10 +3,9 @@ import logging
 
 from django.conf import settings
 import pybliometrics
-from pybliometrics.scopus import AbstractRetrieval, ScopusSearch, CitationOverview
+from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 
 from projects.models import (
-    ChameleonPublication,
     Publication,
     PublicationQuery,
     RawPublication,
