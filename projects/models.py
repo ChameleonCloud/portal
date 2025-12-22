@@ -393,6 +393,7 @@ class Publication(models.Model):
 class ChameleonPublication(models.Model):
     title = models.CharField(max_length=500, null=False)
     semantic_scholar_ref = models.CharField(max_length=40, null=True)
+    scopus_ref = models.CharField(max_length=40, null=True)
 
     def __str__(self) -> str:
         return f"{self.title}"
@@ -614,7 +615,7 @@ class PublicationQuery(models.Model):
     query = models.TextField(null=False)
 
     def __str__(self):
-        return f"{self.query}"
+        return f"{self.source_type}: {self.query}"
 
 
 class Forum(models.Model):

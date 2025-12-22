@@ -6,7 +6,12 @@ import time
 import requests
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication, RawPublication
+from projects.models import (
+    ChameleonPublication,
+    Publication,
+    PublicationQuery,
+    RawPublication,
+)
 from projects.user_publication import utils
 from projects.user_publication.utils import (
     PublicationUtils,
@@ -60,30 +65,67 @@ def _get_citation_count(pid):
     return 0
 
 
+FIELDS = [
+    "paperId",
+    "externalIds",
+    "url",
+    "title",
+    "venue",
+    "year",
+    "citationCount",
+    "fieldsOfStudy",
+    "publicationTypes",
+    "publicationDate",
+    "citationStyles",
+    "journal",
+    "authors",
+    "abstract",
+]
+
+
 def _get_citations(pid, fields=None):
     url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/citations"
     if fields is None:
-        fields = [
-            "paperId",
-            "externalIds",
-            "url",
-            "title",
-            "venue",
-            "year",
-            "citationCount",
-            "fieldsOfStudy",
-            "publicationTypes",
-            "publicationDate",
-            "citationStyles",
-            "journal",
-            "authors",
-            "abstract",
-        ]
-    limit = 1000
-    all_citations = []
+        fields = FIELDS
+
+    return _semantic_scholar_paginated_get(
+        url=url,
+        params={},
+        fields=fields,
+    )
+
+
+def _bulk_search(query, fields=None):
+    url = "https://api.semanticscholar.org/graph/v1/paper/search/bulk"
+
+    if fields is None:
+        fields = FIELDS
+
+    params = {
+        "query": query,
+    }
+
+    return _semantic_scholar_paginated_get(
+        url=url,
+        params=params,
+        fields=fields,
+    )
+
+
+def _semantic_scholar_paginated_get(url, params, fields, limit=1000):
+    all_results = []
     offset = 0
+
     while True:
-        params = {"fields": ",".join(fields), "offset": offset, "limit": limit}
+        params = params.copy()
+        params.update(
+            {
+                "fields": ",".join(fields),
+                "offset": offset,
+                "limit": limit,
+            }
+        )
+
         logger.info(params)
 
         response = requests.get(
@@ -91,17 +133,21 @@ def _get_citations(pid, fields=None):
             params=params,
             headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
         )
-        if response.status_code == 200:
-            data = response.json()
-            citations = data.get("data", [])
-            if not citations:
-                break
-            all_citations.extend(citations)
-            offset += limit
-        else:
+
+        if response.status_code != 200:
             print(f"Request failed with status code: {response.status_code}")
             break
-    return all_citations
+
+        data = response.json()
+        results = data.get("data", [])
+
+        if not results:
+            break
+
+        all_results.extend(results)
+        offset += limit
+
+    return all_results
 
 
 def _get_pub_model(publication, dry_run=True):
@@ -176,6 +222,23 @@ def pub_import(task, dry_run=True):
                         found_with_query=None,
                     )
                 )
+
+    for query in PublicationQuery.objects.filter(
+        source_type=RawPublication.SEMANTIC_SCHOLAR
+    ):
+        for cc in _bulk_search(query.query):
+            pub = _get_pub_model(cc, dry_run)
+            if pub:
+                publications.append(
+                    RawPublicationSource(
+                        pub_model=pub,
+                        source_id=cc.get("paperId"),
+                        source_name=RawPublication.SEMANTIC_SCHOLAR,
+                        cites_chameleon_pub=None,
+                        found_with_query=query,
+                    )
+                )
+
     return publications
 
 

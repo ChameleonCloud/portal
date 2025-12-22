@@ -257,8 +257,8 @@ class ChameleonPublicationRawPublicationInline(admin.TabularInline):
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
-    fields = ("title", "semantic_scholar_ref")
-    list_display = ("title", "semantic_scholar_ref")
+    fields = ("title", "semantic_scholar_ref", "scopus_ref")
+    list_display = ("title", "semantic_scholar_ref", "scopus_ref")
     inlines = [ChameleonPublicationRawPublicationInline]
 
 
@@ -324,11 +324,11 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
 class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
     list_display = (
         "id",
+        "entry_created_date",
         "name",
         "source_id",
         "citation_count",
         "publication",
-        "entry_created_date",
     )
 
     list_filter = (
