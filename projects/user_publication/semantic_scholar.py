@@ -6,7 +6,12 @@ import time
 import requests
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication, PublicationQuery, RawPublication
+from projects.models import (
+    ChameleonPublication,
+    Publication,
+    PublicationQuery,
+    RawPublication,
+)
 from projects.user_publication import utils
 from projects.user_publication.utils import (
     PublicationUtils,
@@ -113,11 +118,13 @@ def _semantic_scholar_paginated_get(url, params, fields, limit=1000):
 
     while True:
         params = params.copy()
-        params.update({
-            "fields": ",".join(fields),
-            "offset": offset,
-            "limit": limit,
-        })
+        params.update(
+            {
+                "fields": ",".join(fields),
+                "offset": offset,
+                "limit": limit,
+            }
+        )
 
         logger.info(params)
 
@@ -216,7 +223,9 @@ def pub_import(task, dry_run=True):
                     )
                 )
 
-    for query in PublicationQuery.objects.filter(source_type=RawPublication.SEMANTIC_SCHOLAR):
+    for query in PublicationQuery.objects.filter(
+        source_type=RawPublication.SEMANTIC_SCHOLAR
+    ):
         for cc in _bulk_search(query.query):
             pub = _get_pub_model(cc, dry_run)
             if pub:

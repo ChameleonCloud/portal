@@ -257,8 +257,8 @@ class ChameleonPublicationRawPublicationInline(admin.TabularInline):
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
-    fields = ("title", "semantic_scholar_ref")
-    list_display = ("title", "semantic_scholar_ref")
+    fields = ("title", "semantic_scholar_ref", "scopus_ref")
+    list_display = ("title", "semantic_scholar_ref", "scopus_ref")
     inlines = [ChameleonPublicationRawPublicationInline]
 
 

@@ -53,7 +53,9 @@ def get_publications_with_same_attributes(pub, publication_model_class):
     # Order results: approved first, then others. Return as a list so the
     # caller can rely on ordering.
     approved = similar_pub.filter(status=publication_model_class.STATUS_APPROVED)
-    others = similar_pub.exclude(status=publication_model_class.STATUS_APPROVED).exclude(status="DUPLICATE")
+    others = similar_pub.exclude(
+        status=publication_model_class.STATUS_APPROVED
+    ).exclude(status="DUPLICATE")
     # Evaluate querysets into lists to preserve order
     return list(approved) + list(others)
 
