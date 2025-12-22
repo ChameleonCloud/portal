@@ -84,6 +84,8 @@ def pub_import(task, dry_run=True):
                 continue
     return publications
 
+def pub_import_from_citations(task):
+    CitationOverview 
 
 def update_citations():
     # for each rawpublication that is scopus, from an approved publication

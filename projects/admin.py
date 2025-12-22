@@ -324,11 +324,11 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
 class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
     list_display = (
         "id",
+        "entry_created_date",
         "name",
         "source_id",
         "citation_count",
         "publication",
-        "entry_created_date",
     )
 
     list_filter = (
