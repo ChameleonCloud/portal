@@ -17,6 +17,7 @@ from projects.user_publication.publications import (
     import_pubs_science_direct_task,
     import_pubs_scopus_task,
     import_pubs_semantic_scholar_task,
+    import_pubs_openalex_task,
     update_scopus_citations_task,
     update_semantic_scholar_citations_task,
 )
@@ -257,8 +258,8 @@ class ChameleonPublicationRawPublicationInline(admin.TabularInline):
 
 
 class ChameleonPublicationAdmin(admin.ModelAdmin):
-    fields = ("title", "semantic_scholar_ref", "scopus_ref")
-    list_display = ("title", "semantic_scholar_ref", "scopus_ref")
+    fields = ("title", "semantic_scholar_ref", "scopus_ref", "openalex_ref")
+    list_display = ("title", "semantic_scholar_ref", "scopus_ref", "openalex_ref")
     inlines = [ChameleonPublicationRawPublicationInline]
 
 
@@ -467,6 +468,11 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 self.admin_site,
                 "import_science_direct",
                 import_pubs_science_direct_task,
+            ),
+            AdminTaskManager(
+                self.admin_site,
+                "import_openalex",
+                import_pubs_openalex_task,
             ),
             AdminTaskManager(
                 self.admin_site, "update_scopus_citations", update_scopus_citations_task

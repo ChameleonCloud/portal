@@ -394,6 +394,7 @@ class ChameleonPublication(models.Model):
     title = models.CharField(max_length=500, null=False)
     semantic_scholar_ref = models.CharField(max_length=40, null=True)
     scopus_ref = models.CharField(max_length=40, null=True)
+    openalex_ref = models.CharField(max_length=100, null=True)
 
     def __str__(self) -> str:
         return f"{self.title}"
@@ -493,6 +494,7 @@ class RawPublication(models.Model):
     SEMANTIC_SCHOLAR = "semantic_scholar"
     GOOGLE_SCHOLAR = "google_scholar"
     SCIENCE_DIRECT = "science_direct"
+    OPENALEX = "openalex"
 
     SOURCES = [
         (USER_REPORTED, "User Reported"),
@@ -500,6 +502,7 @@ class RawPublication(models.Model):
         (SEMANTIC_SCHOLAR, "Semantic scholar"),
         (GOOGLE_SCHOLAR, "Google Scholar"),
         (SCIENCE_DIRECT, "Science Direct"),
+        (OPENALEX, "OpenAlex"),
     ]
 
     APPROVED_WITH_PUBLICATION = "publication"
