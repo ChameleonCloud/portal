@@ -238,7 +238,7 @@ class ProjectAddUserForm(forms.Form):
 class AddBibtexPublicationForm(forms.Form):
     project_id = forms.ChoiceField(
         label="Project",
-        required=True,
+        required=False,
         help_text="Which project is this publication from",
     )
     bibtex_string = forms.CharField(
@@ -250,7 +250,7 @@ class AddBibtexPublicationForm(forms.Form):
             ("", "Please select confirmation"),
             (
                 "confirmed",
-                "The publications entered above have utilized Chameleon resources.",
+                "I attest that the publications entered above have used Chameleon.",
             ),
         ],
         required=True,
@@ -282,16 +282,22 @@ class AddBibtexPublicationForm(forms.Form):
             if charge_codes:
                 projects_qs = Project.objects.filter(charge_code__in=charge_codes)
                 self.fields["project_id"].choices = [
-                    (
-                        p.id,
-                        f"{p.charge_code} - {p.title}",
-                    )
-                    for p in projects_qs.order_by("charge_code")
+                    ("", "Unknown Project"),
+                    *[
+                        (
+                            p.id,
+                            f"{p.charge_code} - {p.title}",
+                        )
+                        for p in projects_qs.order_by("charge_code")
+                    ],
                 ]
                 initialized_projects = True
         if not initialized_projects:
             self.fields["project_id"] = forms.CharField(
-                widget=forms.TextInput(), label="Project", max_length=100, required=True
+                widget=forms.TextInput(),
+                label="Project",
+                max_length=100,
+                required=False,
             )
 
     def parse_bibtex(self, bibtex_string):
