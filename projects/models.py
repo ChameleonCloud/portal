@@ -311,6 +311,7 @@ class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
     STATUS_REFERENCE_ONLY = "REFERENCE_ONLY"
+    STATUS_PRODUCED_BY_CHAMELEON = "PRODUCED_BY_CHAMELEON"
     STATUS_REJECTED = "REJECTED"
     STATUS_DELETED = "DELETED"
 
@@ -320,6 +321,7 @@ class Publication(models.Model):
         (STATUS_REFERENCE_ONLY, "References, does not use Chameleon"),
         (STATUS_REJECTED, "Rejected"),
         (STATUS_DELETED, "Deleted"),
+        (STATUS_PRODUCED_BY_CHAMELEON, "Produced by the Chameleon team"),
     ]
 
     # keys to report in __repr__

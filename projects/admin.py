@@ -337,6 +337,16 @@ class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
         "entry_created_date",
     )
 
+    autocomplete_fields = ("publication",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "publication":
+            kwargs["queryset"] = Publication.objects.order_by(
+                "-status",
+                "title",
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class PotentialDuplicateFilter(admin.SimpleListFilter):
     title = "Is a Potential Duplicate"

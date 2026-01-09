@@ -200,7 +200,7 @@ RawPublicationSource = namedtuple(
 class PublicationUtils:
     # ratio threshold from difflib.SequenceMatcher for publication titles
     SIMILARITY_THRESHOLD = 0.9
-    PUB_TITLE_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.7
+    PUB_TITLE_DUPLICATE_CHECK_SIMILARITY_THRESHOLD = 0.5
 
     @staticmethod
     def get_month(bibtex_entry):
@@ -311,13 +311,6 @@ class PublicationUtils:
         return SequenceMatcher(None, str1, str2).ratio()
 
     @staticmethod
-    def is_similar_str(str1, str2):
-        return (
-            PublicationUtils.how_similar(str1, str2)
-            >= PublicationUtils.SIMILARITY_THRESHOLD
-        )
-
-    @staticmethod
     def is_pub_similar(pub1, pub2):
         """Returns if the arg:pub1 and arg:pub2 are similar
         It returns true if the year are an exact match and
@@ -333,8 +326,6 @@ class PublicationUtils:
         Returns:
             boolean
         """
-        if str(pub1.year) != str(pub2.year):
-            return False
         if (
             PublicationUtils.how_similar(pub1.title, pub2.title)
             > PublicationUtils.PUB_TITLE_DUPLICATE_CHECK_SIMILARITY_THRESHOLD

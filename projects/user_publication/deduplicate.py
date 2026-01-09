@@ -19,9 +19,8 @@ def get_originals_for_duplicate_pub(dpub):
         list: original publications that are similar to dpub
     """
     pubs_to_check_against = (
-        Publication.objects.filter(
-            year=dpub.year, id__lt=dpub.id, checked_for_duplicates=True
-        )
+        Publication.objects.filter(checked_for_duplicates=True)
+        .exclude(id=dpub.id)
         .exclude(status="DUPLICATE")
         .order_by("id")
     )
