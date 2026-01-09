@@ -6,7 +6,13 @@ import logging
 from projects.models import (
     Publication,
 )
-from projects.user_publication import science_direct, scopus, semantic_scholar, utils
+from projects.user_publication import (
+    openalex,
+    science_direct,
+    scopus,
+    semantic_scholar,
+    utils,
+)
 from projects.user_publication.utils import update_progress
 from celery.decorators import task
 
@@ -26,6 +32,11 @@ def import_pubs_semantic_scholar_task(self):
 @task(bind=True)
 def import_pubs_science_direct_task(self):
     return import_pubs_task(self, "science_direct")
+
+
+@task(bind=True)
+def import_pubs_openalex_task(self):
+    return import_pubs_task(self, "openalex")
 
 
 @task(bind=True)
@@ -65,6 +76,8 @@ def import_pubs(task, source="all"):
         pubs.extend(semantic_scholar.pub_import(task))
     if source in ["science_direct", "all"]:
         pubs.extend(science_direct.pub_import(task))
+    if source in ["openalex", "all"]:
+        pubs.extend(openalex.pub_import(task))
 
     # Process each found publication
     for i, raw_pub in enumerate(pubs):
