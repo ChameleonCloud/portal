@@ -5,7 +5,7 @@ import bibtexparser
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.http import Http404
 from django.template.loader import get_template
 from django.shortcuts import render
@@ -92,36 +92,43 @@ def user_publications(request):
     mapper = ProjectAllocationMapper(request)
     project_ids = [p["id"] for p in mapper.get_user_projects(request.user.username)]
     context["publications"] = []
-    pubs = Publication.objects.filter(project_id__in=project_ids).exclude(
-        status=Publication.STATUS_DELETED
+    pubs = (
+        Publication.objects.filter(
+            Q(project_id__in=project_ids) | Q(added_by_username=request.user.username)
+        )
+        .exclude(status=Publication.STATUS_DELETED)
+        .exclude(status="DUPLICATE")
     )
+    nice_status_map = {
+        Publication.STATUS_SUBMITTED: "Pending Review",
+        Publication.STATUS_APPROVED: "Verified",
+    }
     for pub in pubs:
-        project = ProjectAllocationMapper.get_publication_project(pub)
-        if project:
-            context["publications"].append(
-                {
-                    "id": pub.id,
-                    "title": pub.title,
-                    "author": pub.author,
-                    "link": "" if not pub.link else pub.link,
-                    "forum": pub.forum,
-                    "month": (
-                        ""
-                        if not pub.month
-                        else datetime.datetime.strptime(str(pub.month), "%m").strftime(
-                            "%b"
-                        )
-                    ),
-                    "year": pub.year,
-                    "nickname": project.nickname,
-                    "chargeCode": project.charge_code,
-                    "status": pub.status,
-                    "added_by_username": pub.added_by_username,
-                    "reviewed_by": pub.reviewed_by,
-                    "reviewed_date": pub.reviewed_date,
-                    "reviewed_comment": pub.reviewed_comment,
-                }
-            )
+        nice_status = nice_status_map.get(pub.status, None)
+        if not nice_status:
+            nice_status = pub.get_status_display()
+
+        context["publications"].append(
+            {
+                "id": pub.id,
+                "title": pub.title,
+                "author": pub.author,
+                "link": "" if not pub.link else pub.link,
+                "forum": pub.forum,
+                "month": (
+                    ""
+                    if not pub.month
+                    else datetime.datetime.strptime(str(pub.month), "%m").strftime("%b")
+                ),
+                "year": pub.year,
+                "status": pub.status,
+                "nice_status": nice_status,
+                "added_by_username": pub.added_by_username,
+                "reviewed_by": pub.reviewed_by,
+                "reviewed_date": pub.reviewed_date,
+                "reviewed_comment": pub.reviewed_comment,
+            }
+        )
     context["is_pi"] = is_pi_eligible(request.user)
     logger.info(get_template("projects/view_publications.html").template.origin)
     return render(request, "projects/view_publications.html", context)
@@ -222,9 +229,10 @@ def add_publications(request, project_id=None):
         pubs_form = AddBibtexPublicationForm(request.POST, user=request.user)
         if pubs_form.is_valid():
             # If project not in url, load it from form
-            project = project or mapper.get_project(
-                pubs_form.cleaned_data["project_id"]
-            )
+            if pubs_form.cleaned_data["project_id"]:
+                project = project or mapper.get_project(
+                    pubs_form.cleaned_data["project_id"]
+                )
 
             new_pubs = create_pubs_from_bibtext_string(
                 pubs_form.cleaned_data["bibtex_string"],
@@ -232,13 +240,10 @@ def add_publications(request, project_id=None):
                 request.user.username,
             )
             messages.success(request, "Publication(s) added successfully")
-            ticket_id = _send_publication_notification(project.chargeCode, new_pubs)
-            duplicate_pubs = get_duplicate_pubs(new_pubs)
-            # if any of the pubs have duplicates
-            if any(v for v in duplicate_pubs.values()):
-                _send_duplicate_pubs_notification(
-                    ticket_id, project.chargeCode, duplicate_pubs
-                )
+            if project:
+                _send_publication_notification(project.chargeCode, new_pubs)
+            else:
+                _send_publication_notification("unspecified", new_pubs)
         else:
             messages.error(request, "Error adding publication(s).")
             for error in pubs_form.errors:

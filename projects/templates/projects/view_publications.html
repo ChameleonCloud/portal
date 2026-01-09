@@ -4,16 +4,8 @@
 {% block content %}
 
 <style>
-  .user_pub_table td:first-child div {
-    display: flex;
-  }
-
-  .user_pub_table td div {
-    margin-right: 2rem;
-  }
-
-  .user_pub_table ul {
-    padding: 0;
+  .pub-table {
+    background-color: white;
   }
 </style>
 
@@ -25,15 +17,14 @@
   </a>
   {% endif %}
 </h2>
-<table class="user_pub_table">
-  <thead>
+<p>
+  The publications in this list have been submitted by you or by other members in your projects.
+  Verified publications appear on our <a href="/user/projects/chameleon-used-research/">list of users' publications</a>.
+  It may take a few days for us to review your publications.
+</p>
+<table class="table table-striped table-hover table-bordered pub-table">
+  <thead class="thead">
     <tr>
-      <td>
-        Project
-      </td>
-      <td>
-        Submitted by
-      </td>
       <td>
         Status
       </td>
@@ -42,28 +33,11 @@
       </td>
     </tr>
   </thead>
+  <tbody>
   {% for p in publications %}
   <tr>
     <td>
-      <div>
-        {% if p.added_by_username == user.username %}
-        <form role="form" method="post" style="display:inline">
-          {% csrf_token %}
-          <input type="hidden" name="pub_ref" value="{{ p.id }}">
-          <button type="submit" class="btn btn-xs btn-link" name="del_pub"><i
-              class="fa fa-minus-square text-danger"></i><span class="sr-only">Remove publication</span></button>
-        </form>
-        {% endif %}
-        {% if p.nickname %} {{p.nickname}} {% else %} {{ p.chargeCode }} {% endif %}
-      </div>
-    </td>
-    <td>
-      <div>
-        {{p.added_by_username}}{% if p.submitted_date %} on {{p.submitted_date}}{% endif %}
-      </div>
-    </td>
-    <td>
-      <div>{{p.status}}</div>
+      <div>{{p.nice_status}}</div>
       {% if p.reviewed_by %}
       <details>
         <summary>
@@ -84,6 +58,7 @@
     </td>
   </tr>
   {% endfor %}
+  </tbody>
 </table>
 
 {% endblock %}
