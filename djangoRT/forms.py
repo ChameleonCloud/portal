@@ -143,7 +143,7 @@ class TicketGuestForm(BaseTicketForm):
     """
 
     # label="" to not show the "Captcha" label in webpage
-    captcha = ReCaptchaField(widget=ReCaptchaV3, label="")
+    captcha = ReCaptchaField(widget=ReCaptchaV3(action="guest_ticket"), label="")
 
 
 class ReplyForm(forms.Form):
