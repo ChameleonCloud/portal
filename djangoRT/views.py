@@ -291,14 +291,15 @@ def ticketcreateguest(request):
         return HttpResponseRedirect(reverse("djangoRT:ticketcreate"))
 
     if request.method == "POST":
-        form = forms.TicketGuestForm(request.POST, request.FILES)
+        form = forms.TicketGuestForm(request.POST, request.FILES, request=request)
+        LOG.info("Handling guest ticket.")
         ticket_id = _handle_ticket_form(request, form)
         if ticket_id is not None:
             # Clear out the form
-            form = forms.TicketGuestForm()
+            form = forms.TicketGuestForm(request=request)
             return render(request, "djangoRT/ticketCreateGuest.html", {"form": form})
     else:
-        form = forms.TicketGuestForm()
+        form = forms.TicketGuestForm(request=request)
 
     return render(request, "djangoRT/ticketCreateGuest.html", {"form": form})
 
