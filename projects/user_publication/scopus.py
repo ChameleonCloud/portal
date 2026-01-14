@@ -103,9 +103,15 @@ def update_citations():
         publication__status=Publication.STATUS_APPROVED,
         source_id__isnull=False,
     ).select_related("publication"):
-        ab = AbstractRetrieval(pub.source_id, view="REF")
-        c = 0
-        if ab.citedby_count:
-            c = ab.citedby_count
-        pub.citation_count = c
-        pub.save()
+        # skip empty string
+        if not pub.source_id:
+            continue
+        try:
+            logger.info(f"Updating citations for {pub.source_id}")
+            ab = AbstractRetrieval(pub.source_id)
+            if ab.citedby_count:
+                pub.citation_count = ab.citedby_count
+                pub.save()
+        except Exception as e:
+            logger.error(f"Error updating citations for {pub.source_id}: {e}")
+            logger.exception(e)
