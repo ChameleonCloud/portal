@@ -292,7 +292,7 @@ def ticketcreateguest(request):
 
     if request.method == "POST":
         form = forms.TicketGuestForm(request.POST, request.FILES, request=request)
-        LOG.info("Handling guest ticket.")
+        logger.info("Handling guest ticket.")
         ticket_id = _handle_ticket_form(request, form)
         if ticket_id is not None:
             # Clear out the form
