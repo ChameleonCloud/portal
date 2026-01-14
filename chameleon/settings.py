@@ -357,9 +357,7 @@ LOGIN_REDIRECT_URL = "/user/dashboard"
 # Recaptcha keys
 RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY", default="")
 RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY", default="")
-RECAPTCHA_REQUIRED_SCORE = float(
-    os.getenv("RECAPTCHA_REQUIRED_SCORE", default="0.85")
-)
+RECAPTCHA_REQUIRED_SCORE = float(os.getenv("RECAPTCHA_REQUIRED_SCORE", default="0.85"))
 
 OPENID_PROVIDERS = {
     "geni": {

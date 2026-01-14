@@ -340,7 +340,11 @@ class Publication(models.Model):
 
     tas_project_id = models.IntegerField(null=True)
     project = models.ForeignKey(
-        Project, related_name="project_publication", null=True, on_delete=models.CASCADE, blank=True,
+        Project,
+        related_name="project_publication",
+        null=True,
+        on_delete=models.CASCADE,
+        blank=True,
     )
     publication_type = models.CharField(max_length=50, null=False)
     forum = models.CharField(max_length=500, null=True, blank=True)
@@ -546,7 +550,11 @@ class RawPublication(models.Model):
         max_length=1024,
     )
     project = models.ForeignKey(
-        Project, null=True, on_delete=models.CASCADE, related_name="raw_pubs", blank=True,
+        Project,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="raw_pubs",
+        blank=True,
     )
     publication_type = models.CharField(max_length=50, null=False)
     forum = models.CharField(max_length=500, null=True, blank=True)
