@@ -144,6 +144,48 @@ class TicketGuestForm(BaseTicketForm):
 
     # label="" to not show the "Captcha" label in webpage
     captcha = ReCaptchaField(widget=ReCaptchaV3(action="guest_ticket"), label="")
+    captcha_answer = forms.IntegerField(label="Math Captcha", required=True)
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop("request", None)
+        super(TicketGuestForm, self).__init__(*args, **kwargs)
+
+        if request:
+            if not self.is_bound:
+                # Generate a simple math problem
+                import random
+
+                num1 = random.randint(1, 10)
+                num2 = random.randint(1, 10)
+                question = f"What is {num1} + {num2}?"
+                expected_sum = num1 + num2
+
+                # Store the expected sum and question in the session
+                request.session["captcha_expected_sum"] = expected_sum
+                request.session["captcha_question"] = question
+
+                self.fields["captcha_answer"].label = question
+                self.fields["captcha_answer"].widget.attrs[
+                    "placeholder"
+                ] = "Enter the sum"
+            else:
+                # If bound, use the stored question for the label so it persists on error
+                question = request.session.get("captcha_question", "Math Captcha")
+                self.fields["captcha_answer"].label = question
+
+        self.request = request
+
+    def clean_captcha_answer(self):
+        answer = self.cleaned_data.get("captcha_answer")
+        if self.request:
+            expected_sum = self.request.session.get("captcha_expected_sum")
+            if expected_sum is None:
+                # Session expired or manipulated?
+                raise forms.ValidationError("Session expired, please refresh the page.")
+
+            if answer != expected_sum:
+                raise forms.ValidationError("Incorrect answer, please try again.")
+        return answer
 
 
 class ReplyForm(forms.Form):
