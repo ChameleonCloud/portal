@@ -1,6 +1,7 @@
 from datetime import date
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html
@@ -718,7 +719,7 @@ class ForumAliasInline(admin.TabularInline):
 class ForumPublicationInline(admin.TabularInline):
     model = Publication
     extra = 0
-    fields = ["title", "year", "author"]
+    fields = ["title", "author"]
     can_delete = False
     fk_name = "normalized_forum"
     show_change_link = True
@@ -731,7 +732,6 @@ class ForumAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "pub_count",
-        "year",
         "organization",
         "forum_type",
         "country",
@@ -741,8 +741,15 @@ class ForumAdmin(admin.ModelAdmin):
     inlines = [ForumAliasInline, ForumPublicationInline]
     readonly_fields = ["pub_count"]
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(pub_count=Count("publications"))
+
     def pub_count(self, obj):
-        return obj.publications.count()
+        return obj.pub_count
+
+    pub_count.admin_order_field = "pub_count"
+    pub_count.short_description = "Publications"
 
 
 admin.site.register(Publication, PublicationAdmin)

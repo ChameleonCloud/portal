@@ -2,16 +2,13 @@
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, models
 import json
 import re
 
 from openai import OpenAI
 
 from projects.models import Publication, Forum, ForumAlias
-
-
-YEAR_RE = re.compile(r"(19|20)\d{2}")
 
 
 class Command(BaseCommand):
@@ -42,37 +39,44 @@ class Command(BaseCommand):
             self.process_publication(pub)
 
     def process_publication(self, publication):
-        raw_forums = (
+        # Pick ONE best raw forum based on source priority + recency
+        raw_source = (
             publication.raw_sources.exclude(forum__isnull=True)
             .exclude(forum__exact="")
-            .values_list("forum", flat=True)
-            .distinct()
+            .annotate(
+                source_rank=models.Case(
+                    models.When(name="scopus", then=models.Value(0)),
+                    models.When(name="semantic_scholar", then=models.Value(1)),
+                    default=models.Value(2),
+                    output_field=models.IntegerField(),
+                )
+            )
+            .order_by("source_rank", "-entry_created_date")
+            .first()
         )
 
-        if not raw_forums:
+        if not raw_source or not raw_source.forum:
             return
 
-        raw_forums = [f.strip() for f in raw_forums]
+        raw_forum = raw_source.forum.strip()
+        raw_forums = [raw_forum]
 
         # 1. Exact alias match
         alias = (
-            ForumAlias.objects.filter(alias__in=raw_forums)
-            .select_related("forum")
-            .first()
+            ForumAlias.objects.filter(alias=raw_forum).select_related("forum").first()
         )
         if alias:
             self.attach(publication, alias.forum, reason="exact alias")
             return
 
-        # 2. Heuristic match (strip year, lowercase)
-        for raw in raw_forums:
-            normalized = self.normalize_string(raw)
-            alias = ForumAlias.objects.filter(alias__iexact=normalized).first()
-            if alias:
-                self.attach(publication, alias.forum, reason="heuristic alias")
-                return
+        # 2. Heuristic alias match
+        normalized = self.normalize_string(raw_forum)
+        alias = ForumAlias.objects.filter(alias__iexact=normalized).first()
+        if alias:
+            self.attach(publication, alias.forum, reason="heuristic alias")
+            return
 
-        # 3. AI normalization
+        # 3. AI normalization (single forum)
         ai_data = self.generate_forum_metadata(raw_forums)
         if not ai_data:
             self.stdout.write(
@@ -82,34 +86,48 @@ class Command(BaseCommand):
             )
             return
 
+        # Handle parent forum if returned by AI
+        parent_forum = None
+        parent_name = ai_data.get("parent_name")
+        if parent_name:
+            parent_forum, _ = Forum.objects.get_or_create(
+                name=parent_name,
+                defaults={
+                    "forum_type": "conference",  # assume parent is a conference
+                    "organization": ai_data.get("organization", "unknown"),
+                    "country": ai_data.get("country", ""),
+                    "source": "ai",
+                    "source_comment": "Parent venue created via AI normalization",
+                },
+            )
+
+        # Create the main forum (workshop or conference)
         forum, created = Forum.objects.get_or_create(
             name=ai_data["name"],
-            year=ai_data.get("year"),
             defaults={
-                "organization": ai_data["organization"],
-                "forum_type": ai_data["forum_type"],
-                "country": ai_data["country"],
+                "organization": ai_data.get("organization", "unknown"),
+                "forum_type": ai_data.get("forum_type", "unknown"),
+                "country": ai_data.get("country", ""),
+                "parent_forum": parent_forum,  # link to parent if exists
                 "source": "ai",
                 "source_comment": "Created via AI normalization",
             },
         )
 
-        for raw in raw_forums:
-            ForumAlias.objects.get_or_create(
-                forum=forum,
-                alias=raw,
-            )
+        # Create alias for the raw forum string
+        ForumAlias.objects.get_or_create(
+            forum=forum,
+            alias=raw_forums[0],
+        )
 
+        # Attach the publication
         self.attach(publication, forum, reason="openai generated")
 
         if created:
-            self.stdout.write(
-                f"Created forum: {forum.name} ({forum.year}) [{forum.organization}]"
-            )
+            self.stdout.write(f"Created forum: {forum.name} [{forum.organization}]")
 
     def normalize_string(self, value):
         value = value.lower()
-        value = YEAR_RE.sub("", value)
         value = re.sub(r"\W+", " ", value)
         return value.strip()
 
@@ -151,13 +169,15 @@ Do NOT include markdown or explanations.
 
 JSON fields:
 - name: canonical series name (string, required)
-- year: integer year or null
 - organization: one of [acm, ieee, usenix, springer, elsevier, other, unknown]
 - forum_type: one of [conference, journal, workshop, symposium, other, unknown]
 - country: host country or empty string
 
 Rules:
-- If input refers to a workshop, normalize to the PARENT venue.
+- If the input refers to a workshop:
+  - "name" MUST be the WORKSHOP SERIES NAME (stable across years)
+  - "forum_type" MUST be "workshop"
+  - Include "parent_name" as the canonical parent venue (if known)
 - Prefer abbreviation over expanded form when one is commonly used.
 - Do NOT invent data; use null or "unknown" when unsure.
 
@@ -189,7 +209,6 @@ Respond with ONLY valid JSON.
 
         return {
             "name": name[:512],
-            "year": data.get("year"),
             "organization": data.get("organization", "unknown"),
             "forum_type": data.get("forum_type", "unknown"),
             "country": data.get("country", ""),

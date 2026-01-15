@@ -674,7 +674,16 @@ class Forum(models.Model):
         unique_together = ("name", "year")
 
     def __str__(self):
-        return f"{self.name} ({self.year})" if self.year else self.name
+        return f"{self.name}"
+
+    parent_forum = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="child_forums",
+        help_text="Parent venue (e.g. conference hosting this workshop)",
+    )
 
 
 class ForumAlias(models.Model):
