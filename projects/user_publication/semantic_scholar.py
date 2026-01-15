@@ -38,29 +38,62 @@ CHAMELEON_REFS_REGEX = [
 
 def _get_citation_count(pid):
     url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}"
-    for attempt in range(1, 4):
-        response = requests.get(
-            url,
-            params={"fields": "citationCount"},
-            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
-        )
-        d = response.json()
-        if response.status_code == 200:
-            return d.get("citationCount", 0)
 
-        elif response.status_code == 429:
-            retry_after = int(response.headers.get("Retry-After", attempt))
-            logger.warning(
-                f"Rate limit hit for {pid}, waiting {retry_after}s (attempt {attempt}/3)"
+    headers = {
+        "x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY,
+    }
+
+    for attempt in range(1, 4):
+        try:
+            # we are always limited to 1 rps
+            time.sleep(2)
+            logger.info(f"Fetching citation count for {pid}")
+            response = requests.get(
+                url,
+                params={"fields": "citationCount"},
+                headers=headers,
+                timeout=10,
             )
-            time.sleep(retry_after)
-            continue
-        else:
+            logger.info(f"Response for {pid}: {response.status_code}")
+
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                except ValueError:
+                    logger.warning(f"Non-JSON response for {pid}")
+                    return 0
+
+                return data.get("citationCount", 0)
+
+            elif response.status_code == 429:
+                retry_after = response.headers.get("Retry-After")
+                wait = (
+                    int(retry_after)
+                    if retry_after and retry_after.isdigit()
+                    else attempt
+                )
+                wait = 5
+                logger.warning(
+                    f"Semantic Scholar rate limit for {pid}, "
+                    f"waiting {wait}s (attempt {attempt}/3)"
+                )
+                time.sleep(wait)
+                continue
+
+            else:
+                logger.warning(
+                    f"Semantic Scholar error for {pid}: "
+                    f"HTTP {response.status_code} (attempt {attempt}/3)"
+                )
+                time.sleep(5)
+
+        except requests.RequestException as e:
             logger.warning(
-                f"Failed to get citation count for {pid}, status {response.status_code}; "
-                f"attempt {attempt}/3"
+                f"Request error fetching citation count for {pid}: {e} "
+                f"(attempt {attempt}/3)"
             )
             time.sleep(attempt)
+
     logger.error(f"Giving up getting citation count for {pid}")
     return 0
 
@@ -248,5 +281,13 @@ def update_citations():
         publication__status=Publication.STATUS_APPROVED,
         source_id__isnull=False,
     ).select_related("publication"):
-        pub.citation_count = _get_citation_count(pub.source_id)
-        pub.save()
+        if not pub.source_id:
+            continue
+        try:
+            c = _get_citation_count(pub.source_id)
+            if c:
+                pub.citation_count = c
+                pub.save()
+        except Exception as e:
+            logger.error(f"Error updating citations for {pub.source_id}: {e}")
+            logger.exception(e)
