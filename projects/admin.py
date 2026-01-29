@@ -39,6 +39,10 @@ from projects.models import (
 from projects.user_publication.utils import PublicationUtils
 from projects.views import resend_invitation
 
+from projects.user_publication.utils import (
+    RawPublicationSource,
+)
+
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -528,7 +532,40 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     username="admin",
                     source=form.cleaned_data["source"],
                 )
-                messages.success(request, f"Added {len(new_pubs)} publications")
+
+                duplicates_count = 0
+                for pub in new_pubs:
+                    matches = utils.get_publications_with_same_attributes(
+                        pub, Publication
+                    )
+                    matches = [m for m in matches if m.id != pub.id]
+
+                    if matches:
+                        target_pub = matches[0]
+                        source = pub.raw_sources.first()
+                        if source:
+                            utils.add_source_to_pub(
+                                target_pub,
+                                RawPublicationSource(
+                                    source_name=source.name,
+                                    source_id=source.source_id,
+                                    pub_model=pub,
+                                    cites_chameleon_pub=None,
+                                    found_with_query=None,
+                                ),
+                            )
+                        pub.delete()
+                        duplicates_count += 1
+
+                messages.success(
+                    request,
+                    (
+                        f"Added {len(new_pubs)} new publications. Merged {duplicates_count} duplicate(s)."
+                        if duplicates_count > 0
+                        else f"Added {len(new_pubs)} new publications."
+                    ),
+                )
+
                 return redirect(request.path)
             else:
                 messages.error(request, "Error adding publication(s).")
@@ -619,7 +656,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             except Project.DoesNotExist:
                 LOG.info(f"{project_code} does not exist in database")
                 continue
-            if utils.is_project_prior_to_publication(project, obj.year):
+            if not obj.year or utils.is_project_prior_to_publication(project, obj.year):
                 valid_projects.append(f"<li>{_project_href(project)}</li>")
 
         return mark_safe("<ul>" + "".join(valid_projects) + "</ul>")
