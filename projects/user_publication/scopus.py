@@ -7,6 +7,7 @@ from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 
 from projects.models import (
     Publication,
+    PublicationCitation,
     PublicationQuery,
     RawPublication,
 )
@@ -90,7 +91,7 @@ def pub_import(task, dry_run=True):
     return publications
 
 
-def update_citations():
+def update_citation(pub):
     # for each rawpublication that is scopus, from an approved publication
     pybliometrics.scopus.init(
         config_path="/project/pybliometrics.cfg",
@@ -98,20 +99,48 @@ def update_citations():
         inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
     )
 
-    for pub in RawPublication.objects.filter(
-        name=RawPublication.SCOPUS,
-        publication__status=Publication.STATUS_APPROVED,
-        source_id__isnull=False,
-    ).select_related("publication"):
-        # skip empty string
-        if not pub.source_id:
-            continue
-        try:
-            logger.info(f"Updating citations for {pub.source_id}")
-            ab = AbstractRetrieval(pub.source_id)
-            if ab.citedby_count:
-                pub.citation_count = ab.citedby_count
-                pub.save()
-        except Exception as e:
-            logger.error(f"Error updating citations for {pub.source_id}: {e}")
-            logger.exception(e)
+    try:
+        raw_pub = pub.raw_sources.filter(name=RawPublication.SCOPUS).first()
+        source_id = None
+        if raw_pub:
+            source_id = raw_pub.source_id
+
+        if not source_id:
+            try:
+                if pub.citation.scopus_source_id:
+                    source_id = pub.citation.scopus_source_id
+            except PublicationCitation.DoesNotExist:
+                pass
+
+        if not source_id:
+            # Search by title
+            query = f"TITLE({pub.title})"
+            search = ScopusSearch(query)
+            if search.results:
+                # Ensure title matches
+                for result in search.results:
+                    # Scopus title might be unicode, good to decode if needed, but title is str here
+                    # result.title might be None?
+                    result_title = result.title or ""
+                    if result_title.lower() == pub.title.lower():
+                        source_id = result.eid
+                        break
+
+        if source_id:
+            ab = AbstractRetrieval(source_id)
+            citation_count = ab.citedby_count
+
+            # Update RawPublication if it exists
+            if raw_pub:
+                raw_pub.citation_count = citation_count
+                raw_pub.save()
+
+            # Update PublicationCitation
+            pub_citation, _ = PublicationCitation.objects.get_or_create(publication=pub)
+            pub_citation.scopus_source_id = source_id
+            pub_citation.scopus_citation_count = citation_count
+            pub_citation.save()
+
+    except Exception as e:
+        logger.error(f"Error updating scopus citations for {pub.id}: {e}")
+        logger.exception(e)

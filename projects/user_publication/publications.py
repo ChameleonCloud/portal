@@ -40,13 +40,11 @@ def import_pubs_openalex_task(self):
 
 
 @task(bind=True)
-def update_scopus_citations_task(self):
-    scopus.update_citations()
-
-
-@task(bind=True)
-def update_semantic_scholar_citations_task(self):
-    semantic_scholar.update_citations()
+def update_citations_task(self):
+    for pub in Publication.objects.filter(status=Publication.STATUS_APPROVED):
+        LOG.info(f"Updating citations for {pub.id}")
+        scopus.update_citation(pub)
+        semantic_scholar.update_citation(pub)
 
 
 def import_pubs_task(self, source):

@@ -19,8 +19,7 @@ from projects.user_publication.publications import (
     import_pubs_scopus_task,
     import_pubs_semantic_scholar_task,
     import_pubs_openalex_task,
-    update_scopus_citations_task,
-    update_semantic_scholar_citations_task,
+    update_citations_task,
 )
 
 from allocations.models import Allocation
@@ -32,6 +31,7 @@ from projects.models import (
     Invitation,
     Project,
     Publication,
+    PublicationCitation,
     PublicationQuery,
     PublicationSource,
     RawPublication,
@@ -268,6 +268,19 @@ class ChameleonPublicationAdmin(admin.ModelAdmin):
     inlines = [ChameleonPublicationRawPublicationInline]
 
 
+class PublicationCitationInline(admin.StackedInline):
+    model = PublicationCitation
+    fields = (
+        "scopus_source_id",
+        "scopus_citation_count",
+        "semantic_scholar_source_id",
+        "semantic_scholar_citation_count",
+    )
+    can_delete = False
+    verbose_name = "Citation"
+    verbose_name_plural = "Citations"
+
+
 class QueryRawPublicationInline(admin.TabularInline):
     model = RawPublication.publication_queries.through
     extra = 0
@@ -389,7 +402,7 @@ class PotentialDuplicateFilter(admin.SimpleListFilter):
 
 
 class PublicationAdmin(ProjectFields, admin.ModelAdmin):
-    inlines = (RawPublicationInline,)
+    inlines = (RawPublicationInline, PublicationCitationInline)
 
     fieldsets = [
         (
@@ -490,12 +503,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                 import_pubs_openalex_task,
             ),
             AdminTaskManager(
-                self.admin_site, "update_scopus_citations", update_scopus_citations_task
-            ),
-            AdminTaskManager(
-                self.admin_site,
-                "update_semantic_scholar_citations_task",
-                update_semantic_scholar_citations_task,
+                self.admin_site, "update_citations", update_citations_task
             ),
         ]
 

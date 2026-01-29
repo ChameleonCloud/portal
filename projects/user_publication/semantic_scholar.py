@@ -9,6 +9,7 @@ from django.conf import settings
 from projects.models import (
     ChameleonPublication,
     Publication,
+    PublicationCitation,
     PublicationQuery,
     RawPublication,
 )
@@ -85,7 +86,7 @@ def _get_citation_count(pid):
                     f"Semantic Scholar error for {pid}: "
                     f"HTTP {response.status_code} (attempt {attempt}/3)"
                 )
-                time.sleep(5)
+                time.sleep(2 * attempt)
 
         except requests.RequestException as e:
             logger.warning(
@@ -145,11 +146,43 @@ def _bulk_search(query, fields=None):
     )
 
 
+def _search_paper(query, fields=None, limit=10):
+    url = "https://api.semanticscholar.org/graph/v1/paper/search"
+    if fields is None:
+        fields = FIELDS
+
+    params = {
+        "query": query,
+        "fields": ",".join(fields),
+        "limit": limit,
+    }
+
+    time.sleep(1)
+    logger.info(f"Searching for {query}")
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers={"x-api-key": settings.SEMANTIC_SCHOLAR_API_KEY},
+        )
+
+        if response.status_code == 200:
+            return response.json().get("data", [])
+        else:
+            logger.warning(f"Search failed for {query}: {response.status_code}")
+            return []
+    except Exception as e:
+        logger.error(f"Error searching for {query}: {e}")
+        return []
+
+
 def _semantic_scholar_paginated_get(url, params, fields, limit=1000):
     all_results = []
     offset = 0
 
     while True:
+        time.sleep(1)
         params = params.copy()
         params.update(
             {
@@ -275,19 +308,47 @@ def pub_import(task, dry_run=True):
     return publications
 
 
-def update_citations():
-    for pub in RawPublication.objects.filter(
-        name=RawPublication.SEMANTIC_SCHOLAR,
-        publication__status=Publication.STATUS_APPROVED,
-        source_id__isnull=False,
-    ).select_related("publication"):
-        if not pub.source_id:
-            continue
-        try:
-            c = _get_citation_count(pub.source_id)
-            if c:
-                pub.citation_count = c
-                pub.save()
-        except Exception as e:
-            logger.error(f"Error updating citations for {pub.source_id}: {e}")
-            logger.exception(e)
+def update_citation(pub):
+    try:
+        raw_pub = pub.raw_sources.filter(name=RawPublication.SEMANTIC_SCHOLAR).first()
+        source_id = None
+        if raw_pub:
+            source_id = raw_pub.source_id
+        if not source_id:
+            try:
+                if pub.citation.semantic_scholar_source_id:
+                    source_id = pub.citation.semantic_scholar_source_id
+            except PublicationCitation.DoesNotExist:
+                pass
+
+        if not source_id:
+            # Search by title
+            results = _search_paper(
+                pub.title, fields=["paperId", "citationCount", "title"]
+            )
+            if results:
+                # Ensure title matches
+                for result in results:
+                    if result.get("title", "").lower() == pub.title.lower():
+                        source_id = result.get("paperId")
+                        break
+
+        if source_id:
+            count = _get_citation_count(source_id)
+            if count is not None:
+                # Update RawPublication if it exists
+                if raw_pub:
+                    raw_pub.citation_count = count
+                    raw_pub.save()
+
+                # Update PublicationCitation
+                pub_citation, _ = PublicationCitation.objects.get_or_create(
+                    publication=pub
+                )
+                pub_citation.semantic_scholar_source_id = source_id
+                pub_citation.semantic_scholar_citation_count = count
+                pub_citation.save()
+
+    except Exception as e:
+        logger.error(f"Error updating semantic scholar citations for {pub.id}: {e}")
+        logger.exception(e)

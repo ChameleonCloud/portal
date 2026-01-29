@@ -694,3 +694,15 @@ class ForumAlias(models.Model):
 
     def __str__(self):
         return self.alias
+
+
+class PublicationCitation(models.Model):
+    publication = models.OneToOneField(
+        Publication, related_name="citation", on_delete=models.CASCADE
+    )
+    scopus_citation_count = models.IntegerField(default=0)
+    semantic_scholar_citation_count = models.IntegerField(default=0)
+    scopus_source_id = models.CharField(max_length=1024, null=True, blank=True)
+    semantic_scholar_source_id = models.CharField(
+        max_length=1024, null=True, blank=True
+    )
