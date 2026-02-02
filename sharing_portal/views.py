@@ -849,6 +849,9 @@ def launch_url(artifact_uuid, version, request, token=None, can_edit=False):
         contents_proto=proto,
         ownership=("own" if can_edit else "fork"),
     )
+    repo_url = request.GET.get("repo_url")
+    if repo_url:
+        query["repo_url"] = repo_url
     return str(base_url + "?" + urlencode(query))
 
 
