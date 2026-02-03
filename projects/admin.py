@@ -542,7 +542,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     cites_chameleon_pub_id=form.cleaned_data["cites_chameleon_pub"],
                     found_with_query_id=form.cleaned_data["found_with_query"],
                 )
-
+                LOG.info(f"Created {len(new_pubs)} new publications from bibtex.")
                 duplicates_count = 0
                 new_pubs_count = 0
                 for pub in new_pubs:
@@ -550,8 +550,10 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                         pub, Publication
                     )
                     matches = [m for m in matches if m.id != pub.id]
-
                     if matches:
+                        LOG.info(
+                            f"Found duplicate publication for {pub.id}, merging into {matches[0].id}"
+                        )
                         target_pub = matches[0]
                         source = pub.raw_sources.first()
                         if source:

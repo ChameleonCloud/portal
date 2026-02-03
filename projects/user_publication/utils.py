@@ -43,10 +43,9 @@ def get_publications_with_same_attributes(pub, publication_model_class):
             author__iexact=pub.author,
             year=pub.year,
         )
-        | Q(doi__iexact=pub.doi)
-    )
+    ).exclude(id=pub.id)
 
-    if not similar_pub.exists():
+    if pub.doi and not similar_pub.exists():
         # Fallback: try matching by DOI only
         similar_pub = publication_model_class.objects.filter(doi__iexact=pub.doi)
 

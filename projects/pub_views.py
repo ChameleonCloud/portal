@@ -241,6 +241,9 @@ def create_pubs_from_bibtext_string(
                     )
                     # update the links, but undi the pub creation here
                     new_pub.delete()
+                    logger.info(
+                        f"Publication from google scholar already exists: {pub_source.publication.id}, ignoring"
+                    )
                     continue
             new_pubs.append(new_pub)
     return new_pubs
