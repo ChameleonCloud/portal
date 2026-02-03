@@ -277,17 +277,18 @@ class AddBibtexPublicationForm(forms.Form):
             self.fields["cites_chameleon_pub"] = forms.ChoiceField(
                 choices=[
                     (None, "N/A"),
-                ] + [
-                    (o.id, o.title) for o in ChameleonPublication.objects.all()
-                ],
+                ]
+                + [(o.id, o.title) for o in ChameleonPublication.objects.all()],
                 required=False,
                 label="Cites Chameleon Publication:",
             )
             self.fields["found_with_query"] = forms.ChoiceField(
                 choices=[
                     (None, "N/A"),
-                ] + [
-                    (o.id, str(o)) for o in PublicationQuery.objects.all().order_by('source_type')
+                ]
+                + [
+                    (o.id, str(o))
+                    for o in PublicationQuery.objects.all().order_by("source_type")
                 ],
                 required=False,
                 label="Found with query:",

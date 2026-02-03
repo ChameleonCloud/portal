@@ -572,7 +572,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
 
                 messages.success(
                     request,
-                    f"Added {new_pubs_count} new publications. Merged {duplicates_count} duplicate(s)."
+                    f"Added {new_pubs_count} new publications. Merged {duplicates_count} duplicate(s).",
                 )
 
                 return redirect(request.path)

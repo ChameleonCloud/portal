@@ -14,7 +14,12 @@ import json
 import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import ChameleonPublication, Publication, PublicationQuery, RawPublication
+from projects.models import (
+    ChameleonPublication,
+    Publication,
+    PublicationQuery,
+    RawPublication,
+)
 from projects.user_publication.deduplicate import get_duplicate_pubs
 from projects.user_publication.utils import PublicationUtils, update_cites_and_query
 from projects.util import get_project_members
@@ -172,7 +177,14 @@ def create_pub_from_bibtex(bibtex_entry, project, username, status):
     return pub
 
 
-def create_pubs_from_bibtext_string(str, project, username, source="user_reported", cites_chameleon_pub_id=None, found_with_query_id=None):
+def create_pubs_from_bibtext_string(
+    str,
+    project,
+    username,
+    source="user_reported",
+    cites_chameleon_pub_id=None,
+    found_with_query_id=None,
+):
     bib_database = bibtexparser.loads(str)
     new_pubs = []
     with transaction.atomic():
@@ -211,7 +223,9 @@ def create_pubs_from_bibtext_string(str, project, username, source="user_reporte
                 pub_source.save()
             elif source == "google_scholar":
                 # Check if we already have this source
-                pub_source = RawPublication.objects.filter(source_id=source_id, name=source).first()
+                pub_source = RawPublication.objects.filter(
+                    source_id=source_id, name=source
+                ).first()
                 if not pub_source:
                     pub_source = RawPublication.from_publication(
                         new_pub, RawPublication.GOOGLE_SCHOLAR

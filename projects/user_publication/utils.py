@@ -93,24 +93,23 @@ def add_source_to_pub(pub, raw_pub):
             source, raw_pub.cites_chameleon_pub, raw_pub.found_with_query
         )
 
-def update_cites_and_query(source, cites_chameleon_pub_obj, found_with_query_obj):
-        if (
-            cites_chameleon_pub_obj
-            and not source.chameleon_publications.filter(
-                pk=cites_chameleon_pub_obj.pk
-            ).exists()
-        ):
-            source.chameleon_publications.add(cites_chameleon_pub_obj)
-            source.save()
 
-        if (
-            found_with_query_obj
-            and not source.publication_queries.filter(
-                pk=found_with_query_obj.pk
-            ).exists()
-        ):
-            source.publication_queries.add(found_with_query_obj)
-            source.save()
+def update_cites_and_query(source, cites_chameleon_pub_obj, found_with_query_obj):
+    if (
+        cites_chameleon_pub_obj
+        and not source.chameleon_publications.filter(
+            pk=cites_chameleon_pub_obj.pk
+        ).exists()
+    ):
+        source.chameleon_publications.add(cites_chameleon_pub_obj)
+        source.save()
+
+    if (
+        found_with_query_obj
+        and not source.publication_queries.filter(pk=found_with_query_obj.pk).exists()
+    ):
+        source.publication_queries.add(found_with_query_obj)
+        source.save()
 
 
 def decode_unicode_text(en_text):
