@@ -14,9 +14,14 @@ import json
 import pydetex.pipelines as pip
 
 from djangoRT import rtModels, rtUtil
-from projects.models import Publication, RawPublication
+from projects.models import (
+    ChameleonPublication,
+    Publication,
+    PublicationQuery,
+    RawPublication,
+)
 from projects.user_publication.deduplicate import get_duplicate_pubs
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import PublicationUtils, update_cites_and_query
 from projects.util import get_project_members
 from projects.views import is_pi_eligible, project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -172,33 +177,71 @@ def create_pub_from_bibtex(bibtex_entry, project, username, status):
     return pub
 
 
-def create_pubs_from_bibtext_string(str, project, username, source="user_reported"):
+def create_pubs_from_bibtext_string(
+    str,
+    project,
+    username,
+    source="user_reported",
+    cites_chameleon_pub_id=None,
+    found_with_query_id=None,
+):
     bib_database = bibtexparser.loads(str)
     new_pubs = []
     with transaction.atomic():
         for entry in bib_database.entries:
             logger.info(entry)
             source_id = entry_to_id(entry)
-            if RawPublication.objects.filter(source_id=source_id, name=source).exists():
-                logger.info(f"Publication {source_id} exists, skipping.")
-                continue
+
             new_pub = create_pub_from_bibtex(
                 entry,
                 project,
                 username,
                 Publication.STATUS_SUBMITTED,
             )
+
+            cites_chameleon_pub = None
+            if cites_chameleon_pub_id:
+                try:
+                    cites_chameleon_pub = ChameleonPublication.objects.get(
+                        id=cites_chameleon_pub_id
+                    )
+                except ChameleonPublication.DoesNotExist:
+                    pass
+            found_with_query = None
+            if found_with_query_id:
+                try:
+                    found_with_query = PublicationQuery.objects.get(
+                        id=found_with_query_id
+                    )
+                except PublicationQuery.DoesNotExist:
+                    pass
+
             if source == "user_reported":
                 pub_source = RawPublication.from_publication(
                     new_pub, RawPublication.USER_REPORTED
                 )
                 pub_source.save()
             elif source == "google_scholar":
-                pub_source = RawPublication.from_publication(
-                    new_pub, RawPublication.GOOGLE_SCHOLAR
-                )
-                pub_source.source_id = source_id
-                pub_source.save()
+                # Check if we already have this source
+                pub_source = RawPublication.objects.filter(
+                    source_id=source_id, name=source
+                ).first()
+                if not pub_source:
+                    pub_source = RawPublication.from_publication(
+                        new_pub, RawPublication.GOOGLE_SCHOLAR
+                    )
+                    pub_source.source_id = source_id
+                    pub_source.save()
+                    update_cites_and_query(
+                        pub_source, cites_chameleon_pub, found_with_query
+                    )
+                else:
+                    update_cites_and_query(
+                        pub_source, cites_chameleon_pub, found_with_query
+                    )
+                    # update the links, but undi the pub creation here
+                    new_pub.delete()
+                    continue
             new_pubs.append(new_pub)
     return new_pubs
 

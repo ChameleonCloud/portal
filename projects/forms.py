@@ -11,7 +11,7 @@ from projects.user_publication.utils import PublicationUtils
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Project, RawPublication
+from .models import Project, RawPublication, ChameleonPublication, PublicationQuery
 
 logger = logging.getLogger("projects")
 
@@ -273,6 +273,25 @@ class AddBibtexPublicationForm(forms.Form):
                 label="source",
                 widget=forms.Select(attrs={"class": "form-control"}),
                 initial=RawPublication.GOOGLE_SCHOLAR,
+            )
+            self.fields["cites_chameleon_pub"] = forms.ChoiceField(
+                choices=[
+                    (None, "N/A"),
+                ]
+                + [(o.id, o.title) for o in ChameleonPublication.objects.all()],
+                required=False,
+                label="Cites Chameleon Publication:",
+            )
+            self.fields["found_with_query"] = forms.ChoiceField(
+                choices=[
+                    (None, "N/A"),
+                ]
+                + [
+                    (o.id, str(o))
+                    for o in PublicationQuery.objects.all().order_by("source_type")
+                ],
+                required=False,
+                label="Found with query:",
             )
 
         initialized_projects = False

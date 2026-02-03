@@ -539,9 +539,12 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     project=None,
                     username="admin",
                     source=form.cleaned_data["source"],
+                    cites_chameleon_pub_id=form.cleaned_data["cites_chameleon_pub"],
+                    found_with_query_id=form.cleaned_data["found_with_query"],
                 )
 
                 duplicates_count = 0
+                new_pubs_count = 0
                 for pub in new_pubs:
                     matches = utils.get_publications_with_same_attributes(
                         pub, Publication
@@ -564,14 +567,12 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                             )
                         pub.delete()
                         duplicates_count += 1
+                    else:
+                        new_pubs_count += 1
 
                 messages.success(
                     request,
-                    (
-                        f"Added {len(new_pubs)} new publications. Merged {duplicates_count} duplicate(s)."
-                        if duplicates_count > 0
-                        else f"Added {len(new_pubs)} new publications."
-                    ),
+                    f"Added {new_pubs_count} new publications. Merged {duplicates_count} duplicate(s).",
                 )
 
                 return redirect(request.path)
