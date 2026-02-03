@@ -77,6 +77,7 @@ def add_source_to_pub(pub, raw_pub):
             source = RawPublication.from_publication(pub, raw_pub.source_name)
             source.name = raw_pub.source_name
 
+        source.publication = pub
         source.source_id = raw_pub.source_id
         source.is_found_by_algorithm = True
 
@@ -88,22 +89,27 @@ def add_source_to_pub(pub, raw_pub):
             source.approved_with = None
         source.save()
 
+        update_cites_and_query(
+            source, raw_pub.cites_chameleon_pub, raw_pub.found_with_query
+        )
+
+def update_cites_and_query(source, cites_chameleon_pub_obj, found_with_query_obj):
         if (
-            raw_pub.cites_chameleon_pub
+            cites_chameleon_pub_obj
             and not source.chameleon_publications.filter(
-                pk=raw_pub.cites_chameleon_pub.pk
+                pk=cites_chameleon_pub_obj.pk
             ).exists()
         ):
-            source.chameleon_publications.add(raw_pub.cites_chameleon_pub)
+            source.chameleon_publications.add(cites_chameleon_pub_obj)
             source.save()
 
         if (
-            raw_pub.found_with_query
+            found_with_query_obj
             and not source.publication_queries.filter(
-                pk=raw_pub.found_with_query.pk
+                pk=found_with_query_obj.pk
             ).exists()
         ):
-            source.publication_queries.add(raw_pub.found_with_query)
+            source.publication_queries.add(found_with_query_obj)
             source.save()
 
 
