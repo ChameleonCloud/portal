@@ -414,7 +414,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                     "potential_project",
                     "publication_type",
                     "forum",
-                    # "year",
+                    "year",
                     # "month",
                     "author",
                     "doi",
