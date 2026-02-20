@@ -1032,7 +1032,12 @@ def create_project(request):
 
             if not nickname_valid:
                 form.add_error("__all__", "Project nickname unavailable")
-                return render(request, "projects/create_project.html", {"form": form})
+                return render(request, "projects/create_project.html", {
+                    "form": form,
+                    "allocation_form": allocation_form,
+                    "funding_formset": funding_formset,
+                    "consent_form": consent_form,
+                })
 
             # pi
             pi_user_id = mapper.get_portal_user_id(request.user.username)
