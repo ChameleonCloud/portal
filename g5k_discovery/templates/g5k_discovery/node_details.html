@@ -34,6 +34,11 @@
     .header-actions {
         text-align: right;
     }
+    .admin-note {
+        background-color: #ffffc4;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
 </style>
 
 {% endblock %} {% block content %}
@@ -45,6 +50,11 @@
         <a href="{{ site_url }}/project/leases/create/{% if node.node_name %}?node_name={{ node.node_name }}{% endif %}" class="btn btn-success ml-2">Reserve Node</a>
     </div>
 </div>
+{% if node.admin_note %}
+<div class="admin-note">
+    <strong>Admin note:</strong> {{ node.admin_note }}
+</div>
+{% endif %}
 <div ng-app="discoveryApp" class="discovery-app" ng-controller="NodeController" ng-init="initLink('{{resource}}');">
     <section>
         <div class="row">
