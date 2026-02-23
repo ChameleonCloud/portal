@@ -55,7 +55,7 @@ def end_daypasses():
             user = User.objects.get(pk=invitation.user_accepted_id)
             keycloak_client = KeycloakClient()
             keycloak_client.update_membership(
-                project.charge_code, user.username, "delete"
+                project.charge_code, user, "delete"
             )
             invitation.status = Invitation.STATUS_BEYOND_DURATION
             invitation.save()

@@ -8,6 +8,7 @@ import re
 
 
 class TASBackend(ModelBackend):
+    # NOTE this can be removed
     def __init__(self):
         self.tas = TASClient()
 

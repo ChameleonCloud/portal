@@ -32,6 +32,7 @@ from allocations.models import Allocation, Charge, ChargeBudget
 from balance_service.utils import su_calculators
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
+from chameleon.models import KeycloakUser
 from projects.models import Funding, JoinLink, JoinRequest
 from projects.serializer import ProjectExtrasJSONSerializer
 from util.keycloak_client import KeycloakClient
@@ -51,7 +52,7 @@ from .forms import (
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_charge_code, get_project_members
+from .util import email_exists_on_project, get_charge_code, get_project_members, get_user_by_reference
 
 logger = logging.getLogger("projects")
 
@@ -71,9 +72,9 @@ class UserPermissions:
         self.manage_membership = manage_membership
 
     @staticmethod
-    def _get_user_project_role_scopes(keycloak_client, username, project):
+    def _get_user_project_role_scopes(keycloak_client, user, project):
         role, scopes = keycloak_client.get_user_project_role_scopes(
-            username, get_charge_code(project)
+            user, get_charge_code(project)
         )
         return role, scopes
 
@@ -89,18 +90,18 @@ class UserPermissions:
         )
 
     @staticmethod
-    def get_user_permissions(keycloak_client, username, project):
+    def get_user_permissions(keycloak_client, user, project):
         _, scopes = UserPermissions._get_user_project_role_scopes(
-            keycloak_client, username, project
+            keycloak_client, user, project
         )
         return UserPermissions._parse_scopes(scopes)
 
     @staticmethod
-    def get_manager_projects(keycloak_client, username):
+    def get_manager_projects(keycloak_client, user):
         """Gets project names for all project this user is a manager of"""
         return [
             project["groupName"]
-            for project in keycloak_client.get_user_roles(username)
+            for project in keycloak_client.get_user_roles(user)
             if UserPermissions._parse_scopes(project["scopes"]).manage
         ]
 
@@ -119,11 +120,11 @@ def project_member_or_admin_or_superuser(user, project, project_user):
     if is_admin_or_superuser(user):
         return True
 
-    if user.username == project.pi.username:
+    if user == project.pi:
         return True
 
     for pu in project_user:
-        if user.username == pu.username:
+        if user == pu:
             return True
 
     return False
@@ -139,11 +140,11 @@ def user_projects(request):
 
     username = request.user.username
     mapper = ProjectAllocationMapper(request)
-    user = mapper.get_user(username)
+    user = mapper.get_user(request.user)
 
     context["is_pi_eligible"] = user["piEligibility"].lower() == "eligible"
     context["username"] = username
-    context["projects"] = mapper.get_user_projects(username, to_pytas_model=True)
+    context["projects"] = mapper.get_user_projects(request.user, to_pytas_model=True)
 
     return render(request, "projects/user_projects.html", context)
 
@@ -178,8 +179,7 @@ def accept_invite_for_user(user, invitation, mapper):
     if invitation.can_accept():
         invitation.accept(user)
         project = mapper.get_project(invitation.project.id)
-        user_ref = invitation.user_accepted.username
-        membership.add_user_to_project(project, user_ref)
+        membership.add_user_to_project(project, invitation.user_accepted)
         return True
     return False
 
@@ -356,12 +356,13 @@ def view_project(request, project_id):
         get_charge_code(project)
     )
     users = get_project_members(project)
+    users_by_username = {u.username: u for u in users}
     if project.active_allocations:
         current_allocation_su_allocated = project.active_allocations[0].computeAllocated
     else:
         current_allocation_su_allocated = 0
     user_permission = UserPermissions.get_user_permissions(
-        keycloak_client, request.user.username, project
+        keycloak_client, request.user, project
     )
 
     # Users list may be stale if we update the membership list
@@ -400,12 +401,12 @@ def view_project(request, project_id):
                     raise PermissionDenied(
                         "Removing the PI from the project is not allowed."
                     )
-                if membership.remove_user_from_project(project, del_username):
+                del_user = users_by_username.get(del_username)
+                if membership.remove_user_from_project(project, del_user):
                     messages.success(
                         request, 'User "%s" removed from project' % del_username
                     )
-                user = User.objects.get(username=del_username)
-                daypass = get_daypass(user.id, project_id)
+                daypass = get_daypass(del_user.id, project_id)
                 if daypass:
                     daypass.delete()
             except PermissionDenied as exc:
@@ -421,15 +422,15 @@ def view_project(request, project_id):
             try:
                 role_username = request.POST["user_ref"]
                 role_name = request.POST["user_role"].lower()
+                user_to_change = users_by_username.get(role_username)
                 keycloak_client.set_user_project_role(
-                    role_username, get_charge_code(project), role_name
+                    user_to_change, get_charge_code(project), role_name,
                 )
                 if role_name == "manager":
                     # delete user budgets for the user if they are manager
-                    user = User.objects.get(username=role_username)
                     try:
                         user_budget = ChargeBudget.objects.get(
-                            user=user, project=portal_project
+                            user=user_to_change, project=portal_project
                         )
                     except ChargeBudget.DoesNotExist:
                         # the user does not have a budget created, no-op
@@ -444,7 +445,7 @@ def view_project(request, project_id):
                     "to change role for this user. Please try again",
                 )
         elif "su_budget_user" in request.POST:
-            budget_user = User.objects.get(username=request.POST["user_ref"])
+            budget_user = users_by_username.get(request.POST["user_ref"])
             set_budget_for_user_in_project(
                 budget_user, portal_project, request.POST["su_budget_user"]
             )
@@ -498,7 +499,7 @@ def view_project(request, project_id):
                     id=int(request.POST.get("join_request"))
                 )
                 user = join_request.user
-                if membership.add_user_to_project(project, user.username):
+                if membership.add_user_to_project(project, user):
                     join_request.accept()
                     messages.success(
                         request, f"Successfully added {user.username} to this project!"
@@ -589,7 +590,7 @@ def view_project(request, project_id):
     budget_project = Project.objects.get(charge_code=get_charge_code(project))
 
     for u in users:
-        if u.username == project.pi.username:
+        if u == project.pi:
             continue
         u_role = user_roles.get(u.username, "member")
         user = {
@@ -679,33 +680,33 @@ def _add_users_to_project(request, project, project_id, user_refs):
     """
     success_messages = []
     error_messages = []
-    for user_ref in user_refs:
-        try:
-            add_username = user_ref
-            _ = User.objects.get(username=add_username)
-            if membership.add_user_to_project(project, add_username):
-                success_messages.append(f'User "{add_username}" added to project!')
-        except User.DoesNotExist:
+
+    def process_user(user_ref):
+        local_success = []
+        local_error = []
+        user = get_user_by_reference(username=user_ref, email=user_ref)
+        if user:
+            if membership.add_user_to_project(project, user):
+                local_success.append(f'User "{user_ref}" added to project!')
+            else:
+                local_error.append(
+                    f"Unable to add user '{user_ref}' to project. Please try again."
+                )
+        else:
             # Try sending an invite
             email_address = user_ref
             try:
                 validate_email(email_address)
-                if email_exists_on_project(project, email_address):
-                    error_messages.append(
-                        f"The email '{user_ref}' is tied to a user already on "
-                        "this project!",
-                    )
-                else:
-                    add_project_invitation(
-                        project.id,
-                        email_address,
-                        request.user,
-                        request,
-                        None,
-                    )
-                    success_messages.append(f"Invite sent to '{user_ref}'!")
+                add_project_invitation(
+                    project.id,
+                    email_address,
+                    request.user,
+                    request,
+                    None,
+                )
+                local_success.append(f"Invite sent to '{user_ref}'!")
             except ValidationError:
-                error_messages.append(
+                local_error.append(
                     (
                         f"Unable to add user '{user_ref}'. Confirm that the username "
                         "is correct and corresponds to a current "
@@ -716,12 +717,17 @@ def _add_users_to_project(request, project, project_id, user_refs):
                 )
             except Exception:
                 logger.exception(f"Failed sending invite to '{user_ref}'")
-                error_messages.append(
+                local_error.append(
                     f"Problem sending invite to {user_ref}, please try again."
                 )
-        except Exception:
-            logger.exception(f"Failed adding user '{user_ref}'")
-            error_messages.append(f"Unable to add user '{user_ref}'. Please try again.")
+        return local_success, local_error
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(process_user, user_ref) for user_ref in user_refs]
+        for future in futures:
+            succ, err = future.result()
+            success_messages.extend(succ)
+            error_messages.extend(err)
 
     if not error_messages:
         # If only successes, then either show the message or merge them together
@@ -867,7 +873,7 @@ def create_allocation(request, project_id, allocation_id=-1):
 
     keycloak_client = KeycloakClient()
     user_permission = UserPermissions.get_user_permissions(
-        keycloak_client, request.user.username, project
+        keycloak_client, request.user, project
     )
     if not user_permission.manage:
         messages.error(
@@ -930,9 +936,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 justification = allocation.pop("justification", None)
 
                 allocation["projectId"] = project_id
-                allocation["requestorId"] = mapper.get_portal_user_id(
-                    request.user.username
-                )
+                allocation["requestorId"] = request.user.id
                 allocation["resourceId"] = "39"
                 allocation["justification"] = justification
 
@@ -994,7 +998,7 @@ def create_project(request):
     mapper = ProjectAllocationMapper(request)
     form_args = {"request": request}
 
-    user = mapper.get_user(request.user.username)
+    user = mapper.get_user(request.user)
     if user["piEligibility"].lower() != "eligible":
         messages.error(
             request,
@@ -1040,7 +1044,7 @@ def create_project(request):
                 })
 
             # pi
-            pi_user_id = mapper.get_portal_user_id(request.user.username)
+            pi_user_id = request.user.id
             project["piId"] = pi_user_id
 
             # allocations
@@ -1113,7 +1117,7 @@ def edit_nickname(request, project_id):
 
     keycloak_client = KeycloakClient()
     user_permission = UserPermissions.get_user_permissions(
-        keycloak_client, request.user.username, project
+        keycloak_client, request.user, project
     )
 
     if not (user_permission.manage or is_admin_or_superuser(request.user)):
@@ -1146,7 +1150,7 @@ def edit_nickname(request, project_id):
 def edit_tag(request, project_id):
     form_args = {"request": request}
     project = Project.objects.get(pk=project_id)
-    if not request.user.is_superuser and request.user.username != project.pi.username:
+    if not request.user.is_superuser and request.user != project.pi:
         messages.error(request, "Only the PI can update project tag.")
         return EditTagForm(**form_args)
 
@@ -1184,7 +1188,7 @@ def edit_pi(request, project_id):
             new_pi = User.objects.get(username=project_pi_username)
             if not is_pi_eligible(new_pi):
                 raise UserNotPIEligible()
-            ProjectAllocationMapper.update_project_pi(project_id, project_pi_username)
+            ProjectAllocationMapper.update_project_pi(project_id, new_pi)
             form = EditPIForm(request.POST)
             messages.success(
                 request,
@@ -1241,7 +1245,7 @@ def get_project_membership_managers(project):
         user
         for user in users
         if UserPermissions.get_user_permissions(
-            keycloak_client, user.username, project
+            keycloak_client, user, project
         ).manage_membership
     ]
 
@@ -1271,7 +1275,7 @@ def project_member_export(request, project_id):
     mapper = ProjectAllocationMapper(request)
     project = mapper.get_project(project_id)
     user_permission = UserPermissions.get_user_permissions(
-        keycloak_client, request.user.username, project
+        keycloak_client, request.user, project
     )
     if not user_permission.manage:
         return HttpResponseForbidden()
@@ -1287,7 +1291,7 @@ def project_member_export(request, project_id):
 
             def task(user):
                 user_permission = UserPermissions.get_user_permissions(
-                    keycloak_client, user.username, project
+                    keycloak_client, user, project
                 )
                 role = "manager" if user_permission.manage else "member"
                 return [role, user.username, user.email]

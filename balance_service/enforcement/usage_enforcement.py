@@ -192,7 +192,7 @@ class UsageEnforcer(object):
         alloc = su_calculators.get_active_allocation(lease_eval.project)
         keycloak_client = KeycloakClient()
         role, scopes = keycloak_client.get_user_project_role_scopes(
-            lease_eval.user.username, lease_eval.project.charge_code
+            lease_eval.user, lease_eval.project.charge_code
         )
         if role == "member":
             self._check_usage_against_user_budget(

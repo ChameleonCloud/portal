@@ -122,14 +122,6 @@ def decode_unicode_text(en_text):
     return de_text
 
 
-def get_projects_of_users(usernames):
-    kcc = KeycloakClient()
-    projects = []
-    for username in usernames:
-        projects.extend(kcc.get_user_projects_by_username(username))
-    return projects
-
-
 def is_project_prior_to_publication(project, pub_year):
     fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
     # Consider the runtime of a project to be the start of its first allocation
@@ -147,7 +139,7 @@ def is_project_prior_to_publication(project, pub_year):
     return False
 
 
-def get_usernames_for_author(author):
+def get_users_for_author(author):
     from projects.models import ProjectPIAlias
 
     name_filter = Q()
@@ -168,7 +160,7 @@ def get_usernames_for_author(author):
             last_name__iexact=alias.pi.last_name,
         )
     users = User.objects.filter(name_filter)
-    return [user.username for user in users]
+    return [user for user in users]
 
 
 def format_author_name(author):
@@ -339,12 +331,12 @@ class PublicationUtils:
 
     @staticmethod
     def get_projects_for_author_names(author_names, year):
-        usernames = []
+        users = []
         for author in author_names:
-            usernames.extend(get_usernames_for_author(author))
+            users.extend(get_users_for_author(author))
         kcc = KeycloakClient()
         projects = [
-            proj for u in usernames for proj in kcc.get_user_projects_by_username(u)
+            proj for u in users for proj in kcc.get_user_projects_by_user(u)
         ]
         return projects
 

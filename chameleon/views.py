@@ -42,7 +42,7 @@ def dashboard(request):
     # active projects...
     mapper = ProjectAllocationMapper(request)
     active_projects = mapper.get_user_projects(
-        request.user.username,
+        request.user,
         alloc_status=["active", "approved", "pending"],
         to_pytas_model=True,
     )

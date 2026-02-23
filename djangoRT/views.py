@@ -238,7 +238,7 @@ def _handle_ticket_form(request, form):
 
     add_openstack_data.apply_async(
         kwargs={
-            "username": request.user.username,
+            "user_id": request.user.id,
             "ticket_id": ticket_id,
         },
     )
