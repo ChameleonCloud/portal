@@ -85,6 +85,21 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         user.email = claims.get("email", "")
         user.first_name = claims.get("given_name", "")
         user.last_name = claims.get("family_name", "")
+
+        # If the preferred_username claim has changed, update the username
+        # field as well, but only if it doesn't conflict with another user.
+        new_username = claims.get("preferred_username")
+        if (
+            new_username and user.username != new_username and
+            not self.UserModel.objects.filter(username__iexact=new_username).exclude(pk=user.pk).exists()
+        ):
+            LOG.info(
+                "Updating username for user %s to %s",
+                user.username,
+                new_username,
+            )
+            user.username = new_username
+
         user.save()
 
         keycloak_user = KeycloakUser.objects.filter(user=user).first()
