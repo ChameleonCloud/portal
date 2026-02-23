@@ -239,7 +239,7 @@ def create_pubs_from_bibtext_string(
                     update_cites_and_query(
                         pub_source, cites_chameleon_pub, found_with_query
                     )
-                    # update the links, but undi the pub creation here
+                    # update the links, but undo the pub creation here
                     new_pub.delete()
                     continue
             new_pubs.append(new_pub)

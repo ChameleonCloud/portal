@@ -124,7 +124,7 @@ class PIEligibilityAdmin(ModelAdmin):
     def keycloak_metadata(self, obj):
         """User metadata from keycloak backend. Returns a list of strings."""
         keycloak_client = KeycloakClient()
-        keycloak_user = keycloak_client.get_user_by_username(obj.requestor.username)
+        keycloak_user = keycloak_client.get_user_from_portal_user(obj.requestor)
 
         if not keycloak_user:
             return "No Keycloak User Found"

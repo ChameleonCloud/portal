@@ -296,7 +296,7 @@ def update_institutions(interactive=True):
     """
     for user in User.objects.filter(institutions__isnull=True):
         keycloak_client = KeycloakClient()
-        kc_user = keycloak_client.get_user_by_username(user.username)
+        kc_user = keycloak_client.get_user_from_portal_user(user)
         if not kc_user:
             # Legacy user, no login since fed. identity
             continue

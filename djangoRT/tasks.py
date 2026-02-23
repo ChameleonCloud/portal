@@ -27,7 +27,7 @@ class OpenstackDataError(Exception):
 @task(bind=True)
 def add_openstack_data(self, **kwargs):
     ticket_id = kwargs.get("ticket_id")
-    username = kwargs.get("username")
+    user_id = kwargs.get("user_id")
 
     messages = []
     bound_task = self
@@ -44,9 +44,10 @@ def add_openstack_data(self, **kwargs):
         )
 
     try:
-        if username:
+        if user_id:
+            portal_user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
             keycloak_client = KeycloakClient()
-            projects = keycloak_client.get_full_user_projects_by_username(username)
+            projects = keycloak_client.get_full_user_projects_by_user(portal_user)
 
             regions = list(settings.OPENSTACK_AUTH_REGIONS.keys())
             region_list = []
@@ -54,7 +55,7 @@ def add_openstack_data(self, **kwargs):
                 try:
                     factor = (1.0 / len(regions)) * 100
                     write_message(factor * i, f'Processing region "{region}"')
-                    region_list.append(get_openstack_data(username, region, projects))
+                    region_list.append(get_openstack_data(portal_user.username, region, projects))
                 except Exception as err:
                     LOG.error(
                         f"Failed to get OpenStack data for region {region}: {err}"

@@ -44,7 +44,7 @@ class AllocationAdmin(admin.ModelAdmin):
 
     def pi_info(self, obj):
         keycloak_client = KeycloakClient()
-        kc_user = keycloak_client.get_user_by_username(obj.project.pi.username)
+        kc_user = keycloak_client.get_user_from_portal_user(obj.project.pi)
         if not kc_user:
             kc_user = {}
         institution = kc_user.get("attributes", {}).get("affiliationInstitution")
