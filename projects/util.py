@@ -46,7 +46,7 @@ def get_project_members(project):
     for kc_user in keycloak_client.get_project_members(charge_code):
         # match KC user by ID, then username, then email
         user = get_user_by_reference(
-            keycloak_id=kc_user["id"], username=kc_user["username"], email=kc_user["email"]
+            keycloak_id=kc_user["id"], username=kc_user["username"], email=kc_user.get("email")
         )
         if user:
             users.append(user)
