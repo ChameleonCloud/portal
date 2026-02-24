@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timezone
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from keycloak.admin.groups import Groups
 from keycloak.admin.user.usergroup import UserGroups
 from keycloak.admin.user.usergrouproles import UserGroupRoles
@@ -93,25 +94,75 @@ class KeycloakClient:
             data=json.dumps(kwargs, sort_keys=True),
         )
 
-    def get_user_by_username(self, username):
+    def _get_kc_user_by_attr(self, **kwargs):
         keycloakusers = self._users_admin()
-
+        
         matching = keycloakusers._client.get(
             url=keycloakusers._client.get_full_url(
                 keycloakusers.get_path("collection", realm=self.realm_name)
             ),
-            username=username,
+            **kwargs,
         )
-        matching = [u for u in matching if u["username"] == username]
+        matching = [u for u in matching if all(u.get(k) == v for k, v in kwargs.items())]
+        user = None
         if matching and len(matching) == 1:
             user = matching[0]
-            # normalize attributes
-            for key, val in user["attributes"].items():
+        self._normalize_attributes(user)
+        return user
+
+    def _get_kc_user_by_id(self, user_id):
+        kc_user = self._user_admin(user_id)
+        # kc_user = keycloakuser._client.get(
+        #     url=keycloakuser._client.get_full_url(
+        #         keycloakuser.get_path("single", realm=self.realm_name, user_id=user_id)
+        #     )
+        # )
+        self._normalize_attributes(kc_user.user)
+        return kc_user.user
+
+    def _normalize_attributes(self, user):
+        if user:
+            for key, val in user.get("attributes", {}).items():
                 if type(val) is list and len(val) == 1:
                     user["attributes"][key] = val[0]
-            return user
+        return user
+
+    def get_user_from_portal_user(self, portal_user):
+        user_id = None
+        # check for keycloak user
+        try:
+            user_id = portal_user.keycloak_user.sub
+        except ObjectDoesNotExist:
+            # The user doesn't have an updated keycloak_user model,
+            # meaning they haven't logged in since end of 2025
+            pass
+
+        if user_id:
+            kc_user = self._get_kc_user_by_id(user_id)
+            self._normalize_attributes(kc_user)
         else:
-            return None
+            # Find this portal user in KC via some combinations of
+            #   portal username = kc username
+            #   portal email = kc email
+            #   portal email = kc username)
+            params = [
+                {"username": portal_user.username},
+                {"email": portal_user.email},
+                {"username": portal_user.email},
+            ]
+            kc_user = None
+            for param in params:
+                kc_user = self._get_kc_user_by_attr(**param)
+                if kc_user:
+                    break
+            self._normalize_attributes(kc_user)
+        return kc_user
+
+    def get_keycloak_user_id_from_portal_user(self, portal_user):
+        try:
+            return portal_user.keycloak_user.sub
+        except ObjectDoesNotExist:
+            return self.get_user_from_portal_user(portal_user).get("id")
 
     def get_all_users_attributes(self):
         keycloakusers = self._users_admin()
@@ -122,22 +173,22 @@ class KeycloakClient:
 
         return result
 
-    def get_user_projects_by_username(self, username):
-        user = self.get_user_by_username(username)
-        if not user:
+    def get_user_projects_by_user(self, portal_user):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        if not kc_id:
             return []
-        keycloakuser = self._user_admin(user["id"])
+        keycloakuser = self._user_admin(kc_id)
 
         project_charge_codes = [
             project["name"] for project in keycloakuser.groups.all()
         ]
         return project_charge_codes
 
-    def get_full_user_projects_by_username(self, username):
-        user = self.get_user_by_username(username)
-        if not user:
+    def get_full_user_projects_by_user(self, portal_user):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        if not kc_id:
             return []
-        keycloakuser = self._user_admin(user["id"])
+        keycloakuser = self._user_admin(kc_id)
         projects = [project for project in keycloakuser.groups.all()]
         return projects
 
@@ -154,17 +205,17 @@ class KeycloakClient:
             )
             + "/{id}/members?max=9999".format(id=group["id"]),
         )
-        return [m["username"] for m in members]
+        return [m for m in members]
 
-    def update_membership(self, charge_code, username, action):
-        user = self.get_user_by_username(username)
-        if not user:
-            raise ValueError(f"User {username} does not exist")
+    def update_membership(self, charge_code, portal_user, action):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        if not kc_id:
+            raise ValueError(f"User {portal_user.username} does not exist in keycloak")
         group = self._lookup_group(charge_code)
         if not group:
             raise ValueError(f"Group {charge_code} does not exist")
         group_id = group["id"]
-        keycloakusergroups = self._user_projects_admin(user["id"])
+        keycloakusergroups = self._user_projects_admin(kc_id)
         if action == "add":
             keycloakusergroups.add(group_id)
         elif action == "delete":
@@ -174,14 +225,14 @@ class KeycloakClient:
         else:
             raise ValueError("Unrecognized keycloak membership action")
 
-    def create_project(self, charge_code, pi_username):
+    def create_project(self, charge_code, pi_user):
         keycloakproject = Groups(
             realm_name=self.realm_name, client=self._get_admin_client()
         )
         keycloakproject.create(charge_code)
-
-        self.update_membership(charge_code, pi_username, "add")
-        self.set_user_project_role(pi_username, charge_code, "admin")
+        # TODO this needs to go through a helper to set attributes
+        self.update_membership(charge_code, pi_user, "add")
+        self.set_user_project_role(pi_user, charge_code, "admin")
 
     def delete_project(self, charge_code):
         group = self._lookup_group(charge_code)
@@ -235,6 +286,7 @@ class KeycloakClient:
         citizenship=None,
         join_date=None,
     ):
+        # NOTE probaby safe to remove
         try:
             keycloakuser = self._users_admin()
             keycloakuser.create(
@@ -253,7 +305,7 @@ class KeycloakClient:
                     joinDate=join_date,
                 ),
             )
-            user = self.get_user_by_username(username)
+            user = self._get_kc_user_by_attr(username=username)
             self._add_identity(
                 user_id=user["id"],
                 userId=f"f:{self.client_provider_sub}:{username}",
@@ -271,7 +323,7 @@ class KeycloakClient:
 
     def update_user(
         self,
-        username,
+        portal_user,
         email=None,
         affiliation_title=None,
         affiliation_department=None,
@@ -280,11 +332,9 @@ class KeycloakClient:
         citizenship=None,
         phone=None,
         lifecycle_allocation_joined: "datetime" = None,
-    ):
-        user = self.get_user_by_username(username)
-        if not user:
-            raise ValueError(f"Couldn't find user {username}")
-        kc_user = self._user_admin(user["id"])
+    ):        
+        kc_user_obj = self.get_user_from_portal_user(portal_user)
+        kc_user = self._user_admin(kc_user_obj["id"])
 
         update_attrs = kc_user.user.get("attributes", {}).copy()
         if affiliation_title is not None:
@@ -318,22 +368,19 @@ class KeycloakClient:
             else:
                 raise
 
-    def get_user_roles(self, username):
-        user = self.get_user_by_username(username)
-        if not user:
-            raise ValueError(f"Couldn't find user {username}")
-        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+    def get_user_roles(self, portal_user):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        keycloakusergrouproles = self._user_project_roles_admin(kc_id)
 
         return keycloakusergrouproles.all()
 
-    def get_user_project_role_scopes(self, username, project_charge_code):
-        user = self.get_user_by_username(username)
-        if not user:
-            raise ValueError(f"Couldn't find user {username}")
+    def get_user_project_role_scopes(self, portal_user, project_charge_code):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        user = self.get_user_from_portal_user(portal_user)
         group = self._lookup_group(project_charge_code)
         if not group:
             raise ValueError(f"Couldn't find project {project_charge_code}")
-        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+        keycloakusergrouproles = self._user_project_roles_admin(kc_id)
 
         role_scopes = next(iter(keycloakusergrouproles.by_group_id(group["id"])), None)
         if role_scopes:
@@ -341,11 +388,14 @@ class KeycloakClient:
 
         return None, []
 
-    def set_user_project_role(self, username, project_charge_code, role):
-        user = self.get_user_by_username(username)
+    def set_user_project_role(
+        self, portal_user, project_charge_code, role, user_id=None
+    ):
+        kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
+        user = self.get_user_from_portal_user(portal_user)
         if not user:
-            raise ValueError(f"Couldn't find user {username}")
-        keycloakusergrouproles = self._user_project_roles_admin(user["id"])
+            raise ValueError(f"Couldn't find keycloak user for {portal_user.username}")
+        keycloakusergrouproles = self._user_project_roles_admin(kc_id)
 
         keycloakusergrouproles.grant(policy=role, group_name=project_charge_code)
 

@@ -46,6 +46,7 @@ def denied(request):
 
 
 def get_all_alloc(request):
+    # NOTE we can remove this, this was an internal allocations API
     """Get all allocations, grouped by project.
 
     Args:
@@ -80,6 +81,7 @@ def get_all_alloc(request):
 @login_required
 @user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
 def view(request):
+    # NOTE we can remove this, this was an internal allocations API
     """Return http response of get_all_alloc. Matches Template."""
     return HttpResponse(get_all_alloc(request), content_type="application/json")
 
@@ -163,7 +165,7 @@ def approval(request):
         mapper = ProjectAllocationMapper(request)
         data = json.loads(request.body)
         data["reviewer"] = request.user.username
-        data["reviewerId"] = mapper.get_portal_user_id(request.user.username)
+        data["reviewerId"] = request.user.id
         logger.info("Allocation approval requested by admin: %s", request.user)
         logger.info("Allocation approval request data: %s", json.dumps(data))
         validate_datestring = validators.RegexValidator(r"^\d{4}-\d{2}-\d{2}$")

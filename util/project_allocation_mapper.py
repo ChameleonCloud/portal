@@ -31,12 +31,9 @@ TMP_PROJECT_CHARGE_CODE_PREFIX = "TMP-"
 
 class ProjectAllocationMapper:
     def __init__(self, request):
-        self.is_from_db = self._wants_db(request)
         self.tas = TASClient()
         self.current_user = request.user.username
-
-    def _wants_db(self, request):
-        return request.session.get("is_federated", False)
+        self.current_user_obj = request.user
 
     def _send_allocation_request_notification(self, charge_code, alloc):
         path = reverse("admin:allocations_allocation_change", args=[alloc.id])
@@ -84,15 +81,6 @@ class ProjectAllocationMapper:
             html_message=body,
         )
 
-    def _get_user_from_portal_db(self, username):
-        UserModel = get_user_model()
-        try:
-            portal_user = UserModel.objects.get(username=username)
-            return portal_user
-        except UserModel.DoesNotExist:
-            logger.error("Could not find user %s in DB", username)
-            return None
-
     def _create_ticket_for_pi_request(self, user):
         """
         This is a stop-gap solution for https://collab.tacc.utexas.edu/issues/8327.
@@ -130,6 +118,7 @@ class ProjectAllocationMapper:
         return ticket_id
 
     def get_all_projects(self) -> "list[dict]":
+        # NOTE we can remove this, this was an internal allocations API
         """Get all projects, all of their allocations, for all users.
 
         Returns:
@@ -219,34 +208,28 @@ class ProjectAllocationMapper:
 
                 # save project in keycloak
                 keycloak_client = KeycloakClient()
-                keycloak_client.create_project(valid_charge_code, new_proj.pi.username)
+                keycloak_client.create_project(valid_charge_code, new_proj.pi)
 
         return self.portal_to_dict_proj(reformated_proj, fetch_allocations=False)
 
-    def get_portal_user_id(self, username):
-        portal_user = self._get_user_from_portal_db(username)
-        if portal_user:
-            return portal_user.id
-        return None
-
-    def get_user(self, username, to_pytas_model=False, role=None):
-        portal_user = self._get_user_from_portal_db(username)
+    def get_user(self, portal_user, to_pytas_model=False, role=None):
         if not portal_user:
             return None
 
         user = self.portal_user_to_dict(portal_user, role=role)
         # update user metadata from keycloak
-        user = self.update_user_metadata_from_keycloak(user)
+        user = self.update_user_metadata_from_keycloak(portal_user, user)
         return tas_user(initial=user) if to_pytas_model else user
 
     def lazy_add_user_to_keycloak(self):
+        # NOTE probaby safe to remove
         keycloak_client = KeycloakClient()
         # check if user exist in keycloak
-        keycloak_user = keycloak_client.get_user_by_username(self.current_user)
+        keycloak_user = keycloak_client.get_user_from_portal_user(self.current_user_obj)
         if keycloak_user:
             return
         user = self.get_user(self.current_user)
-        portal_user = self._get_user_from_portal_db(self.current_user)
+        portal_user = self.current_user_obj
         join_date = None
         if portal_user:
             join_date = datetime.timestamp(portal_user.date_joined)
@@ -265,10 +248,6 @@ class ProjectAllocationMapper:
         keycloak_client.create_user(self.current_user, **kwargs)
 
     @staticmethod
-    def get_project_nickname(project):
-        return project.nickname
-
-    @staticmethod
     def update_project_nickname(project_id, nickname):
         project = Project.objects.get(pk=project_id)
         project.nickname = nickname
@@ -283,21 +262,20 @@ class ProjectAllocationMapper:
         project.save()
 
     @staticmethod
-    def update_project_pi(project_id, project_pi_username):
+    def update_project_pi(project_id, project_pi):
         project = Project.objects.get(pk=project_id)
 
         # update keycloak
         keycloak_client = KeycloakClient()
         keycloak_client.set_user_project_role(
-            project_pi_username, project.charge_code, "admin"
+            project_pi, project.charge_code, "admin"
         )
         keycloak_client.set_user_project_role(
-            project.pi.username, project.charge_code, "member"
+            project.pi, project.charge_code, "member"
         )
 
         # update portal
-        UserModel = get_user_model()
-        project.pi = UserModel.objects.get(username=project_pi_username)
+        project.pi = project_pi
         project.save()
 
     def update_user_profile(
@@ -316,7 +294,7 @@ class ProjectAllocationMapper:
 
         email = new_profile.get("email")
         keycloak_client.update_user(
-            user.username,
+            user,
             email=email,
             affiliation_title=new_profile.get("title"),
             affiliation_department=new_profile.get("department"),
@@ -343,11 +321,11 @@ class ProjectAllocationMapper:
         return None
 
     def get_user_projects(
-        self, username, alloc_status=[], fetch_balance=True, to_pytas_model=False
+        self, portal_user, alloc_status=[], fetch_balance=True, to_pytas_model=False
     ):
         # get user projects from portal
         keycloak_client = KeycloakClient()
-        charge_codes = keycloak_client.get_user_projects_by_username(username)
+        charge_codes = keycloak_client.get_user_projects_by_user(portal_user)
         projects_qs = Project.objects.filter(charge_code__in=charge_codes)
 
         user_projects = [
@@ -477,11 +455,9 @@ class ProjectAllocationMapper:
     def portal_user_to_dict(self, user, role="Standard"):
         return get_user_model().as_dict(user, role=role)
 
-    def update_user_metadata_from_keycloak(self, json_formatted_user):
+    def update_user_metadata_from_keycloak(self, portal_user, json_formatted_user):
         keycloak_client = KeycloakClient()
-        keycloak_user = keycloak_client.get_user_by_username(
-            json_formatted_user["username"]
-        )
+        keycloak_user = keycloak_client.get_user_from_portal_user(portal_user)
 
         if keycloak_user:
             attrs = keycloak_user["attributes"]

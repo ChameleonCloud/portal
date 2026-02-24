@@ -975,7 +975,7 @@ def review_daypass(request, request_id, **kwargs):
         raise Http404("Project linked to this artifact does not exist.")
     keycloak_client = KeycloakClient()
     user_permission = UserPermissions.get_user_permissions(
-        keycloak_client, request.user.username, project
+        keycloak_client, request.user, project
     )
     if not user_permission.manage:
         raise PermissionDenied("You do not have permission to view that page")
@@ -1047,7 +1047,7 @@ def review_daypass(request, request_id, **kwargs):
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
     projects = UserPermissions.get_manager_projects(
-        keycloak_client, request.user.username
+        keycloak_client, request.user
     )
     trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
     trovi_artifacts_map = {}
