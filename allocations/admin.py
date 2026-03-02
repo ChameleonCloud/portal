@@ -369,6 +369,7 @@ class AllocationAdmin(admin.ModelAdmin):
                     "status",
                     "start_date",
                     "expiration_date",
+                    "ticket_id",
                 ),
             },
         ),
