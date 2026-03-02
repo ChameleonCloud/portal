@@ -96,14 +96,16 @@ class KeycloakClient:
 
     def _get_kc_user_by_attr(self, **kwargs):
         keycloakusers = self._users_admin()
-        
+
         matching = keycloakusers._client.get(
             url=keycloakusers._client.get_full_url(
                 keycloakusers.get_path("collection", realm=self.realm_name)
             ),
             **kwargs,
         )
-        matching = [u for u in matching if all(u.get(k) == v for k, v in kwargs.items())]
+        matching = [
+            u for u in matching if all(u.get(k) == v for k, v in kwargs.items())
+        ]
         user = None
         if matching and len(matching) == 1:
             user = matching[0]
@@ -332,7 +334,7 @@ class KeycloakClient:
         citizenship=None,
         phone=None,
         lifecycle_allocation_joined: "datetime" = None,
-    ):        
+    ):
         kc_user_obj = self.get_user_from_portal_user(portal_user)
         kc_user = self._user_admin(kc_user_obj["id"])
 

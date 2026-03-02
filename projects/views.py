@@ -32,7 +32,6 @@ from allocations.models import Allocation, Charge, ChargeBudget
 from balance_service.utils import su_calculators
 from chameleon.decorators import terms_required
 from chameleon.keystone_auth import admin_ks_client
-from chameleon.models import KeycloakUser
 from projects.models import Funding, JoinLink, JoinRequest
 from projects.serializer import ProjectExtrasJSONSerializer
 from util.keycloak_client import KeycloakClient
@@ -52,7 +51,7 @@ from .forms import (
     ProjectCreateForm,
 )
 from .models import Invitation, Project, ProjectExtras
-from .util import email_exists_on_project, get_charge_code, get_project_members, get_user_by_reference
+from .util import get_charge_code, get_project_members, get_user_by_reference
 
 logger = logging.getLogger("projects")
 
@@ -424,7 +423,9 @@ def view_project(request, project_id):
                 role_name = request.POST["user_role"].lower()
                 user_to_change = users_by_username.get(role_username)
                 keycloak_client.set_user_project_role(
-                    user_to_change, get_charge_code(project), role_name,
+                    user_to_change,
+                    get_charge_code(project),
+                    role_name,
                 )
                 if role_name == "manager":
                     # delete user budgets for the user if they are manager
