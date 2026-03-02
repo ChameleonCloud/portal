@@ -90,8 +90,11 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         # field as well, but only if it doesn't conflict with another user.
         new_username = claims.get("preferred_username")
         if (
-            new_username and user.username != new_username and
-            not self.UserModel.objects.filter(username__iexact=new_username).exclude(pk=user.pk).exists()
+            new_username
+            and user.username != new_username
+            and not self.UserModel.objects.filter(username__iexact=new_username)
+            .exclude(pk=user.pk)
+            .exists()
         ):
             LOG.info(
                 "Updating username for user %s to %s",

@@ -1,5 +1,4 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 from django.contrib.auth import get_user_model
 from chameleon.models import KeycloakUser
@@ -46,12 +45,16 @@ def get_project_members(project):
     for kc_user in keycloak_client.get_project_members(charge_code):
         # match KC user by ID, then username, then email
         user = get_user_by_reference(
-            keycloak_id=kc_user["id"], username=kc_user["username"], email=kc_user.get("email")
+            keycloak_id=kc_user["id"],
+            username=kc_user["username"],
+            email=kc_user.get("email"),
         )
         if user:
             users.append(user)
         else:
-            logger.warning(f"Could not get user model for Keycloak user {kc_user['id']}")
+            logger.warning(
+                f"Could not get user model for Keycloak user {kc_user['id']}"
+            )
 
     return users
 
