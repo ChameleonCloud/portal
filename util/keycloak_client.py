@@ -378,7 +378,6 @@ class KeycloakClient:
 
     def get_user_project_role_scopes(self, portal_user, project_charge_code):
         kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
-        user = self.get_user_from_portal_user(portal_user)
         group = self._lookup_group(project_charge_code)
         if not group:
             raise ValueError(f"Couldn't find project {project_charge_code}")
