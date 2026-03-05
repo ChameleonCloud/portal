@@ -110,6 +110,7 @@ _default_allowed_hosts = [
     "www.dev.chameleoncloud.org",
     "129.114.97.96",
     "129.114.97.87",
+    "dev.chameleon.savanna.tacc.cloud",
 ]
 ALLOWED_HOSTS = _default_allowed_hosts
 # ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
