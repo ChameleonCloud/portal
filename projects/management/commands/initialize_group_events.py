@@ -8,13 +8,21 @@ from util.keycloak_client import KeycloakClient, UserAttributes
 
 
 class Command(BaseCommand):
-    help = "Normalize user-supplied institution strings into Institution/UserInstitution models"
+    """
+    Management command to initialize group events for all users based on their current project memberships.
+    This is intended to be run once after the group events feature is implemented, to backfill
+    existing users with appropriate group events for their current memberships. These events are backfilled
+    with the action "add_backdate" to indicate that they are being added after the fact, and the date of the
+    event will be set to the current date.
+    """
+
+    help = "Backdate group events for users without any based on their current project memberships."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Run without writing any changes to the database",
+            help="Run without writing any changes",
         )
 
     def handle(self, *args, **options):

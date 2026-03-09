@@ -8,7 +8,9 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-def append_project_membership_event(kc_user, charge_code, event_type, check_duplicates=False):
+def append_project_membership_event(
+    kc_user, charge_code, event_type, check_duplicates=False
+):
     """Append a project membership event to the Keycloak user's attributes.
 
     Args:
@@ -22,14 +24,11 @@ def append_project_membership_event(kc_user, charge_code, event_type, check_dupl
     # It is a string when there is just one event.
     if isinstance(attr, str):
         attr = [attr]
-    
+
     if check_duplicates:
         for event in attr:
             e_charge_code, e_event_type, e_timestamp = event.split(",")
-            if (
-                e_charge_code == charge_code
-                and e_event_type == event_type
-            ):
+            if e_charge_code == charge_code and e_event_type == event_type:
                 LOG.warning(
                     f"Duplicate event for user {kc_user['username']}: {event_type} {charge_code} already exists in {attr}"
                 )

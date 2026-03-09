@@ -347,7 +347,7 @@ class KeycloakClient:
         citizenship=None,
         phone=None,
         lifecycle_allocation_joined: "datetime" = None,
-        group_events: dict = None,
+        group_events: list = None,
     ):
         kc_user_obj = self.get_user_from_portal_user(portal_user)
         kc_user = self._user_admin(kc_user_obj["id"])
