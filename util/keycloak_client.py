@@ -18,6 +18,7 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 class UserAttributes:
     LIFECYCLE_ALLOCATION_JOINED = "lifecycleAllocationJoined"
+    GROUP_EVENTS = "groupEvents"
 
 
 class DuplicateUserError(Exception):
@@ -175,10 +176,22 @@ class KeycloakClient:
 
         return result
 
+    def get_all_users(self):
+        keycloakusers = self._users_admin()
+
+        result = {}
+        for user in keycloakusers.all(max_results=-1):
+            result[user["username"]] = user
+
+        return result
+
     def get_user_projects_by_user(self, portal_user):
         kc_id = self.get_keycloak_user_id_from_portal_user(portal_user)
         if not kc_id:
             return []
+        return self._get_charge_codes_for_kc_id(kc_id)
+
+    def _get_charge_codes_for_kc_id(self, kc_id):
         keycloakuser = self._user_admin(kc_id)
 
         project_charge_codes = [
@@ -334,6 +347,7 @@ class KeycloakClient:
         citizenship=None,
         phone=None,
         lifecycle_allocation_joined: "datetime" = None,
+        group_events: list = None,
     ):
         kc_user_obj = self.get_user_from_portal_user(portal_user)
         kc_user = self._user_admin(kc_user_obj["id"])
@@ -356,6 +370,8 @@ class KeycloakClient:
             update_attrs[UserAttributes.LIFECYCLE_ALLOCATION_JOINED] = dt.strftime(
                 DATETIME_FORMAT
             )
+        if group_events is not None:
+            update_attrs[UserAttributes.GROUP_EVENTS] = group_events
 
         update_kwargs = {"attributes": update_attrs}
         if email is not None:
