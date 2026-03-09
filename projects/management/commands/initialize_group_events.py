@@ -1,7 +1,4 @@
 from django.core.management.base import BaseCommand
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.db import transaction
 from projects.membership import append_project_membership_event
 from projects.util import get_user_by_reference
 from util.keycloak_client import KeycloakClient, UserAttributes
