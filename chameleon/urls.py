@@ -121,9 +121,8 @@ urlpatterns = [
         chameleon_mailman_views.mailman_export_list,
         name="mailman_export_list",
     ),
-    # ensure default djangocms_blog namespace is registered at /blog
-    # (the auto-setup hook doesn't work well if the page is moved in the hierarchy)
-    path("blog/", include("djangocms_blog.urls", namespace="Blog")),
+    # redirect blog to custom view for all paths under /blog, instead of internal blog app
+    re_path(r"^blog/.*", chameleon_views.blog_redirect, name="blog_redirect"),
     # robots.txt
     path(
         "robots.txt",
