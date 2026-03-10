@@ -1,6 +1,6 @@
 import json
 import logging
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from uuid import uuid4
 
 from celery.result import AsyncResult
@@ -239,3 +239,26 @@ def admin_research_impacts_sus(request):
     return render(
         request, "admin/research_impacts_sus.html", research_impacts.get_sus_context()
     )
+
+def blog_redirect(request):
+    # parse path into either list of all posts, a specific post, category
+    base_blog_url = "https://blog.chameleoncloud.org"
+    url = base_blog_url
+
+    category_map = {
+        "changelog": "chameleon-changelog",
+        "tips": "tips-and-tricks",
+        "announcements": "announcements",
+        "education": "education",
+        "featured": "featured",
+        "user-experiments": "user-experiments",
+    }
+
+    url_obj = urlsplit(request.path)
+    path_parts = url_obj.path.strip("/").split("/")
+    if len(path_parts) == 3 and path_parts[1] == "category":
+        category = category_map.get(path_parts[2])
+        url = f"{base_blog_url}/categories/{category}" if category else base_blog_url
+    elif len(path_parts) == 5:
+        url = f"{base_blog_url}/posts/{path_parts[4]}"
+    return redirect(url, permanent=True)
