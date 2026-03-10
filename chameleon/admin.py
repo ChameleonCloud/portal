@@ -34,7 +34,6 @@ import urllib.parse
 from djangoRT import rtUtil
 from util.keycloak_client import KeycloakClient
 
-
 logger = logging.getLogger(__name__)
 
 

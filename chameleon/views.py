@@ -240,6 +240,7 @@ def admin_research_impacts_sus(request):
         request, "admin/research_impacts_sus.html", research_impacts.get_sus_context()
     )
 
+
 def blog_redirect(request):
     # parse path into either list of all posts, a specific post, category
     base_blog_url = "https://blog.chameleoncloud.org"
