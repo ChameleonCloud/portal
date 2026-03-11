@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from celery.result import AsyncResult
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
@@ -260,6 +261,12 @@ def blog_redirect(request):
     if len(path_parts) == 3 and path_parts[1] == "category":
         category = category_map.get(path_parts[2])
         url = f"{base_blog_url}/categories/{category}" if category else base_blog_url
+    elif len(path_parts) == 3 and path_parts[1] == "author":
+        username = path_parts[2]
+        author = User.objects.get(username=username)
+        url = f"{base_blog_url}/authors/{author.get_full_name().lower().replace(' ', '-')}"
     elif len(path_parts) == 5:
         url = f"{base_blog_url}/posts/{path_parts[4]}"
+    elif len(path_parts) == 2 and path_parts[1] == "feed":
+        url = f"{base_blog_url}/posts/index.xml"
     return redirect(url, permanent=True)
