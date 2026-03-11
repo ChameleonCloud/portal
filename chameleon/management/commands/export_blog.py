@@ -10,6 +10,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for post in Post.objects.all():
+
+            related_posts = [
+                {
+                    "title": p.get_title(),
+                    "slug": p.slug,
+                }
+                for p in post.related.all()
+            ]
+
             front_matter = {
                 "title": post.get_title(),
                 "date": str(post.date_published),
@@ -21,6 +30,7 @@ class Command(BaseCommand):
                 "subtitle": post.safe_translation_getter("subtitle", any_language=True),
                 "image": post.get_image_full_url() if post.get_image_full_url() else "",
                 "hide_image": True,
+                "related_posts": related_posts,
             }
             # only export published posts
             if post.date_published:
