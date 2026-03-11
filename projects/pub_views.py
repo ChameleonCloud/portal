@@ -95,7 +95,7 @@ def user_publications(request):
                 "to remove this publication. Please try again",
             )
     mapper = ProjectAllocationMapper(request)
-    project_ids = [p["id"] for p in mapper.get_user_projects(request.user.username)]
+    project_ids = [p["id"] for p in mapper.get_user_projects(request.user)]
     context["publications"] = []
     pubs = (
         Publication.objects.filter(
