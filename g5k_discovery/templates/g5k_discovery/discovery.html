@@ -4,6 +4,35 @@
 {% block title %}Chameleon Resource Browser{% endblock %}
 
 {% block content %}
+
+<style>
+.btn-core-site {
+    background-color: #3a3a3a;
+    color: white;
+    border-color: #3a3a3a;
+}
+.btn-core-site:hover {
+    background-color: #2a2a2a;
+    color: white;
+}
+
+.btn-volunteer-site {
+    background-color: #e9e9e9;
+    color: #000;
+    border-color: #d0d0d0;
+}
+.btn-volunteer-site:hover {
+    background-color: #dddddd;
+    color: #000;
+}
+
+.volunteer-note {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 10px;
+}
+</style>
+
 <h1>Hardware Discovery</h1>
 <div class="alert alert-info">
   <p>
@@ -15,45 +44,62 @@
     VMs with GPUs.
   </p>
 </div>
+
+<h2>Availability Calendar: When Resources Are Available</h2>
 <div class="row">
-    <div class="col col-md-8">
+    <div class="col col-md-12">
         <p>Check the availability calendar at each site for details on when
-        resources are available for reservation.</p>
+        resources are available for reservation. Light grey buttons indicate associate sites with volunteer resources and a lower SLA than core Chameleon sites.</p>
     </div>
 </div>
+
 <div class="row">
     {% if sites.CHI_TACC.web %}
     <div class="col col-sm-2">
         <a target="blank" href="{{ sites.CHI_TACC.web }}/project/leases/calendar/host/"
-            class="btn btn-lg btn-block btn-default">CHI@TACC <i class="fa fa-external-link"></i></a>
+            class="btn btn-lg btn-block btn-core-site">
+            <strong>CHI@TACC</strong> <i class="fa fa-external-link"></i>
+        </a>
     </div>
     {% endif %}
+
     {% if sites.CHI_UC.web %}
     <div class="col col-sm-2">
         <a target="blank" href="{{ sites.CHI_UC.web }}/project/leases/calendar/host/"
-            class="btn btn-lg btn-block btn-default">CHI@UC <i class="fa fa-external-link"></i></a>
+            class="btn btn-lg btn-block btn-core-site">
+            <strong>CHI@UC</strong> <i class="fa fa-external-link"></i>
+        </a>
     </div>
     {% endif %}
-    {% if sites.CHI_NU.web %}
-    <div class="col col-sm-2">
-        <a target="blank" href="{{ sites.CHI_NU.web }}/project/leases/calendar/host/"
-            class="btn btn-lg btn-block btn-default">CHI@NU <i class="fa fa-external-link"></i></a>
-    </div>
-    {% endif %}
+
     {% if sites.CHI_NCAR.web %}
     <div class="col col-sm-2">
         <a target="blank" href="{{ sites.CHI_NCAR.web }}/project/leases/calendar/host/"
-            class="btn btn-lg btn-block btn-default">CHI@NCAR <i class="fa fa-external-link"></i></a>
+            class="btn btn-lg btn-block btn-core-site">
+            <strong>CHI@NCAR</strong> <i class="fa fa-external-link"></i>
+        </a>
     </div>
     {% endif %}
+
+    {% if sites.CHI_NU.web %}
+    <div class="col col-sm-2">
+        <a target="blank" href="{{ sites.CHI_NU.web }}/project/leases/calendar/host/"
+            class="btn btn-lg btn-block btn-volunteer-site">
+            CHI@NU <i class="fa fa-external-link"></i>
+        </a>
+    </div>
+    {% endif %}
+
     {% if sites.CHI_NRP.web %}
     <div class="col col-sm-2">
         <a target="blank" href="{{ sites.CHI_NRP.web }}/project/leases/calendar/host/"
-            class="btn btn-lg btn-block btn-default">CHI@NRP <i class="fa fa-external-link"></i></a>
+            class="btn btn-lg btn-block btn-volunteer-site">
+            CHI@NRP <i class="fa fa-external-link"></i>
+        </a>
     </div>
     {% endif %}
 </div>
-<h2>Resource Browser</h2>
+<h2>Resource Browser: What the Resources Are</h2>
 {% csrf_token %}
 <div id="app"></div>
 {% endblock content %}
