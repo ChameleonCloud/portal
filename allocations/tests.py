@@ -13,7 +13,6 @@ from util.keycloak_client import KeycloakClient
 from allocations import tasks
 from allocations.models import Allocation
 
-
 LOG = logging.getLogger(__name__)
 
 

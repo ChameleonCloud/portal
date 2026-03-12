@@ -54,9 +54,7 @@ def end_daypasses():
             project = Project.objects.get(pk=invitation.project_id)
             user = User.objects.get(pk=invitation.user_accepted_id)
             keycloak_client = KeycloakClient()
-            keycloak_client.update_membership(
-                project.charge_code, user, "delete"
-            )
+            keycloak_client.update_membership(project.charge_code, user, "delete")
             invitation.status = Invitation.STATUS_BEYOND_DURATION
             invitation.save()
 
@@ -154,9 +152,7 @@ BASE_INTRO = """
 
 
 def email_body_intro_1_project(project, runners_up):
-    body = (
-        BASE_INTRO
-        + f"""
+    body = BASE_INTRO + f"""
              We automatically selected the following tag
              for your project <b>{project.charge_code} — {project.title}</b>:
              
@@ -164,7 +160,6 @@ def email_body_intro_1_project(project, runners_up):
             
             </p>
             """
-    )
     if runners_up:
         body += f"""
             <p>The following tags were considered, but not chosen:</p>
@@ -188,9 +183,7 @@ def email_body_intro_n_projects(projects):
         f"— {p.description}</b>\n<ul><li>{p.tag.name} — {p.tag.description}</ul>"
         for p in projects
     )
-    return (
-        BASE_INTRO
-        + f"""
+    return BASE_INTRO + f"""
     We automatically selected new tags for your projects:<br><br>
     <ol>
     {project_list}
@@ -202,7 +195,6 @@ def email_body_intro_n_projects(projects):
     visiting the links to your projects above.
     </p>
     """
-    )
 
 
 def automatically_tag_projects(dry=True):

@@ -23,12 +23,10 @@ def get_accept_project_terms_help_text():
     project_terms_url = reverse_lazy(
         "tc_view_specific_version_page", args=["project-terms", "1.00"]
     )
-    return dedent(
-        f"""
+    return dedent(f"""
     Please review the Chameleon <a href="{user_terms_url}">User Terms of Use</a>
     and <a href="{project_terms_url}">Project Lead Terms of Use</a>.
-    """
-    )
+    """)
 
 
 get_accept_project_terms_help_text_lazy = lazy(get_accept_project_terms_help_text, str)

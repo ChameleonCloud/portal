@@ -335,9 +335,7 @@ class PublicationUtils:
         for author in author_names:
             users.extend(get_users_for_author(author))
         kcc = KeycloakClient()
-        projects = [
-            proj for u in users for proj in kcc.get_user_projects_by_user(u)
-        ]
+        projects = [proj for u in users for proj in kcc.get_user_projects_by_user(u)]
         return projects
 
 

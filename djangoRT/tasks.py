@@ -55,7 +55,9 @@ def add_openstack_data(self, **kwargs):
                 try:
                     factor = (1.0 / len(regions)) * 100
                     write_message(factor * i, f'Processing region "{region}"')
-                    region_list.append(get_openstack_data(portal_user.username, region, projects))
+                    region_list.append(
+                        get_openstack_data(portal_user.username, region, projects)
+                    )
                 except Exception as err:
                     LOG.error(
                         f"Failed to get OpenStack data for region {region}: {err}"
