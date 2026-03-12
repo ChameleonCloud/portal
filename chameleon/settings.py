@@ -882,6 +882,7 @@ CSP_IMG_SRC = [
     "https://www.chameleoncloud.org",
     "https://www.google-analytics.com",
     "https://*.googleusercontent.com",
+    "chameleoncloud.org",
 ]
 CSP_FONT_SRC = [
     "'self'",
