@@ -45,8 +45,7 @@ def get_computehost_charges_by_ids(db, resource_ids=None):
     resource_id_params = "SELECT DISTINCT id FROM blazar.reservations"
     if resource_ids:
         resource_id_params = ",".join(f'"{r}"' for r in resource_ids)
-    cursor.execute(
-        """
+    cursor.execute("""
         SELECT lu.name AS username, p.extra, p.name AS project_name,
         start_date AS start_on,
         LEAST(COALESCE(end_date, l.deleted_at, r.deleted_at),
@@ -74,10 +73,7 @@ def get_computehost_charges_by_ids(db, resource_ids=None):
         ) AS j ON j.computehost_id = c.id
         WHERE r.id IN ({})
         GROUP BY r.id, capability_value
-    """.format(
-            resource_id_params
-        )
-    )
+    """.format(resource_id_params))
 
     return parse_db_query(cursor.fetchall())
 
@@ -87,8 +83,7 @@ def get_network_charges_by_ids(db, resource_ids=None):
     resource_id_params = "SELECT DISTINCT id FROM blazar.reservations"
     if resource_ids:
         resource_id_params = ",".join(f'"{r}"' for r in resource_ids)
-    cursor.execute(
-        """
+    cursor.execute("""
         SELECT lu.name AS username, p.extra, p.name AS project_name,
         start_date AS start_on,
         LEAST(COALESCE(end_date, l.deleted_at, r.deleted_at),
@@ -116,10 +111,7 @@ def get_network_charges_by_ids(db, resource_ids=None):
         ) AS j ON j.network_id = n.id
         WHERE r.id IN ({})
         GROUP BY r.id, capability_value
-    """.format(
-            resource_id_params
-        )
-    )
+    """.format(resource_id_params))
 
     return parse_db_query(cursor.fetchall())
 
@@ -129,8 +121,7 @@ def get_floatingip_charges_by_ids(db, resource_ids=None):
     resource_id_params = "SELECT DISTINCT id FROM blazar.reservations"
     if resource_ids:
         resource_id_params = ",".join(f'"{r}"' for r in resource_ids)
-    cursor.execute(
-        """
+    cursor.execute("""
         SELECT lu.name AS username, p.extra, p.name AS project_name,
         start_date AS start_on,
         LEAST(COALESCE(end_date, l.deleted_at, r.deleted_at),
@@ -146,10 +137,7 @@ def get_floatingip_charges_by_ids(db, resource_ids=None):
         JOIN keystone.local_user AS lu ON lu.user_id = u.id
         WHERE r.id IN ({})
         GROUP BY r.id
-    """.format(
-            resource_id_params
-        )
-    )
+    """.format(resource_id_params))
 
     return parse_db_query(cursor.fetchall())
 

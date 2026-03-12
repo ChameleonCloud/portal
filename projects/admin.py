@@ -607,16 +607,14 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             create_url = reverse(
                 "admin:projects_create_publication_duplicate", args=[obj.pk, pub.pk]
             )
-            links.append(
-                f"""
+            links.append(f"""
                 <li>
                 <a href="{reverse("admin:projects_publication_change", args=[pub.pk])}">{str(pub)})</a>
                     <a class="btn" href="#" onclick="createDuplicate('{create_url}', '{pub.pk}')">
                         Mark Duplicate
                     </a>
                 </li>
-                """
-            )
+                """)
         links_html = "".join(links)
         script_html = """
             <script>
@@ -640,12 +638,10 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             }
             </script>
         """
-        return mark_safe(
-            f"""
+        return mark_safe(f"""
             {script_html}
             <ul>{links_html}</ul>
-        """
-        )
+        """)
 
     potential_duplicate_of.short_description = "Is Potential Duplicate Of"
 

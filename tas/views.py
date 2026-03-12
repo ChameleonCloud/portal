@@ -11,7 +11,6 @@ from tas.forms import UserProfileForm
 from util.keycloak_client import DuplicateUserError
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-
 LOG = logging.getLogger(__name__)
 
 

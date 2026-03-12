@@ -1046,9 +1046,7 @@ def review_daypass(request, request_id, **kwargs):
 @with_trovi_token
 def list_daypass_requests(request, **kwargs):
     keycloak_client = KeycloakClient()
-    projects = UserPermissions.get_manager_projects(
-        keycloak_client, request.user
-    )
+    projects = UserPermissions.get_manager_projects(keycloak_client, request.user)
     trovi_artifacts = trovi.list_artifacts(request.session.get("trovi_token"))
     trovi_artifacts_map = {}
     # Create a map of all artifacts assigned to projects this user has perms on

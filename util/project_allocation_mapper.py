@@ -23,7 +23,6 @@ from pytas.models import User as tas_user
 from util.consts import allocation, project
 from util.keycloak_client import KeycloakClient
 
-
 logger = logging.getLogger(__name__)
 
 TMP_PROJECT_CHARGE_CODE_PREFIX = "TMP-"
@@ -267,12 +266,8 @@ class ProjectAllocationMapper:
 
         # update keycloak
         keycloak_client = KeycloakClient()
-        keycloak_client.set_user_project_role(
-            project_pi, project.charge_code, "admin"
-        )
-        keycloak_client.set_user_project_role(
-            project.pi, project.charge_code, "member"
-        )
+        keycloak_client.set_user_project_role(project_pi, project.charge_code, "admin")
+        keycloak_client.set_user_project_role(project.pi, project.charge_code, "member")
 
         # update portal
         project.pi = project_pi

@@ -4,7 +4,6 @@ from django import forms
 import logging
 from pytas.http import TASClient
 
-
 logger = logging.getLogger(__name__)
 
 ELIGIBLE = "Eligible"

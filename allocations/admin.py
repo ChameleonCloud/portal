@@ -50,8 +50,7 @@ class AllocationAdmin(admin.ModelAdmin):
         institution = kc_user.get("attributes", {}).get("affiliationInstitution")
         country = kc_user.get("attributes", {}).get("country")
 
-        return mark_safe(
-            f"""<table>
+        return mark_safe(f"""<table>
         <tr>
             <td><b>Name</b></td>
             <td>{obj.project.pi.first_name} {obj.project.pi.last_name}</td>
@@ -69,13 +68,11 @@ class AllocationAdmin(admin.ModelAdmin):
             <td><b>Country</b></td><td>{country}</td>
         </tr>
         </table>
-        """
-        )
+        """)
 
     def project_info(self, obj):
         fundings = "</li><li>".join(str(f) for f in obj.project.project_funding.all())
-        return mark_safe(
-            f"""<table>
+        return mark_safe(f"""<table>
             <tr>
                 <td><b>Charge Code</b></td><td>{obj.project.charge_code}</td>
             </tr>
@@ -91,16 +88,14 @@ class AllocationAdmin(admin.ModelAdmin):
             <tr>
                 <td><b>Fundings</b></td><td><ul><li>{fundings}</li></ul></td>
             </tr>
-        <table>"""
-        )
+        <table>""")
 
     def allocation_status(self, obj):
         if obj.status not in ["pending", "waiting"]:
             return f"This allocation is {obj.status}."
 
         rows = []
-        rows.append(
-            f"""<tr>
+        rows.append(f"""<tr>
             <td>{obj.id}</td>
             <td>{obj.requestor}</td>
             <td>{obj.date_requested.date()}</td>
@@ -117,8 +112,7 @@ class AllocationAdmin(admin.ModelAdmin):
                     Contact PI
                 </button>
             </td>
-        </tr>"""
-        )
+        </tr>""")
 
         styles = """
         <style>
@@ -240,8 +234,7 @@ class AllocationAdmin(admin.ModelAdmin):
         </div>
         """
 
-        return mark_safe(
-            f"""
+        return mark_safe(f"""
         <table>
             <thead>
                 <tr>
@@ -261,8 +254,7 @@ class AllocationAdmin(admin.ModelAdmin):
         {approve_modal}
         {reject_modal}
         {contact_modal}
-        """
-        )
+        """)
 
     def previous_allocations(self, obj):
         rows = []
@@ -275,8 +267,7 @@ class AllocationAdmin(admin.ModelAdmin):
             if not real_su_used:
                 balance = su_calculators.project_balances([alloc.project.id])[0]
                 real_su_used = balance["total"]
-            rows.append(
-                f"""<tr>
+            rows.append(f"""<tr>
                 <td><a href="{reverse("admin:allocations_allocation_change", args=[alloc.id])}">{alloc.id}</a></td>
                 <td>{alloc.requestor}</td>
                 <td>{alloc.date_requested.date()}</td>
@@ -305,10 +296,8 @@ class AllocationAdmin(admin.ModelAdmin):
                     </ul>
                     </details>
                 </td>
-            </tr>"""
-            )
-        return mark_safe(
-            f"""
+            </tr>""")
+        return mark_safe(f"""
         <table>
             <thead>
                 <tr>
@@ -325,8 +314,7 @@ class AllocationAdmin(admin.ModelAdmin):
             {"".join(rows)}
             </tr>
         </table>
-        """
-        )
+        """)
 
     def alloc_count(self, obj):
         return obj.project.allocations.count()
