@@ -11,9 +11,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView
+import requests
 
 
 from . import research_impacts
@@ -270,3 +272,13 @@ def blog_redirect(request):
     elif len(path_parts) == 2 and path_parts[1] == "feed":
         url = f"{base_blog_url}/posts/index.xml"
     return redirect(url, permanent=True)
+
+
+@cache_page(60 * 5)
+def featured_json(request):
+    response = requests.get("https://blog.chameleoncloud.org/featured.json")
+    if response.status_code != 200:
+        LOG.warning(f"Failed to fetch featured posts: {response.status_code}")
+        return JsonResponse([], safe=False, status=500)
+    featured = response.json()
+    return JsonResponse(featured, safe=False)
