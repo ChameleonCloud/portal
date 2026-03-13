@@ -17,16 +17,6 @@ h1 {
   padding-bottom: 0.3em;
   // Allow accent bar to wrap below flex layouts
   flex-wrap: wrap;
-
-  &::after {
-    content: "";
-    display: block;
-    width: 50px;
-    height: 3px;
-    background-color: $brand-info;
-    margin-top: 0.3em;
-    flex-basis: 100%;
-  }
 }
 
 h2 {
@@ -34,16 +24,6 @@ h2 {
   font-size: 1.5em;
   padding-bottom: 0.2em;
   flex-wrap: wrap;
-
-  &::after {
-    content: "";
-    display: block;
-    width: 40px;
-    height: 2px;
-    background-color: $brand-success;
-    margin-top: 0.25em;
-    flex-basis: 100%;
-  }
 }
 
 h3 { color: $brand-info; font-size: 1.25em; font-weight: 400; }
