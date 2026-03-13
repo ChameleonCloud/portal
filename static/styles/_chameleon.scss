@@ -1,31 +1,90 @@
 @import 'compass/css3';
 
-h1, h2, h3 {
-  font-weight: 400;
-  border-bottom: 3px solid;
-  margin: 0.67em 0;
+// Typography: Inter for headings, clean modern hierarchy
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: $font-family-headings;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: none;
+  margin: 1em 0 0.5em;
+  line-height: 1.2;
 }
 
 h1 {
   color: $brand-info;
-  border-color: $brand-info;
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  // Allow accent bar to wrap below flex layouts
+  flex-wrap: wrap;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: $brand-info;
+    margin-top: 0.3em;
+    flex-basis: 100%;
+  }
 }
 
 h2 {
   color: $brand-success;
-  border-color: $brand-success;
+  font-size: 1.5em;
+  padding-bottom: 0.2em;
+  flex-wrap: wrap;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 2px;
+    background-color: $brand-success;
+    margin-top: 0.25em;
+    flex-basis: 100%;
+  }
 }
 
-h3 {
-  color: $brand-info;
-  border-color: $brand-info;
+h3 { color: $brand-info; font-size: 1.25em; font-weight: 400; }
+
+body {
+  line-height: 1.6;
 }
 
-h1 a, h1 a:hover, h1 a:focus,
-h2 a, h2 a:hover, h2 a:focus,
-h3 a, h3 a:hover, h3 a:focus {
+// Global link style: subtle background highlight on hover
+a {
+  color: $link-color;
+  text-decoration: none;
+  padding: 0 0.1em;
+  margin: 0 -0.1em;
+  border-radius: 2px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover, &:focus {
+    color: $link-hover-color;
+    text-decoration: none;
+    background-color: rgba($link-color, 0.08);
+  }
+}
+
+// Page title style (used on About, etc.)
+.page-header h1,
+h1.page-title {
+  font-weight: 700;
+  color: $grey-dark;
+}
+
+// Heading links inherit heading color, tint with heading color on hover
+h1 a, h2 a, h3 a {
   color: inherit;
+  &:hover, &:focus {
+    color: inherit;
+  }
 }
+h1 a:hover, h1 a:focus { background-color: rgba($brand-info, 0.08); }
+h2 a:hover, h2 a:focus { background-color: rgba($brand-success, 0.08); }
+h3 a:hover, h3 a:focus { background-color: rgba($brand-info, 0.08); }
 
 .front {
 
@@ -36,19 +95,39 @@ h3 a, h3 a:hover, h3 a:focus {
     margin-bottom: 0;
 
     h1 {
-      font-weight: 300;
+      font-family: $font-family-headings;
+      font-weight: 700;
       color: $grey-dark;
+      letter-spacing: -0.02em;
       border: 0;
-      margin: 0.4em 0; // Reduced from default 0.67em
+      margin: 0.4em 0;
+      padding-bottom: 0;
+
+      &::after {
+        display: none;
+      }
     }
-    
+
+    p {
+      color: $grey;
+      line-height: 1.5;
+    }
+
     .container {
       padding-top: 0.5em;
       padding-bottom: 0.5em;
     }
-    
+
     .row {
-      align-items: center; // Vertically center the content
+      align-items: center;
+    }
+
+    // CTA button refinement
+    .btn-primary {
+      font-family: $font-family-headings;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 8px 20px;
     }
   }
 
@@ -174,14 +253,18 @@ html, body {
 }
 
 .main {
-  background-color: #fff;
+  background-color: #f2f2f2;
   background-image: url(../images/bg.jpg);
   background-repeat: repeat-x;
-  padding-top: 0.5em;
-  padding-bottom: 0.5em;
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
 
   & > .container {
     position: relative;
+    background-color: #fff;
+    padding: 1.5em 2em;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -353,14 +436,21 @@ body.homepage {
 
 .site-header {
   background-image: url(../images/nav-bg.jpg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  .nav > li > a {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  }
 
   .nav > li.active > a {
-    background-color: rgba(#333, .1);
+    background-color: rgba(white, 0.12);
+    border-radius: 4px;
   }
 
   .nav > li > a:hover,
   .nav > li > a:focus {
-    background-color: rgba(#eee, .25);
+    background-color: rgba(white, 0.15);
+    border-radius: 4px;
   }
 }
 
@@ -387,6 +477,10 @@ article {
   h2 {
     border: 0;
     margin-bottom: 0.33em;
+
+    &::after {
+      display: none;
+    }
 
     .post-date {
       white-space: nowrap;
@@ -500,9 +594,54 @@ article {
 }
 
 .navbar-chameleon {
+  // Modernize nav link typography
+  .navbar-nav > li > a {
+    font-family: $font-family-headings;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  // Subtle frosted-glass look for nav links at desktop
+  @media screen and (min-width: 768px) {
+    .navbar-nav > li:not(.navbar-btn-alt) > a {
+      margin: 16px 2px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background-color: transparent;
+    }
+
+    .navbar-nav > li:not(.navbar-btn-alt) > a:hover,
+    .navbar-nav > li:not(.navbar-btn-alt) > a:focus,
+    .navbar-nav > li:not(.navbar-btn-alt):hover > a {
+      background-color: rgba(black, 0.15);
+    }
+
+    .navbar-nav > li:not(.navbar-btn-alt).active > a {
+      background-color: rgba(black, 0.25);
+    }
+
+    // Open dropdowns on hover at desktop
+    .navbar-nav > li.dropdown:hover > .dropdown-menu {
+      display: block;
+      margin-top: 0;
+    }
+  }
+
+  // Consistent styling for all right-side button items (Help Desk, Log in, user dropdown)
+  .navbar-right > li > a {
+    border: 1px solid rgba(white, 0.7);
+    border-radius: 4px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .navbar-right > li > a:hover,
+  .navbar-right > li > a:focus {
+    background-color: rgba(white, 0.15);
+    border-color: white;
+  }
+
   .navbar-toggle {
     border-color: white;
-    // color: $brand-info;
     background-color: $brand-info;
 
     .icon-bar {
@@ -534,7 +673,20 @@ article {
     padding-bottom: 24px;
     padding-left: 7px;
     padding-right: 7px;
-}
+    font-size: 12px;
+  }
+
+  .navbar-chameleon .navbar-nav > .navbar-btn-alt > a {
+    padding: 3px 8px;
+    margin: 20px 2px;
+  }
+
+  .navbar-chameleon .navbar-right > li > a {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-top: 16px;
+    font-size: 12px;
+  }
 }
 
 @media screen and (min-width:992px) {
@@ -546,16 +698,10 @@ article {
   .navbar-chameleon .navbar-nav > .navbar-btn-alt > a {
     padding: 3px 10px;
     margin: 20px 4px;
-    border: 1px solid #4564E2;
   }
 
   .site-header .nav > li.navbar-btn-alt.active > a {
     background-color: inherit;
-  }
-
-  .site-header .nav > li.navbar-btn-alt > a:hover,
-  .site-header .nav > li.navbar-btn-alt > a:focus {
-    background-color: rgba(#eee, .25);
   }
 }
 
