@@ -301,6 +301,16 @@
   </div>
 {% endfor %}
 {% if join_requests or invitations %}
+  {% if join_requests %}
+  <div style="display: flex; justify-content: flex-end;">
+    <form role="form" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="invite_id" value="">
+        <button type="submit" class="btn btn-xs" name="approve_all">Approve all requests</button>
+    </form>
+  </div>
+  {% endif %}
+
   <table width=100%>
     <tr>
       <th>Username</th>
