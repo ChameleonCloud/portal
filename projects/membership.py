@@ -67,10 +67,11 @@ def add_user_to_project(tas_project, user):
     # add the project's default budget to the user
     project = Project.objects.get(charge_code=tas_project.chargeCode)
     if project.default_su_budget != 0:
-        user_budget = ChargeBudget(
-            user=user, project=project, su_budget=project.default_su_budget
+        ChargeBudget.objects.get_or_create(
+            user=user,
+            project=project,
+            defaults={"su_budget": project.default_su_budget}
         )
-        user_budget.save()
 
     return True
 
