@@ -363,6 +363,7 @@ def view_project(request, project_id):
     user_permission = UserPermissions.get_user_permissions(
         keycloak_client, request.user, project
     )
+    join_link = JoinLink.objects.get_or_create(project_id=project.id)[0]
 
     # Users list may be stale if we update the membership list
     users_is_stale = False
@@ -379,7 +380,6 @@ def view_project(request, project_id):
                 if _add_users_to_project(
                     request,
                     project,
-                    project_id,
                     [form.cleaned_data["user_ref"].strip()],
                 ):
                     form = ProjectAddUserForm()
@@ -517,6 +517,15 @@ def view_project(request, project_id):
                     request,
                     "This join request has already been responded to!",
                 )
+        elif "approve_all" in request.POST:
+            users_is_stale = True
+            new_users = []
+            for join_request in JoinRequest.objects.filter(
+                join_link=join_link, status=JoinRequest.Status.PENDING
+            ):
+                new_users.append(join_request.user)
+                join_request.accept()
+            _add_users_to_project(request, project, new_users)
         elif "reject_join_request" in request.POST:
             try:
                 join_request = JoinRequest.objects.get(
@@ -547,7 +556,7 @@ def view_project(request, project_id):
                     ].splitlines()
                     if username.strip()
                 ]
-                if _add_users_to_project(request, project, project_id, usernames):
+                if _add_users_to_project(request, project, usernames):
                     bulk_user_form = ProjectAddBulkUserForm()
         elif "remove_bulk_users" in request.POST:
             users_is_stale = True
@@ -639,8 +648,6 @@ def view_project(request, project_id):
             new_item["duration"] = i.duration
         clean_invitations.append(new_item)
 
-    join_link = JoinLink.objects.get_or_create(project_id=project.id)[0]
-
     is_on_daypass = get_daypass(request.user.id, project_id) is not None
 
     return render(
@@ -674,9 +681,9 @@ def view_project(request, project_id):
     )
 
 
-def _add_users_to_project(request, project, project_id, user_refs):
+def _add_users_to_project(request, project, user_refs):
     """
-    Adds all users specified either by username or email. Returns True if all
+    Adds all users specified either by username or email or object. Returns True if all
     users were added with no errors.
     """
     success_messages = []
@@ -685,7 +692,10 @@ def _add_users_to_project(request, project, project_id, user_refs):
     def process_user(user_ref):
         local_success = []
         local_error = []
-        user = get_user_by_reference(username=user_ref, email=user_ref)
+        if user_ref is User:
+            user = user_ref
+        else:
+            user = get_user_by_reference(username=user_ref, email=user_ref)
         if user:
             if membership.add_user_to_project(project, user):
                 local_success.append(f'User "{user_ref}" added to project!')
