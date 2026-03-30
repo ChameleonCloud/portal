@@ -17,6 +17,12 @@
     <div id="content-main" class="appCatalog" ng-app="appCatalogApp" ng-cloak ng-csp>
         <div class="content" ng-controller="AppCatalogController">
             <h2>Appliance Catalog</h2>
+            <div class="alert alert-warning alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <strong>Deprecated:</strong> The Appliance Catalog is deprecated and should no longer be used. Please find and submit appliances on <a href="https://trovi.chameleoncloud.org/dashboard/?tags=appliance" target="_blank">Trovi</a>. See <a href="https://chameleoncloud.readthedocs.io/en/latest/technical/complex/catalog.html#complex-appliances-in-trovi" target="_blank">documentation</a> for more information.
+            </div>
             {% if request.user.is_authenticated %}
             <div class="add-appliance-link">
                 <a class="btn btn-success" href="create/">
