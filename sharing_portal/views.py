@@ -651,9 +651,7 @@ def share_artifact(request, artifact):
 
 def has_active_allocations(request):
     mapper = ProjectAllocationMapper(request)
-    user_projects = mapper.get_user_projects(
-        request.user, to_pytas_model=False
-    )
+    user_projects = mapper.get_user_projects(request.user, to_pytas_model=False)
     for project in user_projects:
         for allocation in project["allocations"]:
             if allocation["status"].lower() == "active":

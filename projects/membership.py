@@ -70,7 +70,7 @@ def add_user_to_project(tas_project, user):
         ChargeBudget.objects.get_or_create(
             user=user,
             project=project,
-            defaults={"su_budget": project.default_su_budget}
+            defaults={"su_budget": project.default_su_budget},
         )
 
     return True
