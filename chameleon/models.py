@@ -138,3 +138,30 @@ class KeycloakUser(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="keycloak_user"
     )
     sub = models.CharField(max_length=255, unique=True, null=True, blank=True)
+
+
+class Dataset(models.Model):
+    name = models.CharField(max_length=1024, unique=True)
+    url = models.CharField(max_length=1024)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="datasets",
+        blank=True,
+        null=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class DatasetDownloadEvent(models.Model):
+    downloaded_at = models.DateTimeField(auto_now_add=True)
+    downloaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="downloads"
+    )
+    dataset = models.ForeignKey(
+        Dataset,
+        on_delete=models.CASCADE,
+    )

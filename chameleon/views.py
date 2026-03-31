@@ -28,6 +28,7 @@ from chameleon.keystone_auth import (
     has_valid_token,
     WHITELISTED_PROJECTS,
 )
+from .models import Dataset, DatasetDownloadEvent
 from user_news.models import Outage
 from webinar_registration.models import Webinar
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -282,3 +283,13 @@ def featured_json(request):
         return JsonResponse([], safe=False, status=500)
     featured = response.json()
     return JsonResponse(featured, safe=False)
+
+
+@login_required
+def download_dataset(request, dataset_id):
+    ds = Dataset.objects.get(pk=dataset_id)
+    DatasetDownloadEvent.objects.create(
+        downloaded_by=request.user,
+        dataset=ds,
+    )
+    return redirect(ds.url)

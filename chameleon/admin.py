@@ -9,7 +9,10 @@ from chameleon.models import (
     KeycloakUser,
     PIEligibility,
     UserInstitution,
+    Dataset,
+    DatasetDownloadEvent,
 )
+from django.urls import reverse
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -312,3 +315,34 @@ class UserAdmin(BaseUserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+
+class DatasetAdmin(admin.ModelAdmin):
+    list_display = ["name", "created_by"]
+    readonly_fields = ["public_url"]
+
+    # default created_by to current user
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by_id:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def public_url(self, obj):
+        if obj.id:
+            return format_html(
+                '<a href="{url}" target="_blank">{url}</a>'.format(
+                    url=reverse("download_dataset", args=[obj.id])
+                )
+            )
+        return ""
+
+
+admin.site.register(Dataset, DatasetAdmin)
+
+
+class DatasetDownloadEventAdmin(admin.ModelAdmin):
+    list_display = ["downloaded_at", "downloaded_by", "dataset"]
+    ordering = ("-downloaded_at",)
+
+
+admin.site.register(DatasetDownloadEvent, DatasetDownloadEventAdmin)
