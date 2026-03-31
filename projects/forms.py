@@ -295,7 +295,8 @@ class AddBibtexPublicationForm(forms.Form):
         initialized_projects = False
         if user:
             keycloak_client = KeycloakClient()
-            charge_codes = keycloak_client.get_user_from_portal_user(user)
+            charge_codes = keycloak_client.get_user_projects_by_user(user)
+            logger.info(user.username + " has charge codes: " + str(charge_codes))
             if charge_codes:
                 projects_qs = Project.objects.filter(charge_code__in=charge_codes)
                 self.fields["project_id"].choices = [
