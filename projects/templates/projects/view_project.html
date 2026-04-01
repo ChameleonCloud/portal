@@ -301,7 +301,7 @@
   </div>
 {% endfor %}
 {% if join_requests or invitations %}
-  {% if join_requests %}
+  {% if join_requests and can_manage_project_membership %}
   <div style="display: flex; justify-content: flex-end;">
     <form role="form" method="post">
         {% csrf_token %}
