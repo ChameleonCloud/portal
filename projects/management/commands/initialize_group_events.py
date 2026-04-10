@@ -54,7 +54,10 @@ class Command(BaseCommand):
                     email=kc_user.get("email"),
                 )
                 if portal_user:
-                    keycloak_client.update_user(portal_user, **update_args)
+                    try:
+                        keycloak_client.update_user(portal_user, **update_args)
+                    except Exception as e:
+                        print(f"Error updating user {kc_user['username']}: {e}")
                 else:
                     print(
                         f"Could not find portal user for Keycloak user {kc_user['username']}"
