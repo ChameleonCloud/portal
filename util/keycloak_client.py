@@ -181,7 +181,11 @@ class KeycloakClient:
 
         result = {}
         for user in keycloakusers.all(max_results=-1):
-            result[user["username"]] = user
+            try:
+                result[user["username"]] = user
+            except (KeyError, TypeError) as e:
+                logger.warning(f"Could not add user {user} to result: {e}")
+                continue
 
         return result
 
