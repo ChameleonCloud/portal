@@ -27,8 +27,15 @@ class Command(BaseCommand):
 
         print("Fetching all users from Keycloak...")
         keycloak_client = KeycloakClient()
-        kc_user_map = keycloak_client.get_all_users()
-        for kc_user in kc_user_map.values():
+        keycloak_users_admin = keycloak_client._users_admin()
+
+        def _fetch_from(cursor, batch_size):
+            results = keycloak_users_admin.all(first=cursor, max=batch_size)
+            if len(results) == batch_size:
+                results.extend(_fetch_from(cursor + batch_size, batch_size))
+            return results
+
+        for kc_user in _fetch_from(0, 100):
             print(
                 f"Processing user {kc_user['username']} with existing events {kc_user['attributes'].get(UserAttributes.GROUP_EVENTS)}"
             )
