@@ -1299,23 +1299,17 @@ def project_member_export(request, project_id):
         content_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{project.title}.csv"'},
     )
-    futures = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        for user in get_project_members(project):
-            logger.info(user)
-
-            def task(user):
-                user_permission = UserPermissions.get_user_permissions(
-                    keycloak_client, user, project
-                )
-                role = "manager" if user_permission.manage else "member"
-                return [role, user.username, user.email]
-
-            futures.append(executor.submit(task, user))
-
+    user_roles = keycloak_client.get_roles_for_all_project_members(
+        get_charge_code(project)
+    )
     members = []
-    for future in futures:
-        members.append(future.result())
+    for user in get_project_members(project):
+        role = (
+            "manager"
+            if user_roles.get(user.username, "member") in ("admin", "manager")
+            else "member"
+        )
+        members.append([role, user.username, user.email])
 
     writer = csv.writer(response)
     writer.writerow(["role", "username", "email"])
