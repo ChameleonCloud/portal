@@ -149,7 +149,7 @@ export default {
       let allCapabilities = {};
 
       if (discover) {
-        const discoveredCaps = JSPath.apply(discover.prefix, this.hardware)[0] || {};
+        const discoveredCaps = { ...(JSPath.apply(discover.prefix, this.hardware)[0] || {}) };
         if (discover.ignore) {
           discover.ignore.forEach((key) => delete discoveredCaps[key]);
         }
