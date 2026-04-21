@@ -28,6 +28,7 @@ from balance_service.enforcement import exceptions
 from balance_service.models import ConfigVariable
 from balance_service.utils import su_calculators
 from projects.models import Project
+from projects.util import get_user_by_reference
 from util.keycloak_client import KeycloakClient
 
 LOG = logging.getLogger(__name__)
@@ -83,7 +84,7 @@ class UsageEnforcer(object):
 
         return charge_code
 
-    def _get_username(self, keystone_user_id):
+    def _get_keystone_user(self, keystone_user_id):
         """Get username from Keystone"""
         keystone_user = self.keystone_api.get_user(keystone_user_id)
         username = keystone_user.get("name")
@@ -92,13 +93,13 @@ class UsageEnforcer(object):
                 message=(f"Username is not found for {keystone_user_id}")
             )
 
-        return username
+        return {
+            "username": username,
+            "email": keystone_user.get("email"),
+        }
 
     def _get_portal_project(self, charge_code):
         return Project.objects.get(charge_code=charge_code)
-
-    def _get_portal_user(self, username):
-        return get_user_model().objects.get(username=username)
 
     def _get_charges_by_reservation(self, resource_id, region):
         return Charge.objects.filter(resource_id=resource_id).filter(region_name=region)
@@ -114,11 +115,11 @@ class UsageEnforcer(object):
         duration = self.get_lease_duration_hrs(lease_values)
         total_su_factor = self._total_su_factor(lease_values)
         amount = duration * total_su_factor
-        username = self._get_username(context["user_id"])
+        ks_user = self._get_keystone_user(context["user_id"])
 
         return LeaseEval(
             self._get_portal_project(project_charge_code),
-            self._get_portal_user(username),
+            get_user_by_reference(username=ks_user["username"], email=ks_user["email"]),
             context["region_name"],
             duration,
             total_su_factor,
