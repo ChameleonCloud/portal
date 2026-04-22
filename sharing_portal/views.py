@@ -1034,6 +1034,7 @@ def review_daypass(request, request_id, **kwargs):
     template = loader.get_template("sharing_portal/review_daypass.html")
     context = {
         "daypass_request": daypass_request,
+        "artifact": artifact,
         "form": form,
     }
     return HttpResponse(template.render(context, request))

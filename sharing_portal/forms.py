@@ -125,9 +125,7 @@ class ShareArtifactForm(forms.Form):
                 project["chargeCode"],
                 project["nickname"] if "nickname" in project else project["chargeCode"],
             )
-            for project in mapper.get_user_projects(
-                request.user.username, to_pytas_model=False
-            )
+            for project in mapper.get_user_projects(request.user, to_pytas_model=False)
         ]
         self.fields["project"] = forms.ChoiceField(
             label="Belongs to project",
@@ -193,9 +191,7 @@ def _version_is_zenodo(version):
 
 class BaseZenodoPublishFormset(forms.BaseFormSet):
     def __init__(self, *args, **kwargs):
-        artifact_versions = kwargs.pop("artifact_versions")
-        if not artifact_versions:
-            raise ValueError("artifact_versions must provided")
+        artifact_versions = kwargs.pop("artifact_versions", [])
         self.artifact_versions = artifact_versions
         self.latest_published_version = -1
         for i, version in enumerate(artifact_versions):

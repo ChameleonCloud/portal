@@ -22,7 +22,7 @@
             <h2 class="artifactTitle">Review Daypass Request</h2>
           </header>
             <dl>
-              <dt>Artifact</dt><dd>{{ daypass_request.artifact.title }}</dd>
+              <dt>Artifact</dt><dd>{{ artifact.title }}</dd>
               <dt>Name</dt><dd>{{ daypass_request.name }}</dd>
               <dt>Email</dt><dd>{{ daypass_request.created_by.email }}</dd>
               <dt>Institution</dt><dd>{{ daypass_request.institution }}</dd>
@@ -31,7 +31,7 @@
             {% bootstrap_field form.status %}
             <p>
             Per the artifact setting, this request is for
-            {{ daypass_request.artifact.reproducibility.access_hours }} hours.
+            {{ artifact.reproducibility.access_hours }} hours.
             </p>
             <p>
             By approving this request, you recognize that the requestor will
