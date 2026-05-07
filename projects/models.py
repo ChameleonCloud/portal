@@ -438,11 +438,13 @@ class PublicationSource(models.Model):
     APPROVED_WITH_PUBLICATION = "publication"
     APPROVED_WITH_JUSTIFICATION = "justification"
     APPROVED_WITH_EMAIL = "email"
+    APPROVED_WITH_FORM_ATTESTATION = "form_attestation"
 
     APPROVED_WITH = [
         (APPROVED_WITH_PUBLICATION, "Publication"),
         (APPROVED_WITH_JUSTIFICATION, "Justification"),
         (APPROVED_WITH_EMAIL, "Email"),
+        (APPROVED_WITH_FORM_ATTESTATION, "Form Attestation"),
     ]
 
     SOURCE_REPORT_FIELDS = [
@@ -513,11 +515,13 @@ class RawPublication(models.Model):
     APPROVED_WITH_PUBLICATION = "publication"
     APPROVED_WITH_JUSTIFICATION = "justification"
     APPROVED_WITH_EMAIL = "email"
+    APPROVED_WITH_FORM_ATTESTATION = "form_attestation"
 
     APPROVED_WITH = [
         (APPROVED_WITH_PUBLICATION, "Publication"),
         (APPROVED_WITH_JUSTIFICATION, "Justification"),
         (APPROVED_WITH_EMAIL, "Email"),
+        (APPROVED_WITH_FORM_ATTESTATION, "Form Attestation"),
     ]
 
     SOURCE_REPORT_FIELDS = [
