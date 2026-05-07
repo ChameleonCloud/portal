@@ -49,6 +49,13 @@ def get_publications_with_same_attributes(pub, publication_model_class):
         # Fallback: try matching by DOI only
         similar_pub = publication_model_class.objects.filter(doi__iexact=pub.doi)
 
+    # also find any publications with raw_publications with same source_id as the raw publication being imported
+    similar_pub = similar_pub | publication_model_class.objects.filter(
+        raw_publications__source_id__in=pub.raw_publications.values_list(
+            "source_id", flat=True
+        )
+    ).exclude(id=pub.id).distinct()
+
     # Order results: approved first, then others. Return as a list so the
     # caller can rely on ordering.
     approved = similar_pub.filter(status=publication_model_class.STATUS_APPROVED)
