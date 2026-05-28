@@ -22,7 +22,6 @@ from django.db.models import Q
 
 from projects.models import RawPublication
 from util.keycloak_client import KeycloakClient
-from magpub.deduplicate import find_matches
 from magpub.models import PublicationData
 from magpub import utils as pub_utils
 
@@ -60,6 +59,7 @@ def update_progress(task, stage=None, current=None, total=None, message=None):
 # Model <-> PublicationData bidirectional mapping
 # ---------------------------------------------------------------------------
 
+
 def publication_to_data(pub) -> PublicationData:
     """Convert a ``projects.models.Publication`` instance to ``PublicationData``."""
     return PublicationData(
@@ -72,7 +72,11 @@ def publication_to_data(pub) -> PublicationData:
         doi=pub.doi,
         link=pub.link,
         bibtex_source=pub.bibtex_source,
-        source_name=getattr(pub.raw_sources.first(), "name", None) if hasattr(pub, "raw_sources") else None,
+        source_name=(
+            getattr(pub.raw_sources.first(), "name", None)
+            if hasattr(pub, "raw_sources")
+            else None
+        ),
     )
 
 
@@ -119,6 +123,7 @@ def raw_publication_to_data(raw: RawPublication) -> PublicationData:
 # Chameleon-specific helpers
 # ---------------------------------------------------------------------------
 
+
 def is_project_prior_to_publication(project, pub_year):
     """Return True if *project* has an allocation starting on or before *pub_year*."""
     fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
@@ -159,14 +164,13 @@ def get_projects_for_author_names(author_names, year):
     for author in author_names:
         users.extend(get_users_for_author(author))
     kcc = KeycloakClient()
-    return [
-        proj for u in users for proj in kcc.get_user_projects_by_user(u)
-    ]
+    return [proj for u in users for proj in kcc.get_user_projects_by_user(u)]
 
 
 # ---------------------------------------------------------------------------
 # Import-pipeline helpers (operate on Django models)
 # ---------------------------------------------------------------------------
+
 
 def get_publications_with_same_attributes(pub, publication_model_class):
     """Return publications that are likely duplicates of *pub*.
@@ -256,6 +260,7 @@ def add_source_to_pub(pub, raw_pub):
 
         # Resolve IDs to model instances if needed
         from projects.models import ChameleonPublication, PublicationQuery
+
         if cites_id and not isinstance(cites_id, ChameleonPublication):
             try:
                 cites_id = ChameleonPublication.objects.get(pk=cites_id)
@@ -272,14 +277,18 @@ def add_source_to_pub(pub, raw_pub):
 
 def update_cites_and_query(source, cites_chameleon_pub_obj, found_with_query_obj):
     """Update M2M relationships on a ``RawPublication``."""
-    if cites_chameleon_pub_obj and not source.chameleon_publications.filter(
-        pk=cites_chameleon_pub_obj.pk
-    ).exists():
+    if (
+        cites_chameleon_pub_obj
+        and not source.chameleon_publications.filter(
+            pk=cites_chameleon_pub_obj.pk
+        ).exists()
+    ):
         source.chameleon_publications.add(cites_chameleon_pub_obj)
         source.save()
 
-    if found_with_query_obj and not source.publication_queries.filter(
-        pk=found_with_query_obj.pk
-    ).exists():
+    if (
+        found_with_query_obj
+        and not source.publication_queries.filter(pk=found_with_query_obj.pk).exists()
+    ):
         source.publication_queries.add(found_with_query_obj)
         source.save()
