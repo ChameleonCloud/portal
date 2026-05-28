@@ -10,7 +10,6 @@ import logging
 
 from projects.models import Publication
 from magpub.deduplicate import find_matches
-from magpub.utils import is_pub_similar
 from projects.user_publication.utils import publication_to_data
 
 logger = logging.getLogger(__name__)

@@ -1,21 +1,11 @@
-"""
-Django adapter for Scopus publication imports.
-
-Thin wrapper around ``util.publications.sources.scopus.ScopusClient`` that
-maps ``PublicationData`` into Django ORM operations.
-"""
-
 import logging
 
 from django.conf import settings
 
-from projects.models import Publication, PublicationCitation, RawPublication
+from projects.models import PublicationCitation, RawPublication
 from projects.user_publication.utils import (
-    add_source_to_pub,
-    data_to_publication,
     update_progress,
 )
-from magpub.models import PublicationData
 from magpub.sources.scopus import ScopusClient
 
 logger = logging.getLogger("projects")

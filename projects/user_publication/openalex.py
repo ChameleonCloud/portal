@@ -1,14 +1,8 @@
-"""
-Django adapter for OpenAlex publication imports.
-
-Thin wrapper around ``util.publications.sources.openalex.OpenAlexClient``.
-"""
-
 import logging
 
 from django.conf import settings
 
-from projects.models import ChameleonPublication, RawPublication
+from projects.models import ChameleonPublication
 from projects.user_publication.utils import update_progress
 from magpub.sources.openalex import OpenAlexClient
 
