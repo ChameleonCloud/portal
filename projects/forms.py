@@ -7,7 +7,7 @@ from django.forms import BaseFormSet
 from django.forms import formset_factory
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
-from projects.user_publication.utils import PublicationUtils
+from magpub.utils import get_link as get_pub_link
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
@@ -346,7 +346,7 @@ class AddBibtexPublicationForm(forms.Form):
                 ]
                 missing_fields.extend(missing)
 
-                if not PublicationUtils.get_link(entry):
+                if not get_pub_link(entry):
                     self.bibtex_errors.append(
                         "Please include `howpublished`, `url`, or `doi` in bibtex."
                     )

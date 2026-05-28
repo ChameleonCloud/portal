@@ -1,22 +1,26 @@
-# Functions to identify similarities in two publications to flag one of them as diplicate
+"""
+Django adapter for publication deduplication.
+
+The heavy lifting lives in ``util.publications.deduplicate``. This module
+provides ORM wrappers so existing callers (admin, views, migrations) keep
+working with Django model objects.
+"""
 
 import logging
 
 from projects.models import Publication
-from projects.user_publication.utils import PublicationUtils
+from magpub.deduplicate import find_matches
+from magpub.utils import is_pub_similar
+from projects.user_publication.utils import publication_to_data
 
 logger = logging.getLogger(__name__)
 
 
 def get_originals_for_duplicate_pub(dpub):
-    """Returns original pubs that are almost same as dpub
+    """Return original pubs that are almost the same as *dpub*.
 
-    Args:
-        dpub (projects.models.Publication): pub to check if it is similar to
-        pubs_to_check_against (list): list of pubs to check against
-
-    Returns:
-        list: original publications that are similar to dpub
+    Backwards-compatible wrapper used by the admin duplicate filter
+    and ``PublicationAdmin.potential_duplicate_of``.
     """
     pubs_to_check_against = (
         Publication.objects.filter(checked_for_duplicates=True)
@@ -25,50 +29,38 @@ def get_originals_for_duplicate_pub(dpub):
         .order_by("id")
     )
 
-    original_pubs = []
-    # Loop through each subset publication to check against for duplicates
-    for pub2 in pubs_to_check_against:
-        # Check if dpub and pub2 are similar enough to be flagged as duplicates
-        if PublicationUtils.is_pub_similar(dpub, pub2):
-            original_pubs.append(pub2)
-    return original_pubs
+    dpub_data = publication_to_data(dpub)
+    existing_data = [publication_to_data(p) for p in pubs_to_check_against]
+    matched_data = find_matches(dpub_data, existing_data)
+
+    # Map matched PublicationData back to Django models
+    matched_titles = {m.title for m in matched_data}
+    return [p for p in pubs_to_check_against if p.title in matched_titles]
 
 
 def get_duplicate_pubs(pubs=None):
-    """
-    returns duplicate publications in the database.
-    If the passed pubs are not stored (saved) in the database
-    the function fails with an error, as it needs ID of the publication
-    Use get_originals_for_duplicate_pub() for each publication
+    """Return a dict mapping potential duplicates → list of originals.
 
-    Args:
-        pubs (list, optional): list of Publication models to check if it is a duplicate.
-            Defaults to None, checks for all the publications if None
-    Returns:
-        (dict): keys are publication that is found as duplicate values are list of original publications
+    If *pubs* are not saved in the database the function may fail because
+    it needs the publication ID. Consider using
+    ``util.publications.deduplicate.group_duplicates`` directly for unsaved
+    ``PublicationData`` objects.
     """
-    # return a mapping of flagged duplicates and their original publications
-    duplicate_with_their_original_pubs_map = {}
+    duplicate_map = {}
 
-    # Get a list of publications to check for duplicates
     if pubs:
-        pubs_to_check_duplicates = pubs
+        pubs_to_check = pubs
     else:
-        # get the publications in reverse so latest can be checked against old ones
-        # checked_for_duplicates=False are the ones that are yet to be reviewed
-        pubs_to_check_duplicates = Publication.objects.filter(
+        pubs_to_check = Publication.objects.filter(
             checked_for_duplicates=False
         ).order_by("-id")
 
-    # Loop through each publication to check for duplicates
-    for pub1 in pubs_to_check_duplicates:
-        # Get a subset of publications with id less than the publication at question
-        # and of same year as the publication at question to check against
+    for pub1 in pubs_to_check:
         if not pub1.year:
-            logger.info(f"{pub1.title} does not have year - ignoring")
+            logger.info("%s does not have year - ignoring", pub1.title)
             continue
-        # Get all Publications that are older than pub1
-        duplicate_with_their_original_pubs_map[pub1] = get_originals_for_duplicate_pub(
-            pub1
-        )
-    return duplicate_with_their_original_pubs_map
+        originals = get_originals_for_duplicate_pub(pub1)
+        if originals:
+            duplicate_map[pub1] = originals
+
+    return duplicate_map

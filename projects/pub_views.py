@@ -20,8 +20,9 @@ from projects.models import (
     PublicationQuery,
     RawPublication,
 )
+from magpub.utils import get_forum, get_link, get_month, get_pub_type
 from projects.user_publication.deduplicate import get_duplicate_pubs
-from projects.user_publication.utils import PublicationUtils, update_cites_and_query
+from projects.user_publication.utils import update_cites_and_query
 from projects.util import get_project_members
 from projects.views import is_pi_eligible, project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -161,15 +162,15 @@ def create_pub_from_bibtex(bibtex_entry, project, username, status):
     if project:
         pub.project_id = project.id
 
-    pub.publication_type = PublicationUtils.get_pub_type(bibtex_entry)
+    pub.publication_type = get_pub_type(bibtex_entry)
     pub.title = pip.strict(bibtex_entry.get("title", ""))
     pub.year = bibtex_entry.get("year")
-    pub.month = PublicationUtils.get_month(bibtex_entry)
+    pub.month = get_month(bibtex_entry)
     pub.author = pip.strict(bibtex_entry.get("author", ""))
     pub.bibtex_source = json.dumps(bibtex_entry)
     pub.added_by_username = username
-    pub.forum = PublicationUtils.get_forum(bibtex_entry)
-    pub.link = PublicationUtils.get_link(bibtex_entry)
+    pub.forum = get_forum(bibtex_entry)
+    pub.link = get_link(bibtex_entry)
     pub.doi = bibtex_entry.get("doi")
     pub.status = status
 

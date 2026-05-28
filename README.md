@@ -33,7 +33,7 @@ The following environment variables must be configured for `djangoRT`:
 
 ### Deployment
 
-The production deployment of Portal is managed via [portal-camino](https://github.com/ChameleonCloud/portal-camino).
+The production deployment of Portal runs on the Savanna k8s cluster at TACC. The container image is built by CI and pushed to `ghcr.io/chameleoncloud/portal`.
 
 ### Development
 

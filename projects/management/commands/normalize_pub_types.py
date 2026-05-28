@@ -2,120 +2,8 @@
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from projects.models import Publication, RawPublication  # change to correct app
-
-PREPRINT = "preprint"
-JOURNAL_ARTICLE = "journal article"
-CONFERENCE_PAPER = "conference paper"
-CONFERENCE_SHORT_PAPER = "conference short paper"
-CONFERENCE_POSTER = "conference poster"
-CONFERENCE_DEMO = "conference demo"
-TECH_REPORT = "tech report"
-MS_THESIS = "ms thesis"
-PHD_THESIS = "phd thesis"
-THESIS = "thesis"
-SOFTWARE = "software"
-BOOK_CHAPTER = "book chapter"
-PATENT = "patent"
-OTHER = "other"
-
-EXACT_MAP = {
-    # Preprints
-    "pre-print": PREPRINT,
-    "preprint": PREPRINT,
-    # Journal article
-    "journal article": JOURNAL_ARTICLE,
-    "research article": JOURNAL_ARTICLE,
-    "article": JOURNAL_ARTICLE,
-    # Conference categories
-    "conference full paper": CONFERENCE_PAPER,
-    "conference short paper": CONFERENCE_SHORT_PAPER,
-    "conference poster": CONFERENCE_POSTER,
-    "conference demonstration": CONFERENCE_DEMO,
-    "conference demo": CONFERENCE_DEMO,
-    "conference paper": CONFERENCE_PAPER,
-    "conference": CONFERENCE_PAPER,
-    "inproceedings": CONFERENCE_PAPER,
-    "poster": CONFERENCE_POSTER,
-    # Tech report
-    "tech report": TECH_REPORT,
-    "techreport": TECH_REPORT,
-    # Thesis categories
-    "ms thesis": MS_THESIS,
-    "phd thesis": PHD_THESIS,
-    "dissertation": PHD_THESIS,
-    "thesis": THESIS,
-    # Software/code
-    "github": SOFTWARE,
-    "software": SOFTWARE,
-    # Books
-    "book chapter": BOOK_CHAPTER,
-    # Patent
-    "patent": PATENT,
-    # Everything else (handled by fallbacks)
-    "misc": OTHER,
-    "other": OTHER,
-}
-
-BIBTEX_RULES = [
-    # Conference
-    (
-        ("@inproceedings", "@conference", "@proceedings", "@incollection", "@workshop"),
-        CONFERENCE_PAPER,
-    ),
-    # Thesis
-    (("@phdthesis",), PHD_THESIS),
-    (("@mastersthesis",), MS_THESIS),
-    (("@thesis",), THESIS),
-    # Journal
-    (("@article",), JOURNAL_ARTICLE),
-    # Books & chapters
-    (("@book", "@inbook", "@booklet"), BOOK_CHAPTER),
-    # Reports
-    (("@techreport", "@report"), TECH_REPORT),
-    # Software / code
-    (("@software", "@code"), SOFTWARE),
-    # Dataset
-    (("@dataset", "@data"), OTHER),
-    # Manual
-    (("@manual",), OTHER),
-    # Patent
-    (("@patent",), PATENT),
-    # Online / webpage
-    (("@online", "@webpage"), OTHER),
-    # Unpublished
-    (("@unpublished",), OTHER),
-    # Misc
-    (("@misc",), OTHER),
-]
-
-
-def fallback_category(value: str) -> str:
-    """Rule-based normalization if value not in EXACT_MAP."""
-
-    if "pre" in value and "print" in value:
-        return PREPRINT
-
-    if "conference" in value or "proceed" in value:
-        return CONFERENCE_PAPER
-
-    if "poster" in value:
-        return CONFERENCE_POSTER
-
-    if "thesis" in value:
-        if "phd" in value:
-            return PHD_THESIS
-        if "ms" in value or "master" in value:
-            return MS_THESIS
-        return THESIS
-
-    if "journal" in value:
-        return JOURNAL_ARTICLE
-
-    if "tech" in value and "report" in value:
-        return TECH_REPORT
-
-    return None
+from projects.models import Publication, RawPublication
+from magpub.utils import get_pub_type_from_str
 
 
 class Command(BaseCommand):
@@ -137,21 +25,7 @@ class Command(BaseCommand):
         )
 
     def normalize(self, pub: RawPublication) -> str:
-        val = pub.publication_type.strip().lower()
-
-        if val in EXACT_MAP:
-            return EXACT_MAP[val]
-
-        res = fallback_category(val)
-
-        # If fallback not found, check bibtex source rules
-        src = (pub.bibtex_source or "").strip().lower()
-        if not res and src.startswith("@"):
-            for prefixes, result_type in BIBTEX_RULES:
-                if any(src.startswith(prefix) for prefix in prefixes):
-                    return result_type
-
-        return OTHER
+        return get_pub_type_from_str(pub.publication_type, pub.bibtex_source)
 
     def handle(self, *args, **opts):
         dry = opts["dry_run"]
