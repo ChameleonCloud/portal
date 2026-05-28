@@ -36,12 +36,10 @@ from projects.models import (
     PublicationSource,
     RawPublication,
 )
-from projects.user_publication.utils import PublicationUtils
+from projects.user_publication.utils import get_projects_for_author_names
 from projects.views import resend_invitation
 
-from projects.user_publication.utils import (
-    RawPublicationSource,
-)
+from magpub.models import PublicationData
 
 import logging
 
@@ -559,12 +557,14 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
                         if source:
                             utils.add_source_to_pub(
                                 target_pub,
-                                RawPublicationSource(
+                                PublicationData(
                                     source_name=source.name,
                                     source_id=source.source_id,
-                                    pub_model=pub,
-                                    cites_chameleon_pub=None,
-                                    found_with_query=None,
+                                    title=pub.title,
+                                    author=pub.author,
+                                    year=pub.year,
+                                    forum=pub.forum,
+                                    publication_type=pub.publication_type,
                                 ),
                             )
                         pub.delete()
@@ -653,7 +653,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             return mark_safe(f"submitted by {_project_href(obj.project)}")
 
         authors = [author.strip() for author in obj.author.split("and")]
-        projects = PublicationUtils.get_projects_for_author_names(authors, obj.year)
+        projects = get_projects_for_author_names(authors, obj.year)
 
         # Get valid projects that are active prior to the publication year
         valid_projects = []

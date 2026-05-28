@@ -1,102 +1,75 @@
-import datetime
+"""
+Django adapter for Scopus publication imports.
+
+Thin wrapper around ``util.publications.sources.scopus.ScopusClient`` that
+maps ``PublicationData`` into Django ORM operations.
+"""
+
 import logging
 
 from django.conf import settings
-import pybliometrics
-from pybliometrics.scopus import AbstractRetrieval, ScopusSearch
 
-from projects.models import (
-    Publication,
-    PublicationCitation,
-    PublicationQuery,
-    RawPublication,
-)
-from projects.user_publication import utils
+from projects.models import Publication, PublicationCitation, RawPublication
 from projects.user_publication.utils import (
-    PublicationUtils,
-    RawPublicationSource,
+    add_source_to_pub,
+    data_to_publication,
     update_progress,
 )
+from magpub.models import PublicationData
+from magpub.sources.scopus import ScopusClient
 
 logger = logging.getLogger("projects")
 
 
-def _get_references(a):
-    return a.references if a.references else []
-
-
-def _scopus_pub_to_model(raw_pub):
-    title = utils.decode_unicode_text(raw_pub.title)
-    published_on = datetime.datetime.strptime(raw_pub.coverDate, "%Y-%m-%d")
-    year = published_on.year
-    # get the author names with decoded unicode characters
-    author_names = utils.decode_unicode_text(raw_pub.author_names)
-    # authors as a list of strings "firstname lastname" format
-    authors = [utils.format_author_name(author) for author in author_names.split(";")]
-    doi = raw_pub.doi if raw_pub.doi else ""
-    link = ""
-    if doi:
-        link = f"https://www.doi.org/{doi}"
-    pub_model = Publication(
-        title=title,
-        year=year,
-        month=published_on.month,
-        author=" and ".join(authors),
-        publication_type=PublicationUtils.get_pub_type(
-            {"ENTRYTYPE": raw_pub.subtypeDescription}
-        ),
-        bibtex_source="{}",
-        added_by_username="admin",
-        forum=raw_pub.publicationName,
-        doi=doi,
-        link=link,
-        status=Publication.STATUS_SUBMITTED,
-    )
-    return pub_model
-
-
 def pub_import(task, dry_run=True):
-    pybliometrics.scopus.init(
-        config_path="/project/pybliometrics.cfg",
-        keys=[settings.SCOPUS_API_KEY],
-        inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
+    """Import publications from Scopus via configured queries.
+
+    Args:
+        task: Celery task instance (for progress reporting).
+        dry_run: If True, yield results without persisting.
+
+    Returns:
+        List of PublicationData objects (legacy callers expect a list).
+    """
+    from projects.models import PublicationQuery
+
+    client = ScopusClient(
+        api_key=settings.SCOPUS_API_KEY,
+        institution_token=settings.SCOPUS_INSTITUTION_KEY,
     )
     publications = []
     for query in PublicationQuery.objects.filter(source_type=RawPublication.SCOPUS):
-        search = ScopusSearch(query.query)
-        logger.debug("Performed search")
-        for i, raw_pub in enumerate(search.results):
+        search = None
+        try:
+            import pybliometrics
+            from pybliometrics.scopus import ScopusSearch
+            search = ScopusSearch(query.query)
+        except Exception as e:
+            logger.error("ScopusSearch failed for query %s: %s", query.query, e)
+            continue
+
+        results = getattr(search, "results", []) or []
+        for i, raw_pub in enumerate(results):
             try:
-                update_progress(
-                    stage=0, current=i, total=len(search.results), task=task
-                )
-                pub_model = _scopus_pub_to_model(raw_pub)
-                logger.info(
-                    f"Processing publication {raw_pub.eid} - {pub_model.title} - {query.query}"
-                )
-                publications.append(
-                    RawPublicationSource(
-                        pub_model=pub_model,
-                        source_id=raw_pub.eid,
-                        source_name=RawPublication.SCOPUS,
-                        cites_chameleon_pub=None,
-                        found_with_query=query,
-                    )
-                )
+                update_progress(stage=0, current=i, total=len(results), task=task)
+                pub_data = client._raw_to_data(raw_pub)
+                pub_data.source_name = RawPublication.SCOPUS
+                pub_data.source_id = raw_pub.eid
+                pub_data.extra["found_with_query"] = query
+                publications.append(pub_data)
             except Exception as e:
-                # TODO  we keep hitting this
-                logger.error(f"Error processing publication {raw_pub.eid}: {e}")
+                logger.error("Error processing publication %s: %s", getattr(raw_pub, "eid", "?"), e)
                 logger.exception(e)
                 continue
+
     return publications
 
 
 def update_citation(pub):
-    # for each rawpublication that is scopus, from an approved publication
-    pybliometrics.scopus.init(
-        config_path="/project/pybliometrics.cfg",
-        keys=[settings.SCOPUS_API_KEY],
-        inst_tokens=[settings.SCOPUS_INSTITUTION_KEY],
+    """Update Scopus citation count for *pub* (a Django Publication)."""
+    client = ScopusClient(
+        api_key=settings.SCOPUS_API_KEY,
+        institution_token=settings.SCOPUS_INSTITUTION_KEY,
     )
 
     try:
@@ -113,34 +86,32 @@ def update_citation(pub):
                 pass
 
         if not source_id:
-            # Search by title
             query = f"TITLE({pub.title})"
-            search = ScopusSearch(query)
-            if search.results:
-                # Ensure title matches
+            search = None
+            try:
+                from pybliometrics.scopus import ScopusSearch
+                search = ScopusSearch(query)
+            except Exception:
+                pass
+            if search and search.results:
                 for result in search.results:
-                    # Scopus title might be unicode, good to decode if needed, but title is str here
-                    # result.title might be None?
                     result_title = result.title or ""
                     if result_title.lower() == pub.title.lower():
                         source_id = result.eid
                         break
 
         if source_id:
-            ab = AbstractRetrieval(source_id)
-            citation_count = ab.citedby_count
+            citation = client.get_citations(source_id)
 
-            # Update RawPublication if it exists
             if raw_pub:
-                raw_pub.citation_count = citation_count
+                raw_pub.citation_count = citation.citation_count
                 raw_pub.save()
 
-            # Update PublicationCitation
             pub_citation, _ = PublicationCitation.objects.get_or_create(publication=pub)
             pub_citation.scopus_source_id = source_id
-            pub_citation.scopus_citation_count = citation_count
+            pub_citation.scopus_citation_count = citation.citation_count
             pub_citation.save()
 
     except Exception as e:
-        logger.error(f"Error updating scopus citations for {pub.id}: {e}")
+        logger.error("Error updating scopus citations for %s: %s", pub.id, e)
         logger.exception(e)
