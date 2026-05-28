@@ -31,8 +31,8 @@ def pub_import(task, dry_run=True):
     for query in PublicationQuery.objects.filter(source_type=RawPublication.SCOPUS):
         search = None
         try:
-            import pybliometrics
             from pybliometrics.scopus import ScopusSearch
+
             search = ScopusSearch(query.query)
         except Exception as e:
             logger.error("ScopusSearch failed for query %s: %s", query.query, e)
@@ -48,7 +48,11 @@ def pub_import(task, dry_run=True):
                 pub_data.extra["found_with_query"] = query
                 publications.append(pub_data)
             except Exception as e:
-                logger.error("Error processing publication %s: %s", getattr(raw_pub, "eid", "?"), e)
+                logger.error(
+                    "Error processing publication %s: %s",
+                    getattr(raw_pub, "eid", "?"),
+                    e,
+                )
                 logger.exception(e)
                 continue
 
@@ -80,6 +84,7 @@ def update_citation(pub):
             search = None
             try:
                 from pybliometrics.scopus import ScopusSearch
+
                 search = ScopusSearch(query)
             except Exception:
                 pass

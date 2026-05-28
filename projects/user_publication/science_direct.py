@@ -19,7 +19,9 @@ def pub_import(task, dry_run=True):
     )
     publications = []
 
-    for query in PublicationQuery.objects.filter(source_type=RawPublication.SCIENCE_DIRECT):
+    for query in PublicationQuery.objects.filter(
+        source_type=RawPublication.SCIENCE_DIRECT
+    ):
         for pub_data in client.search(query.query):
             pub_data.extra["found_with_query"] = str(query.query)
             publications.append(pub_data)

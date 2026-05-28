@@ -29,7 +29,10 @@ def pub_import(task, dry_run=True):
             publications.append(pub_data)
 
     from projects.models import PublicationQuery
-    for query in PublicationQuery.objects.filter(source_type=RawPublication.SEMANTIC_SCHOLAR):
+
+    for query in PublicationQuery.objects.filter(
+        source_type=RawPublication.SEMANTIC_SCHOLAR
+    ):
         for pub_data in client.bulk_search(query.query):
             publications.append(pub_data)
 
@@ -54,7 +57,9 @@ def update_citation(pub):
                 pass
 
         if not source_id:
-            results = client.search_paper(pub.title, fields=["paperId", "citationCount", "title"])
+            results = client.search_paper(
+                pub.title, fields=["paperId", "citationCount", "title"]
+            )
             if results:
                 for result in results:
                     if getattr(result, "title", "").lower() == pub.title.lower():
