@@ -1,15 +1,8 @@
-"""
-Django adapter for ScienceDirect publication imports.
-
-Thin wrapper around ``util.publications.sources.science_direct.ScienceDirectClient``.
-"""
-
 import logging
 
 from django.conf import settings
 
 from projects.models import PublicationQuery, RawPublication
-from projects.user_publication.utils import update_progress
 from magpub.sources.science_direct import ScienceDirectClient
 
 logger = logging.getLogger("projects")

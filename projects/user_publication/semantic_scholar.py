@@ -1,17 +1,9 @@
-"""
-Django adapter for Semantic Scholar publication imports.
-
-Thin wrapper around ``util.publications.sources.semantic_scholar.SemanticScholarClient``.
-"""
-
 import logging
 
 from django.conf import settings
 
-from projects.models import ChameleonPublication, Publication, PublicationCitation, RawPublication
+from projects.models import ChameleonPublication, PublicationCitation, RawPublication
 from projects.user_publication.utils import (
-    add_source_to_pub,
-    data_to_publication,
     update_progress,
 )
 from magpub.sources.semantic_scholar import SemanticScholarClient
