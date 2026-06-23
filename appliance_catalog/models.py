@@ -46,6 +46,9 @@ class Appliance(models.Model):
 
     needs_review = models.BooleanField(default=True, blank=True)
 
+    ## If set, requests for this appliance's detail page redirect here instead of rendering
+    redirect_url = models.CharField(max_length=500, null=True, blank=True)
+
     def __str__(self):
         return self.name
 
