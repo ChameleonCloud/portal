@@ -26,6 +26,7 @@ class DuplicateUserError(Exception):
 
 
 class KeycloakClient:
+    """Only use this client for short lived requests, as it does not refresh admin tokens automatically."""
     def __init__(self):
         self.server_url = settings.KEYCLOAK_SERVER_URL
         self.realm_name = settings.KEYCLOAK_REALM_NAME
@@ -33,6 +34,8 @@ class KeycloakClient:
         self.client_secret = settings.KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET
         self.client_provider_alias = (settings.KEYCLOAK_CLIENT_PROVIDER_ALIAS,)
         self.client_provider_sub = (settings.KEYCLOAK_CLIENT_PROVIDER_SUB,)
+        self._admin_client = None
+        self._group_cache = {}
 
     def _get_token(self, realm):
         openid = realm.open_id_connect(
@@ -41,11 +44,12 @@ class KeycloakClient:
         return openid.client_credentials()
 
     def _get_admin_client(self):
-        realm = KeycloakRealm(server_url=self.server_url, realm_name="master")
-        token = self._get_token(realm)
-        admin_client = realm.admin
-        admin_client.set_token(token.get("access_token"))
-        return admin_client
+        if not self._admin_client:
+            realm = KeycloakRealm(server_url=self.server_url, realm_name="master")
+            token = self._get_token(realm)
+            self._admin_client = realm.admin
+            self._admin_client.set_token(token.get("access_token"))
+        return self._admin_client
 
     def _users_admin(self):
         return Users(realm_name=self.realm_name, client=self._get_admin_client())
@@ -69,6 +73,8 @@ class KeycloakClient:
         )
 
     def _lookup_group(self, name):
+        if name in self._group_cache:
+            return self._group_cache[name]
         keycloakproject = self._project_admin()
 
         matching = [
@@ -78,10 +84,12 @@ class KeycloakClient:
                     keycloakproject.get_path("collection", realm=self.realm_name)
                 ),
                 briefRepresentation=False,
+                search=name,
             )
             if u["name"] == name
         ]
-        return next(iter(matching), None)
+        self._group_cache[name] = next(iter(matching), None)
+        return self._group_cache[name]
 
     def _add_identity(self, user_id, **kwargs):
         keycloakuser = self._user_admin(user_id)
