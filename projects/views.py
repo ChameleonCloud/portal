@@ -562,13 +562,23 @@ def view_project(request, project_id):
             users_is_stale = True
             non_managers = [
                 user
-                for user in get_project_members(project)
+                for user in users
                 if user_roles.get(user.username) not in ("admin", "manager")
             ]
             errors = []
-            for user in non_managers:
-                if not membership.remove_user_from_project(project, user):
-                    errors.append(f"Failed to remove {user}")
+
+            def _remove_user(user):
+                try:
+                    membership.remove_user_from_project(project, user)
+                except Exception:
+                    logger.exception(f"Failed to remove {user}")
+                    return f"Failed to remove {user}"
+
+            with ThreadPoolExecutor(max_workers=20) as executor:
+                futures = [executor.submit(_remove_user, user) for user in non_managers]
+                for future in futures:
+                    if error := future.result():
+                        errors.append(error)
             if not errors:
                 messages.success(request, "Removed all non-managers from project.")
             else:
@@ -705,7 +715,7 @@ def _add_users_to_project(request, project, user_refs):
     def process_user(user_ref):
         local_success = []
         local_error = []
-        if user_ref is User:
+        if isinstance(user_ref, User):
             user = user_ref
         else:
             user = get_user_by_reference(username=user_ref, email=user_ref)
@@ -746,7 +756,7 @@ def _add_users_to_project(request, project, user_refs):
                 )
         return local_success, local_error
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(process_user, user_ref) for user_ref in user_refs]
         for future in futures:
             succ, err = future.result()
@@ -1267,25 +1277,20 @@ def get_extras(request):
 
 
 def get_project_membership_managers(project):
-    users = get_project_members(project)
     keycloak_client = KeycloakClient()
-    return [
-        user
-        for user in users
-        if UserPermissions.get_user_permissions(
-            keycloak_client, user, project
-        ).manage_membership
-    ]
+    user_roles = keycloak_client.get_roles_for_all_project_members(get_charge_code(project))
+    users = get_project_members(project)
+    return [u for u in users if user_roles.get(u.username) in ("admin", "manager")]
 
 
 @login_required
 def view_charge(request, allocation_id):
     charges = []
     alloc = Allocation.objects.get(pk=allocation_id)
-    for charge in Charge.objects.filter(allocation__pk=allocation_id):
+    for charge in Charge.objects.filter(allocation__pk=allocation_id).select_related("user"):
         used_sus = su_calculators.get_used_sus(charge)
+        portal_user = charge.user
         charge = model_to_dict(charge)
-        portal_user = User.objects.get(pk=charge["user"])
         charge["user"] = f"{portal_user.first_name} {portal_user.last_name}"
         charge["user_email"] = portal_user.email
         charge["used_sus"] = used_sus
