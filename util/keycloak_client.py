@@ -27,6 +27,7 @@ class DuplicateUserError(Exception):
 
 class KeycloakClient:
     """Only use this client for short lived requests, as it does not refresh admin tokens automatically."""
+
     def __init__(self):
         self.server_url = settings.KEYCLOAK_SERVER_URL
         self.realm_name = settings.KEYCLOAK_REALM_NAME

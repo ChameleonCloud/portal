@@ -646,7 +646,9 @@ def view_project(request, project_id):
         user["first_name"] = portal_user.first_name
         user["last_name"] = portal_user.last_name
         su_budget = budgets_map.get(portal_user.id)
-        su_budget_value = su_budget.su_budget if su_budget else current_allocation_su_allocated
+        su_budget_value = (
+            su_budget.su_budget if su_budget else current_allocation_su_allocated
+        )
         user["su_budget"] = int(su_budget_value)
         user["su_used"] = su_calculators.calculate_user_total_su_usage(
             portal_user, budget_project
@@ -1278,7 +1280,9 @@ def get_extras(request):
 
 def get_project_membership_managers(project):
     keycloak_client = KeycloakClient()
-    user_roles = keycloak_client.get_roles_for_all_project_members(get_charge_code(project))
+    user_roles = keycloak_client.get_roles_for_all_project_members(
+        get_charge_code(project)
+    )
     users = get_project_members(project)
     return [u for u in users if user_roles.get(u.username) in ("admin", "manager")]
 
@@ -1287,7 +1291,9 @@ def get_project_membership_managers(project):
 def view_charge(request, allocation_id):
     charges = []
     alloc = Allocation.objects.get(pk=allocation_id)
-    for charge in Charge.objects.filter(allocation__pk=allocation_id).select_related("user"):
+    for charge in Charge.objects.filter(allocation__pk=allocation_id).select_related(
+        "user"
+    ):
         used_sus = su_calculators.get_used_sus(charge)
         portal_user = charge.user
         charge = model_to_dict(charge)
