@@ -598,6 +598,25 @@ def view_project(request, project_id):
 
     users_mashup = []
     budget_project = Project.objects.get(charge_code=get_charge_code(project))
+    portal_users_map = {
+        u.username: u
+        for u in User.objects.filter(username__in=[u.username for u in users])
+    }
+    budgets_map = {
+        b.user_id: b
+        for b in ChargeBudget.objects.filter(
+            user__in=portal_users_map.values(), project=budget_project
+        )
+    }
+    daypasses_map = {
+        inv.user_accepted_id: inv
+        for inv in Invitation.objects.filter(
+            status=Invitation.STATUS_ACCEPTED,
+            user_accepted__in=portal_users_map.values(),
+            project_id=project_id,
+            duration__isnull=False,
+        )
+    }
 
     for u in users:
         if u == project.pi:
@@ -608,31 +627,25 @@ def view_project(request, project_id):
             "username": u.username,
             "role": u_role.title(),
         }
-        try:
-            portal_user = User.objects.get(username=u.username)
-            user["email"] = portal_user.email
-            user["first_name"] = portal_user.first_name
-            user["last_name"] = portal_user.last_name
-            try:
-                su_budget = ChargeBudget.objects.get(
-                    user=portal_user, project=budget_project
-                )
-            except ChargeBudget.DoesNotExist:
-                su_budget_value = current_allocation_su_allocated
-            else:
-                su_budget_value = su_budget.su_budget
-            user["su_budget"] = int(su_budget_value)
-            user["su_used"] = su_calculators.calculate_user_total_su_usage(
-                portal_user, budget_project
-            )
-            # Add if the user is on a daypass
-            existing_daypass = get_daypass(portal_user.id, project_id)
-            if existing_daypass:
-                user["daypass"] = format_timedelta(
-                    existing_daypass.date_exceeds_duration() - timezone.now()
-                )
-        except User.DoesNotExist:
+        portal_user = portal_users_map.get(u.username)
+        if not portal_user:
             logger.info("user: " + u.username + " not found")
+            users_mashup.append(user)
+            continue
+        user["email"] = portal_user.email
+        user["first_name"] = portal_user.first_name
+        user["last_name"] = portal_user.last_name
+        su_budget = budgets_map.get(portal_user.id)
+        su_budget_value = su_budget.su_budget if su_budget else current_allocation_su_allocated
+        user["su_budget"] = int(su_budget_value)
+        user["su_used"] = su_calculators.calculate_user_total_su_usage(
+            portal_user, budget_project
+        )
+        existing_daypass = daypasses_map.get(portal_user.id)
+        if existing_daypass:
+            user["daypass"] = format_timedelta(
+                existing_daypass.date_exceeds_duration() - timezone.now()
+            )
         users_mashup.append(user)
 
     invitations = Invitation.objects.filter(project=project_id)
