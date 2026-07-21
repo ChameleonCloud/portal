@@ -4,6 +4,7 @@ from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
 from balance_service.enforcement.usage_enforcement import (
+    LeaseEval,
     UsageEnforcer,
     get_config_value,
 )
@@ -969,6 +970,7 @@ class BalanceServiceTest(TestCase):
             flavor_id="flavor1",
             username="testuser",
             charge_code="CC123",
+            region=self.lease_eval.region,
         )
 
     @patch("balance_service.enforcement.usage_enforcement.ConfigVariable")
@@ -1091,3 +1093,84 @@ class BalanceServiceTest(TestCase):
             charge_code="DIFFERENT",
         )
         self.assertAlmostEqual(result, 1234)
+
+    def test_ConfigVariable_get_value_returns_match_by_region(self):
+        ConfigVariable.objects.create(key="lease_limit", region="CHI@UC", value=40)
+        result = ConfigVariable.get_value("lease_limit", region="CHI@UC")
+        self.assertAlmostEqual(result, 40)
+
+    def test_ConfigVariable_get_value_region_case_insensitive(self):
+        ConfigVariable.objects.create(key="lease_limit", region="CHI@UC", value=40)
+        result = ConfigVariable.get_value("lease_limit", region="chi@uc")
+        self.assertAlmostEqual(result, 40)
+
+    def test_ConfigVariable_get_value_region_no_match_other_region(self):
+        ConfigVariable.objects.create(key="lease_limit", region="CHI@UC", value=40)
+        result = ConfigVariable.get_value("lease_limit", region="CHI@TACC")
+        self.assertIsNone(result)
+
+    def test_ConfigVariable_get_value_flavor_ranks_above_region(self):
+        ConfigVariable.objects.create(key="lease_limit", region="CHI@UC", value=10)
+        ConfigVariable.objects.create(key="lease_limit", flavor_id="f1", value=20)
+        result = ConfigVariable.get_value(
+            "lease_limit", flavor_id="f1", region="CHI@UC"
+        )
+        self.assertAlmostEqual(result, 20)
+
+    def _make_lease_eval(self, region):
+        return LeaseEval(
+            project=MagicMock(),
+            user=MagicMock(),
+            region=region,
+            duration=0,
+            total_su_factor=0,
+            amount=0,
+        )
+
+    def test_check_region_end_date_blocks_lease_past_retirement(self):
+        region = "DEV@UC"
+        retirement = self.now + timezone.timedelta(days=5)
+        ConfigVariable.objects.create(
+            key="region_end_date",
+            region=region,
+            value=int(retirement.timestamp()),
+        )
+        ue = UsageEnforcer(MagicMock())
+        lease_end = (self.now + timezone.timedelta(days=10)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        with self.assertRaises(exceptions.BillingError):
+            ue._check_region_end_date(
+                {"end_date": lease_end}, self._make_lease_eval(region)
+            )
+
+    def test_check_region_end_date_allows_lease_before_retirement(self):
+        region = "DEV@UC"
+        retirement = self.now + timezone.timedelta(days=5)
+        ConfigVariable.objects.create(
+            key="region_end_date",
+            region=region,
+            value=int(retirement.timestamp()),
+        )
+        ue = UsageEnforcer(MagicMock())
+        lease_end = (self.now + timezone.timedelta(days=3)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        ue._check_region_end_date(
+            {"end_date": lease_end}, self._make_lease_eval(region)
+        )
+
+    def test_check_region_end_date_other_region_unaffected(self):
+        retirement = self.now + timezone.timedelta(days=5)
+        ConfigVariable.objects.create(
+            key="region_end_date",
+            region="DEV@UC",
+            value=int(retirement.timestamp()),
+        )
+        ue = UsageEnforcer(MagicMock())
+        lease_end = (self.now + timezone.timedelta(days=10)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        ue._check_region_end_date(
+            {"end_date": lease_end}, self._make_lease_eval("OTHER@REGION")
+        )

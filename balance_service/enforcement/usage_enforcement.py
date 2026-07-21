@@ -203,6 +203,7 @@ class UsageEnforcer(object):
             lease_eval.project, alloc
         )
         self._check_alloc_expiration_date(lease, alloc, approved_alloc)
+        self._check_region_end_date(lease, lease_eval)
         self._check_lease_duration(
             lease, lease_eval, lease["start_date"], lease["end_date"]
         )
@@ -278,6 +279,7 @@ class UsageEnforcer(object):
             new_lease_eval.project, alloc
         )
         self._check_alloc_expiration_date(new_lease, alloc, approved_alloc)
+        self._check_region_end_date(new_lease, new_lease_eval)
         for reservation in new_lease["reservations"]:
             new_hourly_cost = self._get_reservation_sus(reservation)
             if not end_date_changed:
@@ -416,6 +418,22 @@ class UsageEnforcer(object):
         localtz = utc.astimezone(timezone.get_current_timezone())
         return localtz
 
+    def _check_region_end_date(self, lease, lease_eval):
+        timestamp = ConfigVariable.get_value(
+            "region_end_date", region=lease_eval.region
+        )
+        if timestamp is None:
+            return
+        region_end = datetime.datetime.fromtimestamp(float(timestamp), tz=pytz.UTC)
+        lease_end = self._date_from_string(lease["end_date"])
+        if lease_end > region_end:
+            raise exceptions.BillingError(
+                message=(
+                    f"Lease end date {lease_end.date()} exceeds retirement "
+                    f"date {region_end.date()} for region {lease_eval.region}"
+                )
+            )
+
     def _check_alloc_expiration_date(self, lease, alloc, approved_alloc):
         lease_end = self._convert_to_localtime(
             self._date_from_string(lease["end_date"])
@@ -502,15 +520,18 @@ def get_config_value(key, lease, lease_eval, default):
     min_value = None
     for reservation in lease["reservations"]:
         resource_type = reservation["resource_type"]
-        v = None
-        if resource_type == "flavor:instance":
-            flavor_id = _get_reservation_flavor_id(reservation)
-            v = ConfigVariable.get_value(
-                key,
-                flavor_id=flavor_id,
-                username=lease_eval.user.username,
-                charge_code=lease_eval.project.charge_code,
-            )
+        flavor_id = (
+            _get_reservation_flavor_id(reservation)
+            if resource_type == "flavor:instance"
+            else None
+        )
+        v = ConfigVariable.get_value(
+            key,
+            flavor_id=flavor_id,
+            username=lease_eval.user.username,
+            charge_code=lease_eval.project.charge_code,
+            region=lease_eval.region,
+        )
         if min_value is None or (v is not None and v < min_value):
             min_value = v
     if min_value is not None:
