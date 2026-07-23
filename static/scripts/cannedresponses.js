@@ -60,13 +60,26 @@ Good luck with your project!
 `
 
 function getCannedResponsesAllocation(type) {
+    const activeEndDateEl = document.getElementById('active-alloc-end-date');
+    const activeEndDate = activeEndDateEl ? activeEndDateEl.value : '';
+
+    function formatDateLong(isoDate) {
+        if (!isoDate) return '<Month> <Day>, <Year>';
+        const [year, month, day] = isoDate.split('-').map(Number);
+        return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric'
+        });
+    }
+
+    const formattedDate = formatDateLong(activeEndDate);
+
     if (type == 'new') {
-    	document.getElementById('idDecisionSummary').value=allocationNewApproval;
+        document.getElementById('idDecisionSummary').value = allocationNewApproval;
     } else if (type == 'renewal') {
-    	document.getElementById('idDecisionSummary').value=allocationRenewalApproval;
+        document.getElementById('idDecisionSummary').value = allocationRenewalApproval.replace('<Month> <Day>, <Year>', formattedDate);
     } else if (type == 'recharge') {
-        document.getElementById('idDecisionSummary').value=allocationRechargeApproval;
+        document.getElementById('idDecisionSummary').value = allocationRechargeApproval.replace('<Month> <Day>, <Year>', formattedDate);
     } else {
-        document.getElementById('idDecisionSummary').value="";
+        document.getElementById('idDecisionSummary').value = "";
     }
 }

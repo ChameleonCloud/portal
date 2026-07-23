@@ -57,16 +57,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handling for prefilled responses
     const decisionSummary = document.getElementById("idDecisionSummary")
+
+    function formatDateLong(isoDate) {
+        if (!isoDate) return '<Month> <Day>, <Year>';
+        const [year, month, day] = isoDate.split('-').map(Number);
+        return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric'
+        });
+    }
+
     function updateDecisionSummary() {
         const selectedType = typeSelect.value;
+        const activeEndDateEl = document.getElementById('active-alloc-end-date');
+        const activeEndDate = activeEndDateEl ? activeEndDateEl.value : '';
+        const formattedActiveEnd = formatDateLong(activeEndDate);
+
         if (selectedType == 'new') {
-            decisionSummary.value=allocationNewApproval;
+            decisionSummary.value = allocationNewApproval;
         } else if (selectedType == 'renewal') {
-            decisionSummary.value=allocationRenewalApproval;
+            decisionSummary.value = allocationRenewalApproval.replace('<Month> <Day>, <Year>', formattedActiveEnd);
+            if (activeEndDate) {
+                inputStartDate.value = activeEndDate;
+                const [year, month, day] = activeEndDate.split('-').map(Number);
+                const endDateObj = new Date(year, month - 1 + 6, day);
+                if (endDateObj.getMonth() !== (month - 1 + 6) % 12) {
+                    endDateObj.setDate(0); // snap to last day of intended month on overflow
+                }
+                const ey = endDateObj.getFullYear(), em = endDateObj.getMonth() + 1, ed = endDateObj.getDate();
+                inputEndDate.value = `${ey}-${String(em).padStart(2, '0')}-${String(ed).padStart(2, '0')}`;
+            }
         } else if (selectedType == 'recharge') {
-            decisionSummary.value=allocationRechargeApproval;
+            decisionSummary.value = allocationRechargeApproval.replace('<Month> <Day>, <Year>', formattedActiveEnd);
+            if (activeEndDate) {
+                inputStartDate.value = today.toISOString().split('T')[0];
+                inputEndDate.value = activeEndDate;
+            }
         } else {
-            decisionSummary.value="";
+            decisionSummary.value = "";
         }
     }
     const typeSelect = document.getElementById("allocationApprovalType")

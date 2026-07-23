@@ -154,9 +154,20 @@ class AllocationAdmin(admin.ModelAdmin):
             }
         </style>
         """
+        active_alloc = (
+            obj.project.allocations.filter(status="active")
+            .order_by("-expiration_date")
+            .first()
+        )
+        active_end_date = (
+            active_alloc.expiration_date.date().isoformat()
+            if (active_alloc and active_alloc.expiration_date)
+            else ""
+        )
         approve_modal = f"""<div id="alloc-modal-approve" class="admin-modal">
             <div class="modal-content">
                 <h4>Allocation Approval</h4>
+                <input type="hidden" id="active-alloc-end-date" value="{active_end_date}" />
                 <table>
                     <tr><td>Project</td><td><input disabled id="chargeCode" value="{obj.project.charge_code}" /></td></tr>
                     <tr><td>Allocation ID</td><td><input disabled id="allocationId" value="{obj.id}" /></td></tr>
