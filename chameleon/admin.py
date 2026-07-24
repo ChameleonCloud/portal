@@ -8,6 +8,7 @@ from chameleon.models import (
     InstitutionAlias,
     KeycloakUser,
     PIEligibility,
+    Reviewer,
     UserInstitution,
     Dataset,
     DatasetDownloadEvent,
@@ -346,3 +347,9 @@ class DatasetDownloadEventAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DatasetDownloadEvent, DatasetDownloadEventAdmin)
+
+
+@admin.register(Reviewer)
+class ReviewerAdmin(ModelAdmin):
+    list_display = ("review_type", "reviewer")
+

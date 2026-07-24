@@ -5,7 +5,7 @@ import time
 import pytz
 
 from allocations.models import Allocation
-from chameleon.models import PIEligibility
+from chameleon.models import PIEligibility, Reviewer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -47,6 +47,7 @@ class ProjectAllocationMapper:
             subject=subject,
             problem_description=body,
             requestor="us@tacc.utexas.edu",
+            owner=Reviewer.get_rt_owner(Reviewer.ReviewType.ALLOCATION),
         )
         ticket_id = rt.createTicket(ticket)
         alloc.ticket_id = ticket_id
@@ -94,6 +95,7 @@ class ProjectAllocationMapper:
             subject=subject,
             problem_description=problem_description,
             requestor="us@tacc.utexas.edu",
+            owner=Reviewer.get_rt_owner(Reviewer.ReviewType.PI_ELIGIBILITY),
         )
         return rt.createTicket(ticket)
 

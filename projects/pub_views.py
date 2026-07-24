@@ -13,6 +13,7 @@ from django.core.exceptions import PermissionDenied
 import json
 import pydetex.pipelines as pip
 
+from chameleon.models import Reviewer
 from djangoRT import rtModels, rtUtil
 from projects.models import (
     ChameleonPublication,
@@ -49,6 +50,7 @@ def _send_publication_notification(charge_code, pubs):
         subject=subject,
         problem_description=body,
         requestor="us@tacc.utexas.edu",
+        owner=Reviewer.get_rt_owner(Reviewer.ReviewType.PUBLICATION),
     )
     ticket_id = rt.createTicket(ticket)
     for pub in pubs:

@@ -140,6 +140,36 @@ class KeycloakUser(models.Model):
     sub = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
 
+class Reviewer(models.Model):
+    class ReviewType(models.TextChoices):
+        ALLOCATION = "allocation", "Allocation"
+        PI_ELIGIBILITY = "pi_eligibility", "PI Eligibility"
+        PUBLICATION = "publication", "Publication"
+
+    review_type = models.CharField(
+        max_length=50, choices=ReviewType.choices, unique=True
+    )
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_staff": True},
+        related_name="+",
+    )
+
+    def __str__(self):
+        return self.get_review_type_display()
+
+    @classmethod
+    def get_rt_owner(cls, review_type):
+        try:
+            obj = cls.objects.select_related("reviewer").get(review_type=review_type)
+            return obj.reviewer.email if obj.reviewer else ""
+        except cls.DoesNotExist:
+            return ""
+
+
 class Dataset(models.Model):
     name = models.CharField(max_length=1024, unique=True)
     url = models.CharField(max_length=1024)
