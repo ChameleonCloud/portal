@@ -29,9 +29,7 @@ from chameleon.keystone_auth import (
 )
 from .models import Dataset, DatasetDownloadEvent
 from user_news.models import Outage
-from webinar_registration.models import Webinar
 from util.project_allocation_mapper import ProjectAllocationMapper
-from webinar_registration.models import Webinar
 from .tasks import MigrationError, migrate_project, migrate_user
 
 LOG = logging.getLogger(__name__)
@@ -61,9 +59,6 @@ def dashboard(request):
         o for o in Outage.objects.order_by("-end_date", "-start_date") if not o.resolved
     ]  # silly ORM quirk
     context["outages"] = outages
-
-    webinars = Webinar.objects.filter(end_date__gte=timezone.now())
-    context["webinars"] = webinars
 
     return render(request, "dashboard.html", context)
 
