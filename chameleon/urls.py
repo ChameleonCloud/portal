@@ -111,7 +111,6 @@ urlpatterns = [
     ),
     # cms urls
     path("taggit_autosuggest/", include("taggit_autosuggest.urls")),
-    path("", include("blog_comments.urls")),
     path("", include("cms.urls")),
     path("featured.json", chameleon_views.featured_json, name="featured_json"),
     path(
