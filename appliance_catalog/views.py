@@ -25,7 +25,8 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client
 from glanceclient import Client
 from smtplib import SMTPException
-from six.moves import http_client, urllib
+import http.client as http_client
+import urllib
 import uuid
 from chameleon.keystone_auth import admin_session
 
