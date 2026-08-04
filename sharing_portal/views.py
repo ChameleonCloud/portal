@@ -1,8 +1,6 @@
 import json
 import logging
-import re
 import subprocess
-from collections import defaultdict
 from datetime import datetime, timedelta
 from functools import wraps
 from urllib.parse import urlencode
@@ -31,14 +29,10 @@ from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 from . import trovi
 from .forms import (
-    ArtifactForm,
-    AuthorFormset,
-    AuthorCreateFormset,
     ShareArtifactForm,
     ZenodoPublishFormset,
     RequestDaypassForm,
     ReviewDaypassForm,
-    RoleFormset,
 )
 from .models import (
     Artifact,
@@ -46,65 +40,11 @@ from .models import (
     Badge,
     DaypassRequest,
     DaypassProject,
-    FeaturedArtifact,
 )
-from .zenodo import ZenodoClient
 
 LOG = logging.getLogger(__name__)
 
 SHARING_KEY_PARAM = "s"
-
-
-class GitUrlParser:
-    """
-    Parse & rewrite git urls (supports GitHub and Gitlab)
-    inspired from - https://github.com/nephila/giturlparse
-    """
-
-    PATTERNS = {
-        "https": (
-            r"((?P<protocol>https))://(?P<domain>[^:/]+)"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/"
-            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
-            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
-        ),
-        "ssh": (
-            r"((?P<protocol>ssh))?(://)?(?P<_user>.+?)@(?P<domain>[^:/]+)(:)"
-            r"(?P<pathname>/?(?P<owner>[^/]+)/"
-            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
-            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
-        ),
-        "git": (
-            r"((?P<protocol>git))://(?P<domain>[^:/]+)"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/"
-            r"(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
-            r"(?P<path_raw>([\-\/]*blob/|[\-\/]*tree/).+)?)$"
-        ),
-    }
-
-    def __init__(self):
-        self.COMPILED_PATTERNS = {
-            proto: re.compile(regex, re.IGNORECASE)
-            for proto, regex in self.PATTERNS.items()
-        }
-
-    def parse(self, url):
-        parsed_info = defaultdict(lambda: "")
-        platform = self
-        for protocol, regex in platform.COMPILED_PATTERNS.items():
-            match = regex.match(url)
-            if not match:
-                continue
-            matches = match.groupdict(default="")
-            # Update info with matches
-            parsed_info.update(matches)
-            parsed_info.update(
-                {
-                    "url": url,
-                    "protocol": protocol,
-                }
-            )
-        return parsed_info
 
 
 def trovi_redirect(redirect_to):
@@ -260,265 +200,32 @@ def get_artifact(func):
     return wrapper
 
 
-def _compute_artifact_fields(artifact):
-    artifact["badges"] = ArtifactBadge.objects.filter(
-        artifact_uuid=artifact["uuid"], status=ArtifactBadge.STATUS_APPROVED
-    )
-    terms = artifact["title"].lower().split()
-    terms.extend([f"tag:{label.lower()}" for label in artifact["tags"]])
-    for name in [author["full_name"] for author in artifact["authors"]]:
-        terms.extend(name.lower().split(" "))
-    terms.extend([f"badge:{badge.badge.name}" for badge in artifact["badges"]])
-    artifact["search_terms"] = terms
-    artifact["is_private"] = artifact["visibility"] == "private"
-    artifact["has_doi"] = any([_parse_doi(version) for version in artifact["versions"]])
-    return artifact
-
-
-def _owns_artifact(user, artifact):
-    owner_urn = trovi.parse_user_urn(artifact["owner_urn"])
-    return (
-        owner_urn["id"] == user.username
-        and owner_urn["provider"] == settings.ARTIFACT_OWNER_PROVIDER
-    )
-
-
-@handle_trovi_errors
-def _trovi_artifacts(request, limit=20, after=None):
-    kwargs = {}
-    if after:
-        kwargs["after"] = after
-    if limit:
-        kwargs["limit"] = limit
-    artifacts = [
-        _compute_artifact_fields(a)
-        for a in trovi.list_artifacts(
-            request.session.get("trovi_token"), sort_by="updated_at", **kwargs
-        )
-        # NOTE: Due to a bug in trovi, we must filter out the marker artifact
-        if a["uuid"] != after
-    ]
-    return artifacts
-
-
-@with_trovi_token
-def _render_list(request, owned=False, public=False):
-    limit = 20
-    after = request.GET.get("after")
-
-    params = {"limit": limit}
-    if after:
-        params["after"] = after
-
-    next_cursor = None
-
-    raw_artifacts = _trovi_artifacts(request, limit=limit, after=after)
-    artifacts = [
-        a
-        for a in raw_artifacts
-        if (
-            (not owned or _owns_artifact(request.user, a))
-            and (not public or (a["visibility"] == "public" or a["has_doi"]))
-        )
-    ]
-
-    featured_uuids = {str(f.artifact_uuid) for f in FeaturedArtifact.objects.all()}
-    featured_artifacts = [a for a in artifacts if a["uuid"] in featured_uuids]
-    other_artifacts = [a for a in artifacts if a["uuid"] not in featured_uuids]
-
-    if raw_artifacts:
-        next_cursor = raw_artifacts[-1]["uuid"]
-
-    # AJAX request → return HTML snippet + cursor
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        html = render(
-            request,
-            "sharing_portal/includes/artifact_cards.html",
-            {"artifacts": other_artifacts},
-        ).content.decode("utf-8")
-        featured_html = render(
-            request,
-            "sharing_portal/includes/artifact_cards.html",
-            {"artifacts": featured_artifacts},
-        ).content.decode("utf-8")
-        return JsonResponse(
-            {"html": html, "featured_html": featured_html, "next_cursor": next_cursor}
-        )
-
-    # Normal page load
-    template = loader.get_template("sharing_portal/index.html")
-
-    context = {
-        "hub_url": settings.ARTIFACT_SHARING_JUPYTERHUB_URL,
-        "artifacts": other_artifacts,
-        "next_cursor": next_cursor,
-        "featured_artifacts": featured_artifacts,
-        "tags": [t["tag"] for t in trovi.list_tags()],
-        "badges": list(Badge.objects.all()),
-    }
-
-    return HttpResponse(template.render(context, request))
-
-
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts"
 )
-@with_trovi_token
 def index_all(request, collection=None):
-    return _render_list(request)
+    pass
 
 
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts?owned=1"
 )
-@login_required
-@with_trovi_token
 def index_mine(request):
-    return _render_list(request, owned=True)
+    pass
 
 
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts?public=1"
 )
-@with_trovi_token
 def index_public(request):
-    return _render_list(request, public=True)
-
-
-def _delete_artifact_version(request, version):
-    if not version.doi:
-        try:
-            version.delete()
-        except Exception:
-            LOG.exception(f"Failed to delete artifact version {version}")
-            messages.add_message(
-                request,
-                messages.ERROR,
-                f"Internal error deleting artifact version {version}",
-            )
-            return False
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            f"Successfully deleted artifact version {version}.",
-        )
-        return True
-    else:
-        messages.add_message(
-            request,
-            messages.ERROR,
-            f"Cannot delete versions already assigned a DOI. ({version})",
-        )
-        return False
-
-
-def _convert_artifact_roles_to_formset_roles(roles):
-    role_formset_data = defaultdict(list)
-    for role in roles:
-        role_formset_data[role["user"]].append(role["role"])
-    return [
-        {"email": trovi.get_user_info(user), "roles": role_formset_data[user]}
-        for user in role_formset_data
-    ]
+    pass
 
 
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}/edit/"
 )
-@login_required
-@handle_trovi_errors
-@with_trovi_token
-@check_edit_permission
-def edit_artifact(request, artifact):
-    if request.method == "POST":
-        authors_formset = AuthorFormset(
-            request.POST, initial=artifact["authors"], prefix="author"
-        )
-        roles_formset = RoleFormset(
-            request.POST,
-            initial=_convert_artifact_roles_to_formset_roles(artifact["roles"]),
-            prefix="role",
-        )
-
-        form = ArtifactForm(request.POST, artifact=artifact, request=request)
-
-        if "delete_version" in request.POST:
-            version_slug = request.POST.get("delete_version")
-            try:
-                trovi.delete_version(
-                    request.session.get("trovi_token"), artifact["uuid"], version_slug
-                )
-            except trovi.TroviException:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Could not delete artifact version {}".format(version_slug),
-                )
-            # Return to edit form
-            return HttpResponseRedirect(
-                reverse("sharing_portal:edit", args=[artifact["uuid"]])
-            )
-
-        elif "delete_all" in request.POST:
-            deleted_all_successfully = True
-            for version in artifact["versions"]:
-                try:
-                    trovi.delete_version(
-                        request.session.get("trovi_token"),
-                        artifact["uuid"],
-                        version["slug"],
-                    )
-                except trovi.TroviException:
-                    deleted_all_successfully = False
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        "Could not delete artifact version {}".format(version["slug"]),
-                    )
-            if not deleted_all_successfully:
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:edit", args=[artifact["uuid"]])
-                )
-
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                f"Successfully deleted all versions for artifact {artifact['title']}.",
-            )
-
-            # Return to Trovi home page
-            return HttpResponseRedirect(reverse("sharing_portal:index_all"))
-
-        saved = _handle_artifact_forms(
-            request,
-            form,
-            artifact=artifact,
-            authors_formset=authors_formset,
-            roles_formset=roles_formset,
-        )
-        if saved:
-            messages.add_message(
-                request, messages.SUCCESS, "Successfully saved artifact."
-            )
-        return HttpResponseRedirect(
-            reverse("sharing_portal:detail", args=[artifact["uuid"]])
-        )
-
-    authors_formset = AuthorFormset(initial=artifact["authors"], prefix="author")
-    roles_formset = RoleFormset(
-        initial=_convert_artifact_roles_to_formset_roles(artifact["roles"]),
-        prefix="role",
-    )
-    form = ArtifactForm(artifact=artifact, request=request, prefix="artifact")
-    template = loader.get_template("sharing_portal/edit.html")
-    context = {
-        "artifact_form": form,
-        "artifact": artifact,
-        "authors_formset": authors_formset,
-        "roles_formset": roles_formset,
-    }
-
-    return HttpResponse(template.render(context, request))
+def edit_artifact(request, artifact=None):
+    pass
 
 
 @login_required
@@ -665,37 +372,6 @@ def preserve_sharing_key(url, request):
     return url
 
 
-def _parse_doi(version):
-    if version is None:
-        return None
-    contents = trovi.parse_contents_urn(version["contents"]["urn"])
-    if contents["provider"] == "zenodo":
-        return {
-            "doi": contents["id"],
-            "url": ZenodoClient.to_record_url(contents["id"]),
-            "created_at": version["created_at"],
-        }
-    return None
-
-
-def construct_issues_url(url):
-    gp = GitUrlParser()
-    parsed_info = gp.parse(url)
-    if parsed_info["domain"] == "github.com":
-        issue_page_url = (
-            f"https://{parsed_info['domain'].lower()}/"
-            f"{parsed_info['owner']}/{parsed_info['repo']}/issues"
-        )
-    elif parsed_info["domain"] == "gitlab.com":
-        issue_page_url = (
-            f"https://{parsed_info['domain'].lower()}/"
-            f"{parsed_info['owner']}/{parsed_info['repo']}/-/issues"
-        )
-    else:
-        issue_page_url = ""
-    return issue_page_url
-
-
 @trovi_redirect(
     lambda request, *args, **kwargs: (
         f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}"
@@ -703,84 +379,8 @@ def construct_issues_url(url):
         + "/"
     )
 )
-@handle_trovi_errors
-@with_trovi_token
-@get_artifact
-def artifact(request, artifact, version_slug=None):
-    # Show the launch button if the user is logged out, or has active
-    # allocations. If the user is logged out, they will be asked to log in
-    # after clicking launch.
-    show_launch = not request.user.is_authenticated or has_active_allocations(request)
-
-    version = _artifact_version(artifact, version_slug)
-    if not version:
-        if not version_slug:
-            error_message = "This artifact has no versions"
-        else:
-            error_message = "This artifact has no version {}".format(version_slug)
-        messages.add_message(request, messages.ERROR, error_message)
-
-    if version_slug:
-        launch_url = reverse(
-            "sharing_portal:launch_version", args=[artifact["uuid"], version_slug]
-        )
-    else:
-        launch_url = reverse("sharing_portal:launch", args=[artifact["uuid"]])
-
-    # Ensure launch URLs are authenticated if a private link is being used.
-    request_daypass_url = preserve_sharing_key(
-        reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
-    )
-    launch_url = preserve_sharing_key(launch_url, request)
-
-    # We use this download URL instead of the one from trovi so we can
-    # automatically add headers and ensure that the link hasn't expired by
-    # the time the user clicks it.
-    if version_slug:
-        download_url = reverse(
-            "sharing_portal:download_version", args=[artifact["uuid"], version_slug]
-        )
-    else:
-        download_url = reverse("sharing_portal:download", args=[artifact["uuid"]])
-    download_url = preserve_sharing_key(download_url, request)
-
-    access_methods = []
-    if version:
-        sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
-        try:
-            access_methods = trovi.get_contents_url_info(
-                request.session.get("trovi_token"),
-                version["contents"]["urn"],
-                sharing_key=sharing_key,
-            )["access_methods"]
-        except trovi.TroviException:
-            message = f"Could not get contents for {version['contents']['urn']}"
-            LOG.error(message)
-            messages.error(request, message)
-
-    git_content = [method for method in access_methods if method["protocol"] == "git"]
-    feedback_url = ""
-    if len(git_content) > 0:
-        feedback_url = construct_issues_url(git_content[0]["remote"])
-    http_content = [method for method in access_methods if method["protocol"] == "http"]
-
-    artifact = _compute_artifact_fields(artifact)
-    context = {
-        "artifact": artifact,
-        "linked_project": trovi.get_linked_project(artifact),
-        "doi_info": _parse_doi(version),
-        "version": version,
-        "launch_url": launch_url,
-        "download_url": download_url,
-        "request_daypass_url": request_daypass_url,
-        "editable": can_edit(request, artifact),
-        "show_launch": show_launch,
-        "git_content": git_content,
-        "http_content": http_content,
-        "feedback_url": feedback_url,
-    }
-    template = loader.get_template("sharing_portal/detail.html")
-    return HttpResponse(template.render(context, request))
+def artifact(request, artifact=None, version_slug=None):
+    pass
 
 
 @login_required
@@ -1174,94 +774,6 @@ def _artifact_version(artifact, version_slug=None):
     return None
 
 
-def _handle_artifact_forms(
-    request, artifact_form, authors_formset=None, roles_formset=None, artifact=None
-):
-    patches = []
-    form_errors = []
-    if artifact_form.is_valid():
-        keys = ["title", "short_description", "long_description", "title", "tags"]
-        for key in keys:
-            value = artifact_form.cleaned_data[key]
-            if artifact.get(key) != value:
-                if value == "":
-                    patches.append({"op": "remove", "path": f"/{key}"})
-                else:
-                    patches.append({"op": "replace", "path": f"/{key}", "value": value})
-
-    if authors_formset:
-        if not authors_formset.is_valid():
-            form_errors += list(authors_formset.errors)
-        else:
-            authors = []
-            for author in authors_formset.cleaned_data:
-                if author and not author["DELETE"]:
-                    del author["DELETE"]
-                    authors.append(author)
-            if authors and authors != artifact["authors"]:
-                patches.append({"op": "replace", "path": "/authors", "value": authors})
-
-        add_roles = []
-        remove_roles = []
-        if roles_formset:
-            if not roles_formset.is_valid():
-                form_errors += list(roles_formset.errors)
-            else:
-                # Map roles on the existing artifact by email -> list of roles
-                artifact_roles = {
-                    r["email"]: r["roles"]
-                    for r in _convert_artifact_roles_to_formset_roles(artifact["roles"])
-                }
-                new_roles = roles_formset.cleaned_data
-                for user_roles in [role for role in new_roles if role]:
-                    user = user_roles["email"]
-                    for role in user_roles["roles"]:
-                        # If any of the newly defined roles for the user are not already
-                        # on the artifact, that means the user wants to assign a new
-                        # role to a user
-                        if role not in artifact_roles.get(user, []):
-                            add_roles.append(
-                                {"user": trovi.to_user_urn(user), "role": role}
-                            )
-                    for role in artifact_roles.get(user, []):
-                        # If any of the roles on the existing artifact are not in the
-                        # newly defined roles, it means the user wants to unassign
-                        # the role from the user
-                        if role not in user_roles["roles"]:
-                            remove_roles.append(
-                                {"user": trovi.to_user_urn(user), "role": role}
-                            )
-
-        if form_errors:
-            for error in form_errors:
-                if error:
-                    messages.error(request, error)
-            return False
-
-        if patches:
-            trovi.patch_artifact(
-                request.session.get("trovi_token"), artifact["uuid"], patches
-            )
-
-        for role in add_roles:
-            trovi.add_role(
-                request.session.get("trovi_token"),
-                artifact["uuid"],
-                role["user"],
-                role["role"],
-            )
-
-        for role in remove_roles:
-            trovi.remove_role(
-                request.session.get("trovi_token"),
-                artifact["uuid"],
-                role["user"],
-                role["role"],
-            )
-
-    return True
-
-
 def _request_artifact_dois(request, artifact, request_forms=[]):
     """Process Zenodo artifact DOI request forms.
     Returns:
@@ -1344,49 +856,8 @@ def create_supplemental_project_if_needed(request, artifact, project):
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/{kwargs['pk']}/edit/"
 )
-@login_required
-@handle_trovi_errors
-@with_trovi_token
-@check_edit_permission
-def create_git_version(request, artifact):
-    errors = False
-    if request.method == "POST":
-        remote_url = request.POST.get("gitRemote")
-        git_ref = request.POST.get("gitRef")
-        # Validate git ref
-        for item in ls_remote(remote_url):
-            if item[0] == git_ref:
-                break
-        else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                "Either invalid git reference specified, or invalid remote URL",
-            )
-            errors = True
-        if not errors:
-            try:
-                trovi.create_version(
-                    request.session.get("trovi_token"),
-                    artifact["uuid"],
-                    f"urn:trovi:contents:git:{remote_url}@{git_ref}",
-                )
-                messages.add_message(
-                    request,
-                    messages.SUCCESS,
-                    "Successfully created artifact version",
-                )
-                return HttpResponseRedirect(
-                    reverse("sharing_portal:detail", args=[artifact["uuid"]])
-                )
-            except trovi.TroviException:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Could not create trovi artifact, are you using an HTTP(S) git remote?",
-                )
-    template = loader.get_template("sharing_portal/create_git_version.html")
-    return HttpResponse(template.render({}, request))
+def create_git_version(request, artifact=None):
+    pass
 
 
 def get_remote_data(request):
@@ -1421,55 +892,8 @@ def ls_remote(remote_url):
 @trovi_redirect(
     lambda request, *args, **kwargs: f"{settings.TROVI_DASHBOARD_URL_BASE}/artifacts/add"
 )
-@login_required
-@handle_trovi_errors
-@with_trovi_token
 def create_artifact(request):
-    if request.method == "POST":
-        authors_formset = AuthorCreateFormset(request.POST)
-        form = ArtifactForm(request.POST, request=request)
-
-        if form.is_valid():
-            artifact_data = {
-                "owner_urn": f"urn:trovi:user:{settings.ARTIFACT_OWNER_PROVIDER}:{request.user.username}",
-            }
-            keys = ["title", "short_description", "long_description", "title", "tags"]
-            for key in keys:
-                artifact_data[key] = form.cleaned_data[key]
-            if authors_formset:
-                authors = []
-                if authors_formset.is_valid():
-                    for author in authors_formset.cleaned_data:
-                        if author:
-                            authors.append(author)
-                artifact_data["authors"] = authors
-                trovi_artifact = trovi.create_new_artifact(
-                    request.session.get("trovi_token"), artifact_data
-                )
-                messages.add_message(
-                    request, messages.SUCCESS, "Successfully saved artifact."
-                )
-                return HttpResponseRedirect(
-                    reverse(
-                        "sharing_portal:create_git_version",
-                        args=[trovi_artifact["uuid"]],
-                    )
-                )
-            else:
-                messages.add_message(
-                    request, messages.ERROR, "Could not create artifact"
-                )
-        else:
-            messages.add_message(request, messages.ERROR, "Could not create artifact")
-
-    authors_formset = AuthorCreateFormset(initial=[])
-    form = ArtifactForm(request=request)
-    template = loader.get_template("sharing_portal/create.html")
-    context = {
-        "artifact_form": form,
-        "authors_formset": authors_formset,
-    }
-    return HttpResponse(template.render(context, request))
+    pass
 
 
 @handle_trovi_errors

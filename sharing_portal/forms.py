@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import widgets, CheckboxSelectMultiple
+from django.forms import widgets
 
 from projects.models import Project
 from util.project_allocation_mapper import ProjectAllocationMapper
@@ -10,87 +10,6 @@ from . import trovi
 import logging
 
 LOG = logging.getLogger(__name__)
-
-
-class ArtifactForm(forms.Form):
-    title = forms.CharField(label="Title", max_length=140)
-    short_description = forms.CharField(label="Short Description", max_length=200)
-    long_description = forms.CharField(
-        label="Long Description", widget=forms.Textarea(), required=False
-    )
-    prefix = "artifact"
-
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop("request")
-        artifact = kwargs.pop("artifact", None)
-        super().__init__(*args, **kwargs)
-
-        available_labels = [
-            (t["tag"], t["tag"])
-            for t in trovi.list_tags(request.session.get("trovi_token"))
-        ]
-        self.fields["tags"] = forms.MultipleChoiceField(
-            widget=CheckboxSelectMultiple,
-            choices=available_labels,
-            required=False,
-            initial=artifact["tags"] if artifact else [],
-        )
-        if artifact:
-            self.fields["title"].initial = artifact["title"]
-            self.fields["long_description"].initial = artifact["long_description"]
-            self.fields["short_description"].initial = artifact["short_description"]
-
-
-class AuthorForm(forms.Form):
-    full_name = forms.CharField(label="Full Name")
-    email = forms.CharField(label="Email")
-    affiliation = forms.CharField(label="Affiliation", required=False)
-    prefix = "author"
-
-    def __init__(self, *args, **kwargs):
-        author = kwargs.pop("initial", None)
-        super().__init__(*args, **kwargs)
-
-        if author:
-            self.fields["full_name"].initial = author["full_name"]
-            self.fields["email"].initial = author["email"]
-            self.fields["affiliation"].initial = author["affiliation"]
-
-
-AuthorFormset = forms.formset_factory(
-    form=AuthorForm, can_delete=True, extra=2, min_num=1
-)
-
-AuthorCreateFormset = forms.formset_factory(
-    form=AuthorForm, can_delete=False, extra=2, min_num=1
-)
-
-
-class RolesForm(forms.Form):
-    email = forms.EmailField(
-        label="Email",
-        required=True,
-    )
-    roles = forms.MultipleChoiceField(
-        label="Roles",
-        widget=CheckboxSelectMultiple,
-        required=False,
-        choices=[(role, role) for role in ("collaborator", "administrator")],
-    )
-    prefix = "role"
-
-    def __init__(self, *args, **kwargs):
-        roles = kwargs.pop("initial", None)
-        super().__init__(*args, **kwargs)
-
-        if roles:
-            self.fields["email"].initial = roles["email"]
-            self.fields["roles"].initial = roles["roles"]
-
-
-RoleFormset = forms.formset_factory(
-    form=RolesForm, can_delete=False, extra=2, min_num=1
-)
 
 
 class ShareArtifactForm(forms.Form):

@@ -6,7 +6,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from projects.models import Project, Invitation
-from sharing_portal.zenodo import ZenodoClient
+
+
+def validate_zenodo_doi(doi):
+    """Kept for migration history compatibility only."""
+    pass
 
 
 def validate_git_repo(repo):
@@ -21,19 +25,6 @@ def validate_git_repo(repo):
     """
     if not re.match(r"[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+", str(repo)):
         raise ValidationError("This must be in the form {user|org}/{repo}")
-
-
-def validate_zenodo_doi(doi):
-    """Validator to make sure that the Zenodo DOI is in the right format
-
-    Args:
-        doi (str): the Zenodo DOI to validate.
-
-    Raises:
-        ValidationError: if the DOI is malformed
-    """
-    if not re.match(r"10\.[0-9]+\/zenodo\.[0-9]+$", str(doi)):
-        raise ValidationError("Please enter a valid Zenodo DOI")
 
 
 def gen_sharing_key():
@@ -140,9 +131,7 @@ class Artifact(models.Model):
     authors = models.ManyToManyField(Author, related_name="artifacts")
     short_description = models.CharField(max_length=70, blank=True, null=True)
     description = models.TextField(max_length=5000)
-    doi = models.CharField(
-        max_length=50, blank=True, null=True, validators=[validate_zenodo_doi]
-    )
+    doi = models.CharField(max_length=50, blank=True, null=True)
     git_repo = models.CharField(
         max_length=200, blank=True, null=True, validators=[validate_git_repo]
     )
@@ -218,10 +207,6 @@ class Artifact(models.Model):
         return sum([v.launch_count for v in self.versions.all()])
 
     @property
-    def deposition_url(self) -> "str":
-        return ZenodoClient.to_record_url(self.doi) if self.doi else None
-
-    @property
     def is_chameleon_supported(self) -> "bool":
         """Indicate whether this artifact is maintained by Chameleon."""
         # We don't use a .filter here because .all is already used everywhere,
@@ -255,23 +240,10 @@ class ArtifactVersion(models.Model):
     )
     launch_count = models.IntegerField(default=0)
 
-    def clean(self):
-        if self.deposition_repo == self.ZENODO:
-            validate_zenodo_doi(self.deposition_id)
-        elif self.deposition_repo == self.GIT:
-            validate_git_repo(self.deposition_id)
-
     @property
     def doi(self):
         if self.deposition_repo == self.ZENODO:
             return self.deposition_id
-        else:
-            return None
-
-    @property
-    def deposition_url(self):
-        if self.deposition_repo == self.ZENODO:
-            return ZenodoClient.to_record_url(self.doi)
         else:
             return None
 
