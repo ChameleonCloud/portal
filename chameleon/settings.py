@@ -179,7 +179,6 @@ INSTALLED_APPS = (
     "allocations",
     "appliance_catalog",
     "sharing_portal",
-    "webinar_registration",
     "chameleon_cms_integrations",
     # djangocms-blog
     "filer",
