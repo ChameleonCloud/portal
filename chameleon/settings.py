@@ -123,7 +123,6 @@ INSTALLED_APPS = (
     #
     "djangocms_admin_style",
     "djangocms_text_ckeditor",
-    "blog_comments",
     ##
     # core apps
     #
@@ -236,12 +235,6 @@ MARKDOWN_DEUX_STYLES = {
             "code-friendly": None,
         },
         "safe_mode": False,
-    },
-    "blog_comments": {
-        "extras": {
-            "code-friendly": None,
-        },
-        "safe_mode": "escape",
     },
 }
 
@@ -848,11 +841,6 @@ CELERY_BEAT_SCHEDULE = {
 }
 if DEBUG:
     CELERY_BEAT_SCHEDULE = {}
-
-# Djangocms_blog templates
-BLOG_PLUGIN_TEMPLATE_FOLDERS = (
-    ("frontpage", _("Frontpage Display")),  # reads templates/djangocms_blog/frontpage/
-)
 
 # Content-Security-Policy
 # Ensure that all items include self.
