@@ -18,7 +18,6 @@ from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 import requests
 
 
-from . import research_impacts
 
 from chameleon.edge_hw_discovery_api import EDGE_HW_API
 from chameleon.celery import app as celery_app
@@ -217,32 +216,6 @@ def admin_or_superuser(user):
             user.groups.filter(name="Allocation Admin").count() == 1
         ) or user.is_superuser
     return False
-
-
-@login_required
-@user_passes_test(admin_or_superuser)
-def admin_research_impacts(request):
-    return render(
-        request, "admin/research_impacts.html", research_impacts.get_context()
-    )
-
-
-@login_required
-@user_passes_test(admin_or_superuser)
-def admin_research_impacts_institutions(request):
-    return render(
-        request,
-        "admin/research_impacts_institutions.html",
-        research_impacts.get_institution_context(),
-    )
-
-
-@login_required
-@user_passes_test(admin_or_superuser)
-def admin_research_impacts_sus(request):
-    return render(
-        request, "admin/research_impacts_sus.html", research_impacts.get_sus_context()
-    )
 
 
 def blog_redirect(request):
