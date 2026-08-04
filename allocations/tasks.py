@@ -10,7 +10,6 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Q
-from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.urls import reverse
@@ -18,7 +17,6 @@ from keycloak.exceptions import KeycloakClientError
 
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
-from balance_service.enforcement.usage_enforcement import TMP_RESOURCE_ID_PREFIX
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
 
@@ -389,36 +387,6 @@ def activate_expire_allocations():
     check_keycloak_consistency()
 
 
-def _fill_charge_tmp_resource_ids():
-    charge_by_region = defaultdict(list)
-    for charge in Charge.objects.filter(resource_id__startswith=TMP_RESOURCE_ID_PREFIX):
-        charge_by_region[charge.region_name].append(charge)
-
-    for region in charge_by_region.keys():
-        db = utils.connect_to_region_db(region)
-        for charge in charge_by_region[region]:
-            items = charge.resource_id.split("/", maxsplit=4)
-            project_id = items[1]
-            user_id = items[2]
-            lease_start_date = items[3]
-            name = items[4]
-            resource_type = charge.resource_type
-            resource_id = utils.get_resource_id(
-                db, project_id, user_id, lease_start_date, resource_type, name
-            )
-            if resource_id:
-                charge.resource_id = resource_id
-                charge.save()
-            else:
-                charge_dict = model_to_dict(charge)
-                LOG.error(f"Fail to find resource id for charge: {charge_dict}")
-                if charge.allocation.balance_service_version == 1:
-                    LOG.info(
-                        f"The allocation uses v1 balance service, removing charge {charge_dict}"
-                    )
-                    charge.delete()
-
-
 def check_keycloak_consistency():
     active_projects = {
         alloc.project.charge_code
@@ -476,58 +444,3 @@ def check_keycloak_consistency():
                 LOG.warning(f"Failed to update project {project} in Keycloak. Retrying")
                 keycloak_client = KeycloakClient()
                 keycloak_client.update_project(project, has_active_allocation="false")
-
-
-def check_charge():
-    """
-    Check if the charges of the active allocations are in sync
-    with the actual state of openstack databases
-    """
-    # openstack db overwrites records for updated leases, so we
-    # only compare the end time and the latest hourly cost of a
-    # reservation to alert on potential over-charging.
-
-    _fill_charge_tmp_resource_ids()
-
-    compare_content = defaultdict(lambda: defaultdict(dict))
-    for alloc in Allocation.objects.filter(status="active"):
-        for charge in alloc.charges.all():
-            region = charge.region_name
-            resource_id = charge.resource_id
-
-            end_time = compare_content[region][resource_id].get("end_time")
-            if not end_time or end_time > charge.end_time:
-                compare_content[region][resource_id] = {
-                    "end_time": charge.end_time,
-                    "hourly_cost": charge.hourly_cost,
-                }
-    # fetch info from openstack db
-    for region in compare_content.keys():
-        db = utils.connect_to_region_db(region)
-        region_resources = compare_content[region]
-
-        openstack_records = []
-        resource_ids = list(region_resources.keys())
-        openstack_records.extend(utils.get_computehost_charges_by_ids(db, resource_ids))
-        openstack_records.extend(utils.get_network_charges_by_ids(db, resource_ids))
-        openstack_records.extend(utils.get_floatingip_charges_by_ids(db, resource_ids))
-
-        for openstack_r in openstack_records:
-            resource_id = openstack_r.get("resource_id")
-            portal_r = region_resources.get(resource_id)
-            openstack_endtime = openstack_r.get("end_time")
-            portal_endtime = portal_r.get("end_time").strftime(utils.DATETIME_FORMAT)
-            if openstack_endtime != portal_endtime:
-                pass
-                # LOG.error(
-                #     f"{resource_id} at {region} has incorrect end time! "
-                #     f"openstack={openstack_endtime}, portal={portal_endtime}"
-                # )
-            openstack_cost = openstack_r.get("hourly_cost")
-            portal_cost = float(portal_r.get("hourly_cost"))
-            if openstack_cost != portal_cost:
-                pass
-                # LOG.error(
-                #     f"{resource_id} at {region} has incorrect hourly cost! "
-                #     f"openstack={openstack_cost}, portal={portal_cost}"
-                # )
