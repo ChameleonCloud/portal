@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 import pytz
-from celery.decorators import task
+from celery import shared_task as task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.html import strip_tags

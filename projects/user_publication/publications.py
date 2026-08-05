@@ -3,7 +3,7 @@
 
 import logging
 
-from celery.decorators import task
+from celery import shared_task as task
 
 from projects.models import Publication
 from projects.user_publication import openalex, science_direct, scopus, semantic_scholar
