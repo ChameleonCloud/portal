@@ -780,21 +780,6 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
-name = "django-angular"
-version = "2.3.1"
-description = "Let Django play well with AngularJS"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "django-angular-2.3.1.tar.gz", hash = "sha256:b9c97de2b4658d30f6e3a4f9d5515a479914ac5976a3cb46a609faae0bd95852"},
-    {file = "django_angular-2.3.1-py3-none-any.whl", hash = "sha256:4841cb6e8e3323300e7ffff44d8a7c54bc474974e76d7b47145c0010de79913b"},
-]
-
-[package.dependencies]
-django = ">=2.1"
-
-[[package]]
 name = "django-bootstrap3"
 version = "24.3"
 description = "Bootstrap 3 for Django"
@@ -4376,4 +4361,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.10"
-content-hash = "d0217ec1bd45e302aaba6b5ca76e5001ce2c7466f51c6f92b7b8892a66e817fd"
+content-hash = "b7b95e7d12372d617e985d6d3ce1e45c4a189be3e9a84e689c2806e43c4186e0"

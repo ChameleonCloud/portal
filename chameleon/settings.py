@@ -172,7 +172,6 @@ INSTALLED_APPS = (
     "djangoRT",
     "projects",
     "user_news",
-    "djng",
     "g5k_discovery",
     "allocations",
     "appliance_catalog",
@@ -201,7 +200,6 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = (
-    "djng.middleware.AngularUrlMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
