@@ -1083,30 +1083,6 @@ files = [
 django-cms = ">=3.7"
 
 [[package]]
-name = "djangocms-bootstrap4"
-version = "3.0.2"
-description = "Adds Bootstrap 4 components as plugins."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "djangocms_bootstrap4-3.0.2-py3-none-any.whl", hash = "sha256:3b7e7eb1b7551cf433bf2bb0f3601d47645203c3bb4ad75ec097eb4bd81a34cf"},
-    {file = "djangocms_bootstrap4-3.0.2.tar.gz", hash = "sha256:e931aefadbd22ab00e6cea8b7224da767afea125df15bf0c8a8d5f7872153e64"},
-]
-
-[package.dependencies]
-django-cms = ">=3.7,<4"
-django-filer = ">=1.7"
-djangocms-attributes-field = ">=1"
-djangocms-icon = ">=1.4.0"
-djangocms-link = ">=2.5.0"
-djangocms-picture = ">=2.3.0"
-djangocms-text-ckeditor = ">=3.1.0"
-
-[package.extras]
-static-ace = ["djangocms-static-ace"]
-
-[[package]]
 name = "djangocms-column"
 version = "2.1.0"
 description = "Column Plugin for django CMS"
@@ -1164,22 +1140,6 @@ cms-3 = ["django-cms (<4)", "django-parler", "djangocms-link (>=5)", "djangocms-
 cms-4 = ["django-cms (>=4.1)", "django-parler", "djangocms-alias (>=2)", "djangocms-link (>=5)", "djangocms-text", "djangocms-versioning (>=2)"]
 djangocms-icon = ["djangocms-icon (>=1.4)"]
 static-ace = ["djangocms-static-ace"]
-
-[[package]]
-name = "djangocms-icon"
-version = "2.1.1"
-description = "Adds icon plugin to django CMS."
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "djangocms_icon-2.1.1-py3-none-any.whl", hash = "sha256:fda9d3c9e262dbfbecc93b668cb40c02185c8645d858423b21d116f7ed4f606e"},
-    {file = "djangocms_icon-2.1.1.tar.gz", hash = "sha256:77f7b4c697d652077113203049b54c32c27cf2d05cc45e7275520d1762569ad3"},
-]
-
-[package.dependencies]
-django-cms = ">=3.10"
-djangocms-attributes-field = ">=1"
 
 [[package]]
 name = "djangocms-link"
@@ -4389,4 +4349,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.10"
-content-hash = "e92b4c4056f2d7d069f7133df0a8495bbf8e9a0d1aab883c85d1691d91ac6422"
+content-hash = "fe18b7e7ad2aaa53ad9368b8c84f3dbb18505c15bc499b8088411c207925d2cc"
