@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     # django-cms prereqs
     #
     "djangocms_admin_style",
-    "djangocms_text_ckeditor",
+    "djangocms_text",
     ##
     # core apps
     #
@@ -153,7 +153,6 @@ INSTALLED_APPS = (
     ##
     # contrib
     #
-    "ckeditor",
     "pipeline",
     "django_recaptcha",
     "bootstrap3",
@@ -467,7 +466,6 @@ LANGUAGES = [
 ]
 
 MIGRATION_MODULES = {
-    "djangocms_text_ckeditor": "djangocms_text_ckeditor.migrations",
     "djangocms_column": "djangocms_column.migrations",
     "djangocms_flash": "djangocms_flash.migrations",
     "djangocms_inherit": "djangocms_inherit.migrations",
@@ -487,50 +485,15 @@ MIGRATION_MODULES = {
 PROJECT_EXTRAS_API_TOKEN = os.environ.get("PROJECT_EXTRAS_API_TOKEN", None)
 DAYPASS_LIMIT = 10
 
-#####
-#
-# CKEditor Config
-#
-#####
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_IMAGE_BACKEND = "pillow"
-CKEDITOR_CONFIGS = {
-    "default": {
-        "toolbar": "Chameleon",
-        "toolbar_Chameleon": [
-            [
-                "Styles",
-                "Format",
-                "Bold",
-                "Italic",
-                "Underline",
-                "Strike",
-                "SpellChecker",
-                "Undo",
-                "Redo",
-            ],
-            ["Link", "Unlink", "Anchor"],
-            ["Image", "Table", "HorizontalRule"],
-            ["BulletedList", "NumberedList"],
-            ["Source"],
-        ],
-    },
-}
 
 #####
 #
 # Additional config to allow iframes
 #
 #####
-TEXT_ADDITIONAL_TAGS = "iframe"
-TEXT_ADDITIONAL_ATTRIBUTES = (
-    "scrolling",
-    "allowfullscreen",
-    "frameborder",
-    "src",
-    "height",
-    "width",
-)
+TEXT_ADDITIONAL_ATTRIBUTES = {
+    "iframe": {"scrolling", "allowfullscreen", "frameborder", "src", "height", "width"},
+}
 
 #####
 #

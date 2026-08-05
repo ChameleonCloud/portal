@@ -3,7 +3,6 @@
 
 from django.db import models, migrations
 from django.conf import settings
-import ckeditor.fields
 
 
 class Migration(migrations.Migration):
@@ -22,8 +21,8 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(unique=True, max_length=100)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('summary', ckeditor.fields.RichTextField(max_length=600)),
-                ('body', ckeditor.fields.RichTextField()),
+                ('summary', models.TextField(max_length=600)),
+                ('body', models.TextField()),
             ],
             options={
                 'verbose_name': 'News',
