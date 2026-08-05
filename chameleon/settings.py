@@ -194,6 +194,24 @@ INSTALLED_APPS = (
     "djangocms_bootstrap4.contrib.bootstrap4_media",
     "djangocms_bootstrap4.contrib.bootstrap4_tabs",
     "djangocms_bootstrap4.contrib.bootstrap4_utilities",
+    # djangocms-frontend (migration target for djangocms-bootstrap4)
+    "djangocms_frontend",
+    "djangocms_frontend.contrib.accordion",
+    "djangocms_frontend.contrib.alert",
+    "djangocms_frontend.contrib.badge",
+    "djangocms_frontend.contrib.card",
+    "djangocms_frontend.contrib.carousel",
+    "djangocms_frontend.contrib.collapse",
+    "djangocms_frontend.contrib.content",
+    "djangocms_frontend.contrib.grid",
+    "djangocms_frontend.contrib.icon",
+    "djangocms_frontend.contrib.image",
+    "djangocms_frontend.contrib.jumbotron",
+    "djangocms_frontend.contrib.link",
+    "djangocms_frontend.contrib.listgroup",
+    "djangocms_frontend.contrib.media",
+    "djangocms_frontend.contrib.tabs",
+    "djangocms_frontend.contrib.utilities",
 )
 
 MIDDLEWARE = (

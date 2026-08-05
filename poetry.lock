@@ -863,6 +863,21 @@ jinja2 = ["jinja2 (>=2.9.6)"]
 tests = ["jinja2 (>=2.9.6)", "pytest", "pytest-cov", "pytest-django", "pytest-ruff"]
 
 [[package]]
+name = "django-entangled"
+version = "0.7"
+description = "Edit JSON field using Django Model Form"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "django_entangled-0.7-py3-none-any.whl", hash = "sha256:82536d5b139623d7f6625f51452ec38795f10be0e12bae57a6f4321b5cd3db59"},
+    {file = "django_entangled-0.7.tar.gz", hash = "sha256:40afbdcaf91ec061d5e5365eaf7b978a03879620ad68f97c0615daaa66843cc2"},
+]
+
+[package.dependencies]
+django = ">=2.1"
+
+[[package]]
 name = "django-filer"
 version = "3.5.0"
 description = "A file management application for django that makes handling of files and images a breeze."
@@ -1054,14 +1069,14 @@ Django = "*"
 
 [[package]]
 name = "djangocms-attributes-field"
-version = "3.0.0"
+version = "4.1.2"
 description = "Adds attributes to Django models."
 optional = false
-python-versions = "*"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "djangocms-attributes-field-3.0.0.tar.gz", hash = "sha256:70cbcb8e826b5a6bceba348119ddc01fa5910af4cb4002eb9895d311950b0d9a"},
-    {file = "djangocms_attributes_field-3.0.0-py3-none-any.whl", hash = "sha256:21a0e1642ffc3d9fbc9284b07024c4ca29f7fe9ffbd2c0aecd22585ff5275a86"},
+    {file = "djangocms_attributes_field-4.1.2-py3-none-any.whl", hash = "sha256:d7b9df5cb34f4072fd8da390e79bed715637032772bad3bf4e9847e3c7216cdb"},
+    {file = "djangocms_attributes_field-4.1.2.tar.gz", hash = "sha256:ed7e9d78a47b30801fe6b411e1cb8aff3434ac594c2b6bb86c859d98aff59838"},
 ]
 
 [package.dependencies]
@@ -1069,22 +1084,22 @@ django-cms = ">=3.7"
 
 [[package]]
 name = "djangocms-bootstrap4"
-version = "3.1.1"
+version = "3.0.2"
 description = "Adds Bootstrap 4 components as plugins."
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "djangocms_bootstrap4-3.1.1-py3-none-any.whl", hash = "sha256:4d4d5a8e1ae533442092cbfba6a68c7ccf46a3145173eb3b808e01a0dc051905"},
-    {file = "djangocms_bootstrap4-3.1.1.tar.gz", hash = "sha256:000ef30ff8bff4d6007237bcfaff3a1f71fb286ffd725f19b0e056332468819c"},
+    {file = "djangocms_bootstrap4-3.0.2-py3-none-any.whl", hash = "sha256:3b7e7eb1b7551cf433bf2bb0f3601d47645203c3bb4ad75ec097eb4bd81a34cf"},
+    {file = "djangocms_bootstrap4-3.0.2.tar.gz", hash = "sha256:e931aefadbd22ab00e6cea8b7224da767afea125df15bf0c8a8d5f7872153e64"},
 ]
 
 [package.dependencies]
-django-cms = ">=3.7"
+django-cms = ">=3.7,<4"
 django-filer = ">=1.7"
 djangocms-attributes-field = ">=1"
 djangocms-icon = ">=1.4.0"
-djangocms-link = ">=2.5.0,<5"
+djangocms-link = ">=2.5.0"
 djangocms-picture = ">=2.3.0"
 djangocms-text-ckeditor = ">=3.1.0"
 
@@ -1125,6 +1140,32 @@ django-filer = ">=1.7"
 djangocms-attributes-field = ">=1"
 
 [[package]]
+name = "djangocms-frontend"
+version = "2.5.1"
+description = "Adds abstract User Interface items as plugins to django CMS."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "djangocms_frontend-2.5.1-py3-none-any.whl", hash = "sha256:5aaa0a7344a905abc0e880de0976de98d5871fc27e8425cecc81a3e2322ef633"},
+    {file = "djangocms_frontend-2.5.1.tar.gz", hash = "sha256:c9ba18fcef21239d3c59479957a5a7e7abd0da5a7d7a32dee7f053ed7ddb5f66"},
+]
+
+[package.dependencies]
+django-cms = ">=3.7"
+django-entangled = ">=0.6"
+django-filer = ">=1.7"
+djangocms-attributes-field = ">=4"
+djangocms-link = ">=5"
+easy-thumbnails = "*"
+
+[package.extras]
+cms-3 = ["django-cms (<4)", "django-parler", "djangocms-link (>=5)", "djangocms-text"]
+cms-4 = ["django-cms (>=4.1)", "django-parler", "djangocms-alias (>=2)", "djangocms-link (>=5)", "djangocms-text", "djangocms-versioning (>=2)"]
+djangocms-icon = ["djangocms-icon (>=1.4)"]
+static-ace = ["djangocms-static-ace"]
+
+[[package]]
 name = "djangocms-icon"
 version = "2.1.1"
 description = "Adds icon plugin to django CMS."
@@ -1142,19 +1183,18 @@ djangocms-attributes-field = ">=1"
 
 [[package]]
 name = "djangocms-link"
-version = "4.0.0"
+version = "5.2.0"
 description = "Adds a link plugin to django CMS"
 optional = false
-python-versions = "*"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "djangocms_link-4.0.0-py3-none-any.whl", hash = "sha256:00ede619d6f7379e47104843c1df8f8427c8a4038a6ed5fe78616e156a408f62"},
-    {file = "djangocms_link-4.0.0.tar.gz", hash = "sha256:a258dc603f117c9d7f32fd914fb9c0a1edfa49bc293c4798cbde6a1295eba4dc"},
+    {file = "djangocms_link-5.2.0-py3-none-any.whl", hash = "sha256:9d63900991760bce3f40fd7f87370de6c44ad1e6d8d770375c0115bb034119d3"},
+    {file = "djangocms_link-5.2.0.tar.gz", hash = "sha256:a1b91ab2dfd30512601e3297e5882728860ec44be35c807edc72d8944e279148"},
 ]
 
 [package.dependencies]
-django-cms = ">=3.7"
-django-filer = ">=1.7"
+django-cms = ">=3.7,<4.1 || >4.1,<4.1.1 || >4.1.1,<4.1.2 || >4.1.2"
 djangocms-attributes-field = ">=1"
 
 [[package]]
@@ -4349,4 +4389,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.10"
-content-hash = "d497a0614645eb9fee4809eec891d29a148238d96e7fab095becafa06183dc18"
+content-hash = "e92b4c4056f2d7d069f7133df0a8495bbf8e9a0d1aab883c85d1691d91ac6422"
