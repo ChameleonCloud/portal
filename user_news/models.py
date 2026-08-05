@@ -1,7 +1,7 @@
 import re
 from zoneinfo import ZoneInfo
 
-from ckeditor.fields import RichTextField
+from djangocms_text.fields import HTMLField
 from cms.models.pluginmodel import CMSPlugin
 from django.conf import settings
 from django.contrib import messages
@@ -31,8 +31,8 @@ class News(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    summary = RichTextField(max_length=600)
-    body = RichTextField()
+    summary = HTMLField(max_length=600)
+    body = HTMLField()
     tags = models.ManyToManyField(NewsTag, blank=True)
 
     def __str__(self):

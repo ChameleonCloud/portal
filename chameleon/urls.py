@@ -40,7 +40,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # contrib urls
     path("oidc/", include("mozilla_django_oidc.urls")),
-    path("ckeditor/", include("ckeditor_uploader.urls")),
     path("terms/", include("termsandconditions.urls")),
     path(
         "sitemap.xml",
