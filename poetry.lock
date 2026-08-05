@@ -932,18 +932,19 @@ testing = ["coveralls", "django", "tox", "wheel"]
 
 [[package]]
 name = "django-polymorphic"
-version = "3.0.0"
-description = "Seamless polymorphic inheritance for Django models"
+version = "4.11.7"
+description = "Seamless polymorphic inheritance for Django models."
 optional = false
-python-versions = "*"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django-polymorphic-3.0.0.tar.gz", hash = "sha256:9d886f19f031d26bb1391c055ed9be06fb226a04a4cec1842b372c58873b3caa"},
-    {file = "django_polymorphic-3.0.0-py2.py3-none-any.whl", hash = "sha256:73b75eb44ea302bd32820f8661e469509d245ce7f7ff09cd2ad149e5c42034ff"},
+    {file = "django_polymorphic-4.11.7-py3-none-any.whl", hash = "sha256:23ee903f79b9c4ebd36fee952f955d80c3d51f3eee9fa23639c4bafe3be616a2"},
+    {file = "django_polymorphic-4.11.7.tar.gz", hash = "sha256:9d616e9e2870efd62a5ee387294830c80935a31786e50da137bd76668dd5437d"},
 ]
 
 [package.dependencies]
-Django = ">=2.1"
+django = ">=4.2"
+typing-extensions = ">=4.12.0"
 
 [[package]]
 name = "django-recaptcha"
@@ -4330,4 +4331,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.10"
-content-hash = "1c298fa6203cbd5e1b99e5bf602f0e50bc2933e3566b166d6b8e882d98424f1b"
+content-hash = "6dc609478fb3ee6ee268e351f6743aa376654972b446908df01a19c26d81300f"
