@@ -179,17 +179,8 @@ INSTALLED_APPS = (
     "appliance_catalog",
     "sharing_portal",
     "chameleon_cms_integrations",
-    # djangocms-blog
     "filer",
     "easy_thumbnails",
-    "aldryn_apphooks_config",
-    "parler",
-    "taggit",
-    "taggit_autosuggest",
-    "meta",
-    "sortedm2m",
-    "djangocms_blog",
-    "djangocms_icon",
     "djangocms_bootstrap4",
     "djangocms_bootstrap4.contrib.bootstrap4_alerts",
     "djangocms_bootstrap4.contrib.bootstrap4_badge",
@@ -753,21 +744,6 @@ THUMBNAIL_PROCESSORS = (
     "filer.thumbnail_processors.scale_and_crop_with_subject_location",
     "easy_thumbnails.processors.filters",
 )
-META_SITE_PROTOCOL = "http"
-META_USE_SITES = True
-BLOG_MULTISITE = False
-
-PARLER_LANGUAGES = {
-    1: (
-        {
-            "code": "en",
-        },
-    ),
-    "default": {
-        "fallbacks": ["en"],
-    },
-}
-
 # overwrite default django params
 # ref: https://github.com/divio/django-filer/issues/1031
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10000000
