@@ -110,7 +110,6 @@ urlpatterns = [
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
     # cms urls
-    path("taggit_autosuggest/", include("taggit_autosuggest.urls")),
     path("", include("cms.urls")),
     path("featured.json", chameleon_views.featured_json, name="featured_json"),
     path(
