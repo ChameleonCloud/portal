@@ -2,7 +2,6 @@ import calendar
 from collections import defaultdict
 from datetime import datetime, timedelta
 import logging
-import pytz
 from operator import attrgetter
 
 from celery import shared_task as task
@@ -315,7 +314,7 @@ def deactivate_multiple_active_allocations_of_projects():
             for alloc in by_expiration[1:]:
                 charge_code = alloc.project.charge_code
                 alloc.status = "inactive"
-                alloc.expiration_date = datetime.now(pytz.utc)
+                alloc.expiration_date = timezone.now()
                 alloc.save()
                 LOG.info(
                     f"Deactivated duplicate allocation {alloc.id} for {charge_code}"

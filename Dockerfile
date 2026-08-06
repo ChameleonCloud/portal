@@ -9,7 +9,7 @@ RUN yarn install --network-timeout 1000000
 COPY . ./
 RUN yarn build --production
 
-FROM ${PY_IMG}:3.10.11
+FROM ${PY_IMG}:3.12
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -21,17 +21,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   curl \
   build-essential \
   nodejs \
-  ruby \
-  ruby-dev \
   default-mysql-client \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  # Install SASS requirements
-  # These are pinned because compass is decommissioned and thus tricky to get working.
-  # These versions were chosen because they were used
-  # in the latest functioning portal image at the time of this edit.
-  && gem install sass --version 3.4.23 \
-  && gem install compass --version 1.0.3
+  && rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
 WORKDIR /setup
@@ -42,7 +34,8 @@ COPY package.json yarn.lock ./
 # yuglify: for CSS compression
 RUN npm install -g \
   uglify-js \
-  yuglify
+  yuglify \
+  sass@1.82
 
 # Use pip to install poetry. We don't use virtualenvs in the build context.
 # Therefore, the vendored install provides no additional isolation.

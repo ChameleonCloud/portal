@@ -1,8 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import chain
 import time
-
-import pytz
 
 from allocations.models import Allocation
 from chameleon.models import PIEligibility, Reviewer
@@ -354,7 +352,7 @@ class ProjectAllocationMapper:
         # update allocation model
         alloc = Allocation.objects.get(pk=data["id"])
         data["status"] = data["status"].lower()
-        data["dateReviewed"] = datetime.now(pytz.utc)
+        data["dateReviewed"] = datetime.now(timezone.utc)
         for item in [
             "reviewerId",
             "dateReviewed",
@@ -423,7 +421,7 @@ class ProjectAllocationMapper:
             logger.error("Couldn't find project {} in portal".format(alloc["project"]))
         else:
             reformated_alloc["project_id"] = portal_project[0].id
-        reformated_alloc["date_requested"] = datetime.now(pytz.utc)
+        reformated_alloc["date_requested"] = datetime.now(timezone.utc)
         reformated_alloc["status"] = "pending"
 
         reformated_alloc = Allocation(**reformated_alloc)

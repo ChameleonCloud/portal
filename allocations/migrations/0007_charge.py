@@ -11,7 +11,6 @@ import datetime
 import json
 import logging
 import MySQLdb
-import pytz
 
 from .. import utils
 
@@ -64,7 +63,7 @@ def _get_charge_user(charge):
 def _str_to_localtime(utctimestr):
     utc = datetime.datetime.strptime(
         utctimestr, utils.DATETIME_FORMAT
-    ).replace(tzinfo=pytz.UTC)
+    ).replace(tzinfo=datetime.timezone.utc)
     localtz = utc.astimezone(timezone.get_current_timezone())
     return localtz
 
