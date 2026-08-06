@@ -270,6 +270,9 @@ TIME_ZONE = "America/Chicago"
 
 USE_TZ = True
 
+# Opt into Django 6.0 default: URLField assumes https:// when no scheme is given.
+FORMS_URLFIELD_ASSUME_HTTPS = True
+
 SITE_ID = 1
 
 # Static files (CSS, JavaScript, Images)
