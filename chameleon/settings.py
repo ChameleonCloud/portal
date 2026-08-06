@@ -455,6 +455,8 @@ CMS_TEMPLATES = (
 
 CMS_PERMISSION = True
 
+CMS_CONFIRM_VERSION4 = True
+
 CMS_PLACEHOLDER_CONF = {}
 
 DJANGOCMS_STYLE_CHOICES = ["enable-toc", "sidebar-toc", "header-toc"]
@@ -465,13 +467,10 @@ LANGUAGES = [
 
 MIGRATION_MODULES = {
     "djangocms_column": "djangocms_column.migrations",
-    "djangocms_flash": "djangocms_flash.migrations",
-    "djangocms_inherit": "djangocms_inherit.migrations",
     "djangocms_style": "djangocms_style.migrations",
     "djangocms_file": "djangocms_file.migrations",
     "djangocms_link": "djangocms_link.migrations",
     "djangocms_picture": "djangocms_picture.migrations",
-    "djangocms_teaser": "djangocms_teaser.migrations",
     "djangocms_video": "djangocms_video.migrations",
 }
 
