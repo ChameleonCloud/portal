@@ -17,7 +17,7 @@ bibtexparser = "<1.2.0"
 celery = "~5.6"
 django = "^4.2"
 django-bootstrap3 = "^24"
-django-cms = "^4.1"
+django-cms = "~5.0.9"
 django-csp = "^3.7"
 django-filer = "^3.5.0"
 django-markdown-deux = "^1.0.5"
@@ -43,6 +43,7 @@ pybliometrics = {git = "https://github.com/pybliometrics-dev/pybliometrics", tag
 pydetex = "~1.0"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
 python = "~3.10"
+setuptools = "<82"
 python-blazarclient = {git = "https://github.com/ChameleonCloud/python-blazarclient", branch = "chameleoncloud/stable/train"}
 python-cinderclient = "^7.2.0"
 python-glanceclient = "2.17.1"
