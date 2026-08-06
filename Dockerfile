@@ -13,7 +13,7 @@ FROM ${PY_IMG}:3.12
 # Set shell to use for run commands
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
 
 # Install apt packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
