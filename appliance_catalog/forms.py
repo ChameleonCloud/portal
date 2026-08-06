@@ -2,7 +2,6 @@ from django.forms import ModelForm, CharField, TextInput, ImageField
 from django.core.validators import validate_email, URLValidator
 from django.core.exceptions import ValidationError
 from django.core.files.images import get_image_dimensions
-from markdown_deux.templatetags.markdown_deux_tags import markdown_allowed
 from django import forms
 from .models import Appliance
 import logging
@@ -66,8 +65,8 @@ class ApplianceForm(ModelForm):
             "kvm_tacc_appliance_id": forms.TextInput(attrs={"placeholder": ""}),
         }
         help_texts = {
-            "description": markdown_allowed(),
-            "documentation": markdown_allowed(),
+            "description": "Markdown is supported.",
+            "documentation": "Markdown is supported.",
         }
 
     def __init__(self, user, *args, **kwargs):
@@ -206,8 +205,8 @@ class ApplianceShareForm(ModelForm):
             "shared_from_horizon": forms.HiddenInput(),
         }
         help_texts = {
-            "description": markdown_allowed(),
-            "documentation": markdown_allowed(),
+            "description": "Markdown is supported.",
+            "documentation": "Markdown is supported.",
         }
 
     def __init__(self, user, *args, **kwargs):

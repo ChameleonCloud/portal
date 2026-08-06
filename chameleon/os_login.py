@@ -20,7 +20,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-@csp_update(FRAME_ANCESTORS=settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
+@csp_update({"frame-ancestors": [settings.ARTIFACT_SHARING_JUPYTERHUB_URL]})
 @sensitive_post_parameters()
 @csrf_protect
 @never_cache

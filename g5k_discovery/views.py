@@ -30,7 +30,7 @@ def _get_chameleon_sites_list():
 # NOTE(jason): we need to add 'unsafe-eval' here (;-;) because the jspath
 # library used by this page apparently relies on creating new Function()s in
 # JS to do its filtering.
-@csp_update(SCRIPT_SRC="'unsafe-eval'")
+@csp_update({"script-src": ["'unsafe-eval'"]})
 def index(request):
     sites_list = _get_chameleon_sites_list()
     sites = {s["name"].replace("@", "_"): s for s in sites_list}
