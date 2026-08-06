@@ -121,7 +121,6 @@ INSTALLED_APPS = (
     ##
     # django-cms prereqs
     #
-    "djangocms_admin_style",
     "djangocms_text",
     ##
     # core apps
@@ -267,7 +266,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 LANGUAGE_CODE = "en"
 
-TIME_ZONE = "US/Central"
+TIME_ZONE = "America/Chicago"
 
 USE_TZ = True
 
@@ -499,7 +498,7 @@ TEXT_ADDITIONAL_ATTRIBUTES = {
 #####
 PIPELINE = {
     "COMPILERS": ("pipeline.compilers.sass.SASSCompiler",),
-    "SASS_ARGUMENTS": "--compass --style compressed",
+    "SASS_ARGUMENTS": "--style compressed --no-source-map",
     "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
     "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
     "STYLESHEETS": {
@@ -547,7 +546,10 @@ PIPELINE = {
 }
 
 # compress when collect static
-STATICFILES_STORAGE = "pipeline.storage.PipelineStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "pipeline.storage.PipelineStorage"},
+}
 
 TEMPLATES = [
     {

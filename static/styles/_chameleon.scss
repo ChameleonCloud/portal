@@ -1,4 +1,6 @@
-@import 'compass/css3';
+@mixin clearfix() {
+  &::after { content: ""; display: table; clear: both; }
+}
 
 // Typography: Inter for headings, clean modern hierarchy
 h1, h2, h3, h4, h5, h6,
@@ -507,7 +509,7 @@ article {
       left: 0;
       width: 100%;
       text-align: right;
-      @include background-image(linear-gradient(to bottom, rgba(255,255,255,0.2), white));
+      background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), white);
     }
   }
 }

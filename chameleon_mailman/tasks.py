@@ -1,7 +1,5 @@
 import logging
-from datetime import datetime, timedelta
-
-import pytz
+from datetime import datetime, timedelta, timezone
 from celery import shared_task as task
 from django.conf import settings
 from django.core.mail import send_mail
@@ -14,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @task
 def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
-    now = datetime.now(pytz.utc)
+    now = datetime.now(timezone.utc)
     upcoming_outages = Outage.objects.filter(start_date__gte=now)
     upcoming_outages = upcoming_outages.filter(reminder_sent__isnull=True)
 

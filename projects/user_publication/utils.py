@@ -15,7 +15,6 @@ external API clients) see ``util.publications``.
 import datetime
 import logging
 
-import pytz
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q
@@ -126,7 +125,7 @@ def raw_publication_to_data(raw: RawPublication) -> PublicationData:
 
 def is_project_prior_to_publication(project, pub_year):
     """Return True if *project* has an allocation starting on or before *pub_year*."""
-    fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=pytz.UTC)
+    fake_start = datetime.datetime(year=9999, month=1, day=1, tzinfo=datetime.timezone.utc)
     try:
         start = min(
             alloc.start_date or fake_start for alloc in project.allocations.all()

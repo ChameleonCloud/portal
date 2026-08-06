@@ -257,9 +257,9 @@ class JoinRequest(models.Model):
     """
 
     class Status(models.TextChoices):
-        PENDING = _("pending")
-        ACCEPTED = _("accepted")
-        REJECTED = _("rejected")
+        PENDING = "pending", _("pending")
+        ACCEPTED = "accepted", _("accepted")
+        REJECTED = "rejected", _("rejected")
 
     join_link = models.ForeignKey(
         JoinLink,

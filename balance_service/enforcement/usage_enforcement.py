@@ -18,7 +18,6 @@ import datetime
 import json
 import logging
 
-import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -411,10 +410,10 @@ class UsageEnforcer(object):
             # Blazar introduces a new dateformat
             new_date_format = "%Y-%m-%dT%H:%M:%S"
             date = datetime.datetime.strptime(date_string, new_date_format)
-        return date.replace(tzinfo=pytz.UTC)
+        return date.replace(tzinfo=datetime.timezone.utc)
 
     def _convert_to_localtime(self, utctime):
-        utc = utctime.replace(tzinfo=pytz.UTC)
+        utc = utctime.replace(tzinfo=datetime.timezone.utc)
         localtz = utc.astimezone(timezone.get_current_timezone())
         return localtz
 
@@ -424,7 +423,7 @@ class UsageEnforcer(object):
         )
         if timestamp is None:
             return
-        region_end = datetime.datetime.fromtimestamp(float(timestamp), tz=pytz.UTC)
+        region_end = datetime.datetime.fromtimestamp(float(timestamp), tz=datetime.timezone.utc)
         lease_end = self._date_from_string(lease["end_date"])
         if lease_end > region_end:
             raise exceptions.BillingError(

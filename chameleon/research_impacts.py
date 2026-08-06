@@ -2,7 +2,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth.models import User
 from chameleon.models import PIEligibility
 from projects.models import Project, Publication, Tag
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.db.models import Sum, FloatField, Count, Q, F, DurationField
 from django.db.models.functions import TruncYear
 from allocations.models import Charge, Allocation
@@ -20,10 +20,9 @@ from .constants import (
     EPSCOR_STATES,
 )
 
-import pytz
 import statistics
 
-UTC = pytz.UTC
+UTC = timezone.utc
 LOG = logging.getLogger(__name__)
 
 
