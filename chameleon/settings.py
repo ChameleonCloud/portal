@@ -830,7 +830,7 @@ if DEBUG:
     CSP_SCRIPT_SRC.append(vue_dev_server)
     CSP_IMG_SRC.append(vue_dev_server)
     CSP_STYLE_SRC.append(vue_dev_server)
-    CSP_CONNECT_SRC = ["'self'", vue_dev_server]
+    CSP_CONNECT_SRC = ["'self'", vue_dev_server, "ws://localhost:9000/"]
     # Webpack uses eval to provide its Hot Module Replacement capability
     CSP_SCRIPT_SRC.append("'unsafe-eval'")
 

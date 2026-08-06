@@ -21,6 +21,19 @@ module.exports = {
   publicPath: devMode ? `http://${devHost}:${devPort}/` : '',
   outputDir: 'static/vue/',
 
+  devServer: {
+    host: '0.0.0.0',
+    port: devPort,
+    hot: true,
+    headers: {'Access-Control-Allow-Origin': '*'},
+    watchFiles: {
+      options: {usePolling: true, interval: 1000},
+    },
+    client: {
+      webSocketURL: `ws://${devHost}:${devPort}/ws`,
+    },
+  },
+
   chainWebpack: config => {
     if (devMode) {
       config.devtool('source-map');
@@ -38,8 +51,7 @@ module.exports = {
         },
       });
 
-    // Django is serving webpack bundles via its template engine; disable
-    // Vue's automatic generation of HTML.
+    // Django serves these bundles via its template engine; disable Vue's HTML generation.
     Object.keys(pages).forEach(page => {
       config.plugins.delete(`html-${page}`);
       config.plugins.delete(`preload-${page}`);
@@ -55,14 +67,5 @@ module.exports = {
 
     config.resolve.alias
       .set('__STATIC__', 'static');
-
-    config.devServer
-      .public(`http://${devHost}:${devPort}`)
-      .host('0.0.0.0')
-      .port(devPort)
-      .hotOnly(true)
-      .watchOptions({poll: 1000})
-      .https(false)
-      .headers({'Access-Control-Allow-Origin': ['*']});
   }
 };

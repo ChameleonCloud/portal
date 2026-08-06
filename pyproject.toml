@@ -67,11 +67,11 @@ httpx = "~0.28"
 openai = "^2.13.0"
 magpub = {git = "https://github.com/ChameleonCloud/magpub.git"}
 
-[tool.poetry.dev-dependencies]
-black = "^21.12b0"
-flake8 = "^3.8.4"
-pycodestyle = "^2.6.0"
-pydocstyle = "^5.1.1"
+[tool.poetry.group.dev.dependencies]
+black = "^25.0"
+flake8 = "^7.0"
+pycodestyle = "^2.14.0"
+pydocstyle = "^6.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

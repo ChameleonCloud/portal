@@ -80,6 +80,7 @@ target/
 */node_modules
 node_modules
 webpack-stats.json
+static/vue/
 yarn-error.log
 
 #tmp folder

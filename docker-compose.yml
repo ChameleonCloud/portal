@@ -56,7 +56,7 @@ services:
       - mysql
       - redis
   vue:
-    image: node:16.20.2
+    image: node:20
     command: sh -c 'yarn && yarn serve'
     working_dir: /project
     volumes:

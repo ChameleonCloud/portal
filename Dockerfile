@@ -1,5 +1,5 @@
 ARG NODE_IMG=node
-ARG NODE_VER_NAME=lts-gallium
+ARG NODE_VER_NAME=20
 ARG PY_IMG=python
 
 FROM ${NODE_IMG}:${NODE_VER_NAME} AS client
