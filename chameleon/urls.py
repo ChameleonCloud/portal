@@ -3,7 +3,6 @@ import logging
 from chameleon_mailman import views as chameleon_mailman_views
 from cms.sitemaps import CMSSitemap
 from django.conf import settings
-from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -11,7 +10,7 @@ from django.contrib.sitemaps.views import sitemap
 from django.http import HttpResponseRedirect
 from django.views import View
 from django.views.generic import RedirectView, TemplateView
-from django.urls import reverse, reverse_lazy, path, re_path
+from django.urls import reverse, reverse_lazy, path, re_path, include
 from user_news.views import OutageDetailView, OutageFeed, OutageListView
 
 from chameleon import os_login as chameleon_os_login

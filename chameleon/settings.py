@@ -156,7 +156,6 @@ INSTALLED_APPS = (
     "django_recaptcha",
     "bootstrap3",
     "termsandconditions",
-    "markdown_deux",
     "webpack_loader",
     "rest_framework",
     ##
@@ -788,54 +787,62 @@ CELERY_BEAT_SCHEDULE = {
 if DEBUG:
     CELERY_BEAT_SCHEDULE = {}
 
-# Content-Security-Policy
+# Content-Security-Policy (django-csp 4.x format)
 # Ensure that all items include self.
-CSP_FRAME_ANCESTORS = "'self'"  # Similar to X-Frame-Options: SAMEORIGIN
-CSP_SCRIPT_SRC = [
-    "'self'",
-    "https://www.googletagmanager.com",
-    "https://www.google-analytics.com",
-    "https://www.google.com/recaptcha/",
-    "https://www.gstatic.com/recaptcha/",
-    "https://cdnjs.cloudflare.com/ajax/libs/ace/1.9.6/ace.js",  # snippet editor
-    "'unsafe-inline'",
-]
-CSP_CONNECT_SRC = [
-    "'self'",
-    "https://www.google-analytics.com",
-]
-CSP_FRAME_SRC = [
-    "'self'",
-    "https://www.google.com/recaptcha/",
-    "https://recaptcha.google.com/recaptcha/",
-]
-CSP_IMG_SRC = [
-    "'self'",
-    "https://chameleoncloud.org",
-    "https://www.chameleoncloud.org",
-    "https://www.google-analytics.com",
-    "https://*.googleusercontent.com",
-    "chameleoncloud.org",
-]
-CSP_FONT_SRC = [
-    "'self'",
-    "https://fonts.gstatic.com",
-]
-CSP_STYLE_SRC = [
-    "'self'",
-    "https://fonts.googleapis.com",
-    "'unsafe-inline'",
-]
-CSP_INCLUDE_NONCE_IN = ["script-src"]
+CONTENT_SECURITY_POLICY = {
+    "INCLUDE_NONCE_IN": ["script-src"],
+    "DIRECTIVES": {
+        "frame-ancestors": ["'self'"],  # Similar to X-Frame-Options: SAMEORIGIN
+        "script-src": [
+            "'self'",
+            "https://www.googletagmanager.com",
+            "https://www.google-analytics.com",
+            "https://www.google.com/recaptcha/",
+            "https://www.gstatic.com/recaptcha/",
+            "https://cdnjs.cloudflare.com/ajax/libs/ace/1.9.6/ace.js",  # snippet editor
+            "'unsafe-inline'",
+        ],
+        "connect-src": [
+            "'self'",
+            "https://www.google-analytics.com",
+        ],
+        "frame-src": [
+            "'self'",
+            "https://www.google.com/recaptcha/",
+            "https://recaptcha.google.com/recaptcha/",
+        ],
+        "img-src": [
+            "'self'",
+            "https://chameleoncloud.org",
+            "https://www.chameleoncloud.org",
+            "https://www.google-analytics.com",
+            "https://*.googleusercontent.com",
+            "chameleoncloud.org",
+        ],
+        "font-src": [
+            "'self'",
+            "https://fonts.gstatic.com",
+        ],
+        "style-src": [
+            "'self'",
+            "https://fonts.googleapis.com",
+            "'unsafe-inline'",
+        ],
+    },
+}
 # Add rules for the Vue JS dev server
 if DEBUG:
     vue_dev_server = "http://localhost:9000/"
-    CSP_SCRIPT_SRC.append(vue_dev_server)
-    CSP_IMG_SRC.append(vue_dev_server)
-    CSP_STYLE_SRC.append(vue_dev_server)
-    CSP_CONNECT_SRC = ["'self'", vue_dev_server, "ws://localhost:9000/"]
+    CONTENT_SECURITY_POLICY["DIRECTIVES"]["script-src"].append(vue_dev_server)
+    CONTENT_SECURITY_POLICY["DIRECTIVES"]["img-src"].append(vue_dev_server)
+    CONTENT_SECURITY_POLICY["DIRECTIVES"]["style-src"].append(vue_dev_server)
+    CONTENT_SECURITY_POLICY["DIRECTIVES"]["connect-src"] = [
+        "'self'",
+        vue_dev_server,
+        "ws://localhost:9000/",
+    ]
     # Webpack uses eval to provide its Hot Module Replacement capability
-    CSP_SCRIPT_SRC.append("'unsafe-eval'")
+    CONTENT_SECURITY_POLICY["DIRECTIVES"]["script-src"].append("'unsafe-eval'")
 
 CACHES = {
     "default": {
@@ -847,7 +854,10 @@ CACHES = {
 }
 
 if DEBUG:
-    SILENCED_SYSTEM_CHECKS = ["captcha.recaptcha_test_key_error"]
+    SILENCED_SYSTEM_CHECKS = [
+        "captcha.recaptcha_test_key_error",
+        "django_recaptcha.recaptcha_test_key_error",
+    ]
 
 
 ########
@@ -864,8 +874,6 @@ SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCOPUS_API_KEY = os.environ.get("SCOPUS_API_KEY")
 SCOPUS_INSTITUTION_KEY = os.environ.get("SCOPUS_INSTITUTION_KEY")
 OPENALEX_MAILTO = os.environ.get("OPENALEX_MAILTO", "contact@chameleoncloud.org")
-
-SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
 
 
 #############
