@@ -811,24 +811,29 @@ django = ">=3.2"
 
 [[package]]
 name = "django-cms"
-version = "3.11.9"
+version = "4.1.11"
 description = "Lean enterprise content management powered by Django."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django_cms-3.11.9-py2.py3-none-any.whl", hash = "sha256:a383fb90159476da79d9e15f0b6701fbf85ec14eb1e7fe57ac8a1a60b55905c5"},
-    {file = "django_cms-3.11.9.tar.gz", hash = "sha256:52908f55c401aacbdb033586b8b88a09862ded3e714650a0b8f89ee9ad6d8218"},
+    {file = "django_cms-4.1.11-py2.py3-none-any.whl", hash = "sha256:4bd7c1ecbfe300ca9984a1b96b07db108a501fa574cca45596ed90c604faef00"},
+    {file = "django_cms-4.1.11.tar.gz", hash = "sha256:1be4ffeadaf443a1c93893bf7257c15dc3d48586f940de121badaa82242d74b0"},
 ]
 
 [package.dependencies]
-Django = ">=3.2"
+Django = ">=2.2"
 django-classy-tags = ">=0.7.2"
 django-formtools = ">=2.1"
 django-sekizai = ">=0.7"
-django-treebeard = ">=4.3,<4.5 || >4.5"
+django-treebeard = ">=4.3"
 djangocms-admin-style = ">=1.2"
 packaging = "*"
+setuptools = "*"
+
+[package.extras]
+argon2 = ["argon2-cffi (>=19.1.0)"]
+bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-csp"
@@ -4361,4 +4366,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.10"
-content-hash = "b7b95e7d12372d617e985d6d3ce1e45c4a189be3e9a84e689c2806e43c4186e0"
+content-hash = "436f0f88b9076669acac02f4a52e7b1654a865cdb232c5c18dbeae0586f6b1bd"
