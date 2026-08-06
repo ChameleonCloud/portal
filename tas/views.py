@@ -1,11 +1,8 @@
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 import logging
 from tas.forms import UserProfileForm
 from util.keycloak_client import DuplicateUserError
@@ -79,19 +76,3 @@ def profile_edit(request):
         "canRequestPI": can_request_pi(user_info.get("title", "")),
     }
     return render(request, "tas/profile_edit.html", context)
-
-
-def send_opt_in_email(fname, email):
-    try:
-        template = "tas/email_subscription_opt_in.html"
-        body = render_to_string(template, {"fname": fname})
-        send_mail(
-            subject="Welcome to Chameleon",
-            message=strip_tags(body),
-            from_email="no-reply@chameleoncloud.org",
-            recipient_list=[email],
-            fail_silently=False,
-            html_message=body,
-        )
-    except Exception as e:
-        LOG.error(e)

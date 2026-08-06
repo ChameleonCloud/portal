@@ -22,15 +22,6 @@ class ProjectsApphook(CMSApp):
 
 
 @apphook_pool.register
-class TASApphook(CMSApp):
-    name = _("TAS")
-    app_name = "tas"
-
-    def get_urls(self, page=None, language=None, **kwargs):
-        return ["tas.urls"]
-
-
-@apphook_pool.register
 class ResourceDiscoveryApphook(CMSApp):
     name = _("Resource Discovery")
     app_name = "g5k_discovery"
