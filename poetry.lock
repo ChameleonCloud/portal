@@ -2013,7 +2013,7 @@ test = ["bumpversion", "coverage", "djangorestframework (>=3.14)", "importlib-me
 type = "git"
 url = "https://github.com/chameleoncloud/mozilla-django-oidc"
 reference = "rebase-onto-upstream-5.0.2"
-resolved_reference = "ab825d5c295ff425601358bfe5d75ccb200537f3"
+resolved_reference = "897f2180554623c28c3140894ace532f41abe7ae"
 
 [[package]]
 name = "msgpack"
