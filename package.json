@@ -7,7 +7,7 @@
   "devDependencies": {
     "@vue/cli-service": "^5.0.8",
     "css-loader": "^6.0.0",
-    "glob": "^7.1.6",
+    "fast-glob": "^3.3.0",
     "style-loader": "^3.0.0",
     "vue": "^2.6.12",
     "vue-loader": "^15.9.3",
@@ -16,12 +16,10 @@
   },
   "dependencies": {
     "@glidejs/glide": "^3.4.1",
-    "axios": "^0.21.1",
+    "axios": "^1.7.0",
     "camelcase-keys": "^6.2.2",
     "change-case": "^4.1.2",
-    "filesize": "^6.3.0",
     "jspath": "^0.4.0",
-    "snakecase-keys": "^3.2.0",
-    "yuglify": "^2.0.0"
+    "snakecase-keys": "^3.2.0"
   }
 }

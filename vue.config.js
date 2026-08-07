@@ -1,8 +1,8 @@
-const glob = require('glob');
+const fg = require('fast-glob');
 const path = require('path');
 const BundleTracker = require('webpack-bundle-tracker');
 
-const pages = glob.sync("*/vue/*.js").reduce((memo, file) => {
+const pages = fg.sync("*/vue/*.js").reduce((memo, file) => {
   memo[path.parse(file).name] = {
     entry: file,
     chunks: ['vendor'],

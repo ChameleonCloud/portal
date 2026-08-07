@@ -499,7 +499,7 @@ TEXT_ADDITIONAL_ATTRIBUTES = {
 PIPELINE = {
     "COMPILERS": ("pipeline.compilers.sass.SASSCompiler",),
     "SASS_ARGUMENTS": "--style compressed --no-source-map",
-    "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    "CSS_COMPRESSOR": "pipeline.compressors.cssmin.CSSMinCompressor",
     "JS_COMPRESSOR": "pipeline.compressors.uglifyjs.UglifyJSCompressor",
     "STYLESHEETS": {
         "main": {
