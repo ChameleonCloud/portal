@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -69,27 +69,6 @@ def edge_hardware_discovery(request):
     """Hardware resource discovery page for CHI@Edge."""
     devices = {"devices": edge_api.get_devices()}
     return render(request, "edge-hw-discovery/resources.html", devices)
-
-
-def force_password_login(request):
-    """Redirect user to login with a parameter that forces a password login.
-
-    This is a way to do a one-off opt-out of federated login.
-    """
-    params = request.GET.copy()
-    params[settings.FORCE_OLD_LOGIN_EXPERIENCE_PARAM] = "1"
-    return redirect(reverse("login") + f"?{urlencode(params)}")
-
-
-def password_reset(request):
-    """Legacy view for redirecting password reset requests back to TAS.
-
-    When a user requests a password reset, the link in their mail from TAS
-    points to Portal; we simply return them to the corresponding endpoint
-    on the TACC user portal.
-    """
-    host = settings.TACC_USER_PORTAL_HOST
-    return redirect(f"{host}/password-reset?{urlencode(request.GET)}")
 
 
 def admin_or_superuser(user):

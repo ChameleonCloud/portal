@@ -28,8 +28,6 @@ from projects.util import get_project_members
 from projects.views import is_pi_eligible, project_member_or_admin_or_superuser
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-# from chameleon.research_impacts import get_education_users
-
 from .forms import AddBibtexPublicationForm
 
 logger = logging.getLogger("projects")
@@ -343,51 +341,6 @@ def view_chameleon_used_in_research_publications(request):
     else:
         last_reviewed = "N/A"
     impact_stats["last_reviewed"] = last_reviewed
-
-    # Publications by year (last 5 years)
-    # current_year = timezone.now().year
-    # years_range = list(range(current_year - 4, current_year + 1))
-
-    # pubs_by_year = list(
-    #     pub_query.values("year")
-    #     .annotate(count=models.Count("id"))
-    #     .filter(year__in=years_range)
-    #     .order_by("year")
-    # )
-
-    # Create a complete dataset with all years, filling in zeros for missing years
-    # complete_pubs_by_year = []
-    # year_counts = {item["year"]: item["count"] for item in pubs_by_year}
-    # for year in years_range:
-    #     complete_pubs_by_year.append({"year": year, "count": year_counts.get(year, 0)})
-    # impact_stats["publications_by_year"] = complete_pubs_by_year
-
-    # Active projects (with allocations that are active or approved) TODO Move active project statistics to another view
-    # active_projects = (
-    #     Project.objects.filter(allocations__status__in=["active", "approved"])
-    #     .distinct()
-    #     .count()
-    # )
-    # impact_stats["active_projects"] = active_projects
-
-    # Historical projects (projects that have ever had an approved allocation)
-    # historical_projects = (
-    #     Project.objects.filter(
-    #         allocations__status__in=["active", "approved", "inactive"]
-    #     )
-    #     .distinct()
-    #     .count()
-    # )
-    # impact_stats["historical_projects"] = historical_projects
-
-    # Publication types distribution (top 5)
-    # TODO Need to clean up data quality issues in the publication_type field
-    # pub_types = list(
-    #     pub_query.values("publication_type")
-    #     .annotate(count=models.Count("id"))
-    #     .order_by("-count")[:5]
-    # )
-    # impact_stats["publication_types"] = pub_types
 
     return render(
         request,

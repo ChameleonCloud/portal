@@ -50,15 +50,8 @@ urlpatterns = [
     path("login/", chameleon_os_login.custom_login, name="login"),
     path("logout/", chameleon_os_login.custom_logout, name="logout"),
     path("register/", chameleon_views.OIDCRegisterView.as_view(), name="register"),
-    # Rollout endpoints for new login
-    path(
-        "auth/force-password-login/",
-        chameleon_views.force_password_login,
-        name="force_password_login",
-    ),
     # Legacy account endpoints
     path("user/", include("tas.urls", namespace="tas")),
-    path("password-reset/", chameleon_views.password_reset),
     path("user/dashboard/", chameleon_views.dashboard, name="dashboard"),
     path(
         "feed.xml",
