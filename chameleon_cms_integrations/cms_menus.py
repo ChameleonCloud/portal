@@ -121,16 +121,6 @@ class UserMenu(CMSAttachMenu):
         )
         nodes.append(n)
 
-        if request.session.get("has_legacy_account", False):
-            menu_id += 1
-            n = NavigationNode(
-                _("Migrate account"),
-                reverse("federation_migrate_account"),
-                menu_id,
-                dashboard_id,
-            )
-            nodes.append(n)
-
         return nodes
 
 

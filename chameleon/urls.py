@@ -56,18 +56,6 @@ urlpatterns = [
         chameleon_views.force_password_login,
         name="force_password_login",
     ),
-    path(
-        "auth/confirm/",
-        chameleon_os_login.confirm_legacy_credentials,
-        name="federation_confirm_legacy_credentials",
-    ),
-    path(
-        "user/migrate/",
-        chameleon_views.migrate,
-        name="federation_migrate_account",
-    ),
-    path("api/user/migrate/status/", chameleon_views.api_migration_state),
-    path("api/user/migrate/job/", chameleon_views.api_migration_job),
     # Legacy account endpoints
     path("user/", include("tas.urls", namespace="tas")),
     path("password-reset/", chameleon_views.password_reset),

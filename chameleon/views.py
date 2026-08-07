@@ -1,9 +1,6 @@
-import json
 import logging
 from urllib.parse import urlencode, urlsplit
-from uuid import uuid4
 
-from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -17,20 +14,10 @@ from djangoRT import rtUtil
 from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 import requests
 
-
-
 from chameleon.edge_hw_discovery_api import EDGE_HW_API
-from chameleon.celery import app as celery_app
-from chameleon.keystone_auth import (
-    admin_ks_client,
-    get_user,
-    has_valid_token,
-    WHITELISTED_PROJECTS,
-)
 from .models import Dataset, DatasetDownloadEvent
 from user_news.models import Outage
 from util.project_allocation_mapper import ProjectAllocationMapper
-from .tasks import MigrationError, migrate_project, migrate_user
 
 LOG = logging.getLogger(__name__)
 
@@ -103,102 +90,6 @@ def password_reset(request):
     """
     host = settings.TACC_USER_PORTAL_HOST
     return redirect(f"{host}/password-reset?{urlencode(request.GET)}")
-
-
-@login_required
-def migrate(request):
-    token_region = "KVM@TACC"
-    if request.GET.get("force") or has_valid_token(request, region=token_region):
-        return render(request, "federation/migrate.html")
-    else:
-        params = request.GET.copy()
-        params["next"] = reverse("federation_migrate_account")
-        params["region"] = token_region
-        return redirect(
-            reverse("federation_confirm_legacy_credentials") + f"?{urlencode(params)}"
-        )
-
-
-@require_http_methods(["GET", "POST"])
-def api_migration_job(request):
-    if request.method == "POST":
-        try:
-            body = json.loads(request.body)
-            migration_type = body.get("migration_type")
-            charge_code = body.get("charge_code")
-        except:
-            return JsonResponse({"error": "malformed request"}, status=400)
-        if migration_type not in ["user", "project"]:
-            return JsonResponse({"error": "invalid migration type"}, status=400)
-
-        task_id = str(uuid4())
-
-        if migration_type == "project":
-            if not charge_code:
-                return JsonResponse({"error": "missing charge_code"}, status=400)
-            migrate_project.apply_async(
-                kwargs={
-                    "username": request.user.username,
-                    "access_token": request.session.get("oidc_access_token"),
-                    "charge_code": charge_code,
-                },
-                task_id=task_id,
-            )
-        elif migration_type == "user":
-            migrate_user.apply_async(
-                kwargs={
-                    "username": request.user.username,
-                    "access_token": request.session.get("oidc_access_token"),
-                },
-                task_id=task_id,
-            )
-
-        return JsonResponse({"task_id": task_id})
-    else:
-        task_id = request.GET.get("task_id")
-        if not task_id:
-            return JsonResponse({"error": "missing task_id"}, status=400)
-        task_result = AsyncResult(task_id, app=celery_app)
-        if isinstance(task_result.info, MigrationError):
-            details = {
-                "messages": task_result.info.messages + ["Failed to finish migration"],
-            }
-        else:
-            details = task_result.info
-        return JsonResponse({"state": task_result.state, **details})
-
-
-@require_http_methods(["GET"])
-def api_migration_state(request):
-    # The user may have different projects across different sites, if they only
-    # used a project on a particular site, but not others.
-    all_legacy_projects = {}
-    legacy_user = None
-    for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
-        keystone = admin_ks_client(region=region)
-        ks_legacy_user = get_user(keystone, request.user.username)
-        legacy_user = {
-            "name": ks_legacy_user.name,
-            "migrated_at": getattr(ks_legacy_user, "migrated_at", None),
-        }
-        all_legacy_projects.update(
-            {
-                ks_p.charge_code: {
-                    "name": ks_p.name,
-                    "charge_code": ks_p.charge_code,
-                    "migrated_at": getattr(ks_p, "migrated_at", None),
-                    "migrated_by": getattr(ks_p, "migrated_by", None),
-                }
-                for ks_p in keystone.projects.list(
-                    user=ks_legacy_user, domain="default"
-                )
-                if ks_p.charge_code not in all_legacy_projects
-                and ks_p.name not in WHITELISTED_PROJECTS
-            }
-        )
-    return JsonResponse(
-        {"user": legacy_user, "projects": list(all_legacy_projects.values())}
-    )
 
 
 def admin_or_superuser(user):
