@@ -32,5 +32,5 @@ export function configureXHR(axios) {
       return JSON.stringify(snakecaseKeys(data, { deep: true }))
     }
   }]
-  axios.defaults.headers['Content-Type'] = 'application/json'
+  axios.defaults.headers.common['Content-Type'] = 'application/json'
 }
