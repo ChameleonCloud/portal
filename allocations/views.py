@@ -1,13 +1,10 @@
-from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required, user_passes_test
 from projects.models import Project
-from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 import logging
@@ -27,63 +24,6 @@ def allocation_admin_or_superuser(user):
         ) or user.is_superuser
     return False
 
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
-def index(request):
-    user = request.user
-    logger.debug("Serving allocation approval view to: %s", user.username)
-    context = {}
-    return render(request, "allocations/index.html", context)
-
-
-def denied(request):
-    user = request.user
-    if user:
-        logger.debug("Denying allocation approval view to: %s", user.username)
-    context = {}
-    return render(request, "allocations/denied.html", context)
-
-
-def get_all_alloc(request):
-    # NOTE we can remove this, this was an internal allocations API
-    """Get all allocations, grouped by project.
-
-    Args:
-        request: the request that is passed in.
-
-    Raises:
-        Exception: when loading projects fails.
-
-    Returns:
-        json: dumps all data as serialized json.
-    """
-    try:
-        keycloak_client = KeycloakClient()
-        user_attributes = keycloak_client.get_all_users_attributes()
-        mapper = ProjectAllocationMapper(request)
-        resp = mapper.get_all_projects()
-        logger.debug("Total projects: %s", len(resp))
-        for r in resp:
-            pi_attributes = user_attributes.get(r["pi"]["username"], {})
-            if pi_attributes:
-                institution = pi_attributes.get("affiliationInstitution", [])
-                country = pi_attributes.get("country", [])
-                r["pi"]["institution"] = next(iter(institution), None)
-                r["pi"]["country"] = next(iter(country), None)
-    except Exception as e:
-        logger.exception("Error loading chameleon projects")
-        messages.error(request, e)
-        raise
-    return json.dumps(resp)
-
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
-def view(request):
-    # NOTE we can remove this, this was an internal allocations API
-    """Return http response of get_all_alloc. Matches Template."""
-    return HttpResponse(get_all_alloc(request), content_type="application/json")
 
 
 def view_project(request, charge_code):
@@ -116,47 +56,7 @@ def view_project(request, charge_code):
 
 
 @login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
-def return_json(request):
-    """Return http response of get_all_alloc. Does not match Template."""
-    return HttpResponse(get_all_alloc(request), content_type="application/json")
-
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
-def user_select(request):
-    user = request.user
-    logger.debug("Serving user projects view to: %s", user.username)
-    context = {}
-    return render(request, "allocations/user-projects.html", context)
-
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
-def user_projects(request, username):
-    logger.info(
-        "User projects requested by admin: %s for user %s", request.user, username
-    )
-    resp = {"status": "error", "msg": "", "result": []}
-    if username:
-        try:
-            mapper = ProjectAllocationMapper(request)
-            user_projects = mapper.get_user_projects(username)
-            resp["status"] = "success"
-            resp["result"] = user_projects
-            logger.info(
-                "Total chameleon projects for user %s: %s", username, len(user_projects)
-            )
-        except Exception as e:
-            logger.debug(
-                "Error loading projects for user: %s with error %s", username, e
-            )
-            resp["msg"] = "Error loading projects for user: %s" % username
-    return HttpResponse(json.dumps(resp), content_type="application/json")
-
-
-@login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/")
 def approval(request):
     resp = {}
     errors = {}
@@ -261,7 +161,7 @@ def approval(request):
 
 
 @login_required
-@user_passes_test(allocation_admin_or_superuser, login_url="/admin/allocations/denied/")
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/")
 def contact(request):
     resp = {}
     errors = {}
@@ -296,8 +196,3 @@ def contact(request):
     resp["errors"] = errors
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
-
-def allocations_template(request, resource):
-    logger.debug("Template requested: %s.html", resource)
-    template_url = "allocations/%s.html" % resource
-    return render(request, template_url)
