@@ -9,34 +9,7 @@ LOG = logging.getLogger("auth")
 
 class ChameleonOIDCAB(OIDCAuthenticationBackend):
     def authenticate(self, request, **kwargs):
-        login = super().authenticate(request, **kwargs)
-        if login:
-            try:
-                access_token = request.session.get("oidc_access_token")
-                if not access_token:
-                    raise ValueError(
-                        (
-                            "Failed to store access token! Is "
-                            "OIDC_STORE_ACCESS_TOKEN enabled?"
-                        )
-                    )
-                user_info = self.get_userinfo(access_token, None, None)
-                linked_identities = user_info.get("linked_identities")
-                if linked_identities is None:
-                    raise ValueError(
-                        "Failed to get linked_identities claim from user info"
-                    )
-                if "tacc" in linked_identities:
-                    request.session["has_legacy_account"] = True
-            except:
-                LOG.exception(
-                    (
-                        "Failed to fetch federated identities for "
-                        f"{request.user.username}"
-                    )
-                )
-            request.session["is_federated"] = True
-        return login
+        return super().authenticate(request, **kwargs)
 
     def filter_users_by_claims(self, claims):
         """

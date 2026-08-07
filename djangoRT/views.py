@@ -102,16 +102,6 @@ QUESTION_GROUPS = [
             },
         ],
     },
-    {
-        "label": "Account Management",
-        "questions": [
-            {
-                "label": "Linking/Migrating accounts",
-                "desc": """For help migrating or linking accounts, please see our
-            <a href="https://chameleoncloud.readthedocs.io/en/latest/user/federation/federation_migration.html">migration guide</a>.""",
-            }
-        ],
-    },
 ]
 
 
