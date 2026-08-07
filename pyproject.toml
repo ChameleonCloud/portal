@@ -36,7 +36,7 @@ djangocms-text = "^0.9.10"
 djangocms-video = "^3.1.0"
 djangorestframework = "^3.15"
 mock = "^5.0"
-mozilla-django-oidc = {git = "https://github.com/chameleoncloud/mozilla-django-oidc"}
+mozilla-django-oidc = {git = "https://github.com/chameleoncloud/mozilla-django-oidc", branch = "rebase-onto-upstream-5.0.2"}
 mysqlclient = "^2.0"
 pybliometrics = {git = "https://github.com/pybliometrics-dev/pybliometrics", tag = "4.2"}
 pydetex = "~1.0"
