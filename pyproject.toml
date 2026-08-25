@@ -67,7 +67,7 @@ openai = "^2.13.0"
 magpub = {git = "https://github.com/ChameleonCloud/magpub.git"}
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.0"
+black = "^26.3"
 flake8 = "^7.0"
 pycodestyle = "^2.14.0"
 pydocstyle = "^6.0"
