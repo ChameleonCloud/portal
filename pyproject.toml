@@ -11,7 +11,7 @@ name = "portal"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
-Pillow = "^10.0"
+Pillow = "^12.3"
 PyYAML = "^6.0.2"
 bibtexparser = "^1.2"
 celery = "~5.6"
