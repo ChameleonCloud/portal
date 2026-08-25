@@ -4,6 +4,7 @@
 import logging
 
 from celery import shared_task as task
+from django.db import transaction
 
 from projects.models import Publication
 from projects.user_publication import openalex, science_direct, scopus, semantic_scholar
@@ -95,8 +96,9 @@ def import_pubs(task, source="all"):
             # If all conditions are met, import the publication
             LOG.info("Import %s", pub_data)
             pub_comparison.added_by_username = "admin"
-            pub_comparison.save()
-            add_source_to_pub(pub_comparison, pub_data)
+            with transaction.atomic():
+                pub_comparison.save()
+                add_source_to_pub(pub_comparison, pub_data)
 
         except Exception as e:
             LOG.error(

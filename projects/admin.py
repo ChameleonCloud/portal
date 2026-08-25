@@ -338,12 +338,68 @@ class PublicationSourceAdmin(PublicationFields, admin.ModelAdmin):
     )
 
 
+class NullSourceIdFilter(admin.SimpleListFilter):
+    title = "Source ID"
+    parameter_name = "source_id_null"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", "Null"),
+            ("no", "Set"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(source_id__isnull=True)
+        if self.value() == "no":
+            return queryset.filter(source_id__isnull=False)
+
+
+class ChameleonPublicationFilter(admin.SimpleListFilter):
+    title = "Chameleon publication"
+    parameter_name = "chameleon_pub"
+
+    def lookups(self, request, model_admin):
+        from projects.models import ChameleonPublication
+
+        choices = [("none", "(None)")]
+        for cp in ChameleonPublication.objects.order_by("title"):
+            choices.append((cp.pk, cp.title))
+        return choices
+
+    def queryset(self, request, queryset):
+        if self.value() == "none":
+            return queryset.filter(chameleon_publications__isnull=True)
+        if self.value():
+            return queryset.filter(chameleon_publications__pk=self.value())
+
+
+class PublicationQueryFilter(admin.SimpleListFilter):
+    title = "Publication query"
+    parameter_name = "pub_query"
+
+    def lookups(self, request, model_admin):
+        from projects.models import PublicationQuery
+
+        choices = [("none", "(None)")]
+        for pq in PublicationQuery.objects.order_by("source_type", "query"):
+            choices.append((pq.pk, str(pq)))
+        return choices
+
+    def queryset(self, request, queryset):
+        if self.value() == "none":
+            return queryset.filter(publication_queries__isnull=True)
+        if self.value():
+            return queryset.filter(publication_queries__pk=self.value())
+
+
 class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
     list_display = (
         "id",
         "entry_created_date",
+        "audit_date",
         "name",
-        "source_id",
+        "short_source_id",
         "citation_count",
         "publication",
     )
@@ -351,9 +407,37 @@ class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
     list_filter = (
         "name",
         "entry_created_date",
+        "audit_date",
+        NullSourceIdFilter,
+        ChameleonPublicationFilter,
+        PublicationQueryFilter,
     )
 
+    actions = ["set_audit_date_today", "clear_audit_date"]
+
     autocomplete_fields = ("publication",)
+
+    search_fields = (
+        "name",
+        "title",
+    )
+
+    @admin.display(description="Source ID")
+    def short_source_id(self, obj):
+        if not obj.source_id:
+            return ""
+        return obj.source_id[:16]
+
+    @admin.action(description="Set audit date to today")
+    def set_audit_date_today(self, request, queryset):
+        import datetime
+        updated = queryset.update(audit_date=datetime.date.today())
+        self.message_user(request, f"Set audit date on {updated} records.")
+
+    @admin.action(description="Clear audit date")
+    def clear_audit_date(self, request, queryset):
+        updated = queryset.update(audit_date=None)
+        self.message_user(request, f"Cleared audit date on {updated} records.")
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "publication":
@@ -362,6 +446,23 @@ class RawPublicationAdmin(PublicationFields, admin.ModelAdmin):
                 "title",
             )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class NoSourceFilter(admin.SimpleListFilter):
+    title = "Has sources"
+    parameter_name = "has_sources"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("no", "No sources"),
+            ("yes", "Has sources"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "no":
+            return queryset.filter(raw_sources__isnull=True)
+        if self.value() == "yes":
+            return queryset.filter(raw_sources__isnull=False).distinct()
 
 
 class PotentialDuplicateFilter(admin.SimpleListFilter):
@@ -442,7 +543,8 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
             {
                 "fields": [
                     "source_comparison",
-                ]
+                ],
+                "classes": ["collapse"],
             },
         ),
     ]
@@ -469,6 +571,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         "clickable_link",
     )
     list_filter = [
+        NoSourceFilter,
         PotentialDuplicateFilter,
         "status",
         "year",
@@ -508,6 +611,7 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "reviewed_by":
             kwargs["queryset"] = get_user_model().objects.filter(is_staff=True)
+            kwargs["initial"] = request.user.pk
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_urls(self):

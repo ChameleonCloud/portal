@@ -158,6 +158,7 @@ def get_users_for_author(author):
 
 
 def get_projects_for_author_names(author_names, year):
+    return []
     """Return Chameleon charge codes for projects associated with *author_names*."""
     users = []
     for author in author_names:
@@ -251,10 +252,12 @@ def add_source_to_pub(pub, raw_pub):
 
         if isinstance(raw_pub, PublicationData):
             cites_id = raw_pub.extra.get("cites_chameleon_pub_id")
+            openalex_work_id = raw_pub.extra.get("cites_chameleon_work_id")
             query = raw_pub.extra.get("found_with_query")
         else:
             # Legacy RawPublicationSource-like object
             cites_id = getattr(raw_pub, "cites_chameleon_pub", None)
+            openalex_work_id = None
             query = getattr(raw_pub, "found_with_query", None)
 
         # Resolve IDs to model instances if needed
@@ -262,13 +265,35 @@ def add_source_to_pub(pub, raw_pub):
 
         if cites_id and not isinstance(cites_id, ChameleonPublication):
             try:
-                cites_id = ChameleonPublication.objects.get(pk=cites_id)
-            except ChameleonPublication.DoesNotExist:
+                cites_id = ChameleonPublication.objects.get(
+                    semantic_scholar_ref=cites_id
+                )
+            except (
+                ChameleonPublication.DoesNotExist,
+                ChameleonPublication.MultipleObjectsReturned,
+                ValueError,
+            ):
+                cites_id = None
+
+        if not cites_id and openalex_work_id:
+            try:
+                cites_id = ChameleonPublication.objects.get(
+                    openalex_ref=openalex_work_id
+                )
+            except (
+                ChameleonPublication.DoesNotExist,
+                ChameleonPublication.MultipleObjectsReturned,
+                ValueError,
+            ):
                 cites_id = None
         if query and not isinstance(query, PublicationQuery):
             try:
-                query = PublicationQuery.objects.get(pk=query)
-            except PublicationQuery.DoesNotExist:
+                query = PublicationQuery.objects.get(query=query)
+            except (
+                PublicationQuery.DoesNotExist,
+                PublicationQuery.MultipleObjectsReturned,
+                ValueError,
+            ):
                 query = None
 
         update_cites_and_query(source, cites_id, query)

@@ -483,6 +483,11 @@ class PublicationSource(models.Model):
             ),
         ]
 
+    def save(self, *args, **kwargs):
+        if self.approved_with:
+            self.approved_with = self.approved_with.lower()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -570,6 +575,7 @@ class RawPublication(models.Model):
     added_by_username = models.CharField(max_length=100)
     doi = models.CharField(max_length=500, null=True, blank=True)
     checked_for_duplicates = models.BooleanField(default=False, null=False)
+    audit_date = models.DateField(null=True, blank=True)
     chameleon_publications = models.ManyToManyField(
         "ChameleonPublication",
         blank=True,
@@ -600,6 +606,11 @@ class RawPublication(models.Model):
             doi=pub.doi,
             checked_for_duplicates=pub.checked_for_duplicates,
         )
+
+    def save(self, *args, **kwargs):
+        if self.approved_with:
+            self.approved_with = self.approved_with.lower()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"({self.name}) {self.title}"
