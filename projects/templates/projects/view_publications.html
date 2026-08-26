@@ -38,6 +38,11 @@
   <tr>
     <td>
       <div>{{p.nice_status}}</div>
+      {% if true or p.submitted_via_raw %}
+      <div class="text-muted" style="margin-top: 4px;">
+        <small>Your submission was merged with this existing verified record. No further action is needed.</small>
+      </div>
+      {% endif %}
       {% if p.reviewed_by %}
       <details>
         <summary>

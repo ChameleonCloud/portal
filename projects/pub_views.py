@@ -98,9 +98,17 @@ def user_publications(request):
     mapper = ProjectAllocationMapper(request)
     project_ids = [p["id"] for p in mapper.get_user_projects(request.user)]
     context["publications"] = []
+    raw_submitted_ids = set(
+        RawPublication.objects.filter(
+            name=RawPublication.USER_REPORTED,
+            added_by_username=request.user.username,
+        ).values_list("publication_id", flat=True)
+    )
     pubs = (
         Publication.objects.filter(
-            Q(project_id__in=project_ids) | Q(added_by_username=request.user.username)
+            Q(project_id__in=project_ids)
+            | Q(added_by_username=request.user.username)
+            | Q(id__in=raw_submitted_ids)
         )
         .exclude(status=Publication.STATUS_DELETED)
         .exclude(status="DUPLICATE")
@@ -108,6 +116,7 @@ def user_publications(request):
     nice_status_map = {
         Publication.STATUS_SUBMITTED: "Pending Review",
         Publication.STATUS_APPROVED: "Verified",
+        "DUPLICATE": "Duplicate Submission",
     }
     for pub in pubs:
         nice_status = nice_status_map.get(pub.status, None)
@@ -133,6 +142,8 @@ def user_publications(request):
                 "reviewed_by": pub.reviewed_by,
                 "reviewed_date": pub.reviewed_date,
                 "reviewed_comment": pub.reviewed_comment,
+                "submitted_via_raw": pub.id in raw_submitted_ids
+                and pub.added_by_username != request.user.username,
             }
         )
     context["is_pi"] = is_pi_eligible(request.user)
