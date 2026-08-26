@@ -190,11 +190,8 @@ class PIEligibilityAdmin(ModelAdmin):
 
     def directory(self, obj):
         """Customize the department directory link."""
-        return format_html(
-            '<a href="{url}" target="_blank">{url}</a>'.format(
-                url=obj.department_directory_link
-            )
-        )
+        url = obj.department_directory_link
+        return format_html('<a href="{}" target="_blank">{}</a>', url, url)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
