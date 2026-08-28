@@ -173,7 +173,7 @@ class Invitation(models.Model):
     # This information is filled on response
     user_accepted = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         related_name="accepted_user",
         editable=False,
         null=True,
