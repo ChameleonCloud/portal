@@ -97,7 +97,9 @@ def _parse_parent_ror_id(raw):
 def _add_alias(institution, alias_text):
     alias_text = alias_text.strip()[:500]
     if alias_text and alias_text.lower() != institution.name.lower():
-        InstitutionAlias.objects.get_or_create(institution=institution, alias=alias_text)
+        InstitutionAlias.objects.get_or_create(
+            institution=institution, alias=alias_text
+        )
 
 
 def _flush_batch(rows, process_fn, counters):
@@ -157,7 +159,9 @@ class Command(BaseCommand):
             for row in reader:
                 if self.dry_run:
                     c, u, s = self._process_carnegie_row(row)
-                    counters[0] += c; counters[1] += u; counters[2] += s
+                    counters[0] += c
+                    counters[1] += u
+                    counters[2] += s
                 else:
                     batch.append(row)
                     if len(batch) >= BATCH_SIZE:
@@ -172,8 +176,6 @@ class Command(BaseCommand):
         )
 
     def _process_carnegie_row(self, row):
-        created = updated = skipped = 0
-
         unitid = row.get("unitid", "").strip()
         name = row.get("name", "").strip()
         if not name:
@@ -225,7 +227,9 @@ class Command(BaseCommand):
             # rather than creating a duplicate.
             inst = Institution.objects.filter(ipeds_unitid=unitid).first()
             if inst is None:
-                inst = Institution.objects.filter(name__iexact=name, ipeds_unitid__isnull=True).first()
+                inst = Institution.objects.filter(
+                    name__iexact=name, ipeds_unitid__isnull=True
+                ).first()
             if inst is not None:
                 for k, v in defaults.items():
                     setattr(inst, k, v)
@@ -260,7 +264,9 @@ class Command(BaseCommand):
             for row in reader:
                 if self.dry_run:
                     c, u, s = self._process_ror_row(row)
-                    counters[0] += c; counters[1] += u; counters[2] += s
+                    counters[0] += c
+                    counters[1] += u
+                    counters[2] += s
                 else:
                     batch.append(row)
                     if len(batch) >= BATCH_SIZE:
@@ -311,7 +317,9 @@ class Command(BaseCommand):
         labels = _parse_ror_name_field(row.get("names.types.label", ""))
 
         if self.dry_run:
-            self.stdout.write(f"  ROR {ror_id}: {display_name} [{institution_type}] {country}")
+            self.stdout.write(
+                f"  ROR {ror_id}: {display_name} [{institution_type}] {country}"
+            )
             return 1, 0, 0
 
         # Already imported via ROR id — refresh domain/location and add any new aliases/labels
