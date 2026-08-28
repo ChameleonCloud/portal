@@ -322,10 +322,16 @@ class UserProfileForm(forms.Form):
     )
     institution = forms.CharField(
         label="Institution",
+        widget=forms.TextInput(attrs={
+            "autocomplete": "off",
+            "data-institution-autocomplete": "",
+            "data-search-url": "/api/institutions/search/",
+        }),
         error_messages={
             "invalid": "Please select your affiliated institution",
         },
     )
+    institution_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
     department = forms.CharField(label="Department", required=False)
     title = forms.ChoiceField(
         label="Position/Title",

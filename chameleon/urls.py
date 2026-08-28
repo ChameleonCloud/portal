@@ -88,14 +88,19 @@ urlpatterns = [
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
-    # cms urls
-    path("", include("cms.urls")),
     path("featured.json", chameleon_views.featured_json, name="featured_json"),
     path(
         "dataset/download/<int:dataset_id>",
         chameleon_views.download_dataset,
         name="download_dataset",
     ),
+    path(
+        "api/institutions/search/",
+        chameleon_views.institution_search,
+        name="institution_search",
+    ),
+    # cms urls — catch-all, must stay last
+    path("", include("cms.urls")),
     # /appliances is bound to appliance_catalog app via CMS integration
     # /share is bound to sharing_portal app via CMS integration
     # /news is bound to user_news app via CMS integration

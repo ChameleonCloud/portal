@@ -7,6 +7,7 @@ import logging
 from tas.forms import UserProfileForm
 from util.keycloak_client import DuplicateUserError
 from util.project_allocation_mapper import ProjectAllocationMapper
+from chameleon.models import UserInstitution
 
 LOG = logging.getLogger(__name__)
 
@@ -49,6 +50,12 @@ def profile_edit(request):
                     request_pi_eligibility,
                     department_directory_link,
                 )
+                institution_id = data.get("institution_id")
+                if institution_id:
+                    UserInstitution.objects.update_or_create(
+                        user=request.user,
+                        defaults={"institution_id": institution_id},
+                    )
                 messages.success(request, "Your profile has been updated!")
                 return HttpResponseRedirect(reverse("tas:profile"))
             except DuplicateUserError:

@@ -63,6 +63,13 @@ def update_institutions(interactive=True):
             )
 
 
+@task()
+def run_normalize_institutions():
+    """Nightly task: match unclassified users to canonical Institution records."""
+    from django.core.management import call_command
+    call_command("normalize_institutions")
+
+
 class AdminTaskManager:
     """This is used to add a "start_task" and "check_task" view to an admin page.
     This is useful for one-off tasks that an admin should initiate.
