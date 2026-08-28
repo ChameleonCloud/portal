@@ -92,5 +92,74 @@ function pieRequest() {
 		  directory_input.required = false;
 	  }
 }
+
+// Institution autocomplete
+(function () {
+  var input = document.querySelector('[data-institution-autocomplete]');
+  if (!input) return;
+
+  var idField = document.getElementById('id_institution_id');
+  var searchUrl = input.getAttribute('data-search-url');
+  var timer = null;
+  var currentSelected = null;
+
+  // Dropdown container
+  var dropdown = document.createElement('ul');
+  dropdown.className = 'dropdown-menu';
+  dropdown.style.cssText = 'position:absolute;z-index:1000;max-height:300px;overflow-y:auto;width:100%;display:none;';
+  input.parentNode.style.position = 'relative';
+  input.parentNode.appendChild(dropdown);
+
+  function formatLabel(item) {
+    var location = item.city || (item.state ? '' : (item.country !== 'US' ? item.country : ''));
+    if (item.city && item.state) location = item.city + ', ' + item.state;
+    else if (item.city && item.country && item.country !== 'US') location = item.city + ', ' + item.country;
+    var parts = [item.name];
+    if (location) parts.push('<small class="text-muted"> — ' + location + '</small>');
+    return parts.join('');
+  }
+
+  function showDropdown(items) {
+    dropdown.innerHTML = '';
+    if (!items.length) { dropdown.style.display = 'none'; return; }
+    items.forEach(function (item) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = '#';
+      a.innerHTML = formatLabel(item);
+      a.style.padding = '6px 12px';
+      a.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        input.value = item.name;
+        idField.value = item.id;
+        currentSelected = item.name;
+        dropdown.style.display = 'none';
+      });
+      li.appendChild(a);
+      dropdown.appendChild(li);
+    });
+    dropdown.style.display = 'block';
+  }
+
+  input.addEventListener('input', function () {
+    var q = input.value.trim();
+    // Clear institution_id if user types something different from last selection
+    if (q !== currentSelected) idField.value = '';
+    clearTimeout(timer);
+    if (q.length < 2) { dropdown.style.display = 'none'; return; }
+    timer = setTimeout(function () {
+      fetch(searchUrl + '?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(showDropdown)
+        .catch(function () { dropdown.style.display = 'none'; });
+    }, 200);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!dropdown.contains(e.target) && e.target !== input) {
+      dropdown.style.display = 'none';
+    }
+  });
+})();
 </script>
 {% endblock %}

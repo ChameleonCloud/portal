@@ -24,7 +24,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils.http import urlencode
 from django.shortcuts import redirect
+from django.contrib import messages
+from django.core.management import call_command
 from django.db.models import Count
+from io import StringIO
 from django.utils.html import (
     format_html_join,
     mark_safe,
@@ -241,19 +244,24 @@ class HasUsersFilter(admin.SimpleListFilter):
 class InstitutionAdmin(ModelAdmin):
     list_filter = [
         HasUsersFilter,
-        "minority_serving_institution",
-        "epscor_state",
+        "institution_type",
+        "control",
+        "source",
+        "country",
         "state",
     ]
     list_display = [
         "name",
         "user_count",
+        "institution_type",
+        "carnegie_size",
+        "control",
+        "city",
+        "country",
         "state",
-        "minority_serving_institution",
-        "epscor_state",
     ]
     readonly_fields = ["user_count"]
-    search_fields = ["name"]
+    search_fields = ["name", "ror_id", "ipeds_unitid", "website_domain", "city"]
     inlines = [AliasInline, UserInline]
 
     def get_queryset(self, request):
@@ -278,6 +286,40 @@ class InstitutionAdmin(ModelAdmin):
 admin.site.register(Institution, InstitutionAdmin)
 
 
+class UserInstitutionAdmin(admin.ModelAdmin):
+    list_display = ["user", "institution"]
+    list_filter = ["institution__institution_type", "institution__country"]
+    search_fields = [
+        "user__username",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "institution__name",
+    ]
+    raw_id_fields = ["user", "institution"]
+
+
+admin.site.register(UserInstitution, UserInstitutionAdmin)
+
+
+def run_normalize_institutions(modeladmin, request, queryset):
+    out = StringIO()
+    call_command("normalize_institutions", stdout=out)
+    output = out.getvalue()
+    attached = output.count("Attached user")
+    could_not = output.count("Could not normalize")
+    modeladmin.message_user(
+        request,
+        f"Normalization complete: {attached} attached, {could_not} could not be classified.",
+        messages.SUCCESS,
+    )
+
+
+run_normalize_institutions.short_description = (
+    "Run institution normalization on all unclassified users"
+)
+
+
 class KeycloakUserInline(admin.StackedInline):
     model = KeycloakUser
     can_delete = False
@@ -286,6 +328,7 @@ class KeycloakUserInline(admin.StackedInline):
 class UserInstitutionInline(admin.TabularInline):
     model = UserInstitution
     extra = 0
+    raw_id_fields = ["institution"]
 
 
 class HasInstitutionFilter(admin.SimpleListFilter):
@@ -309,6 +352,7 @@ class HasInstitutionFilter(admin.SimpleListFilter):
 class UserAdmin(BaseUserAdmin):
     inlines = [UserInstitutionInline, KeycloakUserInline]
     list_filter = BaseUserAdmin.list_filter + (HasInstitutionFilter,)
+    actions = list(BaseUserAdmin.actions or []) + [run_normalize_institutions]
 
 
 admin.site.unregister(User)

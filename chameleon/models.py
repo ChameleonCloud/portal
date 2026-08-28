@@ -111,6 +111,43 @@ class Institution(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+    # External identifiers
+    ipeds_unitid = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    ror_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
+
+    # Carnegie classification (from IPEDS C18BASIC), e.g. "R1", "R2", "Associate's"
+    carnegie_classification = models.CharField(max_length=100, blank=True)
+
+    # Public vs. private (from IPEDS CONTROL)
+    class Control(models.TextChoices):
+        PUBLIC = "public", "Public"
+        PRIVATE_NONPROFIT = "private_nonprofit", "Private Non-profit"
+        PRIVATE_FORPROFIT = "private_forprofit", "Private For-profit"
+
+    control = models.CharField(max_length=20, choices=Control.choices, blank=True)
+
+    # Country code for international institutions (default US)
+    country = models.CharField(max_length=100, default="US")
+
+    # City (from ACE city column or ROR geonames)
+    city = models.CharField(max_length=200, blank=True)
+
+    # Geolocation for mapping (from ROR geonames)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    # Full Carnegie classification text, e.g. "Doctoral Universities: Very High Research Activity"
+    carnegie_full_classification = models.CharField(max_length=300, blank=True)
+
+    # ACE institution size: "Large", "Medium", "Small", "Very Large", "Very Small"
+    carnegie_size = models.CharField(max_length=50, blank=True)
+
+    # ROR ID of parent institution (e.g. UC system is parent of UC Berkeley)
+    parent_ror_id = models.CharField(max_length=100, blank=True)
+
+    # Primary web domain for email-based matching, e.g. "uchicago.edu"
+    website_domain = models.CharField(max_length=200, blank=True)
+
     def __str__(self):
         return self.name
 

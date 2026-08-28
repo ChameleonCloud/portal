@@ -15,7 +15,7 @@ from mozilla_django_oidc.views import OIDCAuthenticationRequestView
 import requests
 
 from chameleon.edge_hw_discovery_api import EDGE_HW_API
-from .models import Dataset, DatasetDownloadEvent
+from .models import Dataset, DatasetDownloadEvent, Institution
 from user_news.models import Outage
 from util.project_allocation_mapper import ProjectAllocationMapper
 
@@ -131,3 +131,39 @@ def download_dataset(request, dataset_id):
         dataset=ds,
     )
     return redirect(ds.url)
+
+
+@login_required
+@require_http_methods(["GET"])
+def institution_search(request):
+    from django.db.models import Count, Q
+
+    q = request.GET.get("q", "").strip()
+    if len(q) < 2:
+        return JsonResponse([], safe=False)
+
+    institutions = (
+        Institution.objects.filter(
+            Q(name__icontains=q) | Q(aliases__alias__icontains=q),
+            country="US",
+        )
+        .filter(
+            Q(carnegie_classification__gt="")
+            | Q(institution_type=Institution.InstitutionType.GOVERNMENT)
+            | Q(users__isnull=False)
+        )
+        .annotate(user_count=Count("users", distinct=True))
+        .order_by("-user_count")
+        .distinct()
+        .values(
+            "id",
+            "name",
+            "city",
+            "state",
+            "country",
+            "institution_type",
+            "carnegie_classification",
+            "control",
+        )[:20]
+    )
+    return JsonResponse(list(institutions), safe=False)

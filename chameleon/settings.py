@@ -781,6 +781,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "allocations.tasks.warn_user_for_low_allocations",
         "schedule": crontab(minute=30, hour=7),
     },
+    "normalize-institutions": {
+        "task": "chameleon.tasks.run_normalize_institutions",
+        "schedule": crontab(minute=0, hour=3),
+    },
 }
 if DEBUG:
     CELERY_BEAT_SCHEDULE = {}
