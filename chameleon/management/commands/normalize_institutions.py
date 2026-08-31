@@ -213,16 +213,23 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Processing {users.count()} users")
 
-        keycloak_client = KeycloakClient()
+        import threading
+        _thread_local = threading.local()
+
+        def _init_thread():
+            _thread_local.kc = KeycloakClient()
 
         def fetch_and_process(user):
-            kc_user = keycloak_client.get_user_from_portal_user(user)
-            if kc_user:
-                self.stdout.write(f"Processing user {user.pk} ({user.username})")
-                self.process_user(user, kc_user)
+            try:
+                kc_user = _thread_local.kc.get_user_from_portal_user(user)
+                if kc_user:
+                    self.stdout.write(f"Processing user {user.pk} ({user.username})")
+                    self.process_user(user, kc_user)
+            except Exception as e:
+                LOG.warning(f"Failed to process user {user.pk} ({user.username}): {e}")
 
-        with ThreadPoolExecutor(max_workers=50) as executor:
-            futures = {executor.submit(fetch_and_process, u): u for u in users.iterator()}
+        with ThreadPoolExecutor(max_workers=50, initializer=_init_thread) as executor:
+            futures = [executor.submit(fetch_and_process, u) for u in users.iterator()]
             for future in as_completed(futures):
                 future.result()
 
