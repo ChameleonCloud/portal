@@ -223,6 +223,7 @@ class Command(BaseCommand):
                 ),
                 first=first,
                 max=page_size,
+                briefRepresentation=False,
             )
             if not page:
                 break
@@ -250,12 +251,14 @@ class Command(BaseCommand):
         if domain and domain in FREE_EMAIL_DOMAINS:
             domain = None
 
-        # kc_user is already the attributes dict (from get_all_users_attributes)
-        raw_value = kc_user.get("affiliationInstitution") if kc_user else None
+        raw_value = kc_user.get("attributes", {}).get("affiliationInstitution") if kc_user else None
         if isinstance(raw_value, list):
             raw_value = raw_value[0] if raw_value else None
         if raw_value:
             raw_value = raw_value.strip()
+        _SENTINEL_VALUES = {"n/a", "na", "none", "unknown", "n.a.", "-", "other"}
+        if raw_value and raw_value.lower() in _SENTINEL_VALUES:
+            raw_value = None
 
         # 1. Exact alias match — try original + "The " variants + separator-normalized forms
         if raw_value:
@@ -287,17 +290,21 @@ class Command(BaseCommand):
         # 4. ROR API lookup
         query = raw_value or domain or ""
         if query:
+            self.stdout.write(f"  ROR lookup: '{query}'")
             inst = self.lookup_ror(query, raw_value)
             if inst:
                 self.attach_user(user, inst, reason="ROR API")
                 return
+            self.stdout.write(f"  ROR: no match")
 
         # 5. OpenAI fallback — match against fuzzy candidates only, never create new records
         if query:
+            self.stdout.write(f"  LLM lookup: '{query}'")
             inst = self.match_via_llm(query, raw_value)
             if inst:
                 self.attach_user(user, inst, reason="LLM match")
                 return
+            self.stdout.write(f"  LLM: no match")
 
         self.stdout.write(
             self.style.WARNING(
@@ -355,7 +362,9 @@ class Command(BaseCommand):
             return None
 
         top = items[0]
-        if top.get("score", 0) < 0.85:
+        score = top.get("score", 0)
+        self.stdout.write(f"  ROR top hit: '{top.get('name')}' (score={score:.2f})")
+        if score < 0.80:
             return None
 
         ror_id = top.get("id", "").replace("https://ror.org/", "")
@@ -419,6 +428,11 @@ class Command(BaseCommand):
             "Wisconsin', 'University of Colorado'), pick the flagship/main campus from the list.\n"
             "- Match translated names to their institution (e.g. 'University of Torino' = "
             "'Università degli Studi di Torino').\n"
+            "- Use ACE (American Council on Education) Carnegie Classification and ROR "
+            "(Research Organization Registry) knowledge to resolve abbreviations, alternate "
+            "names, and predecessor/successor institution names "
+            "(e.g. 'UIUC' = 'University of Illinois Urbana-Champaign', "
+            "'Tokyo Tech' = 'Tokyo Institute of Technology').\n"
             "Respond with ONLY valid JSON."
         )
 
