@@ -3008,31 +3008,32 @@ typing-extensions = ">=4.14.1"
 
 [[package]]
 name = "pydetex"
-version = "1.0.8"
+version = "1.1.1"
 description = "An application that transforms LaTeX code to plain text"
 optional = false
-python-versions = ">=3.7, <4"
+python-versions = "<4,>=3.7"
 groups = ["main"]
 files = [
-    {file = "pydetex-1.0.8-py3-none-any.whl", hash = "sha256:5ec5bf5a3764184be22480d363763dab4a652eea04b9272c79d9f526a8490274"},
-    {file = "pydetex-1.0.8.tar.gz", hash = "sha256:ff0f6b1477f0cef201345385d3e8c7dda7bbc5644e7107774797d0482b140031"},
+    {file = "pydetex-1.1.1-py3-none-any.whl", hash = "sha256:624a872b801b6b651b2598f633392604c5342bc8a0e2e4d2eda737417c5eef09"},
+    {file = "pydetex-1.1.1.tar.gz", hash = "sha256:f195a5bdff618a886965ff62866299959d84d6859bd65cbf2922b2861d84a94c"},
 ]
 
 [package.dependencies]
 beautifulsoup4 = ">=4.11.1"
 flatlatex = ">=0.15"
 langdetect = ">=1.0.9"
-nltk = ">=3.7"
+nltk = ">=3.9.1"
 outdated = ">=0.2.2"
-PyMultiDictionary = ">=1.2.3"
-pyperclip = ">=1.8.2"
-requests = ">=2.28.1"
+Pillow = ">=9.4.0"
+PyMultiDictionary = ">=1.3.2"
+pyperclip = ">=1.9.0"
+requests = ">=2.32.3"
 tkmacosx = ">=1.0.5"
 
 [package.extras]
 docs = ["sphinx (<7)", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme"]
-installer = ["pyinstaller (==4.10)"]
-test = ["nose2[coverage-plugin]"]
+installer = ["pyinstaller (==6.7.0)"]
+test = ["nose2[coverage-plugin]", "pytest"]
 
 [[package]]
 name = "pydocstyle"
@@ -4479,4 +4480,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "6e726a8b7bab909c5c36d3fb5c3808d68c9dfec5fd682a7a336c481207eb07c0"
+content-hash = "5ff0878152c76b1a8fef15da46bb791f4b87822655f36e4673f2d9029a62d3d8"
