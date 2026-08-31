@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -212,15 +214,17 @@ class Command(BaseCommand):
         self.stdout.write(f"Processing {users.count()} users")
 
         keycloak_client = KeycloakClient()
-        kc_user_map = keycloak_client.get_all_users_attributes()
-        for user in users.iterator():
-            # fetch user from
-            kc_user = kc_user_map.get(user.username)
-            if not kc_user:
-                # Legacy user, no login since fed. identity
-                continue
-            print(f"Processing user {user.pk} ({user.username})")
-            self.process_user(user, kc_user)
+
+        def fetch_and_process(user):
+            kc_user = keycloak_client.get_user_from_portal_user(user)
+            if kc_user:
+                self.stdout.write(f"Processing user {user.pk} ({user.username})")
+                self.process_user(user, kc_user)
+
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            futures = {executor.submit(fetch_and_process, u): u for u in users.iterator()}
+            for future in as_completed(futures):
+                future.result()
 
     def process_user(self, user, kc_user):
         domain = self.extract_domain(user)
