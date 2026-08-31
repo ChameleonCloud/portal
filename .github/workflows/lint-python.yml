@@ -17,7 +17,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v7
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
       - name: Lint with Black
         uses: psf/black@stable
   flake8:
@@ -27,7 +27,7 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v7
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
       - name: flake8 Lint
         uses: reviewdog/action-flake8@v3
         with:
