@@ -8,7 +8,7 @@
     "@vue/cli-service": "^5.0.8",
     "css-loader": "^6.0.0",
     "fast-glob": "^3.3.0",
-    "style-loader": "^3.0.0",
+    "style-loader": "^4.0.0",
     "vue": "^2.6.12",
     "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.12",
