@@ -904,14 +904,14 @@ django = ">=2.1"
 
 [[package]]
 name = "django-filer"
-version = "3.5.0"
+version = "3.5.1"
 description = "A file management application for django that makes handling of files and images a breeze."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django_filer-3.5.0-py3-none-any.whl", hash = "sha256:0d1068524d30d06d0b2a6d3c1039ad84ec46c9c1d1f68df94e45b86e8d0e96f7"},
-    {file = "django_filer-3.5.0.tar.gz", hash = "sha256:159d6683916282cfbe8d7ccdbc5188d91344146d2805b89bcb3146a70a0d350f"},
+    {file = "django_filer-3.5.1-py3-none-any.whl", hash = "sha256:d0c1a06042d173e02770794c91ce18d71e18928728914e57fa9dfaece71fd5d7"},
+    {file = "django_filer-3.5.1.tar.gz", hash = "sha256:1178682b5938c1ab3645dcb6f05d10ca0f86ef4b79474c1750f02095dd183065"},
 ]
 
 [package.dependencies]
@@ -4479,4 +4479,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "6e726a8b7bab909c5c36d3fb5c3808d68c9dfec5fd682a7a336c481207eb07c0"
+content-hash = "3af53129a0be3b955836e10ba12607825c6511ad70e0aeac1ff3a3d291efa2ad"
