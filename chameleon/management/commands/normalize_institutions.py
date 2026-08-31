@@ -399,6 +399,29 @@ class Command(BaseCommand):
             InstitutionAlias.objects.get_or_create(institution=inst, alias=raw_value)
         return inst
 
+    def _llm_correct_name(self, query):
+        """Ask the LLM to return the canonical English institution name, correcting typos."""
+        try:
+            response = self.client.chat.completions.create(
+                model=settings.OPENAI_MODEL_NAME,
+                messages=[
+                    {"role": "system", "content": (
+                        "Return the canonical English institution name as it appears in ROR "
+                        "(Research Organization Registry) or ACE Carnegie Classification. "
+                        "Correct typos and transliterate non-English names. "
+                        'Respond with ONLY valid JSON: {"name": "<canonical name or empty string if unknown>"}'
+                    )},
+                    {"role": "user", "content": query},
+                ],
+            )
+            content = response.choices[0].message.content.strip()
+            if content.startswith("```"):
+                content = "\n".join(content.split("\n")[1:-1])
+            return json.loads(content).get("name") or None
+        except Exception as exc:
+            LOG.warning("LLM name correction failed for %r: %s", query, exc)
+            return None
+
     def match_via_llm(self, query, raw_value):
         """
         Use the LLM to pick the best match from fuzzy DB candidates.
@@ -406,6 +429,12 @@ class Command(BaseCommand):
         Returns an Institution or None.
         """
         candidates = _llm_candidates(query)
+        if not candidates:
+            corrected = self._llm_correct_name(query)
+            if corrected and corrected.lower() != query.lower():
+                self.stdout.write(f"  LLM corrected: '{query}' → '{corrected}'")
+                candidates = _llm_candidates(corrected)
+        self.stdout.write(f"  LLM candidates ({len(candidates)}): {[c['name'] for c in candidates]}")
         if not candidates:
             return None
 
@@ -445,6 +474,7 @@ class Command(BaseCommand):
                 ],
             )
             content = response.choices[0].message.content.strip()
+            self.stdout.write(f"  LLM response: {content!r}")
             if content.startswith("```"):
                 content = "\n".join(content.split("\n")[1:-1])
             data = json.loads(content)
