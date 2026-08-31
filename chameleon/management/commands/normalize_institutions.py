@@ -1,5 +1,3 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -213,25 +211,36 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Processing {users.count()} users")
 
-        import threading
-        _thread_local = threading.local()
+        keycloak_client = KeycloakClient()
+        kc_users_admin = keycloak_client._users_admin()
+        kc_user_map = {}
+        first = 0
+        page_size = 500
+        while True:
+            page = kc_users_admin._client.get(
+                url=kc_users_admin._client.get_full_url(
+                    kc_users_admin.get_path("collection", realm=keycloak_client.realm_name)
+                ),
+                first=first,
+                max=page_size,
+            )
+            if not page:
+                break
+            for kc_user in page:
+                if isinstance(kc_user, dict) and kc_user.get("username"):
+                    keycloak_client._normalize_attributes(kc_user)
+                    kc_user_map[kc_user["username"]] = kc_user
+            if len(page) < page_size:
+                break
+            first += page_size
+        self.stdout.write(f"Fetched {len(kc_user_map)} Keycloak users")
 
-        def _init_thread():
-            _thread_local.kc = KeycloakClient()
-
-        def fetch_and_process(user):
-            try:
-                kc_user = _thread_local.kc.get_user_from_portal_user(user)
-                if kc_user:
-                    self.stdout.write(f"Processing user {user.pk} ({user.username})")
-                    self.process_user(user, kc_user)
-            except Exception as e:
-                LOG.warning(f"Failed to process user {user.pk} ({user.username}): {e}")
-
-        with ThreadPoolExecutor(max_workers=50, initializer=_init_thread) as executor:
-            futures = [executor.submit(fetch_and_process, u) for u in users.iterator()]
-            for future in as_completed(futures):
-                future.result()
+        for user in users.iterator():
+            kc_user = kc_user_map.get(user.username)
+            if not kc_user:
+                continue
+            self.stdout.write(f"Processing user {user.pk} ({user.username})")
+            self.process_user(user, kc_user)
 
     def process_user(self, user, kc_user):
         domain = self.extract_domain(user)
