@@ -39,7 +39,7 @@ mock = "^5.0"
 mozilla-django-oidc = {git = "https://github.com/chameleoncloud/mozilla-django-oidc", branch = "rebase-onto-upstream-5.0.2"}
 mysqlclient = "^2.0"
 pybliometrics = {git = "https://github.com/pybliometrics-dev/pybliometrics", tag = "4.2"}
-pydetex = "~1.0"
+pydetex = "~1.1"
 reportlab = "^4.0"
 pytas = {git = "https://github.com/ChameleonCloud/pytas"}
 python = "~3.12"
