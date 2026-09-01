@@ -112,68 +112,69 @@ def _llm_candidates(query):
 
     # Strategy 1: progressive phrase shortening
     while words:
-        # Only search if the phrase still contains at least one non-stopword of length >= 3
         has_signal = any(
             w.lower() not in INSTITUTION_STOPWORDS and len(w) >= 3 for w in words
         )
         if not has_signal:
             break
         phrase = " ".join(words)
+        phrase_q = Q(name__icontains=phrase) | Q(aliases__alias__icontains=phrase)
+        if phrase != query:
+            phrase_q |= Q(name__icontains=query) | Q(aliases__alias__icontains=query)
         results = list(
-            Institution.objects.filter(
-                Q(name__icontains=phrase) | Q(aliases__alias__icontains=phrase)
-            )
+            Institution.objects.filter(phrase_q)
             .distinct()
             .annotate(name_len=Length("name"))
             .order_by("name_len")
-            .values("id", "name", "state", "country")[:25]
+            .values("id", "name", "state", "country")[:50]
         )
-        if len(results) >= 3:
-            return results
-        if results:  # 1-2 hits — keep them, add OR results below
+        if results:
             phrase_hits = results
             break
-        words.pop()  # drop rightmost word and retry
+        words.pop()
 
     # Strategy 2: OR across all distinctive words, scored by match count.
+    # Always runs and merges with phrase hits so the LLM sees a relevance-ranked
+    # set rather than whatever phrase happened to hit first.
     # Uses OR_STOPWORDS (not INSTITUTION_STOPWORDS) so directional words like
-    # "western"/"eastern" are included — they're the only difference between
-    # schools like Western Michigan and Eastern Michigan.
+    # "western"/"eastern" are kept — they distinguish e.g. Western vs Eastern Michigan.
     distinctive = [
         w for w in re.split(r"\s+", normalized)
         if len(w) >= 3 and w.lower() not in OR_STOPWORDS
     ][:4]
     if not distinctive:
-        return phrase_hits
+        return phrase_hits[:50]
 
-    q = Q()
+    name_q = Q()
+    alias_q = Q()
     for w in distinctive:
-        q |= Q(name__icontains=w)
+        name_q |= Q(name__icontains=w)
+        alias_q |= Q(aliases__alias__icontains=w)
 
-    score = Case(
-        When(Q(name__icontains=distinctive[0]), then=Value(1)),
-        default=Value(0),
-        output_field=IntegerField(),
+    score = sum(
+        (
+            Case(
+                When(Q(name__icontains=w) | Q(aliases__alias__icontains=w), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            for w in distinctive
+        ),
+        Case(default=Value(0), output_field=IntegerField()),
     )
-    for w in distinctive[1:]:
-        score = score + Case(
-            When(Q(name__icontains=w), then=Value(1)),
-            default=Value(0),
-            output_field=IntegerField(),
-        )
 
     or_results = list(
-        Institution.objects.filter(q)
+        Institution.objects.filter(name_q | alias_q)
         .annotate(score=score, name_len=Length("name"))
         .order_by("-score", "name_len")
         .distinct()
-        .values("id", "name", "state", "country")[:25]
+        .values("id", "name", "state", "country")[:50]
     )
 
-    # Merge: phrase hits first (exact phrase is best signal), then OR hits
+    # Merge: phrase hits first (longest exact phrase is the strongest signal), then OR hits
     seen = {r["id"] for r in phrase_hits}
     combined = phrase_hits + [r for r in or_results if r["id"] not in seen]
-    return combined[:25]
+    return combined[:50]
 
 
 FREE_EMAIL_DOMAINS = frozenset({
@@ -348,7 +349,7 @@ class Command(BaseCommand):
         }
         try:
             resp = http_requests.get(
-                "https://api.ror.org/organizations",
+                "https://api.ror.org/v2/organizations",
                 params={"query": query},
                 timeout=5,
             )
@@ -363,12 +364,15 @@ class Command(BaseCommand):
 
         top = items[0]
         score = top.get("score", 0)
-        self.stdout.write(f"  ROR top hit: '{top.get('name')}' (score={score:.2f})")
+        # v2: names is a list of {value, lang, types:[]} dicts; pick the English or first.
+        names = top.get("names", [])
+        en_names = [n["value"] for n in names if "ror_display" in n.get("types", [])]
+        name = (en_names[0] if en_names else (names[0]["value"] if names else "")).strip()
+        self.stdout.write(f"  ROR top hit: '{name}' (score={score:.2f})")
         if score < 0.80:
             return None
 
         ror_id = top.get("id", "").replace("https://ror.org/", "")
-        name = top.get("name", "").strip()
         if not name:
             return None
 
@@ -379,8 +383,8 @@ class Command(BaseCommand):
                 institution_type = ROR_TYPE_MAP[t]
                 break
 
-        country_obj = top.get("country", {})
-        country = country_obj.get("country_code", "")
+        locations = top.get("locations", [])
+        country = locations[0].get("geonames_details", {}).get("country_code", "") if locations else ""
 
         if self.dry_run:
             self.stdout.write(f"  [DRY-RUN] ROR match: {name} ({ror_id})")
@@ -484,6 +488,11 @@ class Command(BaseCommand):
 
         matched_id = data.get("id")
         if not matched_id:
+            # LLM found no match in current candidates — try a corrected name and re-run
+            corrected = self._llm_correct_name(query)
+            if corrected and corrected.lower() != query.lower():
+                self.stdout.write(f"  LLM corrected: '{query}' → '{corrected}'")
+                return self.match_via_llm(corrected, raw_value)
             return None
 
         inst = Institution.objects.filter(pk=matched_id).first()
