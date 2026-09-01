@@ -233,7 +233,9 @@ class Command(BaseCommand):
 
         keycloak_client = KeycloakClient()
         kc_users_admin = keycloak_client._users_admin()
-        kc_user_map = {}
+        kc_by_username = {}
+        kc_by_email = {}
+        kc_by_id = {}
         first = 0
         page_size = 500
         while True:
@@ -248,16 +250,33 @@ class Command(BaseCommand):
             if not page:
                 break
             for kc_user in page:
-                if isinstance(kc_user, dict) and kc_user.get("username"):
-                    keycloak_client._normalize_attributes(kc_user)
-                    kc_user_map[kc_user["username"]] = kc_user
+                # Sometimes the API returns an int
+                if not isinstance(kc_user, dict):
+                    continue
+                keycloak_client._normalize_attributes(kc_user)
+                if kc_user.get("id"):
+                    kc_by_id[kc_user["id"]] = kc_user
+                if kc_user.get("username"):
+                    kc_by_username[kc_user["username"]] = kc_user
+                if kc_user.get("email"):
+                    kc_by_email[kc_user["email"]] = kc_user
             if len(page) < page_size:
                 break
             first += page_size
-        self.stdout.write(f"Fetched {len(kc_user_map)} Keycloak users")
+        self.stdout.write(f"Fetched {len(kc_by_id)} Keycloak users")
 
         def process_one(user):
-            kc_user = kc_user_map.get(user.username)
+            sub = None
+            try:
+                sub = user.keycloak_user.sub
+            except Exception:
+                pass
+            kc_user = (
+                kc_by_id.get(sub)
+                or kc_by_username.get(user.username)
+                or kc_by_email.get(user.email)
+                or kc_by_username.get(user.email)
+            )
             if not kc_user:
                 return
             # Clear any existing Unknown link so process_user can attach a real one.
