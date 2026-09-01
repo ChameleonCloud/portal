@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -193,9 +195,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Run without writing any changes to the database",
         )
+        parser.add_argument(
+            "--retry-unknown",
+            action="store_true",
+            help="Also reprocess users already attached to the 'Unknown' institution",
+        )
 
     def handle(self, *args, **options):
         self.dry_run = options["dry_run"]
+        retry_unknown = options["retry_unknown"]
 
         if not self.dry_run and OpenAI is None:
             self.stdout.write(self.style.ERROR("openai package not installed"))
@@ -206,9 +214,20 @@ class Command(BaseCommand):
             base_url=settings.OPENAI_API_BASE_URL,
         )
 
+        # Pre-fetch Unknown institution once so threads don't race on get_or_create.
+        self.unknown_inst, _ = Institution.objects.get_or_create(
+            name="Unknown",
+            defaults={"institution_type": Institution.InstitutionType.OTHER, "source": Institution.Source.AI},
+        )
+
         User = get_user_model()
 
-        users = User.objects.filter(institutions__isnull=True)
+        if retry_unknown:
+            users = User.objects.filter(
+                Q(institutions__isnull=True) | Q(userinstitution__institution=self.unknown_inst)
+            ).distinct()
+        else:
+            users = User.objects.filter(institutions__isnull=True)
 
         self.stdout.write(f"Processing {users.count()} users")
 
@@ -237,12 +256,22 @@ class Command(BaseCommand):
             first += page_size
         self.stdout.write(f"Fetched {len(kc_user_map)} Keycloak users")
 
-        for user in users.iterator():
+        def process_one(user):
             kc_user = kc_user_map.get(user.username)
             if not kc_user:
-                continue
+                return
+            # Clear any existing Unknown link so process_user can attach a real one.
+            UserInstitution.objects.filter(user=user, institution=self.unknown_inst).delete()
             self.stdout.write(f"Processing user {user.pk} ({user.username})")
-            self.process_user(user, kc_user)
+            try:
+                self.process_user(user, kc_user)
+            except Exception as e:
+                LOG.warning(f"Error processing user {user.pk} ({user.username}): {e}")
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(process_one, u) for u in users.iterator()]
+            for future in as_completed(futures):
+                future.result()
 
     def process_user(self, user, kc_user):
         domain = self.extract_domain(user)
@@ -308,10 +337,9 @@ class Command(BaseCommand):
             self.stdout.write(f"  LLM: no match")
 
         self.stdout.write(
-            self.style.WARNING(
-                f"  Could not normalize institution for user {user.pk}: '{query}'"
-            )
+            self.style.WARNING(f"  Could not normalize institution for user {user.pk}: '{query}'")
         )
+        self.attach_user(user, self.unknown_inst, reason="unresolvable → unknown")
 
     def extract_domain(self, user):
         email = getattr(user, "email", "") or ""
