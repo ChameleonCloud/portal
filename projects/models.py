@@ -306,6 +306,27 @@ class JoinRequest(models.Model):
         self._update_status(JoinRequest.Status.REJECTED)
 
 
+PUB_TYPE_CHOICES = [
+    ("preprint", "Preprint"),
+    ("journal article", "Journal Article"),
+    ("conference paper", "Conference Paper"),
+    ("conference short paper", "Conference Short Paper"),
+    ("conference poster", "Conference Poster"),
+    ("conference demo", "Conference Demo"),
+    ("tech report", "Tech Report"),
+    ("ms thesis", "MS Thesis"),
+    ("phd thesis", "PhD Thesis"),
+    ("thesis", "Thesis"),
+    ("software", "Software"),
+    ("book chapter", "Book Chapter"),
+    ("patent", "Patent"),
+    ("poster", "Poster"),
+    ("other", "Other"),
+]
+
+PUB_TYPE_VALUES = [v for v, _ in PUB_TYPE_CHOICES]
+
+
 class Publication(models.Model):
     STATUS_SUBMITTED = "SUBMITTED"
     STATUS_APPROVED = "APPROVED"
@@ -345,7 +366,9 @@ class Publication(models.Model):
         on_delete=models.CASCADE,
         blank=True,
     )
-    publication_type = models.CharField(max_length=50, null=False)
+    publication_type = models.CharField(
+        max_length=50, null=False, choices=PUB_TYPE_CHOICES, default="other"
+    )
     forum = models.CharField(max_length=500, null=True, blank=True)
     title = models.CharField(max_length=500, null=False)
     year = models.IntegerField(null=True, blank=True)
@@ -367,8 +390,8 @@ class Publication(models.Model):
     )
     reviewed_comment = models.TextField(null=True, blank=True)
     ticket_id = models.CharField(max_length=100, null=True, blank=True)
-    normalized_forum = models.ForeignKey(
-        "Forum",
+    venue_edition = models.ForeignKey(
+        "VenueEdition",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -645,7 +668,7 @@ class PublicationQuery(models.Model):
         return f"{self.source_type}: {self.query}"
 
 
-class Forum(models.Model):
+class VenueSeries(models.Model):
     class Organization(models.TextChoices):
         ACM = "acm", "ACM"
         IEEE = "ieee", "IEEE"
@@ -655,59 +678,67 @@ class Forum(models.Model):
         OTHER = "other", "Other"
         UNKNOWN = "unknown", "Unknown"
 
-    class ForumType(models.TextChoices):
+    class VenueType(models.TextChoices):
         CONFERENCE = "conference", "Conference"
         JOURNAL = "journal", "Journal"
         WORKSHOP = "workshop", "Workshop"
         SYMPOSIUM = "symposium", "Symposium"
+        PREPRINT_SERVER = "preprint_server", "Preprint Server"
         OTHER = "other", "Other"
         UNKNOWN = "unknown", "Unknown"
 
-    name = models.CharField(max_length=512)
-    year = models.PositiveIntegerField(null=True, blank=True)
-
+    name = models.CharField(max_length=512, unique=True)
     organization = models.CharField(
         max_length=32, choices=Organization.choices, default=Organization.UNKNOWN
     )
-    forum_type = models.CharField(
-        max_length=32, choices=ForumType.choices, default=ForumType.UNKNOWN
+    venue_type = models.CharField(
+        max_length=32, choices=VenueType.choices, default=VenueType.UNKNOWN
     )
-
-    country = models.CharField(max_length=128, blank=True, default="")
-
+    host_series = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="workshops",
+        help_text="For workshops: the conference series that hosts this workshop",
+    )
     source = models.CharField(
         max_length=32,
         default="ai",
         help_text="ai | heuristic | manual",
     )
     source_comment = models.TextField(blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        unique_together = ("name", "year")
-
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
-    parent_forum = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="child_forums",
-        help_text="Parent venue (e.g. conference hosting this workshop)",
+
+class VenueSeriesAlias(models.Model):
+    series = models.ForeignKey(
+        VenueSeries, on_delete=models.CASCADE, related_name="aliases"
     )
-
-
-class ForumAlias(models.Model):
-    forum = models.ForeignKey(Forum, on_delete=models.CASCADE, related_name="aliases")
     alias = models.CharField(max_length=512, unique=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.alias
+
+
+class VenueEdition(models.Model):
+    series = models.ForeignKey(
+        VenueSeries, on_delete=models.CASCADE, related_name="editions"
+    )
+    year = models.PositiveIntegerField()
+    location = models.CharField(max_length=256, blank=True, default="")
+    proceedings_url = models.URLField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("series", "year")
+
+    def __str__(self):
+        return f"{self.series.name} {self.year}"
 
 
 class PublicationCitation(models.Model):
@@ -716,7 +747,9 @@ class PublicationCitation(models.Model):
     )
     scopus_citation_count = models.IntegerField(default=0)
     semantic_scholar_citation_count = models.IntegerField(default=0)
+    openalex_citation_count = models.IntegerField(default=0)
     scopus_source_id = models.CharField(max_length=1024, null=True, blank=True)
     semantic_scholar_source_id = models.CharField(
         max_length=1024, null=True, blank=True
     )
+    openalex_source_id = models.CharField(max_length=1024, null=True, blank=True)

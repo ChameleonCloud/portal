@@ -331,6 +331,7 @@ def view_chameleon_used_in_research_publications(request):
         Publication.objects.filter(
             checked_for_duplicates=True, status=Publication.STATUS_APPROVED
         )
+        .select_related("venue_edition", "venue_edition__series")
         .order_by("-year", "title")
         .annotate(max_cites_from_all_sources=Max("sources__citation_count"))
     )

@@ -25,8 +25,9 @@ from projects.user_publication.publications import (
 from allocations.models import Allocation
 from projects.models import (
     ChameleonPublication,
-    Forum,
-    ForumAlias,
+    VenueSeries,
+    VenueSeriesAlias,
+    VenueEdition,
     Funding,
     Invitation,
     Project,
@@ -859,45 +860,57 @@ class PublicationAdmin(ProjectFields, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-class ForumAliasInline(admin.TabularInline):
-    model = ForumAlias
+class VenueSeriesAliasInline(admin.TabularInline):
+    model = VenueSeriesAlias
     extra = 1
 
 
-class ForumPublicationInline(admin.TabularInline):
+class VenueEditionInline(admin.TabularInline):
+    model = VenueEdition
+    extra = 0
+    fields = ["year", "location", "proceedings_url"]
+    ordering = ["-year"]
+
+
+class VenueEditionPublicationInline(admin.TabularInline):
     model = Publication
     extra = 0
     fields = ["title", "author"]
     can_delete = False
-    fk_name = "normalized_forum"
+    fk_name = "venue_edition"
     show_change_link = True
 
     def has_change_permission(self, request, obj=None):
         return False
 
 
-class ForumAdmin(admin.ModelAdmin):
+class VenueSeriesAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "pub_count",
         "organization",
-        "forum_type",
-        "country",
+        "venue_type",
         "source",
     )
-    search_fields = ("name", "organization", "forum_type", "country")
-    inlines = [ForumAliasInline, ForumPublicationInline]
+    search_fields = ("name", "organization", "venue_type")
+    inlines = [VenueSeriesAliasInline, VenueEditionInline]
     readonly_fields = ["pub_count"]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.annotate(pub_count=Count("publications"))
+        return qs.annotate(pub_count=Count("editions__publications", distinct=True))
 
     def pub_count(self, obj):
         return obj.pub_count
 
     pub_count.admin_order_field = "pub_count"
     pub_count.short_description = "Publications"
+
+
+class VenueEditionAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "series", "year", "location")
+    search_fields = ("series__name", "year", "location")
+    inlines = [VenueEditionPublicationInline]
 
 
 admin.site.register(Publication, PublicationAdmin)
@@ -907,4 +920,5 @@ admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 # admin.site.register(PublicationSource, PublicationSourceAdmin)
 admin.site.register(RawPublication, RawPublicationAdmin)
 admin.site.register(PublicationQuery, PublicationQueryAdmin)
-admin.site.register(Forum, ForumAdmin)
+admin.site.register(VenueSeries, VenueSeriesAdmin)
+admin.site.register(VenueEdition, VenueEditionAdmin)

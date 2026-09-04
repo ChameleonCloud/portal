@@ -55,7 +55,13 @@
                 {% endif %}
             </td>
             <td>{{p.year}}</td>
-            <td>{{p.forum}}</td>
+            <td>
+              {% if p.normalized_forum %}
+                {{ p.normalized_forum.name }}
+              {% else %}
+                {{ p.forum }}
+              {% endif %}
+            </td>
             <td>{{p.author}}</td>
             <td>
               {% if p.max_cites_from_all_sources > 0 %}
