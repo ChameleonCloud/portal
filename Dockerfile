@@ -46,6 +46,7 @@ RUN pip install --upgrade pip && \
 COPY poetry.lock pyproject.toml /setup/
 ENV POETRY_VIRTUALENVS_CREATE=false
 RUN poetry install --no-root --only main
+RUN pip install git+https://github.com/ChameleonCloud/magpub.git
 
 RUN mkdir /var/log/django
 VOLUME ["/media"]

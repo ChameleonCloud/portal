@@ -64,7 +64,6 @@ djangocms-snippet = "^3.1.0"
 pymemcache = "^4.0.0"
 httpx = "~0.28"
 openai = "^2.13.0"
-magpub = {git = "https://github.com/ChameleonCloud/magpub.git"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^26.3"
