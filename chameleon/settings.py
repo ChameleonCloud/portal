@@ -876,6 +876,7 @@ SEMANTIC_SCHOLAR_API_KEY = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 SCOPUS_API_KEY = os.environ.get("SCOPUS_API_KEY")
 SCOPUS_INSTITUTION_KEY = os.environ.get("SCOPUS_INSTITUTION_KEY")
 OPENALEX_MAILTO = os.environ.get("OPENALEX_MAILTO", "contact@chameleoncloud.org")
+OPENALEX_API_KEY = os.environ.get("OPENALEX_API_KEY")
 
 
 #############

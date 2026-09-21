@@ -134,7 +134,10 @@ class Command(BaseCommand):
         if not run_types and not run_forums:
             run_types = run_forums = True
 
-        self.openalex_client = OpenAlexClient()
+        self.openalex_client = OpenAlexClient(
+            mailto=settings.OPENALEX_MAILTO,
+            api_key=settings.OPENALEX_API_KEY,
+        )
         self._openalex_budget_exhausted = False  # skip OpenAlex after first 429 budget error
         self.ai_client = OpenAI(
             api_key=settings.OPENAI_API_KEY,
@@ -324,8 +327,7 @@ class Command(BaseCommand):
                 publication.title, year=publication.year
             )
         except Exception as exc:
-            exc_str = str(exc)
-            if "Insufficient budget" in exc_str or "Rate limit exceeded" in exc_str:
+            if "Insufficient budget" in str(exc):
                 self._openalex_budget_exhausted = True
                 logger.warning("OpenAlex budget exhausted — skipping for remainder of run")
             else:
