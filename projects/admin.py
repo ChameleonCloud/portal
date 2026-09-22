@@ -84,7 +84,7 @@ class InvitationAdmin(admin.ModelAdmin):
     def invite_link(self, obj):
         if obj.status == Invitation.STATUS_ISSUED:
             url = obj.get_invite_url()
-            return format_html(f'<a href="{url}" target="_blank">Invite Link</a>')
+            return format_html('<a href="{}" target="_blank">Invite Link</a>', url)
         return ""
 
     @admin.display(description="Expiry")
@@ -131,7 +131,7 @@ class InvitationInline(admin.TabularInline):
     def invite_link(self, obj):
         if obj.status == Invitation.STATUS_ISSUED:
             url = obj.get_invite_url()
-            return format_html(f'<a href="{url}" target="_blank">Invite Link</a>')
+            return format_html('<a href="{}" target="_blank">Invite Link</a>', url)
         return ""
 
     def has_add_permission(self, req, obj):
@@ -140,7 +140,10 @@ class InvitationInline(admin.TabularInline):
 
 class AllocationInline(admin.TabularInline):
     model = Allocation
+    extra = 0
+    ordering = ["-date_requested"]
     fields = [
+        "admin_link",
         "date_requested",
         "status",
         "start_date",
@@ -149,6 +152,7 @@ class AllocationInline(admin.TabularInline):
         "su_allocated",
     ]
     readonly_fields = [
+        "admin_link",
         "date_requested",
         "status",
         "start_date",
@@ -156,6 +160,13 @@ class AllocationInline(admin.TabularInline):
         "su_used",
         "su_allocated",
     ]
+
+    @admin.display(description="Allocation")
+    def admin_link(self, obj):
+        if not obj.pk:
+            return "(save first)"
+        url = reverse("admin:allocations_allocation_change", args=[obj.pk])
+        return format_html('<a href="{}" target="_blank">{}</a>', url, obj.pk)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -184,12 +195,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def charge_code_link(self, obj):
         return format_html(
-            f'<a href="{reverse("projects:view_project", args=[obj.id])}" target="_blank">{obj.charge_code}</a>'
+            '<a href="{}" target="_blank">{}</a>',
+            reverse("projects:view_project", args=[obj.id]),
+            obj.charge_code,
         )
 
     def join_url(self, obj):
         return format_html(
-            f'<a href="{obj.join_link.get_url()}" target="_blank">Join Link</a>'
+            '<a href="{}" target="_blank">Join Link</a>', obj.join_link.get_url()
         )
 
     inlines = [

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from django import forms
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
@@ -42,6 +43,75 @@ class AllocationAdmin(admin.ModelAdmin):
     def pi_email(self, obj):
         return f"{obj.project.pi.email}"
 
+    def _pi_other_projects(self, obj):
+        """Summarize the PI's other projects, and the status of the most
+        recent allocation on each.
+        """
+        others = (
+            obj.project.pi.project_pi.exclude(pk=obj.project.pk)
+            .prefetch_related("allocations")
+            .order_by("charge_code")
+        )
+        latest = [
+            (
+                project,
+                max(
+                    project.allocations.all(),
+                    key=lambda alloc: alloc.date_requested,
+                    default=None,
+                ),
+            )
+            for project in others
+        ]
+        if not latest:
+            return "0"
+
+        # most recently requested allocation first, projects with none last
+        latest = sorted(
+            (pair for pair in latest if pair[1]),
+            key=lambda pair: pair[1].date_requested,
+            reverse=True,
+        ) + [pair for pair in latest if not pair[1]]
+
+        rows = []
+        for project, alloc in latest:
+            project_url = reverse("admin:projects_project_change", args=[project.id])
+            if alloc:
+                alloc_url = reverse(
+                    "admin:allocations_allocation_change", args=[alloc.id]
+                )
+                alloc_cells = f"""
+                <td><a href="{alloc_url}">{alloc.status}</a></td>
+                <td>{alloc.date_requested.date()}</td>
+                <td>{alloc.start_date.date() if alloc.start_date else ""}</td>
+                <td>{alloc.expiration_date.date() if alloc.expiration_date else ""}</td>
+                """
+            else:
+                alloc_cells = '<td colspan="4">No allocations</td>'
+            rows.append(f"""<tr>
+                <td><a href="{project_url}">{project.charge_code}</a></td>
+                <td>{escape(project.title)}</td>
+                <td>{len(project.allocations.all())}</td>
+                {alloc_cells}
+            </tr>""")
+
+        return f"""{len(latest)}
+        <table>
+            <thead>
+                <tr>
+                    <th>Charge Code</th>
+                    <th>Title</th>
+                    <th>Allocations</th>
+                    <th>Latest Status</th>
+                    <th>Requested</th>
+                    <th>Start</th>
+                    <th>End</th>
+                </tr>
+            </thead>
+            {"".join(rows)}
+        </table>
+        """
+
     def pi_info(self, obj):
         keycloak_client = KeycloakClient()
         kc_user = keycloak_client.get_user_from_portal_user(obj.project.pi)
@@ -66,6 +136,9 @@ class AllocationAdmin(admin.ModelAdmin):
         </tr>
         <tr>
             <td><b>Country</b></td><td>{country}</td>
+        </tr>
+        <tr>
+            <td><b>Other Projects</b></td><td>{self._pi_other_projects(obj)}</td>
         </tr>
         </table>
         """)

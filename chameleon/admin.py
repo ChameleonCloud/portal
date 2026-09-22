@@ -371,11 +371,8 @@ class DatasetAdmin(admin.ModelAdmin):
 
     def public_url(self, obj):
         if obj.id:
-            return format_html(
-                '<a href="{url}" target="_blank">{url}</a>'.format(
-                    url=reverse("download_dataset", args=[obj.id])
-                )
-            )
+            url = reverse("download_dataset", args=[obj.id])
+            return format_html('<a href="{}" target="_blank">{}</a>', url, url)
         return ""
 
 
