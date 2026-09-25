@@ -878,10 +878,15 @@ def set_ks_project_nickname(chargeCode, nickname):
 
 
 def _save_fundings(funding_formset, project_id):
+    project_funding_ids = set(
+        Funding.objects.filter(project_id=project_id).values_list("id", flat=True)
+    )
     saved_fundings = []
     for funding_form in funding_formset:
-        if hasattr(funding_form, "cleaned_data"):
+        if funding_form.cleaned_data.get("agency"):
             funding_dict = funding_form.cleaned_data.copy()
+            if funding_dict.get("id") not in project_funding_ids:
+                funding_dict["id"] = None
             funding = Funding(**funding_dict)
             funding.project_id = project_id
             funding.is_active = True
@@ -905,7 +910,10 @@ def _remove_fundings(before_list, after_list):
 def create_allocation(request, project_id, allocation_id=-1):
     mapper = ProjectAllocationMapper(request)
 
-    project = mapper.get_project(project_id)
+    try:
+        project = mapper.get_project(project_id)
+    except Project.DoesNotExist:
+        raise Http404("The requested project does not exist!")
 
     keycloak_client = KeycloakClient()
     user_permission = UserPermissions.get_user_permissions(
@@ -919,9 +927,13 @@ def create_allocation(request, project_id, allocation_id=-1):
             '<a href="/user/profile/edit/">submit a PI Eligibility '
             "request</a>.",
         )
-        return HttpResponseRedirect(reverse("projects:user_projects"))
+        return HttpResponseRedirect(reverse("projects:view_project", args=[project.id]))
 
-    project = mapper.get_project(project_id)
+    if project.has_pending_allocations:
+        messages.info(
+            request, "This project already has an allocation request under review."
+        )
+        return HttpResponseRedirect(reverse("projects:view_project", args=[project.id]))
 
     allocation = None
     allocation_id = int(allocation_id)
@@ -929,6 +941,8 @@ def create_allocation(request, project_id, allocation_id=-1):
         for a in project.allocations:
             if a.id == allocation_id:
                 allocation = a
+        if not allocation:
+            raise Http404("The requested allocation does not exist!")
 
     abstract = project.description
     if allocation:
@@ -956,9 +970,14 @@ def create_allocation(request, project_id, allocation_id=-1):
             initial=funding_source,
         )
         consent_form = ConsentForm(request.POST)
-        if form.is_valid() and formset.is_valid() and consent_form.is_valid():
+        funded = request.POST.get("is_funded") == "yes"
+        if (
+            form.is_valid()
+            and (not funded or formset.is_valid())
+            and consent_form.is_valid()
+        ):
             logger.info(f"FUNDED {request.POST.get('is_funded')} - {len(formset)}")
-            if request.POST.get("is_funded") == "yes" and len(formset) < 1:
+            if funded and not any(f.cleaned_data.get("agency") for f in formset):
                 form.add_error(
                     "__all__",
                     "You must specify a funding source if your project is funded.",
@@ -989,8 +1008,9 @@ def create_allocation(request, project_id, allocation_id=-1):
                         mapper.save_allocation(
                             allocation, project.chargeCode, request.get_host()
                         )
-                        new_funding_source = _save_fundings(formset, project_id)
-                        _remove_fundings(funding_source, new_funding_source)
+                        if funded:
+                            new_funding_source = _save_fundings(formset, project_id)
+                            _remove_fundings(funding_source, new_funding_source)
                     messages.success(
                         request, "Your allocation request has been submitted!"
                     )
@@ -1052,36 +1072,24 @@ def create_project(request):
         allocation_form.fields["publication_up_to_date"].widget = forms.HiddenInput()
         funding_formset = FundingFormset(request.POST, initial=[{}])
         consent_form = ConsentForm(request.POST)
+        funded = request.POST.get("is_funded") == "yes"
+        if (
+            funded
+            and funding_formset.is_valid()
+            and not any(f.cleaned_data.get("agency") for f in funding_formset)
+        ):
+            form.add_error(
+                None, "You must specify a funding source if your project is funded."
+            )
         if (
             form.is_valid()
             and allocation_form.is_valid()
-            and funding_formset.is_valid()
+            and (not funded or funding_formset.is_valid())
             and consent_form.is_valid()
         ):
             # title, description, tagId
             project = form.cleaned_data.copy()
             allocation_data = allocation_form.cleaned_data.copy()
-            # let's check that any provided nickname is unique
-            project["nickname"] = project["nickname"].strip()
-            nickname_valid = (
-                project["nickname"]
-                and ProjectExtras.objects.filter(nickname=project["nickname"]).count()
-                < 1
-                and Project.objects.filter(nickname=project["nickname"]).count() < 1
-            )
-
-            if not nickname_valid:
-                form.add_error("__all__", "Project nickname unavailable")
-                return render(
-                    request,
-                    "projects/create_project.html",
-                    {
-                        "form": form,
-                        "allocation_form": allocation_form,
-                        "funding_formset": funding_formset,
-                        "consent_form": consent_form,
-                    },
-                )
 
             # pi
             pi_user_id = request.user.id
@@ -1104,7 +1112,8 @@ def create_project(request):
             try:
                 with transaction.atomic():
                     created_project = mapper.save_project(project, request.get_host())
-                    _save_fundings(funding_formset, created_project["id"])
+                    if funded:
+                        _save_fundings(funding_formset, created_project["id"])
                 logger.info("newly created project: " + json.dumps(created_project))
                 messages.success(request, "Your project has been created!")
                 return HttpResponseRedirect(

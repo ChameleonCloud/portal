@@ -3,7 +3,6 @@ from textwrap import dedent
 
 import bibtexparser
 from django import forms
-from django.forms import BaseFormSet
 from django.forms import formset_factory
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
@@ -11,7 +10,8 @@ from magpub.utils import get_link as get_pub_link
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 
-from .models import Project, RawPublication, ChameleonPublication, PublicationQuery
+from .models import Project, ProjectExtras, RawPublication, ChameleonPublication, PublicationQuery
+
 
 logger = logging.getLogger("projects")
 
@@ -66,6 +66,15 @@ class ProjectCreateForm(forms.Form):
             self.fields["tagId"].choices = mapper.get_project_tags_choices()
         else:
             logger.error("Couldn't get field or tag list.")
+
+    def clean_nickname(self):
+        nickname = self.cleaned_data["nickname"]
+        if (
+            ProjectExtras.objects.filter(nickname=nickname).exists()
+            or Project.objects.filter(nickname=nickname).exists()
+        ):
+            raise forms.ValidationError("Project nickname unavailable")
+        return nickname
 
 
 class EditNicknameForm(forms.Form):
@@ -131,14 +140,15 @@ class FundingForm(forms.Form):
     )
     agency = forms.CharField(
         label="Agency",
-        required=True,
+        max_length=200,
+        required=False,
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Enter Agency"}
         ),
-        error_messages={"required": "Please enter agency"},
     )
     award = forms.CharField(
         label="Award #",
+        max_length=200,
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Enter Award Number"}
         ),
@@ -146,31 +156,24 @@ class FundingForm(forms.Form):
     )
     grant_name = forms.CharField(
         label="Grant Name",
-        required=True,
+        max_length=500,
+        required=False,
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Enter Grant Name"}
         ),
-        error_messages={"required": "Please enter grant name"},
     )
 
-
-class FundingFormSet(BaseFormSet):
     def clean(self):
-        # check if the last form is empty
-        last_form_cleaned_data = self.forms[-1].cleaned_data
-        last_form_cleaned_data = {k: v for k, v in last_form_cleaned_data.items() if v}
-
-        if last_form_cleaned_data:
-            self.forms[-1].add_error(
-                None, "Please use the plus button to add the funding!"
-            )
-        else:
-            self.forms.pop(-1)
-
-        return super(FundingFormSet, self).clean()
+        cleaned_data = super().clean()
+        if any(cleaned_data.get(f) for f in ("agency", "award", "grant_name")):
+            if not cleaned_data.get("agency"):
+                self.add_error("agency", "Please enter agency")
+            if not cleaned_data.get("grant_name"):
+                self.add_error("grant_name", "Please enter grant name")
+        return cleaned_data
 
 
-FundingFormset = formset_factory(FundingForm, formset=FundingFormSet, extra=0)
+FundingFormset = formset_factory(FundingForm, extra=0)
 
 
 class AllocationCreateForm(forms.Form):

@@ -1,10 +1,10 @@
-{% if alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
+{% if alloc.status == 'Active' and alloc.up_for_renewal and not project.has_approved_allocations and not project.has_pending_allocations %}
 <tr class="allocation allocation-{{ alloc.status|lower }}">
   <td colspan="7">
     <small class="alert alert-warning">
       <i class="fa fa-warning"></i>
       This allocation will expire in {{alloc.renewal_days}} days.
-      {% if can_manage_project %} Submit {% else %} The project PI can submit {% endif %}
+      {% if can_manage_project %} <a href="{% url 'projects:renew_allocation' project.id alloc.id %}">Submit</a> {% else %} The project PI can submit {% endif %}
       a renewal request to continue this allocation.
     </small>
   </td>
@@ -14,7 +14,7 @@
 <td>
   <small><span class="label label-default label-{{ alloc.status|lower }}">
     {{ alloc.status }}
-  </small>
+  </span></small>
 </td>
 <td>{{ alloc.dateRequested|date:"d F, Y" }}</td>
 <td>{{ alloc.dateReviewed|date:"d F, Y" }}</td>
@@ -22,9 +22,9 @@
 <td>{{ alloc.end|date:"d F, Y" }}</td>
 {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
 <td style="padding-right:10px">
-  <small>{{ alloc.computeUsed }} / {{ alloc.computeAllocated }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</small>
+  <small>{{ alloc.computeUsed|default:0|floatformat:"0" }} / {{ alloc.computeAllocated|floatformat:"0" }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</small>
   <div class="progress">
-    <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%"></div>
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed|default:0 }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%"></div>
   </div>
 </td>
 {% elif alloc.status == 'Rejected' %}
@@ -33,7 +33,7 @@
 <td></td>
 {% endif %}
 <td>
-  <div class="dropdown">
+    <div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       <i class="fa fa-gear text-info dropbtn"></i><span class="sr-only">Manage Allocation</span>
     </button>

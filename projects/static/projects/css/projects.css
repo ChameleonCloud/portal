@@ -1,2 +1,2 @@
-.allocation-inactive{visibility:collapse}.allocation-rejected{visibility:collapse}.label-pending,.label-waiting{background-color:#F0AD4E}.label-approved,.label-active{background-color:#74A93C}
+.allocation-inactive{display:none}.allocation-rejected{display:none}.label-pending,.label-waiting{background-color:#F0AD4E}.label-approved,.label-active{background-color:#74A93C}
 /*# sourceMappingURL=projects.css.map */

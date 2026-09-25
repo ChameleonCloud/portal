@@ -1,12 +1,8 @@
-{% load static %}
-
-{% block content %}
-
 <label for="is-funded">Is the proposed research related to a funded grant or pending support?<span style="color:red">*</span></label>
 <select id="is-funded" name="is_funded" class="form-control" required>
     <option value="">-- Select an option --</option>
-    <option value="yes">Yes</option>
-    <option value="no">No</option>
+    <option value="yes" {% if request.POST.is_funded == 'yes' %}selected{% endif %}>Yes</option>
+    <option value="no" {% if request.POST.is_funded == 'no' %}selected{% endif %}>No</option>
 </select>
 <br>
 
@@ -56,9 +52,3 @@
     </table>
     <br>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="{% static 'scripts/all.js' %}" type="text/javascript"></script>
-<script src="{% static 'projects/js/fundings.js' %}" type="text/javascript"></script>
-{% endblock %}

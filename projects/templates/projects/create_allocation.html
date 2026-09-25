@@ -1,6 +1,6 @@
 {% extends 'layout/user.html' %}
 
-{% load bootstrap3 %}
+{% load bootstrap3 static %}
 
 {% block title %}
     {% if alloc_id != -1 %}
@@ -68,4 +68,8 @@
   </div>
 </form>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'projects/js/fundings.js' %}" type="text/javascript"></script>
 {% endblock %}

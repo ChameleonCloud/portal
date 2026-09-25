@@ -90,13 +90,19 @@
         <p>
           You don't have any current allocations. This could be because your allocation
           recently expired or your project is new and you have not requested one yet.
+          {% if can_manage_project %}
           Please click on the <b>Request Allocation</b> below to get started!
+          {% else %}
+          Ask your project PI or a project manager to request an allocation.
+          {% endif %}
         </p>
       </div>
+      {% if can_manage_project %}
       <a class="btn btn-primary btn-sm" href="{% url 'projects:create_allocation' project.id %}">
         <i class="fa fa-plus"></i>
         Request Allocation
       </a>
+      {% endif %}
   {% endif %}
 
   <table width=100%>

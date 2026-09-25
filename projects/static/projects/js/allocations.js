@@ -2,11 +2,7 @@
 (function( window, $, undefined ) {
     $('button[name="allocation-display-toggle"]').on('click', function(e) {
       e.preventDefault();
-      if($('.allocation-inactive, .allocation-rejected').css('visibility') == 'collapse') {
-        $('.allocation-inactive, .allocation-rejected').css('visibility', 'visible');
-      } else {
-        $('.allocation-inactive, .allocation-rejected').css('visibility', 'collapse');
-      }
+      $('.allocation-inactive, .allocation-rejected').toggle();
     });
     
     $(document).on("click", ".open-charge", function (e) {
@@ -36,6 +32,7 @@
         $('#project_pi_edit_form').toggleClass('hidden');
       });
 
+       if (!$('#usageChart').length) return;
        var start =  $('#usageChart').attr('start');
        var end = $('#usageChart').attr('end');
        var projectId = $('#usageChart').attr('project-id');
