@@ -173,7 +173,9 @@ class ProjectAllocationMapper:
                 for b in project_balances(project_ids):
                     charge_code = b.get("charge_code")
                     if charge_code:
-                        all_active_allocations[charge_code].su_used = b.get("total")
+                        active_allocation = all_active_allocations[charge_code]
+                        active_allocation.su_used = b.get("used")
+                        active_allocation.su_pending = b.get("encumbered")
 
         return projects
 

@@ -22,9 +22,18 @@
 <td>{{ alloc.end|date:"d F, Y" }}</td>
 {% if alloc.status == 'Approved' or alloc.status == 'Active' or alloc.status == 'Inactive' %}
 <td style="padding-right:10px">
-  <small>{{ alloc.computeUsed|default:0|floatformat:"0" }} / {{ alloc.computeAllocated|floatformat:"0" }} SUs used ({{alloc.percentComputeUsed|floatformat:"0"}}%)</small>
+  <small>
+    {{ alloc.computeUsed|floatformat:"0" }} used
+    {% if alloc.computePending %}
+      + {{ alloc.computePending|floatformat:"0" }} pending
+    {% endif %}
+    / {{ alloc.computeAllocated|floatformat:"0" }} SUs allocated
+  </small>
   <div class="progress">
-    <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed|default:0 }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%"></div>
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{ alloc.computeUsed }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {{ alloc.percentComputeUsed }}%"></div>
+    {% if alloc.computePending %}
+      <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="{{ alloc.computePending }}" aria-valuemin="0" aria-valuemax="{{ alloc.computeAllocated }}" style="width: {% widthratio alloc.computePending alloc.computeAllocated 100 %}%"></div>
+    {% endif %}
   </div>
 </td>
 {% elif alloc.status == 'Rejected' %}

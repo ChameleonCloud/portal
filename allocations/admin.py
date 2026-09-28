@@ -341,16 +341,22 @@ class AllocationAdmin(admin.ModelAdmin):
         """)
 
     def previous_allocations(self, obj):
+        balance = su_calculators.project_balances([obj.project.id])[0]
         rows = []
         for alloc in sorted(
             obj.project.allocations.exclude(status="pending"),
             reverse=True,
             key=lambda x: x.date_requested,
         ):
-            real_su_used = alloc.su_used if alloc.su_used else ""
-            if not real_su_used:
-                balance = su_calculators.project_balances([alloc.project.id])[0]
-                real_su_used = balance["total"]
+            real_su_used = (
+                alloc.su_used if alloc.su_used is not None else balance["used"]
+            )
+            pending_su_used = balance["encumbered"] if alloc.status == "active" else 0
+            alloc_su_limit = alloc.su_allocated if alloc.su_allocated else 0
+            used_width = 100.0 * real_su_used / alloc_su_limit if alloc_su_limit else 0
+            pending_width = (
+                100.0 * pending_su_used / alloc_su_limit if alloc_su_limit else 0
+            )
             rows.append(f"""<tr>
                 <td><a href="{reverse("admin:allocations_allocation_change", args=[alloc.id])}">{alloc.id}</a></td>
                 <td>{alloc.requestor}</td>
@@ -361,10 +367,13 @@ class AllocationAdmin(admin.ModelAdmin):
                 <td>
                     <div>
                         <label>
-                            {real_su_used} / {alloc.su_allocated if alloc.su_allocated else ""}
+                            {real_su_used} used, {pending_su_used} pending / {alloc.su_allocated if alloc.su_allocated else ""} SUs
                         </label>
                     </div>
-                    <progress value="{real_su_used}" max="{alloc.su_allocated}">{real_su_used}</progress>
+                    <div style="display:flex; height:10px; border-radius:4px; overflow:hidden; background:#ccc;">
+                        <div style="width: {used_width}%; background:#9ad61a;"></div>
+                        <div style="width: {pending_width}%; background:#f0ad4e;"></div>
+                    </div>
                 </td>
             </tr>
             <tr>
