@@ -52,13 +52,17 @@ class Allocation(models.Model):
     low_allocation_warning_issued = models.DateTimeField(null=True)
     ticket_id = models.CharField(max_length=100, null=True, blank=True)
 
+    # Not stored, used by ProjectAllocationMapper
+    su_pending = 0
+
     def as_dict(self):
         return Allocation.to_dict(self)
 
     @classmethod
     def to_dict(cls, alloc):
         return {
-            "computeUsed": alloc.su_used,
+            "computeUsed": alloc.su_used or 0,
+            "computePending": alloc.su_pending,
             "computeAllocated": alloc.su_allocated,
             "computeRequested": alloc.su_requested,
             "dateRequested": _format_date(alloc.date_requested),
