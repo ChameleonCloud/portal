@@ -32,6 +32,12 @@
 </div>
 {% endblock %} {% block sidebar %}
 <div id="content-related">
+    <div class="module">
+        <h2>Tools</h2>
+        <ul>
+            <li><a href="{% url 'admin_contact_users' %}">Open ticket with users</a></li>
+        </ul>
+    </div>
     <div class="module" id="recent-actions-module">
         <h2>{% trans 'Recent Actions' %}</h2>
         <h3>{% trans 'My Actions' %}</h3> {% load log %} {% get_admin_log 10 as admin_log for_user user %} {% if not admin_log %}

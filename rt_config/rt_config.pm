@@ -9,6 +9,8 @@ Set($WebPath, "");
 
 Set($SendmailPath, "/bin/true");
 Set($MailCommand, "sendmail");
+Set($CorrespondAddress, "help\@localhost");
+Set($CommentAddress, "help-comment\@localhost");
 
 Set($LogToSTDERR, "debug");
 Set($WebSessionClass, "Apache::Session::File");

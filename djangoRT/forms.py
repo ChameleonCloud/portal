@@ -1,10 +1,14 @@
 import logging
 
+import re
+
 from django_recaptcha.fields import ReCaptchaField, ReCaptchaV3
 from django import forms
+from django.contrib.admin.widgets import AdminTextareaWidget, AdminTextInputWidget
 from django.core.validators import validate_email
 
 from projects.models import Project
+from projects.util import get_user_by_reference
 from util.keycloak_client import KeycloakClient
 
 from .models import TicketCategories
@@ -201,3 +205,32 @@ class CloseForm(forms.Form):
     reply = forms.CharField(
         required=True, widget=forms.Textarea(), label="Enter Close Comment"
     )
+
+
+class ContactUsersForm(forms.Form):
+    """Admin form for opening one ticket with several users as requestors."""
+
+    recipients = forms.CharField(
+        widget=AdminTextareaWidget(attrs={"rows": 3}),
+        help_text="Emails separated by commas or new lines.",
+    )
+    subject = forms.CharField(max_length=255, widget=AdminTextInputWidget())
+    message = forms.CharField(widget=AdminTextareaWidget())
+
+    def clean_recipients(self):
+        emails, invalid = [], []
+        for entry in re.split(r"[,\s]+", self.cleaned_data["recipients"].strip()):
+            try:
+                validate_email(entry)
+                email = entry
+            except forms.ValidationError:
+                email = None
+            if not email:
+                invalid.append(entry)
+            elif email not in emails:
+                emails.append(email)
+        if invalid:
+            raise forms.ValidationError(
+                f"Unknown username or invalid email: {', '.join(invalid)}"
+            )
+        return emails
