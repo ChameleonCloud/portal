@@ -15,6 +15,7 @@ from user_news.views import OutageDetailView, OutageFeed, OutageListView
 
 from chameleon import os_login as chameleon_os_login
 from chameleon import views as chameleon_views
+from djangoRT import views as djangoRT_views
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,11 @@ urlpatterns = [
     path(
         "admin/allocations/",
         include("allocations.urls", namespace="allocations_admin"),
+    ),
+    path(
+        "admin/contact-users/",
+        djangoRT_views.contact_users,
+        name="admin_contact_users",
     ),
     path("admin/", admin.site.urls),
     # contrib urls

@@ -3,8 +3,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from djangoRT import rtUtil, forms, rtModels
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import admin, messages
+from django.contrib.admin import helpers
 from django.template.loader import render_to_string
 import logging
 import mimetypes
@@ -15,6 +16,7 @@ from blazarclient import client as blazar_client
 from glanceclient import Client as glance_client
 from ironicclient import client as ironic_client
 from dateutil import parser
+from allocations.views import allocation_admin_or_superuser
 from chameleon.keystone_auth import admin_session, admin_ks_client
 from projects.models import Project
 from util.keycloak_client import KeycloakClient
@@ -383,3 +385,51 @@ def ticketattachment(request, ticket_id, attachment_id):
         response = HttpResponse(content, content_type=content_type)
         response["Content-Disposition"] = content_disposition
         return response
+
+
+@login_required
+@user_passes_test(allocation_admin_or_superuser, login_url="/admin/")
+def contact_users(request):
+    form = forms.ContactUsersForm(request.POST or None)
+    if form.is_valid():
+        recipients = form.cleaned_data["recipients"]
+        rt = rtUtil.DjangoRt()
+        ticket_id = rt.createTicket(
+            rtModels.Ticket(
+                subject=form.cleaned_data["subject"],
+                problem_description="Ticket created by Chameleon staff.",
+                requestor=", ".join(recipients),
+                owner=request.user.username,
+            )
+        )
+        if ticket_id and ticket_id > 0:
+            rt.replyToTicket(ticket_id, text=form.cleaned_data["message"])
+            messages.success(
+                request, f"Opened ticket #{ticket_id} with {', '.join(recipients)}."
+            )
+            return HttpResponseRedirect(reverse("admin_contact_users"))
+        logger.error(f"Error creating ticket for {recipients}")
+        messages.error(request, "There was an error creating the ticket.")
+
+    return render(
+        request,
+        "djangoRT/admin_contact_users.html",
+        {
+            **admin.site.each_context(request),
+            "adminform": helpers.AdminForm(
+                form,
+                [
+                    (
+                        None,
+                        {
+                            "fields": list(form.fields),
+                            "description": "Opens one RT ticket with every "
+                            "recipient as a requestor and sends them the message.",
+                        },
+                    )
+                ],
+                {},
+            ),
+            "title": "Open ticket with users",
+        },
+    )
