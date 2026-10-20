@@ -1,4 +1,5 @@
 import logging
+from fnmatch import fnmatchcase
 from urllib.parse import urlsplit
 
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.utils.cache import patch_vary_headers
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
 from djangoRT import rtUtil
@@ -121,6 +123,17 @@ def featured_json(request):
         return JsonResponse([], safe=False, status=500)
     featured = response.json()
     return JsonResponse(featured, safe=False)
+
+
+def site_header(request):
+    response = render(request, "includes/header.html")
+    origin = request.headers.get("Origin")
+    allowed = settings.SITE_HEADER_ALLOWED_ORIGINS
+    if origin and any(fnmatchcase(origin, pattern) for pattern in allowed):
+        response["Access-Control-Allow-Origin"] = origin
+        response["Access-Control-Allow-Credentials"] = "true"
+    patch_vary_headers(response, ["Origin"])
+    return response
 
 
 @login_required
