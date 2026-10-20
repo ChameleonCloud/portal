@@ -95,6 +95,7 @@ urlpatterns = [
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
     path("featured.json", chameleon_views.featured_json, name="featured_json"),
+    path("header.html", chameleon_views.site_header, name="site_header"),
     path(
         "dataset/download/<int:dataset_id>",
         chameleon_views.download_dataset,

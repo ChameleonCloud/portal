@@ -95,6 +95,9 @@ TROVI_API_BASE_URL = os.getenv(
 TROVI_DASHBOARD_URL_BASE = os.getenv(
     "TROVI_DASHBOARD_URL_BASE", "https://trovi.chameleoncloud.org/dashboard/"
 )
+SITE_HEADER_ALLOWED_ORIGINS = os.getenv(
+    "SITE_HEADER_ALLOWED_ORIGINS", "https://*.chameleoncloud.org"
+).split(",")
 
 # TEMPLATE_DEBUG = DEBUG
 
