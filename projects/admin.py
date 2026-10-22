@@ -108,7 +108,10 @@ class InvitationAdmin(admin.ModelAdmin):
 class ProjectPublicationInline(admin.TabularInline):
     model = Publication
     exclude = ["tas_project_id"]
-    extra = 1
+    extra = 0
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class FundingInline(admin.TabularInline):
