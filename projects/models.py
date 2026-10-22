@@ -32,9 +32,19 @@ class Tag(models.Model):
         return self.name
 
 
+class AdminTag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Project(models.Model):
     tag = models.ForeignKey(
         Tag, related_name="projects", null=True, on_delete=models.CASCADE
+    )
+    admin_tags = models.ManyToManyField(
+        AdminTag, through="ProjectAdminTag", related_name="projects", blank=True
     )
     automatically_tagged = models.BooleanField(default=False)
     description = models.TextField()
@@ -95,6 +105,15 @@ class Project(models.Model):
 
     def __hash__(self):
         return hash(self.id)
+
+
+class ProjectAdminTag(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    tag = models.ForeignKey(AdminTag, on_delete=models.CASCADE)
+    detail = models.CharField(max_length=255, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.tag} ({self.detail})" if self.detail else str(self.tag)
 
 
 class ProjectExtras(models.Model):

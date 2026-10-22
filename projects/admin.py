@@ -24,6 +24,7 @@ from projects.user_publication.publications import (
 
 from allocations.models import Allocation
 from projects.models import (
+    AdminTag,
     ChameleonPublication,
     VenueSeries,
     VenueSeriesAlias,
@@ -31,6 +32,7 @@ from projects.models import (
     Funding,
     Invitation,
     Project,
+    ProjectAdminTag,
     Publication,
     PublicationCitation,
     PublicationQuery,
@@ -114,6 +116,11 @@ class FundingInline(admin.TabularInline):
     extra = 1
 
 
+class ProjectAdminTagInline(admin.TabularInline):
+    model = ProjectAdminTag
+    extra = 0
+
+
 class InvitationInline(admin.TabularInline):
     model = Invitation
     readonly_fields = [
@@ -177,8 +184,15 @@ class AllocationInline(admin.TabularInline):
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ["charge_code", "pi", "nickname", "title"]
-    search_fields = ["charge_code", "pi__username", "pi__email", "nickname", "title"]
-    list_filter = ["tag"]
+    search_fields = [
+        "charge_code",
+        "pi__username",
+        "pi__email",
+        "nickname",
+        "title",
+        "projectadmintag__detail",
+    ]
+    list_filter = ["tag", "admin_tags"]
     readonly_fields = [
         "charge_code_link",
         "automatically_tagged",
@@ -206,6 +220,7 @@ class ProjectAdmin(admin.ModelAdmin):
         )
 
     inlines = [
+        ProjectAdminTagInline,
         ProjectPublicationInline,
         FundingInline,
         InvitationInline,
@@ -928,6 +943,7 @@ class VenueEditionAdmin(admin.ModelAdmin):
 
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Project, ProjectAdmin)
+admin.site.register(AdminTag)
 admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(ChameleonPublication, ChameleonPublicationAdmin)
 # admin.site.register(PublicationSource, PublicationSourceAdmin)

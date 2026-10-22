@@ -145,9 +145,10 @@ class AllocationAdmin(admin.ModelAdmin):
 
     def project_info(self, obj):
         fundings = "</li><li>".join(str(f) for f in obj.project.project_funding.all())
+        project_url = reverse("admin:projects_project_change", args=[obj.project.id])
         return mark_safe(f"""<table>
             <tr>
-                <td><b>Charge Code</b></td><td>{obj.project.charge_code}</td>
+                <td><b>Charge Code</b></td><td><a href="{project_url}">{obj.project.charge_code}</a></td>
             </tr>
             <tr>
                 <td><b>Title</b></td><td>{obj.project.title}</td>
@@ -157,6 +158,9 @@ class AllocationAdmin(admin.ModelAdmin):
             </tr>
             <tr>
                 <td><b>Tag</b></td><td>{obj.project.tag.name} - {obj.project.tag.description}</td>
+            </tr>
+            <tr>
+                <td><b>Admin Tags</b></td><td><ul>{"".join(f"<li>{t}</li>" for t in obj.project.projectadmintag_set.all())}</ul></td>
             </tr>
             <tr>
                 <td><b>Fundings</b></td><td><ul><li>{fundings}</li></ul></td>
