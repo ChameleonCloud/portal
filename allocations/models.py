@@ -55,6 +55,11 @@ class Allocation(models.Model):
     # Not stored, used by ProjectAllocationMapper
     su_pending = 0
 
+    def __str__(self):
+        start = self.start_date.date() if self.start_date else "?"
+        end = self.expiration_date.date() if self.expiration_date else "?"
+        return f"{self.project} alloc {self.id} {self.status} ({start} - {end})"
+
     def as_dict(self):
         return Allocation.to_dict(self)
 

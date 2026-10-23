@@ -1,11 +1,14 @@
 from django.contrib import admin
+from django.contrib.admin.widgets import AutocompleteSelect
 from django.db import models
 from django import forms
-from django.utils.html import escape
+from django.utils import timezone
+from django.utils.html import escape, format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 from balance_service.utils import su_calculators
+from projects.models import Project
 from util.keycloak_client import KeycloakClient
 
 from .models import Allocation, Charge
@@ -483,3 +486,100 @@ class AllocationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Allocation, AllocationAdmin)
+
+
+class DatalistInput(forms.TextInput):
+    def __init__(self, options, attrs=None):
+        super().__init__(attrs)
+        self.options = options
+
+    def render(self, name, value, attrs=None, renderer=None):
+        list_id = f"{name}_options"
+        return super().render(
+            name, value, {**(attrs or {}), "list": list_id}, renderer
+        ) + format_html(
+            '<datalist id="{}">{}</datalist>',
+            list_id,
+            format_html_join("", '<option value="{}">', ((o,) for o in self.options)),
+        )
+
+
+class ChargeAddForm(forms.ModelForm):
+    project = forms.ModelChoiceField(
+        queryset=Project.objects.all(),
+        widget=AutocompleteSelect(Allocation._meta.get_field("project"), admin.site),
+        help_text="The charge is added to the project's most recently started "
+        "allocation. Edit the charge afterwards to pick a different one.",
+    )
+
+    # add help text to resource_id field
+    resource_id = forms.CharField(
+        help_text="The lease's reservation id field."
+    )
+
+    class Meta:
+        model = Charge
+        fields = [
+            "project",
+            "user",
+            "region_name",
+            "resource_id",
+            "resource_type",
+            "start_time",
+            "end_time",
+            "hourly_cost",
+        ]
+
+    def clean_project(self):
+        project = self.cleaned_data["project"]
+        allocation = (
+            project.allocations.filter(start_date__lte=timezone.now())
+            .order_by("-start_date")
+            .first()
+        )
+        if not allocation:
+            raise forms.ValidationError("This project has no started allocations.")
+        self.instance.allocation = allocation
+        return project
+
+
+class ChargeAdmin(admin.ModelAdmin):
+    list_display = [
+        "allocation",
+        "user",
+        "region_name",
+        "resource_type",
+        "resource_id",
+        "start_time",
+        "end_time",
+        "hourly_cost",
+    ]
+    list_select_related = ["allocation__project", "user"]
+    list_filter = ["region_name", "resource_type"]
+    search_fields = [
+        "allocation__project__charge_code",
+        "user__username",
+        "resource_id",
+    ]
+    ordering = ["-start_time"]
+    autocomplete_fields = ["allocation", "user"]
+    formfield_overrides = {
+        models.TextField: {"widget": forms.TextInput},
+    }
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name in ["region_name", "resource_type"]:
+            kwargs["widget"] = DatalistInput(
+                Charge.objects.order_by(db_field.name)
+                .values_list(db_field.name, flat=True)
+                .distinct()
+            )
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is None:
+            kwargs["form"] = ChargeAddForm
+        return super().get_form(request, obj, **kwargs)
+
+
+admin.site.register(Charge, ChargeAdmin)
