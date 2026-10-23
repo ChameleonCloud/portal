@@ -855,26 +855,29 @@ def send_invitation_email(invitation, request):
 
 def set_ks_project_nickname(chargeCode, nickname):
     for region in list(settings.OPENSTACK_AUTH_REGIONS.keys()):
-        ks_admin = admin_ks_client(region=region)
-        project_list = ks_admin.projects.list(domain=ks_admin.user_domain_id)
-        project = [
-            this
-            for this in project_list
-            if getattr(this, "charge_code", None) == chargeCode
-        ]
-        logger.info(
-            "Assigning nickname {0} to project with charge code {1} at {2}".format(
-                nickname, chargeCode, region
+        try:
+            ks_admin = admin_ks_client(region=region)
+            project_list = ks_admin.projects.list(domain=ks_admin.user_domain_id)
+            project = [
+                this
+                for this in project_list
+                if getattr(this, "charge_code", None) == chargeCode
+            ]
+            logger.info(
+                "Assigning nickname {0} to project with charge code {1} at {2}".format(
+                    nickname, chargeCode, region
+                )
             )
-        )
-        if project and project[0]:
-            project = project[0]
-        ks_admin.projects.update(project, name=nickname)
-        logger.info(
-            "Successfully assigned nickname {0} to project with charge code {1} at {2}".format(
-                nickname, chargeCode, region
+            if project and project[0]:
+                project = project[0]
+            ks_admin.projects.update(project, name=nickname)
+            logger.info(
+                "Successfully assigned nickname {0} to project with charge code {1} at {2}".format(
+                    nickname, chargeCode, region
+                )
             )
-        )
+        except Exception:
+            logger.exception(f"Failed to set nickname for {chargeCode} at {region}")
 
 
 def _save_fundings(funding_formset, project_id):
