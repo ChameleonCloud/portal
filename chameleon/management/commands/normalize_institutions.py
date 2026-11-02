@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.db import transaction
 import json
 import logging
@@ -371,13 +371,18 @@ class Command(BaseCommand):
         Try exact domain match, then progressively strip subdomains.
         e.g. "cs.uchicago.edu" → try "cs.uchicago.edu", then "uchicago.edu".
         Stops before single-part TLDs like "edu" or "com".
+        Among institutions sharing a domain, prefers the top-most one that
+        owns it (Argonne over its labs, but not UChicago over Argonne).
         """
         parts = domain.split(".")
         for i in range(len(parts) - 1):
             candidate = ".".join(parts[i:])
             if candidate.count(".") == 0:
                 break  # skip bare TLDs
-            inst = Institution.objects.filter(website_domain__iexact=candidate).first()
+            matches = Institution.objects.filter(website_domain__iexact=candidate)
+            inst = matches.exclude(
+                Exists(matches.filter(ror_id=OuterRef("parent_ror_id")))
+            ).first()
             if inst:
                 return inst
         return None
