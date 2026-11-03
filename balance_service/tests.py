@@ -1,4 +1,5 @@
 import json
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
@@ -1008,6 +1009,15 @@ class BalanceServiceTest(TestCase):
         result = get_config_value("limit", lease, self.lease_eval, default=1234)
 
         self.assertEqual(result, 1234)
+
+    def test_ConfigVariable_clean_rejects_duplicate_scope(self):
+        ConfigVariable.objects.create(key="su_factor", value=1, region="CHI@UC")
+        with self.assertRaises(ValidationError):
+            ConfigVariable(key="su_factor", value=2, region="chi@uc").clean()
+        ConfigVariable(key="su_factor", value=2).clean()
+        ConfigVariable(
+            key="su_factor", value=2, region="CHI@UC", project_charge_code="CC123"
+        ).clean()
 
     def test_ConfigVarible_get_value_returns_none_when_no_match(self):
         result = ConfigVariable.get_value(
