@@ -9,6 +9,7 @@ class ConfigVariable(models.Model):
         ("lease_update_window", "Lease update window"),
         ("su_factor", "SU factor (hourly cost)"),
         ("region_end_date", "Region end date (Unix UTC timestamp)"),
+        ("block_gpu", "Block GPU nodes (1 = blocked, 0 = allowed)"),
     ]
 
     key = models.CharField(max_length=255, choices=KEY_CHOICES)

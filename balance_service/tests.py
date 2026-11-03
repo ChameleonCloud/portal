@@ -1,4 +1,5 @@
 import json
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
@@ -7,6 +8,7 @@ from balance_service.enforcement import exceptions
 from balance_service.enforcement.usage_enforcement import (
     LeaseEval,
     UsageEnforcer,
+    _fetch_gpu_node_uids,
     get_config_value,
 )
 from balance_service.models import ConfigVariable
@@ -1184,3 +1186,51 @@ class BalanceServiceTest(TestCase):
         ue._check_region_end_date(
             {"end_date": lease_end}, self._make_lease_eval("OTHER@REGION")
         )
+
+    def _check_gpu_restriction(self, *hostnames):
+        cache.clear()
+        self.lease_eval.region = "CHI@UC"
+        allocations = [{"hypervisor_hostname": h} for h in hostnames]
+        with patch(
+            "balance_service.enforcement.usage_enforcement._fetch_gpu_node_uids",
+            return_value={"gpu-node"},
+        ) as mock_fetch:
+            UsageEnforcer(MagicMock())._check_gpu_restriction(
+                {"reservations": [{"allocations": allocations}]}, self.lease_eval
+            )
+        return mock_fetch
+
+    def test_check_gpu_restriction_blocks_gpu_for_project(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="CC123"
+        )
+        with self.assertRaisesRegex(exceptions.BillingError, "GPU"):
+            self._check_gpu_restriction("cpu-node", "gpu-node")
+
+    def test_check_gpu_restriction_allows_non_gpu(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="CC123"
+        )
+        self._check_gpu_restriction("cpu-node").assert_called_once()
+
+    def test_check_gpu_restriction_project_overrides_global(self):
+        ConfigVariable.objects.create(key="block_gpu", value=1)
+        ConfigVariable.objects.create(
+            key="block_gpu", value=0, project_charge_code="CC123"
+        )
+        self._check_gpu_restriction("gpu-node").assert_not_called()
+
+    def test_check_gpu_restriction_other_project_unaffected(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="OTHER"
+        )
+        self._check_gpu_restriction("gpu-node").assert_not_called()
+
+    @patch("balance_service.enforcement.usage_enforcement.requests.get")
+    def test_fetch_gpu_node_uids(self, mock_get):
+        mock_get.return_value.json.side_effect = [
+            {"total": 2, "items": [{"uid": "gpu-1"}]},
+            {"total": 2, "items": [{"uid": "gpu-2"}]},
+        ]
+        self.assertEqual(_fetch_gpu_node_uids(), {"gpu-1", "gpu-2"})
+        self.assertEqual(mock_get.call_args.kwargs["params"]["offset"], 1)

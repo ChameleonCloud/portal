@@ -20,7 +20,9 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.utils import timezone
+import requests
 
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
@@ -33,6 +35,10 @@ from util.keycloak_client import KeycloakClient
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SU_FACTOR = 1.0
+
+REFERENCE_API_URL = "https://api.chameleoncloud.org"
+GPU_NODE_UIDS_CACHE_KEY = "balance_service_gpu_node_uids"
+GPU_NODE_UIDS_CACHE_SECONDS = 3600
 
 LeaseEval = collections.namedtuple(
     "LeaseEval", ["project", "user", "region", "duration", "total_su_factor", "amount"]
@@ -173,6 +179,7 @@ class UsageEnforcer(object):
         """
         lease = data["lease"]
         lease_eval = self._evaluate_lease(data["context"], lease)
+        self._check_gpu_restriction(lease, lease_eval)
 
         LOG.debug(f"Evaluating new lease request: {lease} ({lease_eval})")
         debug_lease_reservations("New reservation", lease)
@@ -244,6 +251,7 @@ class UsageEnforcer(object):
 
         old_lease_eval = self._evaluate_lease(context, old_lease)
         new_lease_eval = self._evaluate_lease(context, new_lease)
+        self._check_gpu_restriction(new_lease, new_lease_eval)
 
         LOG.debug(
             (
@@ -433,6 +441,30 @@ class UsageEnforcer(object):
                 )
             )
 
+    def _check_gpu_restriction(self, lease, lease_eval):
+        blocked = ConfigVariable.get_value(
+            "block_gpu",
+            username=lease_eval.user.username,
+            charge_code=lease_eval.project.charge_code,
+            region=lease_eval.region,
+        )
+        if not blocked:
+            return
+        gpu_node_uids = cache.get_or_set(
+            GPU_NODE_UIDS_CACHE_KEY, _fetch_gpu_node_uids, GPU_NODE_UIDS_CACHE_SECONDS
+        )
+        # Blazar's hypervisor_hostname is the Ironic node UUID, which the
+        # reference API uses as the node uid
+        for reservation in lease["reservations"]:
+            for resource in reservation["allocations"]:
+                if resource.get("hypervisor_hostname") in gpu_node_uids:
+                    raise exceptions.BillingError(
+                        message=(
+                            f"Project {lease_eval.project.charge_code} is not "
+                            "permitted to reserve GPU nodes"
+                        )
+                    )
+
     def _check_alloc_expiration_date(self, lease, alloc, approved_alloc):
         lease_end = self._convert_to_localtime(
             self._date_from_string(lease["end_date"])
@@ -536,3 +568,16 @@ def get_config_value(key, lease, lease_eval, default):
     if min_value is not None:
         return min_value
     return default
+
+
+def _fetch_gpu_node_uids():
+    uids = set()
+    while True:
+        page = requests.get(
+            f"{REFERENCE_API_URL}/nodes/search",
+            params={"gpu": "true", "limit": 500, "offset": len(uids)},
+            timeout=10,
+        ).json()
+        uids.update(node["uid"] for node in page["items"])
+        if not page["items"] or len(uids) >= page["total"]:
+            return uids
