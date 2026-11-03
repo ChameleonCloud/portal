@@ -1,7 +1,8 @@
 import json
+from django.contrib import admin
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
@@ -12,6 +13,7 @@ from balance_service.enforcement.usage_enforcement import (
     get_config_value,
 )
 from balance_service.models import ConfigVariable
+from projects.admin import ProjectAdmin
 from projects.models import Project
 from django.contrib.auth import get_user_model
 from unittest.mock import patch, MagicMock
@@ -1234,3 +1236,36 @@ class BalanceServiceTest(TestCase):
         ]
         self.assertEqual(_fetch_gpu_node_uids(), {"gpu-1", "gpu-2"})
         self.assertEqual(mock_get.call_args.kwargs["params"]["offset"], 1)
+
+    def _project_admin_form(self, block_gpu=None):
+        request = RequestFactory().get("/")
+        request.user = self.test_requestor
+        form_class = ProjectAdmin(Project, admin.site).get_form(request, self.project)
+        if block_gpu is None:
+            return form_class(instance=self.project)
+        data = {
+            "title": self.project.title,
+            "nickname": self.project.nickname,
+            "description": self.project.description,
+            "pi": self.project.pi.id,
+        }
+        if block_gpu:
+            data["block_gpu"] = "on"
+        form = form_class(data, instance=self.project)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+
+    def test_project_admin_block_gpu_checkbox(self):
+        rows = ConfigVariable.objects.filter(
+            key="block_gpu", project_charge_code="TEST123"
+        )
+        self._project_admin_form(block_gpu=False)
+        self.assertFalse(rows.exists())
+
+        self._project_admin_form(block_gpu=True)
+        self.assertEqual(rows.get().value, 1)
+        self.assertTrue(self._project_admin_form().initial["block_gpu"])
+
+        self._project_admin_form(block_gpu=False)
+        self.assertFalse(rows.exists())
+        self.assertFalse(self._project_admin_form().initial["block_gpu"])
