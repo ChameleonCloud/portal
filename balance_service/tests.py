@@ -117,6 +117,7 @@ class BalanceServiceTest(TestCase):
         self.lease_eval = MagicMock()
         self.lease_eval.user.username = "testuser"
         self.lease_eval.project.charge_code = "CC123"
+        ConfigVariable.objects.create(key="su_factor", value=3, region="RegionOne")
 
     @patch("django.utils.timezone.now")  # Mocking timezone.now()
     def test_get_used_sus(self, mock_now):
@@ -1274,6 +1275,118 @@ class BalanceServiceTest(TestCase):
         self.assertFalse(rows.exists())
         self.assertFalse(self._project_admin_form().initial["block_gpu"])
 
+    def _reservation_sus(self, resource_type, *allocations, region="CHI@UC", **res):
+        reservation = {"resource_type": resource_type, "allocations": allocations}
+        lease_eval = LeaseEval(self.project, self.test_requestor, region, 1, None, None)
+        return UsageEnforcer(MagicMock())._get_reservation_sus(
+            {**reservation, **res}, lease_eval
+        )
+
+    def _su_factor(self, value, **scope):
+        ConfigVariable.objects.create(key="su_factor", value=value, **scope)
+
+    def test_su_factor_by_node_type(self):
+        self._su_factor(2, resource_class="gpu_rtx_6000")
+        gpu = {"node_type": "gpu_rtx_6000", "su_factor": "2"}
+        self.assertEqual(self._reservation_sus("physical:host", gpu, gpu), 4)
+
+    def test_su_factor_resource_name_overrides_node_type(self):
+        self._su_factor(2, resource_class="gpu_rtx_6000")
+        self._su_factor(0.5, resource_name="P3-GPU-001")
+        self._su_factor(3, resource_name="uuid-2")
+        sus = self._reservation_sus(
+            "physical:host",
+            {"node_type": "gpu_rtx_6000", "node_name": "P3-GPU-001"},
+            {"node_type": "gpu_rtx_6000", "hypervisor_hostname": "uuid-2"},
+            {"node_type": "gpu_rtx_6000", "node_name": "P3-GPU-002"},
+        )
+        self.assertEqual(sus, 5.5)
+
+    def test_su_factor_region_beats_global(self):
+        self._su_factor(2, resource_class="compute_gigaio")
+        self._su_factor(4, resource_class="compute_gigaio", region="CHI@TACC")
+        self._su_factor(9, region="CHI@UC")
+        host = {"node_type": "compute_gigaio"}
+        self.assertEqual(self._reservation_sus("physical:host", host), 2)
+        sus = self._reservation_sus("physical:host", host, region="chi@tacc")
+        self.assertEqual(sus, 4)
+
+    def test_su_factor_project_override(self):
+        self._su_factor(2, resource_class="gpu_rtx_6000")
+        self._su_factor(1, project_charge_code="TEST123")
+        host = {"node_type": "gpu_rtx_6000"}
+        self.assertEqual(self._reservation_sus("physical:host", host), 1)
+
+    def test_su_factor_flavor_by_vcpu_share(self):
+        self._su_factor(0.96, flavor_id="4")
+        self._su_factor(1.2, resource_class="compute_cascadelake")
+        hypervisor = {"node_type": "compute_cascadelake", "vcpus": 48}
+        sus = self._reservation_sus(
+            "flavor:instance",
+            hypervisor,
+            hypervisor,
+            vcpus=4,
+            resource_properties=json.dumps({"id": "4"}),
+        )
+        self.assertAlmostEqual(sus, 2 * 0.96 * 4 / 48)
+        sus = self._reservation_sus(
+            "flavor:instance",
+            hypervisor,
+            vcpus=4,
+            resource_properties=json.dumps({"id": "5"}),
+        )
+        self.assertAlmostEqual(sus, 1.2 * 4 / 48)
+
+    def test_su_factor_resource_name_beats_flavor(self):
+        self._su_factor(0.96, flavor_id="4")
+        self._su_factor(2.4, resource_name="kvm-host-1")
+        sus = self._reservation_sus(
+            "flavor:instance",
+            {"node_name": "kvm-host-1", "vcpus": 48},
+            vcpus=4,
+            resource_properties=json.dumps({"id": "4"}),
+        )
+        self.assertAlmostEqual(sus, 2.4 * 4 / 48)
+
+    def test_su_factor_floatingip_seeded_free(self):
+        fip = {"floating_ip_address": "192.0.2.1"}
+        self.assertEqual(self._reservation_sus("virtual:floatingip", fip), 0)
+
+    def test_su_factor_network_by_stitch_provider(self):
+        self._su_factor(1, resource_type="network")
+        self._su_factor(2, resource_type="network", resource_class="fabric")
+        sus = self._reservation_sus(
+            "network", {"stitch_provider": "fabric"}, {"stitch_provider": "none"}
+        )
+        self.assertEqual(sus, 3)
+
+    def test_su_factor_device_by_machine_name(self):
+        self._su_factor(0.5, resource_class="jetson-nano")
+        device = {"machine_name": "jetson-nano"}
+        self.assertEqual(self._reservation_sus("device", device), 0.5)
+
+    def test_su_factor_ignores_blazar(self):
+        with self.assertLogs(
+            "balance_service.enforcement.usage_enforcement", "WARNING"
+        ) as logs:
+            sus = self._reservation_sus(
+                "physical:host",
+                {"node_type": "a", "su_factor": "3"},
+                {"node_type": "b", "su_factor": "1.0"},
+                {},
+            )
+        self.assertEqual(sus, 3)
+        self.assertEqual(len(logs.records), 1)
+        self.assertIn("Blazar overrides su_factor to 3", logs.output[0])
+
+    def test_su_factor_portal_overrides_blazar(self):
+        self._su_factor(2, resource_class="gpu_rtx_6000")
+        with self.assertNoLogs("balance_service.enforcement.usage_enforcement", "INFO"):
+            sus = self._reservation_sus(
+                "physical:host", {"node_type": "gpu_rtx_6000", "su_factor": "3"}
+            )
+        self.assertEqual(sus, 2)
+
 
 AUTH_URL = "https://chi.uc.example.org:5000/v3"
 SERVICE_TOKEN = "gAAAAABblazar-service-token"
@@ -1356,6 +1469,12 @@ class BalanceServiceAPITest(TestCase):
             expiration_date=self.now + timedelta(days=30),
             su_requested=1000,
             su_allocated=1000,
+        )
+        ConfigVariable.objects.create(
+            key="su_factor", value=1, resource_class="compute_skylake"
+        )
+        ConfigVariable.objects.create(
+            key="su_factor", value=2, resource_class="gpu_rtx_6000"
         )
         cache.delete(GPU_NODE_UIDS_CACHE_KEY)
 

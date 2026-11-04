@@ -13,9 +13,28 @@ class ConfigVariableAdmin(ModelAdmin):
         "username",
         "project_charge_code",
         "region",
+        "resource_type",
+        "resource_class",
+        "resource_name",
     )
-    list_filter = ("key", "flavor_id", "username", "project_charge_code", "region")
-    search_fields = ("key", "flavor_id", "username", "project_charge_code", "region")
+    list_filter = (
+        "key",
+        "flavor_id",
+        "username",
+        "project_charge_code",
+        "region",
+        "resource_type",
+        "resource_class",
+    )
+    search_fields = (
+        "key",
+        "flavor_id",
+        "username",
+        "project_charge_code",
+        "region",
+        "resource_class",
+        "resource_name",
+    )
 
 
 admin.site.register(ConfigVariable, ConfigVariableAdmin)
