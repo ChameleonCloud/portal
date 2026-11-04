@@ -35,6 +35,15 @@ from util.keycloak_client import KeycloakClient
 LOG = logging.getLogger(__name__)
 
 DEFAULT_SU_FACTOR = 1.0
+# Allocation property that distinguishes resources of one type for pricing
+RESOURCE_CLASS_PROPERTY = {
+    "physical:host": "node_type",
+    "flavor:instance": "node_type",
+    "network": "stitch_provider",
+    "device": "machine_name",
+}
+# Allocation properties that can identify one specific resource
+RESOURCE_NAME_PROPERTIES = ["node_name", "name", "uid", "hypervisor_hostname"]
 
 REFERENCE_API_URL = "https://api.chameleoncloud.org"
 GPU_NODE_UIDS_CACHE_KEY = "balance_service_gpu_node_uids"
@@ -118,17 +127,19 @@ class UsageEnforcer(object):
     def _evaluate_lease(self, context, lease_values):
         project_charge_code = self._get_project_charge_code(context["project_id"])
         duration = self.get_lease_duration_hrs(lease_values)
-        total_su_factor = self._total_su_factor(lease_values)
-        amount = duration * total_su_factor
         ks_user = self._get_keystone_user(context["user_id"])
 
-        return LeaseEval(
+        lease_eval = LeaseEval(
             self._get_portal_project(project_charge_code),
             get_user_by_reference(username=ks_user["username"], email=ks_user["email"]),
             context["region_name"],
             duration,
-            total_su_factor,
-            amount,
+            None,
+            None,
+        )
+        total_su_factor = self._total_su_factor(lease_values, lease_eval)
+        return lease_eval._replace(
+            total_su_factor=total_su_factor, amount=duration * total_su_factor
         )
 
     def get_balance_service_version(self, data):
@@ -239,7 +250,7 @@ class UsageEnforcer(object):
                 end_time=self._convert_to_localtime(
                     self._date_from_string(lease["end_date"])
                 ),
-                hourly_cost=self._get_reservation_sus(reservation),
+                hourly_cost=self._get_reservation_sus(reservation, lease_eval),
             )
             new_charge.save()
 
@@ -293,7 +304,7 @@ class UsageEnforcer(object):
         self._check_alloc_expiration_date(new_lease, alloc, approved_alloc)
         self._check_region_end_date(new_lease, new_lease_eval)
         for reservation in new_lease["reservations"]:
-            new_hourly_cost = self._get_reservation_sus(reservation)
+            new_hourly_cost = self._get_reservation_sus(reservation, new_lease_eval)
             if not end_date_changed:
                 # check if hourly_cost changed
                 old_reservation = [
@@ -302,7 +313,9 @@ class UsageEnforcer(object):
                 old_hourly_cost = None
                 if len(old_reservation) > 0:
                     old_reservation = old_reservation[0]
-                    old_hourly_cost = self._get_reservation_sus(old_reservation)
+                    old_hourly_cost = self._get_reservation_sus(
+                        old_reservation, old_lease_eval
+                    )
                 if new_hourly_cost == old_hourly_cost:
                     # nothing changed
                     continue
@@ -363,37 +376,44 @@ class UsageEnforcer(object):
                     charge.end_time = now
                     charge.save()
 
-    def __get_billrate(self, resource, reservation, resource_type=None):
-        # Do not charge for floating IPs
-        if resource_type == "virtual:floatingip":
-            return 0
+    def _get_su_factor(self, su_factors, resource, reservation, lease_eval):
+        resource_type = reservation["resource_type"]
+        class_property = RESOURCE_CLASS_PROPERTY.get(resource_type)
+        scope = dict(
+            flavor_id=_get_reservation_flavor_id(reservation),
+            username=lease_eval.user.username,
+            charge_code=lease_eval.project.charge_code,
+            region=lease_eval.region,
+            resource_type=resource_type,
+            resource_class=resource.get(class_property) if class_property else None,
+            resource_names={
+                str(resource[p]) for p in RESOURCE_NAME_PROPERTIES if resource.get(p)
+            },
+        )
+        su_factor = ConfigVariable.pick_value(su_factors, **scope)
+        # Blazar's su_factor is never charged, only compared against portal's to
+        # catch resources that are priced in Blazar but not in portal
+        blazar_su_factor = resource.get("su_factor")
+        if su_factor is None:
+            if blazar_su_factor and float(blazar_su_factor) != DEFAULT_SU_FACTOR:
+                LOG.warning(
+                    f"Blazar overrides su_factor to {blazar_su_factor} for {scope}, "
+                    f"but portal does not, using {DEFAULT_SU_FACTOR}"
+                )
+            return DEFAULT_SU_FACTOR
+        return float(su_factor)
 
-        # SU factor is configured per flavor in portal
-        # Note: this doesn't let us customize su_factor per project/user yet
-        if resource_type == "flavor:instance":
-            flavor_id = _get_reservation_flavor_id(reservation)
-            v = ConfigVariable.get_value(
-                "su_factor",
-                flavor_id=flavor_id,
-            )
-            if v is not None:
-                return float(v)
-
-        # SU factor can be set at the blazar resource via blazar API for other resource types
-        su_factor = resource.get("su_factor")
-        if su_factor:
-            return float(su_factor)
-
-        return DEFAULT_SU_FACTOR
-
-    def _get_reservation_sus(self, reservation):
+    def _get_reservation_sus(self, reservation, lease_eval):
         resource_type = reservation["resource_type"]
         allocations = reservation["allocations"]
+        su_factors = list(ConfigVariable.objects.filter(key="su_factor"))
         if resource_type == "flavor:instance":
             # There is 1 allocation per reservation["amount"]
             running_total = 0
             for alloc in allocations:
-                su_factor = self.__get_billrate(alloc, reservation, resource_type)
+                su_factor = self._get_su_factor(
+                    su_factors, alloc, reservation, lease_eval
+                )
                 # What propotion of the host is being used by this reservation
                 host_usage = reservation["vcpus"] / alloc.get(
                     "vcpus", reservation["vcpus"]
@@ -402,17 +422,18 @@ class UsageEnforcer(object):
             return running_total
         else:
             return sum(
-                self.__get_billrate(a, reservation, resource_type) for a in allocations
+                self._get_su_factor(su_factors, a, reservation, lease_eval)
+                for a in allocations
             )
 
-    def _total_su_factor(self, lease_values):
+    def _total_su_factor(self, lease_values, lease_eval):
         """Gets the total SUs for the lease.
         See https://docs.openstack.org/blazar/latest/admin/usage-enforcement.html#externalservicefilter
         """
         total_su_factor = 0
 
         for reservation in lease_values["reservations"]:
-            total_su_factor += self._get_reservation_sus(reservation)
+            total_su_factor += self._get_reservation_sus(reservation, lease_eval)
 
         return total_su_factor
 
