@@ -1,6 +1,8 @@
+from django.conf import settings
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
 from chameleon.models import KeycloakUser
+from chameleon_mailman.tasks import send_mailing_list_join
 
 import logging
 
@@ -47,6 +49,9 @@ class ChameleonOIDCAB(OIDCAuthenticationBackend):
         sub = claims.get("sub")
         if sub:
             KeycloakUser.objects.get_or_create(user=user, sub=sub)
+
+        if settings.MAILING_LIST_REQUEST_EMAILS and user.email:
+            send_mailing_list_join.delay(user.email)
 
         return user
 

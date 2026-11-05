@@ -45,3 +45,15 @@ def send_outage_reminders(crontab_frequency, send_outage_reminder_before):
             if mail_sent:
                 outage.reminder_sent = now
                 outage.save()
+
+
+@task(autoretry_for=(Exception,), retry_backoff=True)
+def send_mailing_list_join(email):
+    # Mailman reads the command from the subject and emails the user a
+    # confirmation before subscribing them.
+    send_mail(
+        subject=f"join address={email}",
+        message="",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=settings.MAILING_LIST_REQUEST_EMAILS.split(","),
+    )
