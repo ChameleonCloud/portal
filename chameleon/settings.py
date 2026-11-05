@@ -326,7 +326,7 @@ OIDC_STORE_ACCESS_TOKEN = True
 OIDC_STORE_REFRESH_TOKEN = True
 # This should match the Access Token Validity for the realm (or override for the portal client in Keycloak)
 OIDC_RENEW_TOKEN_EXPIRY_SECONDS = 60 * 5
-OIDC_EXEMPT_URLS = ["logout"]
+OIDC_EXEMPT_URLS = ["logout", "site_header"]
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL")
 # This should match the value of SSO Session Idle for the portal client in Keycloak
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7
@@ -641,7 +641,13 @@ BOOTSTRAP3 = {
 DEFAULT_TERMS_SLUG = "site-terms"
 ACCEPT_TERMS_PATH = "/terms/accept/"
 TERMS_EXCLUDE_URL_PREFIX_LIST = {"/admin", "/terms"}
-TERMS_EXCLUDE_URL_LIST = {"/", "/termsrequired/", "/logout/", "/securetoo/"}
+TERMS_EXCLUDE_URL_LIST = {
+    "/",
+    "/termsrequired/",
+    "/logout/",
+    "/securetoo/",
+    "/header.html",
+}
 MULTIPLE_ACTIVE_TERMS = True  # Multiple kinds of T&Cs active at once (like site-terms, and contributor-terms).
 
 
