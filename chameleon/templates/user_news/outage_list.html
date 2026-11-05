@@ -7,6 +7,11 @@
   <a class="pull-right" href="{% url 'outage_feed' %}"><span class="label label-warning"><i class="fa fa-rss"></i> RSS</span></a>
 </div>
 
+<p>
+  Get these notices by email:
+  <a href="https://mailman.cels.anl.gov/mailman3/lists/outages.lists.chameleoncloud.org/" target="_blank">subscribe to the outage notifications mailing list</a>.
+</p>
+
 <div class="article-list">
 {% for outage in outage_list %}
 <article class="news-item news-item-type-outage">
