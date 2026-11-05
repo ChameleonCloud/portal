@@ -1,43 +1,6 @@
-from itertools import combinations
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-
-
-def generate_constraints():
-    """
-    Generate all combinations of the constraint dimensions to ensure
-    that there are no duplicate ConfigVariable entries for the same scope.
-
-    The issue is that databases do not consider NULL values as equal, and
-    so we must manually specify these constraints. In future versions of
-    django, there exists `UniqueConstraint.nulls_distinct` which could help
-    but at the moment only PostgreSQL supports it.
-    """
-
-    constraint_dimensions = ["flavor_id", "username", "project_charge_code"]
-    constraints = []
-    for r in range(len(constraint_dimensions) + 1):
-        for subset in combinations(constraint_dimensions, r):
-            fields = ["key", *subset]
-
-            # Any dimension not in this subset must be NULL
-            nulls = {
-                dim + "__isnull": True
-                for dim in constraint_dimensions
-                if dim not in subset
-            }
-            condition = Q(**nulls) if nulls else None
-
-            label = "__".join(["key", *subset]) if subset else "key"
-            constraints.append(
-                models.UniqueConstraint(
-                    fields=fields,
-                    condition=condition,
-                    name=f"uniq_config_{label}",
-                    violation_error_message=f"Configuration exists for same {label.replace('__', ' & ')}",
-                )
-            )
-    return constraints
 
 
 class ConfigVariable(models.Model):
@@ -46,6 +9,7 @@ class ConfigVariable(models.Model):
         ("lease_update_window", "Lease update window"),
         ("su_factor", "SU factor (hourly cost)"),
         ("region_end_date", "Region end date (Unix UTC timestamp)"),
+        ("block_gpu", "Block GPU nodes (1 = blocked, 0 = allowed)"),
     ]
 
     key = models.CharField(max_length=255, choices=KEY_CHOICES)
@@ -57,8 +21,16 @@ class ConfigVariable(models.Model):
     project_charge_code = models.CharField(max_length=255, blank=True, null=True)
     region = models.CharField(max_length=100, blank=True, null=True)
 
-    class Meta:
-        constraints = generate_constraints()
+    def clean(self):
+        duplicates = ConfigVariable.objects.filter(
+            key=self.key,
+            flavor_id=self.flavor_id,
+            username=self.username,
+            project_charge_code=self.project_charge_code,
+            region__iexact=self.region,
+        ).exclude(pk=self.pk)
+        if duplicates.exists():
+            raise ValidationError("Configuration exists for the same key and scope")
 
     def __str__(self):
         parts = [self.key, str(self.value)]
