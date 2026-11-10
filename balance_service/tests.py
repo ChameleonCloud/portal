@@ -1,5 +1,5 @@
 import json
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
@@ -920,6 +920,47 @@ class BalanceServiceTest(TestCase):
                 },
                 None,
             )
+
+    @override_settings(ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS=60 * 60 * 24 * 7)
+    @patch("django.utils.timezone.now")
+    @patch("balance_service.utils.openstack.keystone.KeystoneAPI")
+    @patch("balance_service.enforcement.usage_enforcement.KeycloakClient")
+    def test_usage_enforcer_update_pending_lease_exceeds_max_duration(
+        self, mock_kc, mock_ks, mock_now
+    ):
+        # A lease that hasn't started can't be extended past the max length.
+        # Update only checks old end -> new end, and the update window is
+        # skipped before the start, so repeated updates could grow a pending
+        # lease without limit.
+        mock_now.return_value = self.now
+
+        ks_instance = mock_ks.return_value
+        ks_instance.get_project.return_value = {"name": "TEST123"}
+        ks_instance.get_user.return_value = {"name": "test_requestor"}
+
+        kc_instance = mock_kc.return_value
+        kc_instance.get_user_project_role_scopes.return_value = ("admin", None)
+
+        ue = UsageEnforcer(ks_instance)
+
+        self.allocation.su_allocated = 10000
+        self.allocation.save()
+
+        # 7-day lease starting in 3 days; the update adds 7 days (14 in total)
+        lease_data = self._lease_data(
+            timezone.timedelta(days=7),
+            include_update=True,
+            update_extend=7,
+            pending_td=timezone.timedelta(days=3),
+        )
+        updated_lease = lease_data.pop("lease")
+        lease_data["lease"] = lease_data.pop("current_lease")
+        ue.check_usage_against_allocation(lease_data)
+
+        lease_data["current_lease"] = lease_data["lease"]
+        lease_data["lease"] = updated_lease
+        with self.assertRaises(exceptions.MaxLeaseDurationError):
+            ue.check_usage_against_allocation_update(lease_data)
 
     @patch("balance_service.enforcement.usage_enforcement.ConfigVariable")
     def test_get_config_value_returns_min_value_from_multiple_reservations(
