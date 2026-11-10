@@ -1,14 +1,23 @@
 import json
-from django.test import TestCase, override_settings
+import requests
+from django.contrib import admin
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.test import RequestFactory, TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 from allocations.models import Charge, ChargeBudget
 from balance_service.enforcement import exceptions
 from balance_service.enforcement.usage_enforcement import (
+    GPU_NODE_UIDS_CACHE_KEY,
+    REFERENCE_API_URL,
     LeaseEval,
     UsageEnforcer,
+    _fetch_gpu_node_uids,
     get_config_value,
 )
 from balance_service.models import ConfigVariable
+from projects.admin import ProjectAdmin
 from projects.models import Project
 from django.contrib.auth import get_user_model
 from unittest.mock import patch, MagicMock
@@ -1050,6 +1059,15 @@ class BalanceServiceTest(TestCase):
 
         self.assertEqual(result, 1234)
 
+    def test_ConfigVariable_clean_rejects_duplicate_scope(self):
+        ConfigVariable.objects.create(key="su_factor", value=1, region="CHI@UC")
+        with self.assertRaises(ValidationError):
+            ConfigVariable(key="su_factor", value=2, region="chi@uc").clean()
+        ConfigVariable(key="su_factor", value=2).clean()
+        ConfigVariable(
+            key="su_factor", value=2, region="CHI@UC", project_charge_code="CC123"
+        ).clean()
+
     def test_ConfigVarible_get_value_returns_none_when_no_match(self):
         result = ConfigVariable.get_value(
             "lease_limit", flavor_id="f1", username="user1", charge_code="CC123"
@@ -1215,3 +1233,497 @@ class BalanceServiceTest(TestCase):
         ue._check_region_end_date(
             {"end_date": lease_end}, self._make_lease_eval("OTHER@REGION")
         )
+
+    def _check_gpu_restriction(self, *hostnames):
+        cache.clear()
+        self.lease_eval.region = "CHI@UC"
+        allocations = [{"hypervisor_hostname": h} for h in hostnames]
+        with patch(
+            "balance_service.enforcement.usage_enforcement._fetch_gpu_node_uids",
+            return_value={"gpu-node"},
+        ) as mock_fetch:
+            UsageEnforcer(MagicMock())._check_gpu_restriction(
+                {"reservations": [{"allocations": allocations}]}, self.lease_eval
+            )
+        return mock_fetch
+
+    def test_check_gpu_restriction_blocks_gpu_for_project(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="CC123"
+        )
+        with self.assertRaisesRegex(exceptions.BillingError, "GPU"):
+            self._check_gpu_restriction("cpu-node", "gpu-node")
+
+    def test_check_gpu_restriction_allows_non_gpu(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="CC123"
+        )
+        self._check_gpu_restriction("cpu-node").assert_called_once()
+
+    def test_check_gpu_restriction_project_overrides_global(self):
+        ConfigVariable.objects.create(key="block_gpu", value=1)
+        ConfigVariable.objects.create(
+            key="block_gpu", value=0, project_charge_code="CC123"
+        )
+        self._check_gpu_restriction("gpu-node").assert_not_called()
+
+    def test_check_gpu_restriction_other_project_unaffected(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="OTHER"
+        )
+        self._check_gpu_restriction("gpu-node").assert_not_called()
+
+    @patch("balance_service.enforcement.usage_enforcement.requests.get")
+    def test_fetch_gpu_node_uids(self, mock_get):
+        mock_get.return_value.json.side_effect = [
+            {"total": 2, "items": [{"uid": "gpu-1"}]},
+            {"total": 2, "items": [{"uid": "gpu-2"}]},
+        ]
+        self.assertEqual(_fetch_gpu_node_uids(), {"gpu-1", "gpu-2"})
+        self.assertEqual(mock_get.call_args.kwargs["params"]["offset"], 1)
+
+    def _project_admin_form(self, block_gpu=None):
+        request = RequestFactory().get("/")
+        request.user = self.test_requestor
+        form_class = ProjectAdmin(Project, admin.site).get_form(request, self.project)
+        if block_gpu is None:
+            return form_class(instance=self.project)
+        data = {
+            "title": self.project.title,
+            "nickname": self.project.nickname,
+            "description": self.project.description,
+            "pi": self.project.pi.id,
+        }
+        if block_gpu:
+            data["block_gpu"] = "on"
+        form = form_class(data, instance=self.project)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+
+    def test_project_admin_block_gpu_checkbox(self):
+        rows = ConfigVariable.objects.filter(
+            key="block_gpu", project_charge_code="TEST123"
+        )
+        self._project_admin_form(block_gpu=False)
+        self.assertFalse(rows.exists())
+
+        self._project_admin_form(block_gpu=True)
+        self.assertEqual(rows.get().value, 1)
+        self.assertTrue(self._project_admin_form().initial["block_gpu"])
+
+        self._project_admin_form(block_gpu=False)
+        self.assertFalse(rows.exists())
+        self.assertFalse(self._project_admin_form().initial["block_gpu"])
+
+
+AUTH_URL = "https://chi.uc.example.org:5000/v3"
+SERVICE_TOKEN = "gAAAAABblazar-service-token"
+KS_PROJECT_ID = "a0b86a98b0d343cb948e00689182efd4"
+KS_USER_ID = "c631173edec04bb7a0c3f7711153c06c"
+LEASE_ID = "2bb8720a-0873-4d97-babf-0d906851a1eb"
+RESERVATION_ID = "8f1f0b8c-5c6e-4ea1-a9b5-6e7b0e1b3d42"
+TRUST_ID = "5ba3a6d6f3b54dfa8a4f2c0e0b6c9d11"
+
+
+def _blazar_host(host_id, hypervisor_hostname, node_name, node_type, **extra):
+    # A Blazar computehost row merged with its extra capabilities, as returned
+    # by the host plugin's get() for each allocation
+    return {
+        "id": host_id,
+        "hypervisor_hostname": hypervisor_hostname,
+        "hypervisor_type": "ironic",
+        "hypervisor_version": 1,
+        "service_name": hypervisor_hostname,
+        "vcpus": 48,
+        "memory_mb": 196608,
+        "local_gb": 240,
+        "cpu_info": "baremetal cpu",
+        "availability_zone": "nova",
+        "status": None,
+        "reservable": True,
+        "disabled": False,
+        "trust_id": TRUST_ID,
+        "node_name": node_name,
+        "node_type": node_type,
+        "su_factor": "1.0",
+        **extra,
+    }
+
+
+CPU_HOST = _blazar_host(
+    "1", "0b8f6c4e-3d3b-4c1a-9a43-6f4c4a1d2e01", "P3-CPU-001", "compute_skylake"
+)
+GPU_HOST = _blazar_host(
+    "2",
+    "5d1f7e2a-8c6b-4e7f-b0a1-2c3d4e5f6a7b",
+    "P3-GPU-001",
+    "gpu_rtx_6000",
+    su_factor="2.0",
+)
+KVM_HOST = _blazar_host(
+    "3",
+    "kvm-compute-01",
+    "kvm-compute-01",
+    "compute_cascadelake",
+    hypervisor_type="QEMU",
+)
+
+
+@override_settings(
+    OPENSTACK_AUTH_REGIONS={"CHI@UC": AUTH_URL},
+    ALLOWED_OPENSTACK_SERVICE_USERS=["blazar"],
+    ENFORCEMENT_MAX_LEASE_LENGTH_SECONDS=7 * 24 * 3600,
+    ENFORCEMENT_LEASE_UPDATE_WINDOW_SECONDS=2 * 24 * 3600,
+)
+class BalanceServiceAPITest(TestCase):
+    def setUp(self):
+        self.now = timezone.now().replace(second=0, microsecond=0)
+        self.utcnow = self.now.replace(tzinfo=None)
+        self.user = get_user_model().objects.create_user(
+            username="alice", email="alice@example.com"
+        )
+        self.project = Project.objects.create(
+            pi=self.user,
+            title="API Project",
+            nickname="api_project",
+            description="Project for balance service API tests.",
+            charge_code="CHI-123456",
+        )
+        self.allocation = self.project.allocations.create(
+            status="active",
+            requestor=self.user,
+            date_requested=self.now,
+            start_date=self.now - timedelta(days=1),
+            expiration_date=self.now + timedelta(days=30),
+            su_requested=1000,
+            su_allocated=1000,
+        )
+        cache.delete(GPU_NODE_UIDS_CACHE_KEY)
+
+        self.service_user = "blazar"
+        self.http = MagicMock()
+        self.http.get.side_effect = self._http_get
+        self.http.post.side_effect = self._http_post
+        self.keycloak = MagicMock()
+        self.keycloak.get_user_project_role_scopes.return_value = ("admin", [])
+        for target, new in [
+            ("django.utils.timezone.now", MagicMock(return_value=self.now)),
+            ("balance_service.utils.openstack.keystone.requests", self.http),
+            ("balance_service.enforcement.usage_enforcement.requests", self.http),
+            (
+                "balance_service.enforcement.usage_enforcement.KeycloakClient",
+                MagicMock(return_value=self.keycloak),
+            ),
+        ]:
+            patcher = patch(target, new)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    @staticmethod
+    def _response(status_code, body):
+        response = requests.Response()
+        response.status_code = status_code
+        response._content = json.dumps(body).encode()
+        return response
+
+    def _http_post(self, url, **kwargs):
+        token = kwargs["json"]["auth"]["identity"]["token"]["id"]
+        if url != f"{AUTH_URL}/auth/tokens" or token != SERVICE_TOKEN:
+            return self._response(401, {"error": {"code": 401}})
+        user = {"id": "e2f1c0b4", "name": self.service_user}
+        return self._response(201, {"token": {"methods": ["token"], "user": user}})
+
+    def _http_get(self, url, **kwargs):
+        resources = {
+            f"{AUTH_URL}/projects/{KS_PROJECT_ID}": {
+                "project": {
+                    "id": KS_PROJECT_ID,
+                    "name": "CHI-123456",
+                    "domain_id": "default",
+                    "enabled": True,
+                }
+            },
+            f"{AUTH_URL}/users/{KS_USER_ID}": {
+                "user": {
+                    "id": KS_USER_ID,
+                    "name": "alice",
+                    "email": "alice@example.com",
+                    "domain_id": "default",
+                    "enabled": True,
+                }
+            },
+            f"{REFERENCE_API_URL}/nodes/search": {
+                "total": 1,
+                "items": [{"uid": GPU_HOST["hypervisor_hostname"]}],
+            },
+        }
+        return self._response(200, resources[url])
+
+    def _reservation(self, resource_type, allocations, **fields):
+        return {
+            "id": RESERVATION_ID,
+            "lease_id": LEASE_ID,
+            "resource_id": "c3a4e1f2-7b8d-4e9f-a0b1-c2d3e4f5a6b7",
+            "resource_type": resource_type,
+            "status": "pending",
+            "missing_resources": False,
+            "resources_changed": False,
+            "created_at": self.utcnow,
+            "updated_at": None,
+            "allocations": list(allocations),
+            **fields,
+        }
+
+    def _lease(self, reservations, start=None, days=1):
+        start = start or self.utcnow
+        return {
+            "name": "my-lease",
+            "start_date": start,
+            "end_date": start + timedelta(days=days),
+            "user_id": KS_USER_ID,
+            "project_id": KS_PROJECT_ID,
+            "trust_id": TRUST_ID,
+            "status": "CREATING",
+            "reservations": reservations,
+        }
+
+    def _host_lease(self, *hosts, **lease):
+        reservation = self._reservation(
+            "physical:host",
+            hosts,
+            min=len(hosts),
+            max=len(hosts),
+            hypervisor_properties="",
+            resource_properties='["==", "$node_type", "compute_skylake"]',
+            before_end="default",
+            on_start="default",
+        )
+        return self._lease([reservation], **lease)
+
+    def _post(self, endpoint, token=SERVICE_TOKEN, auth_url=AUTH_URL, **body):
+        body["context"] = {
+            "user_id": KS_USER_ID,
+            "project_id": KS_PROJECT_ID,
+            "auth_url": auth_url,
+            "region_name": "CHI@UC",
+        }
+        return self.client.post(
+            reverse(f"balance_service:{endpoint}"),
+            json.dumps(body, default=lambda d: d.isoformat()),
+            content_type="application/json",
+            headers={"X-Auth-Token": token} if token else {},
+        )
+
+    def _get(self, endpoint, *args, **params):
+        return self.client.get(
+            reverse(f"balance_service:{endpoint}", args=args),
+            params,
+            headers={"X-Auth-Token": SERVICE_TOKEN, "X-Auth-URL": AUTH_URL},
+        )
+
+    def _create_and_extend(self, lease, days):
+        self.assertEqual(self._post("check_create", lease=lease).status_code, 204)
+        return self._post(
+            "check_update",
+            current_lease={**lease, "id": LEASE_ID, "status": "ACTIVE"},
+            lease={
+                "start_date": lease["start_date"],
+                "end_date": lease["end_date"] + timedelta(days=days),
+                "reservations": lease["reservations"],
+            },
+        )
+
+    def _assert_denied(self, response, message):
+        self.assertEqual(response.status_code, 403)
+        self.assertRegex(response.json()["message"], message)
+
+    def test_rejects_missing_token(self):
+        lease = self._host_lease(CPU_HOST)
+        response = self._post("check_create", token=None, lease=lease)
+        self.assertEqual(response.status_code, 403)
+        self.http.post.assert_not_called()
+
+    def test_rejects_unlisted_auth_url(self):
+        response = self._post(
+            "check_create",
+            auth_url="https://keystone.example.com:5000/v3",
+            lease=self._host_lease(CPU_HOST),
+        )
+        self.assertEqual(response.status_code, 403)
+        self.http.post.assert_not_called()
+
+    def test_rejects_invalid_token(self):
+        lease = self._host_lease(CPU_HOST)
+        response = self._post("check_create", token="bad", lease=lease)
+        self.assertEqual(response.status_code, 403)
+        self.http.get.assert_not_called()
+
+    def test_rejects_non_service_user(self):
+        self.service_user = "alice"
+        response = self._post("check_create", lease=self._host_lease(CPU_HOST))
+        self.assertEqual(response.status_code, 403)
+        self.http.get.assert_not_called()
+
+    def test_rejects_wrong_method(self):
+        response = self.client.get(reverse("balance_service:check_create"))
+        self.assertEqual(response.status_code, 405)
+        response = self.client.post(
+            reverse("balance_service:get_project_allocation", args=[self.project.id])
+        )
+        self.assertEqual(response.status_code, 405)
+
+    def test_get_project_allocation(self):
+        Charge.objects.create(
+            allocation=self.allocation,
+            user=self.user,
+            region_name="CHI@UC",
+            resource_id=RESERVATION_ID,
+            resource_type="physical:host",
+            start_time=self.now - timedelta(hours=2),
+            end_time=self.now + timedelta(hours=3),
+            hourly_cost=2,
+        )
+        response = self._get("get_project_allocation", self.project.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "id": self.project.id,
+                "charge_code": "CHI-123456",
+                "used": 4.0,
+                "total": 10.0,
+                "encumbered": 6.0,
+                "allocated": 1000.0,
+            },
+        )
+
+    def test_get_unknown_project_allocation(self):
+        self.assertEqual(self._get("get_project_allocation", 999999).status_code, 404)
+
+    def test_batch_get_project_allocations(self):
+        response = self._get(
+            "batch_get_project_allocations", projects=f"{self.project.id},999999"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [p["charge_code"] for p in response.json()["projects"]], ["CHI-123456"]
+        )
+
+    def test_check_create_records_charge(self):
+        response = self._post(
+            "check_create", lease=self._host_lease(CPU_HOST, GPU_HOST)
+        )
+        self.assertEqual(response.status_code, 204)
+        charge = Charge.objects.get()
+        self.assertEqual(charge.allocation, self.allocation)
+        self.assertEqual(charge.user, self.user)
+        self.assertEqual(charge.region_name, "CHI@UC")
+        self.assertEqual(charge.resource_id, RESERVATION_ID)
+        self.assertEqual(charge.resource_type, "physical:host")
+        self.assertEqual(charge.hourly_cost, 3)
+        self.assertEqual(charge.start_time, self.now)
+        self.assertEqual(charge.end_time, self.now + timedelta(days=1))
+
+    def test_check_create_prices_flavor_by_vcpu_share(self):
+        ConfigVariable.objects.create(key="su_factor", value=0.96, flavor_id="4")
+        flavor = {
+            "id": "4",
+            "name": "m1.large",
+            "vcpus": 4,
+            "ram": 8192,
+            "disk": 40,
+            "swap": "",
+            "OS-FLV-EXT-DATA:ephemeral": 0,
+            "os-flavor-access:is_public": True,
+            "rxtx_factor": 1.0,
+            "extra_specs": {},
+        }
+        reservation = self._reservation(
+            "flavor:instance",
+            [KVM_HOST, KVM_HOST],
+            amount=2,
+            vcpus=4,
+            memory_mb=8192,
+            disk_gb=40,
+            affinity=None,
+            flavor_id=RESERVATION_ID,
+            aggregate_id=7,
+            server_group_id=None,
+            resource_properties=json.dumps(flavor),
+        )
+        response = self._post("check_create", lease=self._lease([reservation]))
+        self.assertEqual(response.status_code, 204)
+        self.assertAlmostEqual(Charge.objects.get().hourly_cost, 2 * 0.96 * 4 / 48)
+
+    def test_check_create_denies_insufficient_balance(self):
+        self.allocation.su_allocated = 10
+        self.allocation.save()
+        response = self._post(
+            "check_create", lease=self._host_lease(CPU_HOST, GPU_HOST)
+        )
+        self._assert_denied(response, r"would spend 72.00 SUs, only 10.00 left")
+        self.assertFalse(Charge.objects.exists())
+
+    def test_check_create_denies_member_over_user_budget(self):
+        self.keycloak.get_user_project_role_scopes.return_value = ("member", [])
+        ChargeBudget.objects.create(user=self.user, project=self.project, su_budget=10)
+        response = self._post("check_create", lease=self._host_lease(CPU_HOST))
+        self._assert_denied(
+            response, r"alice would spend 24.00 SUs, only 10.00 left in user budget"
+        )
+
+    def test_check_create_denies_lease_past_allocation_expiration(self):
+        self.allocation.expiration_date = self.now + timedelta(hours=12)
+        self.allocation.save()
+        response = self._post("check_create", lease=self._host_lease(CPU_HOST))
+        self._assert_denied(response, "beyond Chameleon project expiration date")
+
+    def test_check_create_denies_lease_over_max_duration(self):
+        lease = self._host_lease(CPU_HOST, days=8)
+        response = self._post("check_create", lease=lease)
+        self._assert_denied(response, "maximum lease duration of 604800 seconds")
+
+    def test_check_create_blocks_gpu_hosts_for_restricted_project(self):
+        ConfigVariable.objects.create(
+            key="block_gpu", value=1, project_charge_code="CHI-123456"
+        )
+        response = self._post("check_create", lease=self._host_lease(CPU_HOST))
+        self.assertEqual(response.status_code, 204)
+        response = self._post(
+            "check_create", lease=self._host_lease(CPU_HOST, GPU_HOST)
+        )
+        self._assert_denied(response, "CHI-123456 is not permitted to reserve GPU")
+        self.assertEqual(Charge.objects.count(), 1)
+
+    def test_check_update_extends_charge(self):
+        lease = self._host_lease(CPU_HOST, start=self.utcnow - timedelta(hours=1))
+        self.assertEqual(self._create_and_extend(lease, days=1).status_code, 204)
+        old, new = Charge.objects.order_by("start_time")
+        self.assertEqual(old.end_time, self.now)
+        self.assertEqual(new.start_time, self.now)
+        self.assertEqual(new.end_time, self.now + timedelta(days=1, hours=23))
+        self.assertEqual(new.hourly_cost, old.hourly_cost)
+
+    def test_check_update_denies_extension_beyond_balance(self):
+        self.allocation.su_allocated = 30
+        self.allocation.save()
+        lease = self._host_lease(CPU_HOST, start=self.utcnow - timedelta(hours=1))
+        response = self._create_and_extend(lease, days=1)
+        self._assert_denied(response, r"would spend 24.00 more SUs, only 6.00 left")
+        self.assertEqual(Charge.objects.get().end_time, self.now + timedelta(hours=23))
+
+    def test_check_update_denies_extension_outside_window(self):
+        lease = self._host_lease(
+            CPU_HOST, start=self.utcnow - timedelta(hours=1), days=6
+        )
+        response = self._create_and_extend(lease, days=1)
+        self._assert_denied(response, "only be extended within 172800 seconds")
+
+    def test_on_end_stops_charging(self):
+        lease = self._host_lease(CPU_HOST, start=self.utcnow - timedelta(hours=1))
+        self.assertEqual(self._post("check_create", lease=lease).status_code, 204)
+        response = self._post(
+            "on_end", lease={**lease, "id": LEASE_ID, "status": "TERMINATING"}
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Charge.objects.get().end_time, self.now)

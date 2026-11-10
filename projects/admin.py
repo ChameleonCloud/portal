@@ -1,4 +1,5 @@
 from datetime import date
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.db.models import Count
@@ -23,6 +24,7 @@ from projects.user_publication.publications import (
 )
 
 from allocations.models import Allocation
+from balance_service.models import ConfigVariable
 from projects.models import (
     AdminTag,
     ChameleonPublication,
@@ -185,7 +187,43 @@ class AllocationInline(admin.TabularInline):
         return False
 
 
+class ProjectAdminForm(forms.ModelForm):
+    block_gpu = forms.BooleanField(
+        required=False,
+        label="Block GPU nodes",
+        help_text="Reject this project's leases on GPU nodes. Rules for regions, "
+        "users or all projects are set in the balance service config variables.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.initial["block_gpu"] = bool(
+            ConfigVariable.objects.filter(**self._block_gpu_scope())
+            .values_list("value", flat=True)
+            .first()
+        )
+
+    def _block_gpu_scope(self):
+        return dict(
+            key="block_gpu",
+            project_charge_code=self.instance.charge_code,
+            flavor_id=None,
+            username=None,
+            region=None,
+        )
+
+    def save(self, commit=True):
+        if "block_gpu" in self.changed_data:
+            scope = self._block_gpu_scope()
+            if self.cleaned_data["block_gpu"]:
+                ConfigVariable.objects.update_or_create(**scope, defaults={"value": 1})
+            else:
+                ConfigVariable.objects.filter(**scope).delete()
+        return super().save(commit)
+
+
 class ProjectAdmin(admin.ModelAdmin):
+    form = ProjectAdminForm
     list_display = ["charge_code", "pi", "nickname", "title"]
     search_fields = [
         "charge_code",
@@ -208,6 +246,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "description",
         "pi",
         "join_url",
+        "block_gpu",
     ]
 
     def charge_code_link(self, obj):
