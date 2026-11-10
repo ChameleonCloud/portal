@@ -272,9 +272,14 @@ class UsageEnforcer(object):
                 "{:.2f} left".format(change_amount, left)
             )
 
-        # use old lease's end date as start date
+        # A lease that hasn't started is checked on its whole new length, as
+        # on create. A running lease is checked on how far its end moves.
+        if self._date_from_string(old_lease["start_date"]) > timezone.now():
+            duration_start = new_lease["start_date"]
+        else:
+            duration_start = old_lease["end_date"]
         self._check_lease_duration(
-            new_lease, new_lease_eval, old_lease["end_date"], new_lease["end_date"]
+            new_lease, new_lease_eval, duration_start, new_lease["end_date"]
         )
         self._check_lease_update_window(old_lease, new_lease, new_lease_eval)
 

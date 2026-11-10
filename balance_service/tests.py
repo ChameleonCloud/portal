@@ -1678,6 +1678,19 @@ class BalanceServiceAPITest(TestCase):
         response = self._create_and_extend(lease, days=1)
         self._assert_denied(response, "only be extended within 172800 seconds")
 
+    def test_check_update_denies_pending_lease_over_max_duration(self):
+        lease = self._host_lease(
+            CPU_HOST, start=self.utcnow + timedelta(days=3), days=7
+        )
+        response = self._create_and_extend(lease, days=7)
+        self._assert_denied(response, "maximum lease duration of 604800 seconds")
+
+    def test_check_update_allows_running_lease_past_max_duration(self):
+        lease = self._host_lease(
+            CPU_HOST, start=self.utcnow - timedelta(days=5), days=6
+        )
+        self.assertEqual(self._create_and_extend(lease, days=2).status_code, 204)
+
     def test_on_end_stops_charging(self):
         lease = self._host_lease(CPU_HOST, start=self.utcnow - timedelta(hours=1))
         self.assertEqual(self._post("check_create", lease=lease).status_code, 204)
