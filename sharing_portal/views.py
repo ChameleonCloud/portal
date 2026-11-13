@@ -9,10 +9,11 @@ from uuid import UUID
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
+from django.forms.utils import pretty_name
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -25,10 +26,13 @@ from projects.views import (
     add_project_invitation,
     get_project_membership_managers,
 )
+from trovi_launcher import service as launcher
+from trovi_launcher.models import Launch
 from util.keycloak_client import KeycloakClient
 from util.project_allocation_mapper import ProjectAllocationMapper
 from . import trovi
 from .forms import (
+    GenericLaunchForm,
     ShareArtifactForm,
     ZenodoPublishFormset,
     RequestDaypassForm,
@@ -45,6 +49,7 @@ from .models import (
 LOG = logging.getLogger(__name__)
 
 SHARING_KEY_PARAM = "s"
+SINGLE_NODE_SETUP_TYPE = "single_node"
 
 
 def trovi_redirect(redirect_to):
@@ -409,9 +414,21 @@ def launch(request, artifact, version_slug=None):
             reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
         )
         return redirect(daypass_request_url)
+    if any(s["type"] == SINGLE_NODE_SETUP_TYPE for s in version["environment_setup"]):
+        return redirect(
+            preserve_sharing_key(
+                reverse(
+                    "sharing_portal:launch_generic",
+                    args=[artifact["uuid"], version["slug"]],
+                ),
+                request,
+            )
+        )
+
+    # Otherwise, launch the artifact and redirect to jupyterhub launch
     trovi.increment_metric_count(artifact["uuid"], version["slug"], token=trovi_token)
     return redirect(
-        launch_url(
+        jupyter_launch_url(
             artifact["uuid"],
             version,
             request,
@@ -421,7 +438,7 @@ def launch(request, artifact, version_slug=None):
     )
 
 
-def launch_url(artifact_uuid, version, request, token=None, can_edit=False):
+def jupyter_launch_url(artifact_uuid, version, request, token=None, can_edit=False):
     base_url = "{}/hub/import".format(settings.ARTIFACT_SHARING_JUPYTERHUB_URL)
     contents_urn = version["contents"]["urn"]
     sharing_key = request.GET.get(SHARING_KEY_PARAM, None)
@@ -451,6 +468,150 @@ def launch_url(artifact_uuid, version, request, token=None, can_edit=False):
     if repo_url:
         query["repo_url"] = repo_url
     return str(base_url + "?" + urlencode(query))
+
+
+@login_required
+@handle_trovi_errors
+@with_trovi_token
+@get_artifact
+def launch_generic(request, artifact, version_slug):
+    version = _artifact_version(artifact, version_slug)
+    if not version:
+        raise Http404(f"There is no version {version_slug} for this artifact.")
+    trovi_token = request.session.get("trovi_token")
+    access_methods = trovi.get_contents_url_info(
+        trovi_token,
+        version["contents"]["urn"],
+        sharing_key=request.GET.get(SHARING_KEY_PARAM),
+    )["access_methods"]
+    # The contents describes what the node will fetch. Like the provisioner, that's the
+    # git method if there is one, and otherwise the http one.
+    contents = next(
+        (m for m in access_methods if m["protocol"] == "git"),
+        next((m for m in access_methods if m["protocol"] == "http"), None),
+    )
+    setup = next(
+        (
+            s
+            for s in version["environment_setup"]
+            if s["type"] == SINGLE_NODE_SETUP_TYPE
+        ),
+        {},
+    )
+    arguments = setup.get("arguments", {})
+    if previous_id := request.GET.get("launch"):
+        previous = _user_launch(request, previous_id)
+        arguments = (
+            arguments
+            | {"site": previous.site, "project": previous.project}
+            | {k: v for k, v in previous.arguments.items() if k != "contents"}
+        )
+
+    form = GenericLaunchForm(request, arguments, request.POST or None)
+    if form.is_valid():
+        try:
+            launch = launcher.create_launch(
+                site=form.cleaned_data["site"],
+                project=form.cleaned_data["project"],
+                arguments=form.arguments() | {"contents": access_methods},
+                artifact_uuid=artifact["uuid"],
+                artifact_title=artifact["title"],
+                version_slug=version["slug"],
+                user_sub=request.user.keycloak_user.sub,
+                username=request.user.username,
+                email=request.user.email,
+                subject_token=request.session.get("oidc_access_token"),
+                callback_base_url=request.build_absolute_uri("/"),
+            )
+        except ValidationError as e:
+            for field, errors in e.message_dict.items():
+                form.add_error(field if field in form.fields else None, errors)
+        except PermissionDenied as e:
+            form.add_error(None, str(e))
+        else:
+            trovi.increment_metric_count(
+                artifact["uuid"], version["slug"], token=trovi_token
+            )
+            return redirect("sharing_portal:launch_detail", launch.id)
+    return render(
+        request,
+        "sharing_portal/launch_generic.html",
+        {"artifact": artifact, "version": version, "contents": contents, "form": form},
+    )
+
+
+def _user_launch(request, launch_id):
+    return get_object_or_404(
+        Launch, pk=launch_id, user_sub=request.user.keycloak_user.sub
+    )
+
+
+@login_required
+def launch_list(request):
+    launches = Launch.objects.filter(
+        user_sub=request.user.keycloak_user.sub
+    ).prefetch_related("events")
+    for launch in launches:
+        launcher.reconcile(launch)
+    return render(request, "sharing_portal/launch_list.html", {"launches": launches})
+
+
+@login_required
+def launch_detail(request, launch_id):
+    launch = _user_launch(request, launch_id)
+    if request.method == "POST" and request.POST.get("action") == "clean_up":
+        try:
+            launcher.clean_up_launch(
+                launch,
+                subject_token=request.session.get("oidc_access_token"),
+                callback_base_url=request.build_absolute_uri("/"),
+            )
+            messages.info(request, "Deleting the resources this launch created.")
+        except ValidationError as e:
+            messages.error(request, " ".join(e.messages))
+        except PermissionDenied as e:
+            messages.error(request, str(e))
+        return redirect("sharing_portal:launch_detail", launch.id)
+    if request.method == "POST":
+        launcher.cancel_launch(launch)
+        messages.info(request, "Cancelling. Resources the launch created are deleted.")
+        return redirect("sharing_portal:launch_detail", launch.id)
+    launcher.reconcile(launch)
+    return render(
+        request,
+        "sharing_portal/launch_detail.html",
+        {
+            "launch": launch,
+            "events": launch.events.all(),
+            "settings": [
+                (GenericLaunchForm.label_for(name), value)
+                for name, value in (
+                    {"site": launch.site, "project": launch.project} | launch.arguments
+                ).items()
+                if name not in ("ssh_public_key", "contents")
+            ],
+            "result": [
+                (pretty_name(name), value) for name, value in launch.result.items()
+            ],
+        },
+    )
+
+
+@login_required
+def launch_status(request, launch_id):
+    launch = _user_launch(request, launch_id)
+    launcher.reconcile(launch)
+    return JsonResponse(
+        {
+            "status": launch.status,
+            "step": launch.step,
+            "message": launch.message,
+            "result": launch.result,
+            "events": list(
+                launch.events.values("created_at", "step", "level", "message")
+            ),
+        }
+    )
 
 
 @login_required

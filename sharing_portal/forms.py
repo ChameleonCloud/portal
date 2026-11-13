@@ -1,7 +1,9 @@
 from django import forms
 from django.forms import widgets
+from django.forms.utils import pretty_name
 
 from projects.models import Project
+from trovi_launcher import credentials
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .models import DaypassRequest
@@ -161,3 +163,105 @@ class ReviewDaypassForm(forms.Form):
         data = self.cleaned_data
         if data.get("status", None) == DaypassRequest.STATUS_PENDING:
             raise forms.ValidationError("You must set a status")
+
+
+class GenericLaunchForm(forms.Form):
+    """Site and project, plus arguments for the provisioner.
+
+    The artifact's arguments are the initial values, and any it names that
+    aren't fields below get a field of their own.
+    """
+
+    ARGUMENT_FIELDS = {bool: forms.BooleanField, int: forms.IntegerField}
+    KEY_PREFIXES = ("ssh-", "ecdsa-", "sk-")
+    FIELDSETS = [
+        ("Context", ["site", "project"]),
+        ("Lease", ["node_type", "lease_duration_hours", "lease_id"]),
+        ("Instance", ["image"]),
+        ("Access", ["ssh_public_key"]),
+    ]
+
+    site = forms.ChoiceField()
+    project = forms.ChoiceField()
+    image = forms.CharField(
+        label="Disk image", initial="CC-Ubuntu24.04", required=False
+    )
+    node_type = forms.CharField(
+        required=False,
+        help_text=(
+            "The kind of node to reserve, such as compute_skylake. The hardware "
+            "catalog lists the node types at each site."
+        ),
+    )
+    lease_duration_hours = forms.IntegerField(
+        label="Lease length (hours)", min_value=1, required=False
+    )
+    lease_id = forms.CharField(
+        label="Existing lease ID",
+        required=False,
+        help_text=(
+            "Optional. Launch on a lease you already made; it must be active or "
+            "start within 15 minutes. The length then comes from the lease."
+        ),
+    )
+    ssh_public_key = forms.CharField(
+        label="SSH public key",
+        widget=forms.Textarea(attrs={"rows": 3}),
+        help_text="Added to the node so you can log in as cc.",
+    )
+
+    def __init__(self, request, arguments, *args, **kwargs):
+        super().__init__(*args, initial=arguments, **kwargs)
+        self.fields["site"].choices = [(site, site) for site in credentials.sites()]
+        mapper = ProjectAllocationMapper(request)
+        self.fields["project"].choices = [
+            (project["chargeCode"], project.get("nickname") or project["chargeCode"])
+            for project in mapper.get_user_projects(request.user, fetch_balance=False)
+            if any(a["status"].lower() == "active" for a in project["allocations"])
+        ]
+        extra = [name for name in arguments if name not in self.fields]
+        for name in extra:
+            field = self.ARGUMENT_FIELDS.get(type(arguments[name]), forms.CharField)
+            self.fields[name] = field(
+                label=name.replace("_", " ").capitalize(), required=False
+            )
+        self.order_fields(["site", "project", *extra])
+
+    @classmethod
+    def label_for(cls, name):
+        field = cls.base_fields.get(name)
+        return field and field.label or pretty_name(name)
+
+    def fieldsets(self):
+        """Return (legend, bound fields) pairs; the artifact's own come last."""
+        fieldsets = [
+            (legend, [self[name] for name in names]) for legend, names in self.FIELDSETS
+        ]
+        named = {name for _, names in self.FIELDSETS for name in names}
+        if extra := [field for field in self if field.name not in named]:
+            fieldsets.append(("Artifact settings", extra))
+        return fieldsets
+
+    def clean_ssh_public_key(self):
+        key = self.cleaned_data["ssh_public_key"].strip()
+        parts = key.split()
+        if "\n" in key or len(parts) < 2 or not parts[0].startswith(self.KEY_PREFIXES):
+            raise forms.ValidationError("Enter a single OpenSSH public key.")
+        return key
+
+    def clean(self):
+        data = super().clean()
+        if not data.get("lease_id") and not (
+            data.get("node_type") and data.get("lease_duration_hours")
+        ):
+            raise forms.ValidationError(
+                "Set a node type and lease length, or an existing lease ID."
+            )
+        return data
+
+    def arguments(self):
+        return {
+            name: value
+            for name, value in self.cleaned_data.items()
+            if name not in ("site", "project") and value not in ("", None)
+        }

@@ -1,0 +1,78 @@
+{% extends 'layout/default.html' %}
+{% load static trovi_filters %}
+
+{% block title %}Launches | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="artifactDetail">
+  <header class="artifactDetail__heading">
+    <h2 class="artifactTitle">Your launches</h2>
+  </header>
+
+  {% if launches %}
+  <div class="table-responsive">
+  <table class="table table-hover launchTable">
+    <thead>
+      <tr>
+        <th>Artifact</th>
+        <th>Started</th>
+        <th>Context</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for launch in launches %}
+      <tr>
+        <td>
+          <a href="{% url 'sharing_portal:launch_detail' launch.id %}">{% firstof launch.artifact_title launch.version_slug %}</a>
+          {% if launch.artifact_uuid %}
+          <div class="text-muted small">
+            {{ launch.version_slug }} &middot;
+            <a href="{% trovi_dashboard_url 'artifacts' launch.artifact_uuid 'versions' launch.version_slug %}" target="_blank" rel="noopener">Trovi <i class="fa fa-external-link"></i></a>
+          </div>
+          {% endif %}
+        </td>
+        <td class="launchNowrap">
+          {{ launch.created_at|date:"Y-m-d" }}
+          <div class="text-muted small">{{ launch.created_at|date:"H:i" }}</div>
+        </td>
+        <td>
+          {{ launch.site }}
+          <div class="text-muted small">{{ launch.project }}</div>
+        </td>
+        <td>
+          <span class="label label-{{ launch.status|launch_status_class }}">{{ launch.get_status_display }}</span>
+        </td>
+        <td>
+          <div class="launchActions">
+            {% if not launch.is_active and launch.artifact_uuid %}
+            <a href="{% url 'sharing_portal:launch_generic' launch.artifact_uuid launch.version_slug %}?launch={{ launch.id }}" class="btn btn-primary btn-sm">Launch again</a>
+            {% endif %}
+            {% if not launch.is_active and launch.resources %}
+            <form method="post" action="{% url 'sharing_portal:launch_detail' launch.id %}" onsubmit="return confirm('Delete the server and lease this launch created? A lease you supplied is kept.')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="clean_up">
+              <button type="submit" class="btn btn-danger btn-sm">Clean up</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="launchEmpty">
+    <p class="text-muted">You haven't launched any artifacts yet.</p>
+    <a href="{% trovi_dashboard_url 'artifacts' %}" target="_blank" rel="noopener" class="btn btn-primary">Find an artifact in Trovi <i class="fa fa-external-link"></i></a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

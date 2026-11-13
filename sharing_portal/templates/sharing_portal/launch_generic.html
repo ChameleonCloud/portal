@@ -1,0 +1,76 @@
+{% extends 'layout/default.html' %}
+{% load static bootstrap3 trovi_filters %}
+
+{% block title %}Launch {{ artifact.title }} | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{% url 'sharing_portal:launch_list' %}">Launches</a>
+  </li>
+  <li class="active">New launch</li>
+</ol>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="artifactDetail">
+    <header class="artifactDetail__heading">
+      <h2 class="artifactTitle">Launch {{ artifact.title }} on a Chameleon node</h2>
+    </header>
+    <p class="text-muted">
+      Version {{ version.slug }} &middot;
+      <a href="{% trovi_dashboard_url 'artifacts' artifact.uuid 'versions' version.slug %}" target="_blank" rel="noopener">View artifact in Trovi <i class="fa fa-external-link"></i></a>
+    </p>
+
+    <div class="layoutGrid">
+      <div class="layoutGrid__main">
+        {% if not form.fields.project.choices %}
+        <div class="alert alert-warning">
+          You need a project with an active allocation to launch this artifact.
+        </div>
+        {% endif %}
+
+        {% bootstrap_form_errors form error_types='all' %}
+        {% for legend, fields in form.fieldsets %}
+        <fieldset>
+          <legend>{{ legend }}</legend>
+          {% for field in fields %}
+          {% bootstrap_field field %}
+          {% endfor %}
+        </fieldset>
+        {% endfor %}
+
+        <div class="artifactActions">
+          <button type="submit" class="btn btn-success btn-lg">Launch</button>
+        </div>
+      </div>
+
+      <div class="layoutGrid__side launchSide">
+        <div class="panel panel-default">
+          <div class="panel-heading">What happens</div>
+          <div class="panel-body">
+            <ul>
+              <li>
+                Reserves a node based on the parameters given. 
+              </li>
+              <li>
+                Provisions an instance on the node, using the specified OS image.
+              </li>
+              <li>
+                Loads the artifact's contents into the home directory of the <code>cc</code> user.
+              </li>
+              <li>Shows how to access the node when it's ready, in this case via SSH.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
