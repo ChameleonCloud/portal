@@ -180,6 +180,7 @@ INSTALLED_APPS = (
     "allocations",
     "appliance_catalog",
     "sharing_portal",
+    "trovi_launcher",
     "chameleon_cms_integrations",
     "filer",
     "easy_thumbnails",
@@ -340,6 +341,13 @@ KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET = os.environ.get(
 )
 KEYCLOAK_CLIENT_PROVIDER_ALIAS = os.environ.get("KEYCLOAK_CLIENT_PROVIDER_ALIAS")
 KEYCLOAK_CLIENT_PROVIDER_SUB = os.environ.get("KEYCLOAK_CLIENT_PROVIDER_SUB")
+
+TROVI_LAUNCHER = {
+    "PROVISIONER": os.getenv(
+        "TROVI_LAUNCHER_PROVISIONER",
+        f"{sys.executable} -m trovi_launcher.provisioner.chameleon",
+    ).split(),
+}
 
 AUTHENTICATION_BACKENDS = ("chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB",)
 
