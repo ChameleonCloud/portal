@@ -683,6 +683,12 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@chameleonclo
 # User News Outage Notification
 OUTAGE_NOTIFICATION_EMAIL = os.environ.get("OUTAGE_NOTIFICATION_EMAIL", "")
 
+# Mailman -request addresses that new users are asked to join
+MAILING_LIST_REQUEST_EMAILS = os.environ.get(
+    "MAILING_LIST_REQUEST_EMAILS",
+    "users-request@lists.chameleoncloud.org,outages-request@lists.chameleoncloud.org",
+)
+
 
 #####
 #
