@@ -17,7 +17,7 @@
   "dependencies": {
     "@glidejs/glide": "^3.4.1",
     "axios": "^1.19.0",
-    "camelcase-keys": "^6.2.2",
+    "camelcase-keys": "^10.0.2",
     "change-case": "^4.1.2",
     "jspath": "^0.4.0",
     "snakecase-keys": "^3.2.0"
