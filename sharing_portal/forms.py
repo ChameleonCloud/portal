@@ -4,6 +4,7 @@ from django.forms.utils import pretty_name
 
 from projects.models import Project
 from trovi_launcher import credentials
+from trovi_launcher.models import Launch
 from util.project_allocation_mapper import ProjectAllocationMapper
 
 from .models import DaypassRequest
@@ -178,7 +179,7 @@ class GenericLaunchForm(forms.Form):
         ("Context", ["site", "project"]),
         ("Lease", ["node_type", "lease_duration_hours", "lease_id"]),
         ("Instance", ["image"]),
-        ("Access", ["ssh_public_key"]),
+        ("Access", ["previous_ssh_key", "ssh_public_key"]),
     ]
 
     site = forms.ChoiceField()
@@ -204,6 +205,11 @@ class GenericLaunchForm(forms.Form):
             "start within 15 minutes. The length then comes from the lease."
         ),
     )
+    previous_ssh_key = forms.ChoiceField(
+        label="SSH key from a previous launch",
+        required=False,
+        help_text="Used unless you paste a different key below.",
+    )
     ssh_public_key = forms.CharField(
         label="SSH public key",
         widget=forms.Textarea(attrs={"rows": 3}),
@@ -219,6 +225,19 @@ class GenericLaunchForm(forms.Form):
             for project in mapper.get_user_projects(request.user, fetch_balance=False)
             if any(a["status"].lower() == "active" for a in project["allocations"])
         ]
+        launches = Launch.objects.filter(user_sub=request.user.keycloak_user.sub)
+        keys = dict.fromkeys(
+            key
+            for saved in launches.values_list("arguments", flat=True)
+            if (key := saved.get("ssh_public_key"))
+        )
+        if keys:
+            self.fields["previous_ssh_key"].choices = [
+                (key, self.key_label(key)) for key in keys
+            ]
+            self.fields["ssh_public_key"].required = False
+        else:
+            del self.fields["previous_ssh_key"]
         extra = [name for name in arguments if name not in self.fields]
         for name in extra:
             field = self.ARGUMENT_FIELDS.get(type(arguments[name]), forms.CharField)
@@ -232,10 +251,17 @@ class GenericLaunchForm(forms.Form):
         field = cls.base_fields.get(name)
         return field and field.label or pretty_name(name)
 
+    @staticmethod
+    def key_label(key):
+        """The key's comment and the end of its body, which tell keys apart"""
+        kind, body, *comment = key.split(maxsplit=2)
+        return " ".join([*comment, f"({kind} ...{body[-8:]})"])
+
     def fieldsets(self):
         """Return (legend, bound fields) pairs; the artifact's own come last."""
         fieldsets = [
-            (legend, [self[name] for name in names]) for legend, names in self.FIELDSETS
+            (legend, [self[name] for name in names if name in self.fields])
+            for legend, names in self.FIELDSETS
         ]
         named = {name for _, names in self.FIELDSETS for name in names}
         if extra := [field for field in self if field.name not in named]:
@@ -244,6 +270,7 @@ class GenericLaunchForm(forms.Form):
 
     def clean_ssh_public_key(self):
         key = self.cleaned_data["ssh_public_key"].strip()
+        key = key or self.cleaned_data.get("previous_ssh_key", "")
         parts = key.split()
         if "\n" in key or len(parts) < 2 or not parts[0].startswith(self.KEY_PREFIXES):
             raise forms.ValidationError("Enter a single OpenSSH public key.")
@@ -263,5 +290,6 @@ class GenericLaunchForm(forms.Form):
         return {
             name: value
             for name, value in self.cleaned_data.items()
-            if name not in ("site", "project") and value not in ("", None)
+            if name not in ("site", "project", "previous_ssh_key")
+            and value not in ("", None)
         }
