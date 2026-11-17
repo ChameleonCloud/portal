@@ -414,16 +414,13 @@ def launch(request, artifact, version_slug=None):
             reverse("sharing_portal:request_daypass", args=[artifact["uuid"]]), request
         )
         return redirect(daypass_request_url)
-    if any(s["type"] == SINGLE_NODE_SETUP_TYPE for s in version["environment_setup"]):
-        return redirect(
-            preserve_sharing_key(
-                reverse(
-                    "sharing_portal:launch_generic",
-                    args=[artifact["uuid"], version["slug"]],
-                ),
-                request,
-            )
+    setups = version["environment_setup"]
+    if setups and _chosen_setup(request, setups)["type"] == SINGLE_NODE_SETUP_TYPE:
+        url = reverse(
+            "sharing_portal:launch_generic", args=[artifact["uuid"], version["slug"]]
         )
+        # The query has the sharing key, and which launch option to use
+        return redirect(f"{url}?{request.GET.urlencode()}" if request.GET else url)
 
     # Otherwise, launch the artifact and redirect to jupyterhub launch
     trovi.increment_metric_count(artifact["uuid"], version["slug"], token=trovi_token)
@@ -490,15 +487,10 @@ def launch_generic(request, artifact, version_slug):
         (m for m in access_methods if m["protocol"] == "git"),
         next((m for m in access_methods if m["protocol"] == "http"), None),
     )
-    setup = next(
-        (
-            s
-            for s in version["environment_setup"]
-            if s["type"] == SINGLE_NODE_SETUP_TYPE
-        ),
-        {},
-    )
-    arguments = setup.get("arguments", {})
+    setup = _chosen_setup(request, version["environment_setup"])
+    if setup["type"] != SINGLE_NODE_SETUP_TYPE:
+        raise Http404("That launch option doesn't launch on a node.")
+    arguments = setup["arguments"]
     if previous_id := request.GET.get("launch"):
         previous = _user_launch(request, previous_id)
         arguments = (
@@ -536,8 +528,22 @@ def launch_generic(request, artifact, version_slug):
     return render(
         request,
         "sharing_portal/launch_generic.html",
-        {"artifact": artifact, "version": version, "contents": contents, "form": form},
+        {
+            "artifact": artifact,
+            "version": version,
+            "setup": setup,
+            "contents": contents,
+            "form": form,
+        },
     )
+
+
+def _chosen_setup(request, setups):
+    """Return the launch option that ?setup indexes, by default the first."""
+    index = request.GET.get("setup", "0")
+    if not index.isdigit() or int(index) >= len(setups):
+        raise Http404("This version has no such launch option.")
+    return setups[int(index)]
 
 
 def _user_launch(request, launch_id):

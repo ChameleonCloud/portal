@@ -25,6 +25,7 @@
     </header>
     <p class="text-muted">
       Version {{ version.slug }} &middot;
+      {% if setup.label %}{{ setup.label }} &middot;{% endif %}
       <a href="{% trovi_dashboard_url 'artifacts' artifact.uuid 'versions' version.slug %}" target="_blank" rel="noopener">View artifact in Trovi <i class="fa fa-external-link"></i></a>
     </p>
 
