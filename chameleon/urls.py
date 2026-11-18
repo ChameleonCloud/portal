@@ -81,6 +81,7 @@ urlpatterns = [
     path("user/projects/", include("projects.urls", namespace="projects")),
     path("user/help/", include("djangoRT.urls", namespace="djangoRT")),
     path("api/balance_service/", include("balance_service.urls")),
+    path("trovi-launcher/", include("trovi_launcher.urls")),
     # mailing list resource for mailman autosubscribe
     path(
         "mailman/new_members.txt",

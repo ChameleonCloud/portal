@@ -1,0 +1,118 @@
+{% extends 'layout/default.html' %}
+{% load static %}
+{% load render_bundle from webpack_loader %}
+{% load trovi_filters %}
+
+{% block title %}Launch | Chameleon Cloud{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'sharing_portal/artifacts.css' %}">
+{% endblock %}
+
+{% block content %}
+<ol class="breadcrumb">
+  <li>
+    <a href="{% url 'sharing_portal:launch_list' %}">Launches</a>
+  </li>
+  <li class="active">{% firstof launch.artifact_title launch.version_slug %}</li>
+</ol>
+
+<div class="artifactDetail" id="launchStatus"
+     data-status-url="{% url 'sharing_portal:launch_status' launch.id %}"
+     data-status="{{ launch.status }}"
+     data-events="{{ events|length }}">
+  <header class="artifactDetail__heading">
+    <h2 class="artifactTitle">Launch of {% firstof launch.artifact_title launch.version_slug %}</h2>
+    <span class="label label-{{ launch.status|launch_status_class }} launchStatus">{{ launch.get_status_display }}</span>
+  </header>
+  {% if launch.artifact_uuid %}
+  <p class="text-muted">
+    Version {{ launch.version_slug }} &middot;
+    <a href="{% trovi_dashboard_url 'artifacts' launch.artifact_uuid 'versions' launch.version_slug %}" target="_blank" rel="noopener">View artifact in Trovi <i class="fa fa-external-link"></i></a>
+  </p>
+  {% endif %}
+
+  <div class="layoutGrid">
+    <div class="layoutGrid__main">
+      {% if launch.status == 'ready' %}
+      <div class="alert alert-success">
+        <p>Your node is ready. Access it with:</p>
+        <div class="launchAccess">
+          <pre>{{ launch.message }}</pre>
+          <button type="button" class="btn btn-default btn-sm" data-copy="{{ launch.message }}">Copy</button>
+        </div>
+      </div>
+      {% elif launch.status == 'failed' %}
+      <div class="alert alert-danger">The launch failed: {{ launch.message }}</div>
+      {% elif launch.status == 'cancelled' %}
+      <div class="alert alert-warning">The launch was cancelled.</div>
+      {% elif launch.status == 'deleted' %}
+      <div class="alert alert-info">The resources this launch created were deleted.</div>
+      {% else %}
+      <div class="alert alert-info">
+        {{ launch.message|default:"Starting" }}. This page updates as the launch
+        progresses. Bare metal nodes usually take 10 to 20 minutes.
+      </div>
+      {% endif %}
+
+      <div class="launchToolbar">
+        {% if launch.is_active %}
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-default">Cancel launch</button>
+        </form>
+        {% elif launch.artifact_uuid %}
+        <a href="{% url 'sharing_portal:launch_generic' launch.artifact_uuid launch.version_slug %}?launch={{ launch.id }}" class="btn btn-primary" title="Opens the launch form with this launch's settings.">Launch again</a>
+        {% endif %}
+        {% if not launch.is_active and launch.resources %}
+        <form method="post" onsubmit="return confirm('Delete the server and lease this launch created? A lease you supplied is kept.')">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="clean_up">
+          <button type="submit" class="btn btn-danger" title="Deletes the server and lease this launch created. A lease you supplied is kept.">Clean up</button>
+        </form>
+        {% endif %}
+      </div>
+
+      <h3>Progress</h3>
+      <table class="table table-condensed launchTable">
+        {% for event in events %}
+        <tr class="{% if event.level == 'error' %}danger{% elif event.level == 'warning' %}warning{% endif %}">
+          <td class="text-muted">{{ event.created_at|time:"H:i:s" }}</td>
+          <td><span class="label label-default">{{ event.step }}</span></td>
+          <td>{{ event.message }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="layoutGrid__side launchSide">
+      <div class="panel panel-default">
+        <div class="panel-heading">Settings</div>
+        <div class="panel-body">
+          <dl>
+            {% for label, value in settings %}
+            <dt>{{ label }}</dt><dd>{{ value }}</dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+
+      {% if result %}
+      <div class="panel panel-default">
+        <div class="panel-heading">Result</div>
+        <div class="panel-body">
+          <dl>
+            {% for label, value in result %}
+            <dt>{{ label }}</dt><dd class="launchWrap">{{ value }}</dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% render_bundle 'launch_status' %}
+{% endblock %}
