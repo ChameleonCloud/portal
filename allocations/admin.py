@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib import admin
 from django.contrib.admin.widgets import AutocompleteSelect
 from django.db import models
@@ -34,6 +36,29 @@ class ChargeInline(admin.TabularInline):
 
     def has_change_permission(self, request, obj):
         return False
+
+
+class ReviewWeekListFilter(admin.DateFieldListFilter):
+    """Date filter plus the most recently completed Saturday-Friday weeks."""
+
+    weeks = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        today = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+        last_saturday = today - timedelta(days=(today.weekday() - 5) % 7)
+        self.links += tuple(
+            (
+                f"Review week {start:%b %d} - {start + timedelta(days=6):%b %d}",
+                {
+                    self.lookup_kwarg_since: start,
+                    self.lookup_kwarg_until: start + timedelta(weeks=1),
+                },
+            )
+            for start in (
+                last_saturday - timedelta(weeks=n) for n in range(1, self.weeks + 1)
+            )
+        )
 
 
 class AllocationAdmin(admin.ModelAdmin):
@@ -474,7 +499,7 @@ class AllocationAdmin(admin.ModelAdmin):
         "project__pi__first_name",
         "project__pi__last_name",
     ]
-    list_filter = ["status", "date_requested"]
+    list_filter = ["status", ("date_requested", ReviewWeekListFilter)]
     inlines = [ChargeInline]
     # form = ReviewAllocationForm
 
