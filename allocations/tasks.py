@@ -1,6 +1,6 @@
 import calendar
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
 from operator import attrgetter
 
@@ -93,7 +93,7 @@ def warn_user_for_expiring_allocation():
     """
     Sends an email to users when their allocation is within one month of expiring
     """
-    now = datetime.now(timezone.utc)
+    now = timezone.now()
     today = now.date()
     days_this_month = calendar.monthrange(today.year, today.month)[1]
     target_expiration_date = today + timedelta(days=days_this_month)
@@ -215,7 +215,7 @@ def warn_user_for_low_allocations():
             LOG.info(f"Warned PI about low allocation {alloc.id}")
             try:
                 with transaction.atomic():
-                    alloc.low_allocation_warning_issued = datetime.now(timezone.utc)
+                    alloc.low_allocation_warning_issued = timezone.now()
                     alloc.save()
             except Exception:
                 LOG.error(

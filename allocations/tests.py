@@ -417,3 +417,49 @@ class ExpireTests(TestCase):
         for alloc in expired_allocations:
             self.assertTrue(alloc.status, "active")
             alloc.delete()
+
+
+class WarningTests(TestCase):
+    def setUp(self):
+        self.test_pi = get_user_model().objects.create_user(
+            username="test_pi",
+            password="test_password",
+            email="pi@example.com",
+        )
+        self.test_project = Project.objects.create(
+            automatically_tagged=False,
+            description="This is a test project for allocations.",
+            pi=self.test_pi,
+            title="Test Project",
+            nickname="test_project",
+            charge_code="TEST123",
+        )
+        self.test_allocation = Allocation.objects.create(
+            project=self.test_project,
+            status="active",
+            requestor=self.test_pi,
+            date_requested=timezone.now(),
+            expiration_date=timezone.now() + timedelta(days=5),
+            su_requested=100.0,
+            start_date=timezone.now(),
+            su_allocated=100.0,
+        )
+
+    @mock.patch.object(tasks, "send_mail", return_value=1)
+    def test_warn_user_for_expiring_allocation(self, send_mail_mock):
+        tasks.warn_user_for_expiring_allocation()
+
+        send_mail_mock.assert_called_once()
+        self.test_allocation.refresh_from_db()
+        self.assertIsNotNone(self.test_allocation.expiration_warning_issued)
+
+    @mock.patch.object(tasks, "send_mail", return_value=1)
+    @mock.patch.object(
+        tasks, "project_balances", return_value=[{"total": 95.0, "allocated": 100.0}]
+    )
+    def test_warn_user_for_low_allocations(self, balances_mock, send_mail_mock):
+        tasks.warn_user_for_low_allocations()
+
+        send_mail_mock.assert_called_once()
+        self.test_allocation.refresh_from_db()
+        self.assertIsNotNone(self.test_allocation.low_allocation_warning_issued)

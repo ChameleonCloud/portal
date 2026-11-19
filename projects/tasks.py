@@ -1,6 +1,5 @@
 import logging
 from collections import namedtuple, Counter, defaultdict
-from datetime import datetime
 
 from celery import shared_task as task
 from django.conf import settings
@@ -86,7 +85,7 @@ def handle_too_many_daypass_users(artifact_uuid):
     allocations = Allocation.objects.filter(
         status="active", project=reproducibility_project
     )
-    now = datetime.now(timezone.utc)
+    now = timezone.now()
     for alloc in allocations:
         # Prevent this from running multiple times
         # NOTE: We cannot change status or something of the allocation,
