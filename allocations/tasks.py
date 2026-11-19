@@ -80,7 +80,9 @@ def _send_expiration_warning_mail(alloc, today):
             html_message=email_body,
         )
     except Exception:
-        pass
+        LOG.exception(
+            f"Error sending expiration warning email for project {charge_code}"
+        )
 
     return mail_sent
 
@@ -121,7 +123,7 @@ def warn_user_for_expiring_allocation():
                     alloc.expiration_warning_issued = now
                     alloc.save()
             except Exception:
-                LOG.error(
+                LOG.exception(
                     f"Failed to update ORM with expiration warning timestamp "
                     f"for project {charge_code}."
                 )
@@ -170,7 +172,9 @@ def _send_low_allocation_warning(alloc, percent_used):
             html_message=email_body,
         )
     except Exception:
-        pass
+        LOG.exception(
+            f"Error sending low allocation warning email for project {charge_code}"
+        )
 
     return mail_sent
 
@@ -215,13 +219,13 @@ def warn_user_for_low_allocations():
                     alloc.low_allocation_warning_issued = timezone.now()
                     alloc.save()
             except Exception:
-                LOG.error(
+                LOG.exception(
                     f"Failed to update ORM with low warning timestamp "
                     f"for project {charge_code}."
                 )
         else:
             LOG.error(
-                f"Failed to send expiration warning email for project {charge_code}"
+                f"Failed to send low allocation warning email for project {charge_code}"
             )
 
 

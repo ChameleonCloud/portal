@@ -463,3 +463,18 @@ class WarningTests(TestCase):
         send_mail_mock.assert_called_once()
         self.test_allocation.refresh_from_db()
         self.assertIsNotNone(self.test_allocation.low_allocation_warning_issued)
+
+    @mock.patch.object(tasks, "send_mail", side_effect=Exception("SMTP down"))
+    @mock.patch.object(
+        tasks, "project_balances", return_value=[{"total": 95.0, "allocated": 100.0}]
+    )
+    def test_warn_user_for_low_allocations_send_failure(
+        self, balances_mock, send_mail_mock
+    ):
+        with self.assertLogs(tasks.LOG, "ERROR") as logs:
+            tasks.warn_user_for_low_allocations()
+
+        self.assertIsNotNone(logs.records[0].exc_info)
+        self.assertIn("low allocation warning", logs.records[-1].getMessage())
+        self.test_allocation.refresh_from_db()
+        self.assertIsNone(self.test_allocation.low_allocation_warning_issued)
