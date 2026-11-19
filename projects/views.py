@@ -968,6 +968,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 "justification": justification,
             },
         )
+        form.fields["description"].disabled = True
         formset = FundingFormset(
             request.POST,
             initial=funding_source,
@@ -1038,6 +1039,7 @@ def create_allocation(request, project_id, allocation_id=-1):
                 "justification": justification,
             }
         )
+        form.fields["description"].disabled = True
         formset = FundingFormset(initial=funding_source)
         consent_form = ConsentForm()
     context = {
