@@ -8,15 +8,12 @@ from celery import shared_task as task
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.urls import reverse
-from keycloak.exceptions import KeycloakClientError
 
 from allocations.models import Allocation, Charge
 from balance_service.utils.su_calculators import project_balances
-from projects.models import Project
 from util.keycloak_client import KeycloakClient
 
 from . import utils
@@ -382,64 +379,3 @@ def activate_expire_allocations():
     deactivate_multiple_active_allocations_of_projects()
     # activate allocations
     active_approved_allocations()
-    # check consistency between allocation system and Keycloak
-    check_keycloak_consistency()
-
-
-def check_keycloak_consistency():
-    active_projects = {
-        alloc.project.charge_code
-        for alloc in Allocation.objects.filter(status="active")
-    }
-    inactive_projects = set(
-        project.charge_code
-        for project in Project.objects.filter(~Q(charge_code__in=active_projects))
-    )
-
-    keycloak_client = KeycloakClient()
-    groups = keycloak_client._project_admin()
-    groups_url = groups._client.get_full_url(
-        groups.get_path("collection", realm=keycloak_client.realm_name)
-    )
-
-    active_groups = {
-        group.get("name")
-        for group in groups._client.get(url=groups_url, briefRepresentation=False)
-        # Filter for any groups with have `has_active_allocation` == "true"
-        if "true" in group.get("attributes", {}).get("has_active_allocation", [])
-    }
-    inactive_groups = {
-        group.get("name")
-        for group in groups._client.get(url=groups_url, briefRepresentation=False)
-        # Filter for any groups with have `has_active_allocation` == "false" or None
-        if any(
-            inactive in group.get("attributes", {}).get("has_active_allocation", [])
-            for inactive in ("false", None)
-        )
-    }
-
-    for project in active_projects:
-        if project in inactive_groups:
-            LOG.warning(
-                f"CONSISTENCY: Project {project} with active allocation not active in Keycloak"
-            )
-            try:
-                keycloak_client.update_project(project, has_active_allocation="true")
-            except KeycloakClientError:
-                # If there are many errors to correct, the client may expire
-                LOG.warning(f"Failed to update project {project} in Keycloak. Retrying")
-                keycloak_client = KeycloakClient()
-                keycloak_client.update_project(project, has_active_allocation="true")
-
-    for project in inactive_projects:
-        if project in active_groups:
-            LOG.warning(
-                f"CONSISTENCY: Project {project} without active allocation is active in Keycloak"
-            )
-            try:
-                keycloak_client.update_project(project, has_active_allocation="false")
-            except KeycloakClientError:
-                # If there are many errors to correct, the client may expire
-                LOG.warning(f"Failed to update project {project} in Keycloak. Retrying")
-                keycloak_client = KeycloakClient()
-                keycloak_client.update_project(project, has_active_allocation="false")
