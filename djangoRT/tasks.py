@@ -3,6 +3,7 @@ from datetime import datetime
 from celery import shared_task as task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from djangoRT import rtUtil
 
@@ -45,7 +46,7 @@ def add_openstack_data(self, **kwargs):
 
     try:
         if user_id:
-            portal_user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+            portal_user = get_user_model().objects.get(id=user_id)
             keycloak_client = KeycloakClient()
             projects = keycloak_client.get_full_user_projects_by_user(portal_user)
 
