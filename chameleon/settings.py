@@ -350,7 +350,10 @@ TROVI_LAUNCHER = {
     "PROVISIONER": os.getenv("TROVI_LAUNCHER_PROVISIONER", "").split(),
     "CALLBACK_BASE_URL": os.getenv("TROVI_LAUNCHER_CALLBACK_BASE_URL"),
     "KUBERNETES": {
-        "IMAGE": os.getenv("TROVI_LAUNCHER_KUBERNETES_IMAGE"),
+        "IMAGE": os.getenv(
+            "TROVI_LAUNCHER_KUBERNETES_IMAGE",
+            "ghcr.io/chameleoncloud/trovi-launcher:latest",
+        ),
         "NAMESPACE": os.getenv("TROVI_LAUNCHER_KUBERNETES_NAMESPACE"),
     },
 }
