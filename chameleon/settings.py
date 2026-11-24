@@ -118,7 +118,10 @@ _default_allowed_hosts = [
     "129.114.97.87",
     "dev.chameleon.savanna.tacc.cloud",
 ]
-ALLOWED_HOSTS = _default_allowed_hosts
+ALLOWED_HOSTS = [
+    *_default_allowed_hosts,
+    *filter(None, os.getenv("EXTRA_ALLOWED_HOSTS", "").split(",")),
+]
 # ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default=_default_allowed_hosts)
 
 # Application definition
@@ -180,6 +183,7 @@ INSTALLED_APPS = (
     "allocations",
     "appliance_catalog",
     "sharing_portal",
+    "trovi_launcher",
     "chameleon_cms_integrations",
     "filer",
     "easy_thumbnails",
@@ -340,6 +344,19 @@ KEYCLOAK_PORTAL_ADMIN_CLIENT_SECRET = os.environ.get(
 )
 KEYCLOAK_CLIENT_PROVIDER_ALIAS = os.environ.get("KEYCLOAK_CLIENT_PROVIDER_ALIAS")
 KEYCLOAK_CLIENT_PROVIDER_SUB = os.environ.get("KEYCLOAK_CLIENT_PROVIDER_SUB")
+
+TROVI_LAUNCHER = {
+    "RUNNER": os.getenv("TROVI_LAUNCHER_RUNNER", "local"),
+    "PROVISIONER": os.getenv("TROVI_LAUNCHER_PROVISIONER", "").split(),
+    "CALLBACK_BASE_URL": os.getenv("TROVI_LAUNCHER_CALLBACK_BASE_URL"),
+    "KUBERNETES": {
+        "IMAGE": os.getenv(
+            "TROVI_LAUNCHER_KUBERNETES_IMAGE",
+            "ghcr.io/chameleoncloud/trovi-launcher:latest",
+        ),
+        "NAMESPACE": os.getenv("TROVI_LAUNCHER_KUBERNETES_NAMESPACE"),
+    },
+}
 
 AUTHENTICATION_BACKENDS = ("chameleon.ChameleonOIDCAuthBackend.ChameleonOIDCAB",)
 

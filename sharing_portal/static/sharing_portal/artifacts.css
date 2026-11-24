@@ -291,3 +291,48 @@ pre code {
     font-size: 12px;
     white-space: inherit;
 }
+
+.launchTable > tbody > tr > td {
+    vertical-align: middle;
+}
+.launchNowrap {
+    white-space: nowrap;
+}
+.launchActions,
+.launchToolbar {
+    display: flex;
+    gap: 0.5rem;
+}
+.launchActions {
+    justify-content: flex-end;
+}
+.launchToolbar {
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+.launchEmpty {
+    padding: 3rem 0;
+    text-align: center;
+}
+.launchAccess {
+    display: flex;
+    align-items: center;
+}
+.launchAccess pre {
+    flex: 1;
+    margin: 0 1rem 0 0;
+}
+.launchSide {
+    min-width: 25rem;
+}
+.launchSide dl {
+    margin-bottom: 0;
+}
+.launchWrap {
+    overflow-wrap: anywhere;
+}
+.launchStatus {
+    align-self: flex-start;
+    margin-top: 0.6rem;
+    font-size: 1.4rem;
+}
