@@ -66,7 +66,7 @@ httpx = "~0.28"
 openai = "^2.13.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^26.3"
+black = "^26.10"
 flake8 = "^7.0"
 pycodestyle = "^2.14.0"
 pydocstyle = "^6.0"
