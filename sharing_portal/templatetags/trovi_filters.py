@@ -25,7 +25,7 @@ def launch_status_class(status):
     return {
         "ready": "success",
         "failed": "danger",
-        "cancelled": "warning",
+        "canceled": "warning",
         "pending": "info",
         "running": "info",
     }.get(status, "default")

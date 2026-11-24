@@ -64,6 +64,7 @@ djangocms-snippet = "^3.1.0"
 pymemcache = "^4.0.0"
 httpx = "~0.28"
 openai = "^2.13.0"
+trovi-launcher = {git = "https://github.com/ChameleonCloud/trovi-launcher", branch = "wip/init", extras = ["k8s"]}
 
 [tool.poetry.group.dev.dependencies]
 black = "^26.3"

@@ -580,7 +580,7 @@ def launch_detail(request, launch_id):
         return redirect("sharing_portal:launch_detail", launch.id)
     if request.method == "POST":
         launcher.cancel_launch(launch)
-        messages.info(request, "Cancelling. Resources the launch created are deleted.")
+        messages.info(request, "Canceling. Resources the launch created are deleted.")
         return redirect("sharing_portal:launch_detail", launch.id)
     launcher.reconcile(launch)
     return render(

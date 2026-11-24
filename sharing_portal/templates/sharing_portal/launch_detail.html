@@ -45,8 +45,8 @@
       </div>
       {% elif launch.status == 'failed' %}
       <div class="alert alert-danger">The launch failed: {{ launch.message }}</div>
-      {% elif launch.status == 'cancelled' %}
-      <div class="alert alert-warning">The launch was cancelled.</div>
+      {% elif launch.status == 'canceled' %}
+      <div class="alert alert-warning">The launch was canceled.</div>
       {% elif launch.status == 'deleted' %}
       <div class="alert alert-info">The resources this launch created were deleted.</div>
       {% else %}
